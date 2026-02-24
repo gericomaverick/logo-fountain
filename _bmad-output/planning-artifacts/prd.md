@@ -19,6 +19,7 @@
 
 ### 1.1 Purpose
 
+This PRD supersedes all previous versions. Downstream agents must treat this as authoritative.
 This document defines the functional and non-functional requirements for the Logo Fountain platform. It provides an implementation-ready specification for engineering, design, and delivery teams.
 
 ### 1.2 Scope
