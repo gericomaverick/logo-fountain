@@ -1,8 +1,8 @@
 # Product Requirements Document: Logo Fountain
 
-**Version:** 1.0
-**Date:** 2026-02-24
-**Author:** Business Analyst Agent
+**Version:** 1.0  
+**Date:** 2026-02-24  
+**Author:** Business Analyst Agent  
 **Status:** Draft
 
 ## Document History
@@ -14,10 +14,10 @@
 ## 1. Introduction
 
 ### 1.1 Purpose
-This document serves to detail the product requirements for the Logo Fountain project. It provides actionable specifications for the development team to follow.
+This document outlines the product requirements for Logo Fountain, defining the features and functionalities essential for building the logo design service.
 
 ### 1.2 Scope
-The document outlines features and requirements necessary for the MVP of the Logo Fountain, focusing on core functionalities for clients and admins.
+In scope: Marketing site, client login, project dashboard, concept upload, final asset delivery. Out of scope: Marketplace for external designers, self-service logo generators.
 
 ### 1.3 References
 - Product Brief: /home/openclaw/.openclaw/workspace/projects/logo-fountain/_bmad-output/planning-artifacts/product-brief.md
@@ -25,55 +25,37 @@ The document outlines features and requirements necessary for the MVP of the Log
 ## 2. Product Overview
 
 ### 2.1 Product Vision
-To provide a premium logo design service where small businesses and startups can obtain professionally designed logos tailored to their needs.
+To provide a premium logo design service that simplifies the project management process for clients.
 
 ### 2.2 Target Users
-- Clients purchasing logo packages
-- Admin/designer managing delivery
+- Clients purchasing logo packages (small businesses)
+- Admins/designers managing delivery
 
 ### 2.3 Success Metrics
-- Clients can complete projects without manual email chains
-- Admin workload reduced by >50%
-- High perceived service quality
-- Repeat customers and referrals
+- Projects completed without manual email chains.
+- Admin workload reduced by >50%.
+- High perceived service quality.
+- Repeat customers and referrals.
 
 ## 3. User Journeys
 
-### UJ-1: Client Journey
+### UJ-1: Client Project Management
 
-**Persona:** Client
-**Goal:** Purchase a logo package
-
-| Step | User Action | System Response |
-|------|-------------|-----------------|
-| 1 | User logs in | System verifies user and displays dashboard |
-| 2 | User selects logo package | System presents package options for review |
-| 3 | User submits request | System confirms submission and provides timeline |
-
-**Success Criteria:**
-- User receives confirmation email
-- Timeline provided matches client expectations
-
-**Error Scenarios:**
-- Submission fails: user is notified with actionable error messages.
-
-### UJ-2: Admin Journey
-
-**Persona:** Admin
-**Goal:** Manage client projects
+**Persona:** Client  
+**Goal:** View and approve logo designs
 
 | Step | User Action | System Response |
 |------|-------------|-----------------|
-| 1 | Admin logs in | System verifies admin and displays project dashboard |
-| 2 | Admin uploads design concepts | System stores and notifies clients of updates |
-| 3 | Admin responds to feedback | System logs and tracks revisions |
+| 1 | Log in to client dashboard | Display project overview |
+| 2 | Select a project | Show project details and designs |
+| 3 | Submit feedback | Update design status |
+| 4 | Approve final design | Mark design as approved |
 
-**Success Criteria:**
-- Admin feedback is successfully logged
-- Clients are notified of revisions made
+**Success Criteria:** Successfully completes project approval.
 
-**Error Scenarios:**
-- Upload fails: admin receives error notification and support links.
+**Error Scenarios:** 
+- Unable to log in: Redirect to recovery.
+- Design not found: Display error message.
 
 ## 4. Functional Requirements
 
@@ -81,17 +63,9 @@ To provide a premium logo design service where small businesses and startups can
 
 | ID | Requirement | Priority | Notes |
 |----|-------------|----------|-------|
-| FR-CF-001 | Clients must log in securely using multi-factor authentication | Must | Enhances security |
-| FR-CF-002 | Clients should be able to view design concepts and revisions | Must | Key functionality |
-| FR-CF-003 | Clients must be able to submit feedback and requests | Must | Enhances client interaction |
-
-### 4.2 Admin Features
-
-| ID | Requirement | Priority | Notes |
-|----|-------------|----------|-------|
-| FR-AF-001 | Admin must manage all client projects efficiently | Must | Essential for workflow |
-| FR-AF-002 | Admin must upload concept designs | Must | Important for product delivery |
-| FR-AF-003 | Admin must respond to client feedback through the portal | Must | Ensures better communication |
+| FR-CLIENT-001 | Secure login functionality | Must | Ensure client data protection |
+| FR-CLIENT-002 | View design concepts | Must | Display thumbnails of designs |
+| FR-CLIENT-003 | Submit feedback | Must | Ensure feedback is structured |
 
 ## 5. Non-Functional Requirements
 
@@ -99,13 +73,13 @@ To provide a premium logo design service where small businesses and startups can
 
 | ID | Requirement |
 |----|-------------|
-| NFR-PERF-001 | System should handle 100 concurrent users without degradation |
+| NFR-PERF-001 | Page load time < 3 seconds |
 
 ### 5.2 Security
 
 | ID | Requirement |
 |----|-------------|
-| NFR-SEC-001 | Data must be encrypted both in transit and at rest |
+| NFR-SEC-001 | Data encryption in transit and at rest |
 
 ### 5.3 Accessibility
 
@@ -118,42 +92,52 @@ To provide a premium logo design service where small businesses and startups can
 ### 6.1 Entities
 
 #### User
+
 | Attribute | Type | Required | Description |
 |-----------|------|----------|-------------|
-| id | UUID | Yes | Primary key |
-| email | String | Yes | User email |
-| password | String | Yes | Hashed password |
+| id | UUID | Yes | Unique identifier |
+| email | String | Yes | User email address |
+| password | String | Yes | Encrypted password |
+
+#### Project
+
+| Attribute | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | UUID | Yes | Unique identifier |
+| client_id | UUID | Yes | Associated client identifier |
+| status | String | Yes | Current project status |
 
 ## 7. API Overview
 
 ### 7.1 Authentication
-Users must authenticate with email and password, supported by multi-factor validation.
+OAuth 2.0 for secure login.
 
 ### 7.2 Endpoints Summary
 
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
 | POST | /api/login | Authenticate user |
-| POST | /api/clients | Create a new client entry |
-| GET | /api/projects | Retrieve user projects |
+| GET | /api/projects | Retrieve client projects |
 
 ## 8. Assumptions & Dependencies
 
 ### 8.1 Assumptions
-- Users are familiar with basic web navigation.
+- All users have internet access.
 
 ### 8.2 Dependencies
-- Reliable internet access for all users.
+- Payment gateway integration for purchases.
 
 ## 9. Out of Scope
-- External designer marketplace.
+- Any features related to self-service logo generation.
 
 ## 10. Open Questions
+
 | # | Question | Owner | Status |
 |---|----------|-------|--------|
-| 1 | What is the maximum expected load for the app? | Product Owner | Open |
+| 1 | How many design concepts should be provided? | BA | Open |
 
 ## 11. Glossary
+
 | Term | Definition |
 |------|------------|
-| MVP | Minimum Viable Product |
+| N/A | N/A |
