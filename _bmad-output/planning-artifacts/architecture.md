@@ -7,38 +7,41 @@
 ## 1. Overview
 
 ### 1.1 System Context
-Logo Fountain combines premium logo design with management tools for clients and designers.
+Logo Fountain is a logo design service that manages client projects through a digital workflow, involving admin oversight and client participation.
 
 ### 1.2 Architecture Principles
-1. Simplicity — Ensure that the system remains easy to understand and maintain.
+1. **Simplicity** — Keep the system easy to understand and manage.
+2. **Scalability** — Design for growth without sacrificing performance.
+3. **Maintainability** — Ensure the system is easy to update and maintain long-term.
 
 ## 2. Technology Stack
 
-| Layer   | Technology                 | Version   | Rationale                        |
-|---------|----------------------------|-----------|----------------------------------|
-| Frontend| Next.js, Tailwind          | Latest    | For responsive & modern UI.
-| Backend | Supabase (Postgres, Auth)  | Latest    | Provides database, auth, storage.
-| Language| TypeScript                 | Latest    | Ensures type safety.
+| Layer     | Technology                          | Version      | Rationale                                    |
+|-----------|-------------------------------------|--------------|----------------------------------------------|
+| Runtime   | Next.js, Tailwind                   | Latest       | Great for frontend development and styling.  |
+| Backend   | Supabase (Postgres, Auth, Storage) | Latest       | Full-featured backend as a service solution. |
+| Language  | TypeScript                          | Latest       | Strong type system, better maintainability.  |
 
 ## 3. Architecture Decisions
 
-### ADR-001: Choose Next.js for Frontend
+### ADR-001: Framework Choice
 
 **Status:** Accepted  
 **Date:** 2026-02-24  
-**Context:** Needed a framework that handles SSR and builds SPA effectively.
 
-**Decision:** Use Next.js for the frontend.  
+**Context:** Must support responsive design and admin functionality.  
 
-**Options Considered:**  
-| Option      | Pros                            | Cons                             |  
-|-------------|---------------------------------|----------------------------------|  
-| React       | Flexible                        | Needs additional setup for SSR.  
-| Next.js     | Built-in SSR, easy API routes   | Slightly more opinionated.       |  
+**Decision:** Use Next.js for frontend and Supabase for backend services.  
 
-**Rationale:** Next.js simplifies routing and SSR.  
+**Options Considered:**
+| Option      | Pros                              | Cons                                 |
+|-------------|-----------------------------------|--------------------------------------|
+| Next.js     | SEO friendly, easy routing        | Learning curve for new developers    |
+| Alternatives | Traditional frameworks (e.g. React) | Higher setup and management overhead  |
 
-**Consequences:** Developers need to adapt to a few conventions of Next.js.
+**Rationale:** Opted for Next.js due to built-in support for SEO and static site generation.
+
+**Consequences:** Improved load times and better SEO ranking.
 
 ## 4. System Architecture
 
@@ -49,23 +52,29 @@ Logo Fountain combines premium logo design with management tools for clients and
 └─────────┘    └─────────┘    └─────────┘
 ```
 
+### 4.2 Components
+- **Frontend:** Client interface built in Next.js with Tailwind for styles.
+- **Backend:** APIs handled through Supabase.
+- **Data:** Data stored in Postgres with structured access control.
+
 ## 5. Data Architecture
 
 ### 5.1 Database Schema
-Entities include Clients, Projects, Designs.
+Entities include Users, Projects, Concepts, Feedback, Assets.  
 
 ### 5.2 Relationships
-Clients can have multiple Projects.
+- User 1:N Project  
+- Project 1:N Concept  
 
 ## 6. API Design
 
 ### 6.1 Style
-REST API is the approach.
+RESTful design with clear endpoints for resources.  
 
 ### 6.2 Authentication
-JWT tokens for session management.
+Supports OAuth and traditional email/password flows.
 
-## 7. Project Structure
+### 7. Project Structure
 ```
 src/
 ├── app/           # Routes
@@ -77,20 +86,19 @@ src/
 ## 8. Coding Standards
 
 ### 8.1 Naming Conventions
-| Type       | Convention     | Example              |
-|------------|----------------|----------------------|
-| Components  | PascalCase     | UserCard.tsx         |
+| Type | Convention  | Example       |
+|------|-------------|---------------|
+| Components | PascalCase | `UserCard.tsx` |
 
-## 9. Testing Strategy
-| Type     | Tool          | Target  |
-|----------|---------------|---------|
-| Unit     | Jest          | 80%     |
+### 9. Testing Strategy
+| Type | Tool  | Target |
+|------|-------|--------|
+| Unit | Jest  | 80%    |
 
 ## 10. Security Considerations
-- All data should be validated and sanitized. 
+- Encryption in transit and at rest.
+- RBAC for user roles.
 
 ## 11. Performance Considerations
-- Aim for quick response times, under 200ms for most endpoints.
-
-## 12. Deployment
-- Use Vercel for hosting with automatic deployment.
+- Optimize API response times to be within acceptable limits.
+- Caching strategies for high-traffic endpoints.
