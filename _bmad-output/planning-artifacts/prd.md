@@ -3,144 +3,369 @@
 **Version:** 1.0  
 **Date:** 2026-02-24  
 **Author:** Business Analyst Agent  
-**Status:** Draft  
+**Status:** Baseline Specification
 
-## Document History  
-| Version | Date       | Author          | Changes         |  
-|---------|------------|-----------------|------------------|  
-| 1.0     | 2026-02-24 | BA Agent        | Initial PRD     |  
+---
 
-## 1. Introduction  
-### 1.1 Purpose  
-This document exists to provide a comprehensive specification that developers and designers can build from for the Logo Fountain project.  
-### 1.2 Scope  
-This PRD covers features for the initial launch, including client and admin functionalities, as outlined in the product brief.  
-### 1.3 References  
-- Product Brief: /home/openclaw/.openclaw/workspace/projects/logo-fountain/_bmad-output/planning-artifacts/product-brief.md  
+## Document History
 
-## 2. Product Overview  
-### 2.1 Product Vision  
-Logo Fountain aims to provide a premium logo design service with an intuitive platform that allows seamless client interactions and efficient project management.  
-### 2.2 Target Users  
-- Clients purchasing logo packages  
-- Admin/designer managing delivery  
-### 2.3 Success Metrics  
-- Clients can complete projects without manual email chains  
-- Admin workload reduced by >50%  
-- High perceived service quality  
-- Repeat customers and referrals  
+| Version | Date       | Author   | Changes               |
+|---------|------------|----------|------------------------|
+| 1.0     | 2026-02-24 | BA Agent | Initial full PRD       |
 
-## 3. User Journeys  
-### UJ-1: Client View Design Concepts  
+---
+
+## 1. Introduction
+
+### 1.1 Purpose
+
+This document defines the functional and non-functional requirements for the Logo Fountain platform. It provides an implementation-ready specification for engineering, design, and delivery teams.
+
+### 1.2 Scope
+
+This PRD covers all MVP functionality for the Logo Fountain platform, including client onboarding, project management, design delivery, revision handling, and administrative controls.
+
+### 1.3 References
+
+- Product Brief: `_bmad-output/planning-artifacts/product-brief.md`
+- Decisions Log: `DECISIONS.md`
+
+---
+
+## 2. Product Overview
+
+### 2.1 Product Vision
+
+Logo Fountain delivers bespoke, human-designed logos through a structured, auditable digital workflow that ensures predictable quality, transparency, and turnaround.
+
+### 2.2 Target Users
+
+| Role     | Description                              |
+|----------|------------------------------------------|
+| Client   | Purchases and manages logo projects      |
+| Admin    | Oversees operations and delivery         |
+| Designer | Produces and uploads creative assets     |
+
+### 2.3 Success Metrics
+
+- ≥85% project completion rate
+- <2h admin time per project per week
+- ≥50 NPS
+- ≥20% repeat customers
+- ≤5% refund rate
+
+---
+
+## 3. User Journeys
+
+### UJ-1: Client Onboarding & Brief Submission
+
 **Persona:** Client  
-**Goal:** Review logo design concepts.  
-| Step | User Action                    | System Response                              |  
-|------|--------------------------------|----------------------------------------------|  
-| 1    | Log in to the platform   | Display client dashboard with active projects.  |  
-| 2    | Click on project            | Show project details and design concepts.    |  
-| 3    | Select a concept            | Highlight selected design and provide feedback options. |  
+**Goal:** Purchase package and submit design brief
 
-**Success Criteria:**  
-- Client can view multiple design concepts.  
-- Client can submit feedback successfully.  
+| Step | Action | System Response |
+|------|--------|-----------------|
+| 1 | Select package | Display checkout |
+| 2 | Complete payment | Create account |
+| 3 | Verify email | Activate account |
+| 4 | Submit brief | Validate and save |
 
-**Error Scenarios:**  
-- If selecting a concept fails: Display error message "Unable to load design concepts, please try again later."  
+**Success:** Project enters IN_DESIGN  
+**Failure:** Payment/validation error
 
-### UJ-2: Admin Manage Project  
+---
+
+### UJ-2: Concept Delivery
+
+**Persona:** Admin / Designer  
+**Goal:** Upload design concepts
+
+| Step | Action | System Response |
+|------|--------|-----------------|
+| 1 | Upload files | Validate format |
+| 2 | Save version | Increment version |
+| 3 | Publish | Notify client |
+
+---
+
+### UJ-3: Client Feedback & Revision
+
+**Persona:** Client  
+**Goal:** Provide feedback and request revision
+
+| Step | Action | System Response |
+|------|--------|-----------------|
+| 1 | View concept | Display assets |
+| 2 | Submit feedback | Store feedback |
+| 3 | Request revision | Decrement entitlement |
+
+---
+
+### UJ-4: Final Approval & Delivery
+
+**Persona:** Client  
+**Goal:** Approve and download assets
+
+| Step | Action | System Response |
+|------|--------|-----------------|
+| 1 | Approve | Lock versions |
+| 2 | Generate links | Enable downloads |
+| 3 | Download | Log activity |
+
+---
+
+### UJ-5: Admin Override & Refund
+
 **Persona:** Admin  
-**Goal:** Upload design concepts and manage client feedback.  
-| Step | User Action                | System Response                                  |  
-|------|----------------------------|------------------------------------------------|  
-| 1    | Log in to admin console    | Show admin dashboard with project list.        |  
-| 2    | Select a project           | Display project details and current status.     |  
-| 3    | Upload concept             | Save the concept and notify client of new upload. |  
+**Goal:** Resolve disputes
 
-**Success Criteria:**  
-- Admin can successfully upload a new design.  
-- Admin receives confirmation upon successful upload.  
+| Step | Action | System Response |
+|------|--------|-----------------|
+| 1 | Review case | Load audit |
+| 2 | Override/refund | Update records |
 
-**Error Scenarios:**  
-- If upload fails: Display error message "Upload unsuccessful, please check the file format and size."  
+---
 
-## 4. Functional Requirements  
-### 4.1 Client Features  
-| ID           | Requirement                                      | Priority | Notes |  
-|--------------|--------------------------------------------------|----------|-------|  
-| FR-CLIENT-001| Clients must be able to securely log in.          | Must     |       |  
-| FR-CLIENT-002| Clients can view design concepts and revisions.   | Must     |       |  
-| FR-CLIENT-003| Clients can submit structured feedback.           | Must     |       |  
-| FR-CLIENT-004| Clients can approve final designs.                | Must     |       |  
-| FR-CLIENT-005| Clients can download final assets.                | Must     |       |  
+### UJ-6: Project Archival
 
-### 4.2 Admin Features  
-| ID           | Requirement                                      | Priority | Notes |  
-|--------------|--------------------------------------------------|----------|-------|  
-| FR-ADMIN-001 | Admins must be able to manage client projects.     | Must     |       |  
-| FR-ADMIN-002 | Admins can upload design concepts and revisions.   | Must     |       |  
-| FR-ADMIN-003 | Admins can track client package entitlements.      | Must     |       |  
+**Persona:** Admin  
+**Goal:** Archive completed project
 
-## 5. Non-Functional Requirements  
-### 5.1 Performance  
-| ID           | Requirement                                      |  
-|--------------|--------------------------------------------------|  
-| NFR-PERF-001 | The system should load pages in under 2 seconds.  |  
-| NFR-PERF-002 | The system should handle 100 concurrent users.  |  
+| Step | Action | System Response |
+|------|--------|-----------------|
+| 1 | Archive | Lock project |
+| 2 | Retain | Apply retention |
 
-### 5.2 Security  
-| ID           | Requirement                                       |  
-|--------------|-------------------------------------------------|  
-| NFR-SEC-001 | All data transmissions must be encrypted.         |  
-| NFR-SEC-002 | User passwords must be stored securely (hashed). |  
+---
 
-### 5.3 Accessibility  
-| ID           | Requirement                                        |  
-|--------------|--------------------------------------------------|  
-| NFR-A11Y-001| Ensure compliance with WCAG 2.1 AA standards.    |  
+## 4. Functional Requirements
 
-## 6. Data Model  
-### 6.1 Entities  
-#### Project  
-| Attribute    | Type        | Required | Description                      |  
-|--------------|-------------|----------|----------------------------------|  
-| id           | UUID        | Yes      | Primary key for the project.     |  
-| title        | String      | Yes      | Name of the project.             |  
-| clientId     | UUID        | Yes      | Reference to the client.         |  
-| status       | Enum        | Yes      | Current status of the project.   |  
+### 4.1 Authentication & Accounts
 
-## 7. API Overview  
-### 7.1 Authentication  
-Token-based authentication is required for all user actions.  
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-AUTH-001 | Support email/password login | Must |
+| FR-AUTH-002 | Support magic link login | Must |
+| FR-AUTH-003 | Enforce password reset flow | Must |
+| FR-AUTH-004 | Enforce session expiry | Must |
+| FR-AUTH-005 | Allow multi-project accounts | Must |
 
-### 7.2 Endpoints Summary  
-| Method | Endpoint     | Purpose                        |  
-|--------|--------------|--------------------------------|  
-| POST   | /api/login   | Authenticate a user.          |  
-| GET    | /api/projects| Retrieve project details.     |  
-| POST   | /api/projects| Create a new project.        |  
-| PUT    | /api/projects/{id}| Update a project.         |  
-| DELETE | /api/projects/{id}| Delete a project.         |  
+---
 
-## 8. Assumptions & Dependencies  
-### 8.1 Assumptions  
-- Users have access to the internet.  
-- Users are familiar with basic web navigation.  
+### 4.2 Client Management
 
-### 8.2 Dependencies  
-- Requires Supabase backend for authentication and data storage.  
-- Frontend will be built using Next.js and Tailwind.  
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-CLI-001 | View project dashboard | Must |
+| FR-CLI-002 | View package entitlements | Must |
+| FR-CLI-003 | Submit design brief | Must |
+| FR-CLI-004 | Submit feedback | Must |
+| FR-CLI-005 | Approve final assets | Must |
+| FR-CLI-006 | Download deliverables | Must |
 
-## 9. Out of Scope  
-- Marketplace for external designers.  
-- Self-service logo generators.  
+---
 
-## 10. Open Questions  
-| # | Question                                     | Owner | Status |  
-|---|----------------------------------------------|-------|--------|  
-| 1 | Are there specific branding guidelines for the logo designs? | Product Owner | Open |  
+### 4.3 Project Workflow
 
-## 11. Glossary  
-| Term        | Definition                      |  
-|-------------|----------------------------------|  
-| UUID        | Universally Unique Identifier.   |  
-| Client      | Party purchasing logo packages. |  
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-PROJ-001 | Enforce state machine | Must |
+| FR-PROJ-002 | Prevent invalid transitions | Must |
+| FR-PROJ-003 | Support manual overrides | Must |
+| FR-PROJ-004 | Track deadlines | Should |
+
+---
+
+### 4.4 Concepts & Revisions
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-CON-001 | Upload versioned concepts | Must |
+| FR-CON-002 | Maintain version history | Must |
+| FR-CON-003 | Consume revision entitlement | Must |
+| FR-CON-004 | Block zero entitlement | Must |
+| FR-CON-005 | Support upsell purchase | Should |
+
+---
+
+### 4.5 Feedback System
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-FBK-001 | Attach feedback to version | Must |
+| FR-FBK-002 | Support attachments | Must |
+| FR-FBK-003 | Lock feedback post-submit | Must |
+
+---
+
+### 4.6 Asset Management
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-AST-001 | Store assets securely | Must |
+| FR-AST-002 | Watermark until approval | Must |
+| FR-AST-003 | Generate expiring links | Must |
+| FR-AST-004 | Log downloads | Must |
+
+---
+
+### 4.7 Notifications
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-NOT-001 | Email notifications | Must |
+| FR-NOT-002 | In-app notifications | Must |
+| FR-NOT-003 | Deadline reminders | Should |
+
+---
+
+### 4.8 Admin Console
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-ADM-001 | Create/edit projects | Must |
+| FR-ADM-002 | Assign designers | Must |
+| FR-ADM-003 | Override limits | Must |
+| FR-ADM-004 | Issue refunds | Must |
+| FR-ADM-005 | View audit trail | Must |
+
+---
+
+## 5. Non-Functional Requirements
+
+### 5.1 Performance
+
+| ID | Requirement |
+|----|-------------|
+| NFR-PERF-001 | Page load ≤2s |
+| NFR-PERF-002 | Upload ≤30s (100MB) |
+| NFR-PERF-003 | API p95 ≤500ms |
+
+---
+
+### 5.2 Security
+
+| ID | Requirement |
+|----|-------------|
+| NFR-SEC-001 | Encryption in transit/rest |
+| NFR-SEC-002 | RBAC enforcement |
+| NFR-SEC-003 | Audit logging |
+| NFR-SEC-004 | OWASP Top 10 |
+
+---
+
+### 5.3 Scalability
+
+| ID | Requirement |
+|----|-------------|
+| NFR-SCL-001 | Support 1k active projects |
+| NFR-SCL-002 | Horizontal scale-ready |
+
+---
+
+### 5.4 Accessibility
+
+| ID | Requirement |
+|----|-------------|
+| NFR-A11Y-001 | WCAG 2.1 AA |
+
+---
+
+## 6. Data Model
+
+### 6.1 Core Entities
+
+| Entity | Key Attributes |
+|--------|----------------|
+| User | id, email, role, status |
+| Project | id, state, packageId |
+| Package | id, limits |
+| Concept | id, version, files |
+| Feedback | id, text, attachments |
+| Asset | id, type, url |
+| Entitlement | id, remaining |
+| Notification | id, status |
+| AuditLog | id, action, actor |
+
+### 6.2 Relationships
+
+- User 1:N Project
+- Project 1:N Concept
+- Concept 1:N Feedback
+- Project 1:1 Package
+- Project 1:N Asset
+- Project 1:N AuditLog
+
+---
+
+## 7. API Overview
+
+### 7.1 Authentication
+- POST /auth/login
+- POST /auth/magic
+- POST /auth/reset
+
+### 7.2 Project
+- GET /projects
+- POST /projects
+- PUT /projects/{id}/state
+- POST /projects/{id}/archive
+
+### 7.3 Concepts
+- POST /projects/{id}/concepts
+- GET /concepts/{id}
+- POST /concepts/{id}/publish
+
+### 7.4 Feedback
+- POST /concepts/{id}/feedback
+
+### 7.5 Assets
+- POST /projects/{id}/assets
+- GET /assets/{id}/download
+
+### 7.6 Admin
+- POST /admin/refund
+- POST /admin/override
+
+---
+
+## 8. Assumptions & Dependencies
+
+### Assumptions
+- Clients primarily use platform
+- Designers follow workflow
+- Email deliverability maintained
+
+### Dependencies
+- Stripe for payments
+- Email service provider
+- Cloud storage provider
+
+---
+
+## 9. Out of Scope
+
+- AI logo generation
+- Public designer marketplace
+- White-label deployments
+- Subscription billing
+
+---
+
+## 10. Open Questions
+
+| # | Question | Impact |
+|---|----------|--------|
+| 1 | Refund SLA | Medium |
+| 2 | Escalation policy | Medium |
+| 3 | Legal T&Cs | High |
+
+---
+
+## 11. Glossary
+
+| Term | Definition |
+|------|------------|
+| Entitlement | Remaining revision allowance |
+| Concept | Uploaded design iteration |
+| State Machine | Controlled workflow |
