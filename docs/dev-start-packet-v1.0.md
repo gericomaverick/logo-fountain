@@ -14,10 +14,14 @@ This index is the handoff bundle to begin implementation.
 - Architecture overview: `docs/architecture-predev-v1.0.md`
 - RLS matrix: `docs/rls-matrix-v1.0.md`
 - API contract: `docs/api-contract-v1.0.md`
+- State machine: `docs/state-machine-v1.0.md`
+- DB schema proposal: `docs/db-schema-v1.0.md`
 - Stripe state machine: `docs/stripe-state-machine-v1.0.md`
+- Stripe price mapping allowlist: `docs/stripe-price-mapping-v1.0.md`
 
 ## 3) UX / IA
 - Sitemap + screens: `docs/sitemap-and-screens-v1.0.md`
+- Campaign landing pages spec: `docs/campaign-landing-pages-v1.0.md`
 
 ## 4) Governance
 - Decisions: `docs/governance/DECISIONS.md`
