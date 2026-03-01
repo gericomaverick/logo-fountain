@@ -14,6 +14,7 @@ Logo Fountain is a premium UK logo design service delivered via a structured por
 ## 1) Goals, non-goals, and success metrics
 ### 1.1 Goals (MVP)
 1. **Paid end-to-end workflow**: purchase → brief → concepts → revisions → approval → delivery.
+2. **Package clarity**: Essential/Professional/Complete are explicit (concepts, revisions, deliverables).
 2. **Clarity + control**: explicit project state, explicit next actions, explicit entitlements.
 3. **Premium tone**: minimal UI, high-trust content, no marketplace vibes.
 4. **Operational simplicity**: admin queue, exception handling, audit trail.
@@ -48,7 +49,7 @@ Logo Fountain is a premium UK logo design service delivered via a structured por
 
 ## 3) Product scope (P0/P1)
 ### 3.1 P0 (must ship)
-- Auth: email + magic link (Supabase) or email/password (choose one; see Open Questions)
+- Auth: **email+password** with optional **magic-link**
 - Stripe Checkout for **package purchase**
 - Project creation on successful payment (idempotent)
 - Structured brief (client)
@@ -123,6 +124,25 @@ Logo Fountain is a premium UK logo design service delivered via a structured por
 ## 6) Functional requirements (tight)
 Format: **FR-<AREA>-###** with acceptance criteria.
 
+---
+
+## 6.0) Packages, pricing, entitlements (locked from JSON)
+### Package matrix
+| Tier | Price (GBP) | Concepts included | Revisions included | Key deliverables |
+|---|---:|---:|---:|---|
+| Essential | 299 | 2 | 2 | PNG + SVG final, B/W variations, generic brand guidelines PDF |
+| Professional | 499 | 4 | 3 | Multiple layout options, bespoke brand guidelines PDF, social profile images |
+| Complete | 749 | 4 | Unlimited (see Open Questions) | comprehensive bespoke brand guidelines PDF, business card, letterhead, priority support |
+
+### Upgrades / add-ons
+| Upgrade/Add-on | Price (GBP) | Stripe price id |
+|---|---:|---|
+| Essential → Professional | 180 | price_1SzFgSFM0K9Qd7oXRfDHdiyO |
+| Professional → Complete | 225 | price_1SzFiqFM0K9Qd7oX5j6yP3C0 |
+| Extra revision | 49 | price_1SzFmjFM0K9Qd7oX5SrRfRvx |
+
+**Professional promo (marketing):** 40% off code `PRO40FIRST5` (confirm enforcement mechanism; see Open Questions)
+
 ### 6.1 Auth & accounts
 - **FR-AUTH-001**: Client can sign in and access their dashboard.
   - AC: Unauthenticated user is redirected to login.
@@ -158,7 +178,7 @@ Format: **FR-<AREA>-###** with acceptance criteria.
 - **FR-CONCEPT-002**: Admin can publish concepts to client.
   - AC: Client receives read access only after publish.
 - **FR-REV-001**: Client can submit feedback and request a revision.
-  - AC: Revision request decrements remaining revisions.
+  - AC: Revision request decrements remaining revisions **on request submission**.
   - AC: If `revisions_remaining==0`, request is blocked with clear message.
 - **FR-REV-002**: Admin can publish a revision update.
   - AC: Revision is linked to prior concept version.
@@ -217,8 +237,10 @@ Format: **FR-<AREA>-###** with acceptance criteria.
 
 ## 8) Stripe payment handling
 ### 8.1 Checkout model
-- Stripe Products/Prices represent packages and add-ons.
-- Fulfillment is driven by webhooks (not by client redirect).
+- Stripe Products/Prices represent packages and upgrades/add-ons.
+- Checkout session line items are built **server-side** from an allowlist (no arbitrary price IDs from client).
+- Fulfillment is driven by **webhooks** (not by client redirect).
+- Success page should show “Processing…” and poll an order-status endpoint until the webhook fulfills.
 
 ### 8.2 Webhooks (MVP)
 - `checkout.session.completed` (primary)
@@ -259,11 +281,11 @@ Track:
 ---
 
 ## 12) Open questions (need your input)
-1. **Package entitlements**: concepts/revisions per tier + deliverables list (TBD numbers).
-2. **Pricing**: GBP pricing per tier; any VAT handling requirement?
-3. **Auth choice**: magic-link only vs email+password (recommend magic-link for simplicity).
-4. **Add-ons**: which ones first (extra revision, rush, additional concept)?
-5. **Admin workflow**: any need for multiple admins/collaborators in v1?
+✅ We now have package/pricing/add-on specifics (from your JSON). Remaining open items:
+1. **“Unlimited revisions” policy for Complete**: confirm if this is true unlimited, or “reasonable/fair use” (recommended) with an explicit cap that only admin sees.
+2. **Upgrade rules**: confirm if upgrades can be purchased **after purchase** (mid-project) and whether they should increase entitlements immediately.
+3. **Promo code behavior**: Professional has promo code `PRO40FIRST5` — confirm whether this should be enforced in-app (Stripe coupons/promo codes) and whether it’s limited to first N redemptions.
+4. **Admin workflow**: do you need multiple admins/designers in v1, or single-operator is fine (current assumption: single operator).
 
 ---
 
