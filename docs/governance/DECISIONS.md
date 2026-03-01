@@ -10,6 +10,7 @@ YYYY-MM-DD — <Decision>. Rationale: <why>. Impact: <what changes>. #decision
 2026-03-01 — Logo Fountain set as primary business goal. Rationale: User prioritization. Impact: Focus execution/planning on Logo Fountain. #decision
 2026-03-01 — Stack set to Next.js + Supabase + Prisma + Stripe. Rationale: User preference + speed. Impact: PRD/architecture and implementation assume this stack. #decision
 2026-03-01 — Codex 5.3 restricted to development/coding stages only. Rationale: Control limits/costs and reserve Codex for code. Impact: Planning uses non-Codex models; coding stages explicitly switch. #decision
+2026-03-01 — Workflow: Do not use Codex at all during pre-dev planning/spec stages; only consider it when explicitly starting implementation. Rationale: User request. Impact: All current work stays in docs/specs using non-Codex models. #decision
 2026-03-01 — Auth: email+password with optional magic-link sign-in. Rationale: User preference. Impact: PRD/architecture supports both. #decision
 2026-03-01 — Revisions are consumed at the moment the client submits a revision request. Rationale: Immediate feedback implies revision used. Impact: Entitlements decrement on request creation, not fulfillment. #decision
 2026-03-01 — VAT: not VAT registered initially; capture client VAT number and show “VAT not charged (supplier not VAT registered)”. Rationale: User setup + client needs. Impact: Data model + invoice/receipt text logic include VAT number field. #decision
