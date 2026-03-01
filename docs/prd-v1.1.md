@@ -2,7 +2,7 @@
 
 **Date:** 2026-03-01  
 **Status:** Draft (implementation-ready pending a few open questions)  
-**Source of truth:** Product Brief v1.0 (`projects/logo-fountain/docs/product-brief-v1.0.md`)
+**Source of truth:** Product Brief v1.0 (`docs/product-brief-v1.0.md`)
 
 ## 0) Executive summary
 Logo Fountain is a premium UK logo design service delivered via a structured portal (not email threads). Clients buy a package, submit a structured brief, review concepts, request revisions within entitlements, approve a final concept, and download final assets. Admin operates a clear queue with deterministic lifecycle states, enforced entitlements, messaging, and an auditable history.
@@ -66,7 +66,7 @@ Logo Fountain is a premium UK logo design service delivered via a structured por
 - Add-on purchases (extra revisions / rush) via Stripe
 - Admin override UI (grant extra revision, extend deadlines) with mandatory reason
 - Basic notification emails (brief received, concepts ready, final files ready)
-- Campaign landing pages (tracking + routing to checkout)
+- **Event/campaign landing pages** (local business events, limited-time offers, tracking + routing to checkout)
 
 ---
 

@@ -7,6 +7,7 @@
 ## 1) Public marketing
 - `/` — landing
 - `/packages` — package comparison + CTA to checkout
+- `/c/[slug]` — **event/campaign landing page** (local business events, special offers)
 - `/checkout/success` — processing + redirect to dashboard
 - `/checkout/cancel` — return to packages
 - `/privacy`, `/terms`
