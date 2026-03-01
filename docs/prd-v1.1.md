@@ -132,7 +132,7 @@ Format: **FR-<AREA>-###** with acceptance criteria.
 |---|---:|---:|---:|---|
 | Essential | 299 | 2 | 2 | PNG + SVG final, B/W variations, generic brand guidelines PDF |
 | Professional | 499 | 4 | 3 | Multiple layout options, bespoke brand guidelines PDF, social profile images |
-| Complete | 749 | 4 | Unlimited (see Open Questions) | comprehensive bespoke brand guidelines PDF, business card, letterhead, priority support |
+| Complete | 749 | 4 | 10 | comprehensive bespoke brand guidelines PDF, business card, letterhead, priority support |
 
 ### Upgrades / add-ons
 | Upgrade/Add-on | Price (GBP) | Stripe price id |
@@ -282,7 +282,7 @@ Track:
 
 ## 12) Open questions (need your input)
 ✅ We now have package/pricing/add-on specifics (from your JSON). Remaining open items:
-1. **“Unlimited revisions” policy for Complete**: confirm if this is true unlimited, or “reasonable/fair use” (recommended) with an explicit cap that only admin sees.
+1. **Package entitlements calibration**: you want to sanity-check that revision/concept counts are commercially realistic; adjust as needed before build.
 2. **Upgrade rules**: confirm if upgrades can be purchased **after purchase** (mid-project) and whether they should increase entitlements immediately.
 3. **Promo code behavior**: Professional has promo code `PRO40FIRST5` — confirm whether this should be enforced in-app (Stripe coupons/promo codes) and whether it’s limited to first N redemptions.
 4. **Admin workflow**: do you need multiple admins/designers in v1, or single-operator is fine (current assumption: single operator).
