@@ -131,8 +131,8 @@ Format: **FR-<AREA>-###** with acceptance criteria.
 | Tier | Price (GBP) | Concepts included | Revisions included | Key deliverables |
 |---|---:|---:|---:|---|
 | Essential | 299 | 2 | 2 | PNG + SVG final, B/W variations, generic brand guidelines PDF |
-| Professional | 499 | 4 | 3 | Multiple layout options, bespoke brand guidelines PDF, social profile images |
-| Complete | 749 | 4 | 10 | comprehensive bespoke brand guidelines PDF, business card, letterhead, priority support |
+| Professional | 499 | 3 | 2 | Multiple layout options, bespoke brand guidelines PDF, social profile images |
+| Complete | 749 | 3 | 5 | comprehensive bespoke brand guidelines PDF, business card, letterhead, priority support |
 
 ### Upgrades / add-ons
 | Upgrade/Add-on | Price (GBP) | Stripe price id |

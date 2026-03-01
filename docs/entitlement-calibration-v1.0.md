@@ -100,9 +100,13 @@ Recommendation:
 
 ---
 
-## 5) Decision needed
-Pick one:
-- **Keep current entitlements** and accept lower effective hourly rate.
-- Choose Option A or Option B (or provide your own).
+## 5) Decision
+✅ Selected: **Option B**
 
-If you pick Option A/B, I’ll update PRD and the package JSON assumptions accordingly (we’ll also need to update the marketing copy + Stripe price IDs mapping to reflect any tier changes).
+- Essential: 2 concepts, 2 revisions
+- Professional: 3 concepts, 2 revisions
+- Complete: 3 concepts, 5 revisions
+
+Next actions:
+- Update PRD + user stories to match.
+- Flag that marketing copy + Stripe price IDs mapping must be updated to match the new entitlements.
