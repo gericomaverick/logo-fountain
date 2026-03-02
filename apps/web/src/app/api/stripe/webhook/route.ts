@@ -1,4 +1,5 @@
 import Stripe from "stripe";
+import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
@@ -35,7 +36,27 @@ export async function POST(req: Request) {
     return new Response(`Webhook signature verification failed: ${message}`, { status: 400 });
   }
 
-  // TODO (LF-0204): idempotent fulfillment + DB write.
-  // For now, just acknowledge receipt.
-  return Response.json({ received: true, type: event.type, id: event.id });
+  // Webhook dedupe (LF-0203): record Stripe event id.
+  // If we already processed this event, return 200 to stop Stripe retries.
+  const existing = await prisma.stripeEvent.findUnique({ where: { eventId: event.id } });
+  if (existing?.processedAt) {
+    return Response.json({ received: true, deduped: true, id: event.id, type: event.type });
+  }
+
+  await prisma.stripeEvent.upsert({
+    where: { eventId: event.id },
+    create: {
+      eventId: event.id,
+      type: event.type,
+      createdAt: new Date(event.created * 1000),
+      processedAt: new Date(),
+    },
+    update: {
+      type: event.type,
+      processedAt: new Date(),
+    },
+  });
+
+  // TODO (LF-0204): idempotent fulfillment for checkout.session.completed.
+  return Response.json({ received: true, id: event.id, type: event.type });
 }
