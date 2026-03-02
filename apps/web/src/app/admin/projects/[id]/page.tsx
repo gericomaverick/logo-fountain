@@ -7,6 +7,9 @@ import { ProjectTimeline } from "@/app/project-timeline";
 
 type Snapshot = {
   status: string;
+  stuck?: boolean;
+  stuckReason?: string | null;
+  latestOrder?: { id: string; status: string; stripeCheckoutSessionId: string | null; createdAt: string } | null;
   concepts: Array<{ id: string; number: number; status: string; notes: string | null }>;
   revisionRequests: Array<{ id: string; status: string; body: string; createdAt: string; concept: { id: string; number: number } | null; user: { email: string; fullName: string | null } }>;
   messages: Array<{ id: string; body: string; createdAt: string; sender: { email: string; fullName: string | null } }>;
@@ -63,6 +66,7 @@ export default function AdminProjectPage() {
   const [file, setFile] = useState<File | null>(null);
   const [finalZipFile, setFinalZipFile] = useState<File | null>(null);
   const [messageBody, setMessageBody] = useState("");
+  const [reprocessSessionId, setReprocessSessionId] = useState("");
 
   async function refresh(id: string) {
     const [snapshotResponse, auditResponse] = await Promise.all([
@@ -107,9 +111,43 @@ export default function AdminProjectPage() {
       <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
       <p className="mt-1 text-sm text-neutral-600">Status: {snapshot?.status || "—"}</p>
       <p className="mt-1 text-sm text-neutral-600">Recent audit events: {snapshot?.recentAuditEventsCount ?? 0}</p>
+      {snapshot?.stuck ? (
+        <p className="mt-1 text-sm text-red-700">⚠ Stuck: {snapshot.stuckReason ?? "Needs manual intervention."}</p>
+      ) : null}
       {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
 
       {snapshot?.timeline ? <ProjectTimeline timeline={snapshot.timeline} primaryCta={snapshot.primaryCta} /> : null}
+
+      {snapshot?.stuck ? (
+        <section className="mt-6 rounded border border-red-200 bg-red-50 p-4">
+          <h2 className="text-lg font-medium text-red-800">Webhook recovery</h2>
+          <p className="mt-1 text-sm text-red-700">Use Stripe Checkout session id to retry idempotent fulfillment.</p>
+          <input
+            className="mt-2 w-full rounded border border-red-200 bg-white px-2 py-1 text-sm"
+            placeholder="cs_test_..."
+            value={reprocessSessionId}
+            onChange={(e) => setReprocessSessionId(e.target.value)}
+          />
+          {snapshot.latestOrder?.stripeCheckoutSessionId ? (
+            <p className="mt-1 text-xs text-red-700">Latest order session: {snapshot.latestOrder.stripeCheckoutSessionId}</p>
+          ) : null}
+          <button
+            className="mt-3 rounded border border-red-300 bg-white px-3 py-1 text-sm"
+            type="button"
+            disabled={busy || !reprocessSessionId.trim()}
+            onClick={() => void runAction(
+              () => fetch("/api/admin/checkout/reprocess", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ session_id: reprocessSessionId.trim() }),
+              }),
+              "Reprocess failed"
+            )}
+          >
+            Reprocess checkout session
+          </button>
+        </section>
+      ) : null}
 
       <form className="mt-6 rounded border border-neutral-200 p-4" onSubmit={(e) => { e.preventDefault(); if (!projectId || !file) return; void runAction(async () => { const d = new FormData(); d.set("file", file); d.set("conceptNumber", String(conceptNumber)); d.set("notes", notes); return fetch(`/api/admin/projects/${projectId}/concepts`, { method: "POST", body: d }); }, "Upload failed"); }}>
         <h2 className="text-lg font-medium">Upload concept</h2>

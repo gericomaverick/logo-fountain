@@ -8,6 +8,9 @@ type QueueProject = {
   status: string;
   packageCode: string;
   clientName: string;
+  stuck?: boolean;
+  stuckReason?: string | null;
+  latestOrder?: { stripeCheckoutSessionId?: string | null; status: string } | null;
 };
 
 const FILTER_OPTIONS = ["ALL", "BRIEF_SUBMITTED", "IN_DESIGN", "CONCEPTS_READY"];
@@ -117,6 +120,12 @@ export default function AdminHomePage() {
                 <p><span className="font-medium">Client:</span> {project.clientName}</p>
                 <p><span className="font-medium">Package:</span> {project.packageCode}</p>
                 <p><span className="font-medium">Status:</span> {project.status}</p>
+                {project.stuck ? (
+                  <p className="mt-1 text-red-700"><span className="font-medium">⚠ Stuck:</span> {project.stuckReason ?? "Needs manual intervention."}</p>
+                ) : null}
+                {project.latestOrder?.stripeCheckoutSessionId ? (
+                  <p className="mt-1 text-xs text-neutral-600">Session: {project.latestOrder.stripeCheckoutSessionId}</p>
+                ) : null}
                 <Link className="mt-2 inline-block underline" href={`/admin/projects/${project.id}`}>
                   Open project
                 </Link>

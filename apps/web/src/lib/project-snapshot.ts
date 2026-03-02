@@ -76,6 +76,11 @@ export async function getProjectSnapshot({ projectId }: SnapshotArgs) {
         orderBy: [{ createdAt: "desc" }],
         select: { kind: true, path: true, createdAt: true },
       },
+      orders: {
+        orderBy: [{ createdAt: "desc" }],
+        take: 1,
+        select: { id: true, status: true, stripeCheckoutSessionId: true, createdAt: true },
+      },
       _count: {
         select: { auditEvents: true },
       },
@@ -142,6 +147,15 @@ export async function getProjectSnapshot({ projectId }: SnapshotArgs) {
   const auditTimestamps = await fetchAuditStateTimestamps(project.id);
   const timestamps = { ...inferredTimestamps, ...auditTimestamps };
 
+  const latestOrder = project.orders[0] ?? null;
+  const stuckReason = !latestOrder
+    ? "Missing order record (webhook likely never fulfilled)."
+    : latestOrder.status === "NEEDS_CONTACT"
+      ? "Order needs contact (no purchaser email provisioned)."
+      : latestOrder.status !== "FULFILLED"
+        ? `Order status is ${latestOrder.status}.`
+        : null;
+
   return {
     projectId: project.id,
     status: project.status,
@@ -156,6 +170,9 @@ export async function getProjectSnapshot({ projectId }: SnapshotArgs) {
     latestRevisionRequests: project.revisionRequests.slice(0, 5),
     messages: project.messages,
     finalZip,
+    latestOrder,
+    stuck: Boolean(stuckReason),
+    stuckReason,
     recentAuditEventsCount: project._count.auditEvents,
   };
 }
