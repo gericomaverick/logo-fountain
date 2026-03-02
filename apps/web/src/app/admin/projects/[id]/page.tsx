@@ -3,12 +3,15 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { ProjectTimeline } from "@/app/project-timeline";
 
 type Snapshot = {
   status: string;
   concepts: Array<{ id: string; number: number; status: string; notes: string | null }>;
   revisionRequests: Array<{ id: string; status: string; body: string; createdAt: string; concept: { id: string; number: number } | null; user: { email: string; fullName: string | null } }>;
   messages: Array<{ id: string; body: string; createdAt: string; sender: { email: string; fullName: string | null } }>;
+  primaryCta?: string | null;
+  timeline?: Array<{ state: string; label: string; completed: boolean; current: boolean; timestamp?: string }>;
 };
 
 function readError(payload: { error?: { message?: string; details?: { nextStep?: string } } | string } | null, fallback: string): string {
@@ -65,6 +68,8 @@ export default function AdminProjectPage() {
       <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
       <p className="mt-1 text-sm text-neutral-600">Status: {snapshot?.status || "—"}</p>
       {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
+
+      {snapshot?.timeline ? <ProjectTimeline timeline={snapshot.timeline} primaryCta={snapshot.primaryCta} /> : null}
 
       <form className="mt-6 rounded border border-neutral-200 p-4" onSubmit={(e) => { e.preventDefault(); if (!projectId || !file) return; void runAction(async () => { const d = new FormData(); d.set("file", file); d.set("conceptNumber", String(conceptNumber)); d.set("notes", notes); return fetch(`/api/admin/projects/${projectId}/concepts`, { method: "POST", body: d }); }, "Upload failed"); }}>
         <h2 className="text-lg font-medium">Upload concept</h2>

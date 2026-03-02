@@ -1,6 +1,7 @@
 import { isAdminUser } from "@/lib/auth/admin";
 import { jsonError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
+import { applyTransition } from "@/lib/project-state-machine";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -36,6 +37,23 @@ export async function POST(
 
   if (!revisionRequest) {
     return jsonError("Revision request not found", 404, undefined, "REVISION_REQUEST_NOT_FOUND");
+  }
+
+  const project = await prisma.project.findUnique({ where: { id: projectId }, select: { status: true } });
+  if (!project) {
+    return jsonError("Project not found", 404, undefined, "PROJECT_NOT_FOUND");
+  }
+
+  if (setConceptsReady) {
+    const transition = applyTransition(project.status, PROJECT_STATUS_CONCEPTS_READY);
+    if (!transition.ok) {
+      return jsonError(
+        `Invalid transition from ${project.status} to ${PROJECT_STATUS_CONCEPTS_READY}`,
+        400,
+        { allowed: transition.allowed },
+        "INVALID_PROJECT_STATUS_TRANSITION",
+      );
+    }
   }
 
   const result = await prisma.$transaction(async (tx) => {

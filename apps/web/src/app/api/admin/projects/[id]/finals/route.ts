@@ -1,6 +1,7 @@
 import { isAdminUser } from "@/lib/auth/admin";
 import { jsonError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
+import { applyTransition } from "@/lib/project-state-machine";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { uploadFinalDeliverable } from "@/lib/supabase/storage";
 
@@ -31,7 +32,7 @@ export async function POST(
 
   const project = await prisma.project.findUnique({
     where: { id: projectId },
-    select: { id: true },
+    select: { id: true, status: true },
   });
 
   if (!project) {
@@ -59,6 +60,17 @@ export async function POST(
     const hasApproved = (await prisma.concept.count({
       where: { projectId: project.id, status: CONCEPT_STATUS_APPROVED },
     })) > 0;
+
+    const targetStatus = hasApproved ? PROJECT_STATUS_FINAL_FILES_READY : PROJECT_STATUS_AWAITING_APPROVAL;
+    const transition = applyTransition(project.status, targetStatus);
+    if (!transition.ok) {
+      return jsonError(
+        `Invalid transition from ${project.status} to ${targetStatus}`,
+        400,
+        { allowed: transition.allowed },
+        "INVALID_PROJECT_STATUS_TRANSITION",
+      );
+    }
 
     const result = await prisma.$transaction(async (tx) => {
       const existing = await tx.fileAsset.findFirst({
@@ -93,9 +105,7 @@ export async function POST(
 
       const updatedProject = await tx.project.update({
         where: { id: project.id },
-        data: {
-          status: hasApproved ? PROJECT_STATUS_FINAL_FILES_READY : PROJECT_STATUS_AWAITING_APPROVAL,
-        },
+        data: { status: targetStatus },
         select: { id: true, status: true },
       });
 

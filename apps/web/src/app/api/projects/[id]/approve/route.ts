@@ -1,5 +1,6 @@
 import { jsonError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
+import { applyTransition } from "@/lib/project-state-machine";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -57,7 +58,7 @@ export async function POST(
         },
       },
     },
-    select: { id: true },
+    select: { id: true, status: true },
   });
 
   if (!project) {
@@ -75,6 +76,16 @@ export async function POST(
 
   if (!concept) {
     return jsonError("Published concept not found", 404, undefined, "CONCEPT_NOT_FOUND");
+  }
+
+  const transition = applyTransition(project.status, PROJECT_STATUS_AWAITING_APPROVAL);
+  if (!transition.ok) {
+    return jsonError(
+      `Invalid transition from ${project.status} to ${PROJECT_STATUS_AWAITING_APPROVAL}`,
+      400,
+      { allowed: transition.allowed },
+      "INVALID_PROJECT_STATUS_TRANSITION",
+    );
   }
 
   const result = await prisma.$transaction(async (tx) => {

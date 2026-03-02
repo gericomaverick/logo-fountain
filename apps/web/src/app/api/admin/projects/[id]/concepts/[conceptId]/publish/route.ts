@@ -1,11 +1,11 @@
 import { jsonError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
 import { isAdminUser } from "@/lib/auth/admin";
+import { applyTransition } from "@/lib/project-state-machine";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
-const PROJECT_STATUS_IN_DESIGN = "IN_DESIGN";
 const PROJECT_STATUS_CONCEPTS_READY = "CONCEPTS_READY";
 const CONCEPT_STATUS_PUBLISHED = "published";
 
@@ -37,11 +37,28 @@ export async function POST(
     return jsonError("Concept not found", 404, undefined, "CONCEPT_NOT_FOUND");
   }
 
-  const result = await prisma.$transaction(async (tx) => {
-    const alreadyPublishedCount = await tx.concept.count({
-      where: { projectId, status: CONCEPT_STATUS_PUBLISHED },
-    });
+  const [alreadyPublishedCount, project] = await Promise.all([
+    prisma.concept.count({ where: { projectId, status: CONCEPT_STATUS_PUBLISHED } }),
+    prisma.project.findUnique({ where: { id: projectId }, select: { status: true } }),
+  ]);
 
+  if (!project) {
+    return jsonError("Project not found", 404, undefined, "PROJECT_NOT_FOUND");
+  }
+
+  if (alreadyPublishedCount === 0) {
+    const transition = applyTransition(project.status, PROJECT_STATUS_CONCEPTS_READY);
+    if (!transition.ok) {
+      return jsonError(
+        `Invalid transition from ${project.status} to ${PROJECT_STATUS_CONCEPTS_READY}`,
+        400,
+        { allowed: transition.allowed },
+        "INVALID_PROJECT_STATUS_TRANSITION",
+      );
+    }
+  }
+
+  const result = await prisma.$transaction(async (tx) => {
     const updatedConcept = await tx.concept.update({
       where: { id: conceptId },
       data: { status: CONCEPT_STATUS_PUBLISHED },
@@ -51,19 +68,12 @@ export async function POST(
     let updatedProjectStatus: string | null = null;
 
     if (alreadyPublishedCount === 0) {
-      const project = await tx.project.findUnique({
+      const updatedProject = await tx.project.update({
         where: { id: projectId },
+        data: { status: PROJECT_STATUS_CONCEPTS_READY },
         select: { status: true },
       });
-
-      if (project?.status === PROJECT_STATUS_IN_DESIGN) {
-        const updatedProject = await tx.project.update({
-          where: { id: projectId },
-          data: { status: PROJECT_STATUS_CONCEPTS_READY },
-          select: { status: true },
-        });
-        updatedProjectStatus = updatedProject.status;
-      }
+      updatedProjectStatus = updatedProject.status;
     }
 
     return { updatedConcept, updatedProjectStatus };

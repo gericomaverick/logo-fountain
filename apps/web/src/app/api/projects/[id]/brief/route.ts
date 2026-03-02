@@ -1,10 +1,10 @@
 import { jsonError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
+import { applyTransition } from "@/lib/project-state-machine";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
-const PROJECT_STATUS_AWAITING_BRIEF = "AWAITING_BRIEF";
 const PROJECT_STATUS_BRIEF_SUBMITTED = "BRIEF_SUBMITTED";
 
 function isUniqueViolation(error: unknown): boolean {
@@ -74,6 +74,16 @@ export async function POST(
     return jsonError("Project not found", 404, undefined, "PROJECT_NOT_FOUND");
   }
 
+  const transition = applyTransition(project.status, PROJECT_STATUS_BRIEF_SUBMITTED);
+  if (!transition.ok) {
+    return jsonError(
+      `Invalid transition from ${project.status} to ${PROJECT_STATUS_BRIEF_SUBMITTED}`,
+      400,
+      { allowed: transition.allowed },
+      "INVALID_PROJECT_STATUS_TRANSITION",
+    );
+  }
+
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {
       const result = await prisma.$transaction(async (tx) => {
@@ -95,12 +105,10 @@ export async function POST(
           select: { id: true, version: true },
         });
 
-        if (project.status === PROJECT_STATUS_AWAITING_BRIEF) {
-          await tx.project.update({
-            where: { id: project.id },
-            data: { status: PROJECT_STATUS_BRIEF_SUBMITTED },
-          });
-        }
+        await tx.project.update({
+          where: { id: project.id },
+          data: { status: PROJECT_STATUS_BRIEF_SUBMITTED },
+        });
 
         return brief;
       });

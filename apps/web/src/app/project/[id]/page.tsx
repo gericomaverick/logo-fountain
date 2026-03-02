@@ -2,6 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { ProjectTimeline } from "@/app/project-timeline";
 
 type Snapshot = {
   status: string;
@@ -10,6 +11,8 @@ type Snapshot = {
   concepts: Array<{ id: string; number: number; status: string; notes: string | null; imageUrl: string | null }>;
   messages: Array<{ id: string; body: string; createdAt: string; sender: { id: string; email: string; fullName: string | null } }>;
   finalZip: { available: boolean; url: string | null };
+  primaryCta?: string | null;
+  timeline?: Array<{ state: string; label: string; completed: boolean; current: boolean; timestamp?: string }>;
 };
 
 function readError(payload: { error?: { message?: string; details?: { nextStep?: string } } | string } | null, fallback: string): string {
@@ -114,6 +117,8 @@ export default function ProjectPage() {
       {loading ? <p className="mt-4 text-sm text-neutral-600">Loading…</p> : null}
       {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
       {actionError ? <p className="mt-3 text-sm text-red-600">{actionError}</p> : null}
+
+      {snapshot?.timeline ? <ProjectTimeline timeline={snapshot.timeline} primaryCta={snapshot.primaryCta} /> : null}
 
       <ul className="mt-6 space-y-6">
         {(snapshot?.concepts ?? []).map((concept) => (

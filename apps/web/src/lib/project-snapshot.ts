@@ -1,3 +1,4 @@
+import { buildTimeline, type ProjectState, PROJECT_STATES, PROJECT_STATE_LABELS, PRIMARY_CTA_BY_STATE } from "@/lib/project-state-machine";
 import { prisma } from "@/lib/prisma";
 import { createSignedConceptAssetUrl, createSignedFinalDeliverableUrl } from "@/lib/supabase/storage";
 
@@ -7,6 +8,29 @@ type SnapshotArgs = {
   projectId: string;
 };
 
+function asIso(value: Date | null | undefined): string | undefined {
+  return value ? value.toISOString() : undefined;
+}
+
+async function fetchAuditStateTimestamps(projectId: string): Promise<Partial<Record<ProjectState, string>>> {
+  try {
+    const rows = await prisma.$queryRawUnsafe<Array<{ next_state: string; created_at: Date }>>(
+      `SELECT "next_state", "created_at" FROM "audit_events" WHERE "project_id" = $1::uuid AND "event_type" = 'state_changed' ORDER BY "created_at" ASC`,
+      projectId,
+    );
+
+    const map: Partial<Record<ProjectState, string>> = {};
+    for (const row of rows) {
+      if ((PROJECT_STATES as readonly string[]).includes(row.next_state) && !map[row.next_state as ProjectState]) {
+        map[row.next_state as ProjectState] = row.created_at.toISOString();
+      }
+    }
+    return map;
+  } catch {
+    return {};
+  }
+}
+
 export async function getProjectSnapshot({ projectId }: SnapshotArgs) {
   const project = await prisma.project.findUnique({
     where: { id: projectId },
@@ -14,6 +38,7 @@ export async function getProjectSnapshot({ projectId }: SnapshotArgs) {
       id: true,
       status: true,
       packageCode: true,
+      createdAt: true,
       entitlements: {
         where: { key: { in: ["concepts", "revisions"] } },
         select: { key: true, limitInt: true, consumedInt: true },
@@ -21,7 +46,7 @@ export async function getProjectSnapshot({ projectId }: SnapshotArgs) {
       concepts: {
         where: { status: { in: PUBLISHED_OR_APPROVED } },
         orderBy: [{ number: "desc" }, { createdAt: "desc" }],
-        select: { id: true, number: true, status: true, notes: true, createdAt: true },
+        select: { id: true, number: true, status: true, notes: true, createdAt: true, updatedAt: true },
       },
       revisionRequests: {
         orderBy: [{ createdAt: "desc" }],
@@ -48,7 +73,7 @@ export async function getProjectSnapshot({ projectId }: SnapshotArgs) {
       fileAssets: {
         where: { kind: { in: ["concept", "final_zip"] } },
         orderBy: [{ createdAt: "desc" }],
-        select: { kind: true, path: true },
+        select: { kind: true, path: true, createdAt: true },
       },
     },
   });
@@ -89,9 +114,36 @@ export async function getProjectSnapshot({ projectId }: SnapshotArgs) {
       }
     : { available: false, url: null };
 
+  const inferredTimestamps: Partial<Record<ProjectState, string>> = {
+    AWAITING_BRIEF: asIso(project.createdAt),
+  };
+
+  const conceptReadyAt = project.concepts.length > 0
+    ? asIso(project.concepts.reduce((min, c) => (c.createdAt < min ? c.createdAt : min), project.concepts[0].createdAt))
+    : undefined;
+
+  if (conceptReadyAt) inferredTimestamps.CONCEPTS_READY = conceptReadyAt;
+
+  const revisionRequestedAt = project.revisionRequests.find((r) => r.status === "requested")?.createdAt;
+  if (revisionRequestedAt) inferredTimestamps.REVISIONS_IN_PROGRESS = asIso(revisionRequestedAt);
+
+  const revisionDeliveredAt = project.revisionRequests.find((r) => r.status === "delivered")?.updatedAt;
+  if (revisionDeliveredAt) inferredTimestamps.CONCEPTS_READY ??= asIso(revisionDeliveredAt);
+
+  const approvedConcept = project.concepts.find((c) => c.status === "approved");
+  if (approvedConcept) inferredTimestamps.AWAITING_APPROVAL = asIso(approvedConcept.updatedAt);
+
+  if (finalAsset?.createdAt) inferredTimestamps.FINAL_FILES_READY = asIso(finalAsset.createdAt);
+
+  const auditTimestamps = await fetchAuditStateTimestamps(project.id);
+  const timestamps = { ...inferredTimestamps, ...auditTimestamps };
+
   return {
     projectId: project.id,
     status: project.status,
+    statusLabel: PROJECT_STATE_LABELS[project.status as ProjectState] ?? project.status,
+    primaryCta: PRIMARY_CTA_BY_STATE[project.status as ProjectState] ?? null,
+    timeline: buildTimeline(project.status, timestamps),
     packageCode: project.packageCode,
     entitlements,
     concepts,

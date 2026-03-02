@@ -1,5 +1,6 @@
 import { jsonError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
+import { applyTransition } from "@/lib/project-state-machine";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -7,6 +8,7 @@ export const runtime = "nodejs";
 const MAX_BODY_LENGTH = 5000;
 const REVISION_STATUS_REQUESTED = "requested";
 const CONCEPT_STATUS_PUBLISHED = "published";
+const PROJECT_STATUS_REVISIONS_IN_PROGRESS = "REVISIONS_IN_PROGRESS";
 
 type RevisionBody = {
   body: string;
@@ -51,10 +53,20 @@ export async function POST(
       id: projectId,
       client: { memberships: { some: { userId: user.id } } },
     },
-    select: { id: true },
+    select: { id: true, status: true },
   });
 
   if (!project) return jsonError("Project not found", 404, undefined, "PROJECT_NOT_FOUND");
+
+  const transition = applyTransition(project.status, PROJECT_STATUS_REVISIONS_IN_PROGRESS);
+  if (!transition.ok) {
+    return jsonError(
+      `Invalid transition from ${project.status} to ${PROJECT_STATUS_REVISIONS_IN_PROGRESS}`,
+      400,
+      { allowed: transition.allowed },
+      "INVALID_PROJECT_STATUS_TRANSITION",
+    );
+  }
 
   const latestPublishedConcept = await prisma.concept.findFirst({
     where: { projectId: project.id, status: CONCEPT_STATUS_PUBLISHED },
@@ -84,13 +96,21 @@ export async function POST(
 
       if (updated.length === 0) throw new Error("NO_REVISIONS_REMAINING");
 
-      return tx.revisionRequest.create({
+      const revisionRequest = await tx.revisionRequest.create({
         data: { projectId: project.id, conceptId, status: REVISION_STATUS_REQUESTED, requestedBy: user.id, body: parsed.body },
         select: { id: true, projectId: true, conceptId: true, status: true, body: true, createdAt: true },
       });
+
+      const updatedProject = await tx.project.update({
+        where: { id: project.id },
+        data: { status: PROJECT_STATUS_REVISIONS_IN_PROGRESS },
+        select: { id: true, status: true },
+      });
+
+      return { revisionRequest, project: updatedProject };
     });
 
-    return Response.json({ ok: true, revisionRequest }, { status: 201 });
+    return Response.json({ ok: true, revisionRequest: revisionRequest.revisionRequest, project: revisionRequest.project }, { status: 201 });
   } catch (error) {
     if (error instanceof Error && error.message === "NO_REVISIONS_REMAINING") {
       return jsonError("No revisions remaining", 400, { nextStep: "No revisions remaining—buy add-on." }, "NO_REVISIONS_REMAINING");

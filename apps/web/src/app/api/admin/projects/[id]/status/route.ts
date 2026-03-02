@@ -1,14 +1,10 @@
 import { jsonError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
 import { isAdminUser } from "@/lib/auth/admin";
+import { applyTransition } from "@/lib/project-state-machine";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
-
-const ALLOWED_TRANSITIONS: Record<string, string[]> = {
-  BRIEF_SUBMITTED: ["IN_DESIGN"],
-  IN_DESIGN: ["CONCEPTS_READY"],
-};
 
 function parseNextStatus(body: unknown): string | null {
   if (typeof body !== "object" || body === null) return null;
@@ -53,14 +49,13 @@ export async function POST(
     return jsonError("Project not found", 404, undefined, "PROJECT_NOT_FOUND");
   }
 
-  const allowedTargets = ALLOWED_TRANSITIONS[project.status] ?? [];
-  if (!allowedTargets.includes(nextStatus)) {
-    return Response.json(
-      {
-        error: `Invalid transition from ${project.status} to ${nextStatus}`,
-        allowed: allowedTargets,
-      },
-      { status: 400 },
+  const transition = applyTransition(project.status, nextStatus);
+  if (!transition.ok) {
+    return jsonError(
+      `Invalid transition from ${project.status} to ${nextStatus}`,
+      400,
+      { allowed: transition.allowed },
+      "INVALID_PROJECT_STATUS_TRANSITION",
     );
   }
 
