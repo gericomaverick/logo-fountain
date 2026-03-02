@@ -28,11 +28,13 @@ export async function GET(req: Request) {
     });
   }
 
+  const fulfilled = order.status === "FULFILLED";
+
   return Response.json({
     sessionId,
-    fulfilled: true,
+    fulfilled,
     status: order.status,
-    projectId: order.projectId,
+    projectId: fulfilled ? order.projectId : null,
     orderId: order.id,
   });
 }

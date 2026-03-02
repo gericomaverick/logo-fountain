@@ -1,15 +1,21 @@
-type CheckoutSuccessPageProps = {
-  searchParams: Promise<{ session_id?: string }>;
-};
+import { Suspense } from "react";
+import SuccessProcessingClient from "./success-processing-client";
 
-export default async function CheckoutSuccessPage({ searchParams }: CheckoutSuccessPageProps) {
-  const { session_id: sessionId } = await searchParams;
-
+function ProcessingFallback() {
   return (
-    <main style={{ padding: "2rem", maxWidth: 680, margin: "0 auto" }}>
-      <h1>Payment received</h1>
-      <p>Thanks — your order is being processed.</p>
-      {sessionId ? <p>Session: {sessionId}</p> : null}
+    <main className="mx-auto max-w-xl p-8">
+      <h1 className="text-2xl font-semibold">Processing…</h1>
+      <p className="mt-2 text-sm text-neutral-600">
+        We&apos;re confirming your payment and setting up your project.
+      </p>
     </main>
+  );
+}
+
+export default function CheckoutSuccessPage() {
+  return (
+    <Suspense fallback={<ProcessingFallback />}>
+      <SuccessProcessingClient />
+    </Suspense>
   );
 }
