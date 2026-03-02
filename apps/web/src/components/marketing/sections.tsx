@@ -31,7 +31,14 @@ export function HeroCenter({
   secondary: Cta;
 }) {
   return (
-    <section className="bg-[radial-gradient(circle_at_top,_rgba(81,80,247,0.55)_0%,_rgba(148,148,247,0.20)_35%,_rgba(0,0,0,0)_70%)],bg-[linear-gradient(180deg,_#0a0a0d_0%,_#000_75%)] text-white">
+    <section
+      className="text-white"
+      style={{
+        backgroundColor: "#000",
+        backgroundImage:
+          "radial-gradient(circle at top, rgba(81,80,247,0.55) 0%, rgba(148,148,247,0.20) 35%, rgba(0,0,0,0) 70%), linear-gradient(180deg, #0a0a0d 0%, #000 75%)",
+      }}
+    >
       <div className="mx-auto max-w-[1160px] px-6 py-18 text-center md:px-10 md:py-24">
         <p className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-white">
           {eyebrow}

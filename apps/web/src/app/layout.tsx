@@ -13,7 +13,7 @@ const reckless = localFont({
   variable: "--font-reckless",
   src: [
     {
-      path: "../../fonts/RecklessStandardS-TRIAL-Regular.woff2",
+      path: "../fonts/RecklessStandardS-TRIAL-Regular.woff2",
       weight: "400",
       style: "normal",
     },
