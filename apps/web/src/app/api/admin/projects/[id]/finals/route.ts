@@ -1,8 +1,7 @@
-import { isAdminUser } from "@/lib/auth/admin";
 import { jsonError } from "@/lib/api-error";
+import { requireAdmin, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { prisma } from "@/lib/prisma";
 import { applyTransition } from "@/lib/project-state-machine";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { uploadFinalDeliverable } from "@/lib/supabase/storage";
 import { logAudit } from "@/lib/audit";
 
@@ -16,18 +15,9 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return jsonError("Unauthorized", 401, undefined, "UNAUTHORIZED");
-  }
-
-  if (!(await isAdminUser(user))) {
-    return jsonError("Forbidden", 403, undefined, "FORBIDDEN");
-  }
+  try {
+  const user = await requireUser();
+  await requireAdmin(user);
 
   const { id: projectId } = await params;
 
@@ -131,5 +121,8 @@ export async function POST(
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to upload final ZIP";
     return Response.json({ error: message }, { status: 400 });
+  }
+  } catch (error) {
+    return toRouteErrorResponse(error);
   }
 }

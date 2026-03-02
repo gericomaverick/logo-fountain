@@ -1,7 +1,7 @@
 import { jsonError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSignedFinalDeliverableUrl } from "@/lib/supabase/storage";
+import { requireProjectMembership, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 
 export const runtime = "nodejs";
 
@@ -11,49 +11,40 @@ export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  try {
+    const user = await requireUser();
+    const { id } = await params;
 
-  if (!user) {
-    return jsonError("Unauthorized", 401, undefined, "UNAUTHORIZED");
-  }
+    const membershipProject = await requireProjectMembership(user.id, id);
 
-  const { id } = await params;
-
-  const project = await prisma.project.findFirst({
-    where: {
-      id,
-      status: PROJECT_STATUS_FINAL_FILES_READY,
-      client: {
-        memberships: {
-          some: {
-            userId: user.id,
-          },
+    const project = await prisma.project.findFirst({
+      where: {
+        id: membershipProject.id,
+        status: PROJECT_STATUS_FINAL_FILES_READY,
+      },
+      select: {
+        id: true,
+        fileAssets: {
+          where: { kind: "final_zip" },
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: { path: true },
         },
       },
-    },
-    select: {
-      id: true,
-      fileAssets: {
-        where: { kind: "final_zip" },
-        orderBy: { createdAt: "desc" },
-        take: 1,
-        select: { path: true },
-      },
-    },
-  });
+    });
 
-  if (!project) {
-    return jsonError("Project not found", 404, undefined, "PROJECT_NOT_FOUND");
+    if (!project) {
+      return jsonError("Project not found", 404, { nextStep: "Final files are available after delivery is complete." }, "PROJECT_NOT_FOUND");
+    }
+
+    const file = project.fileAssets[0];
+    if (!file) {
+      return jsonError("Final ZIP not available", 404, { nextStep: "Ask support to re-upload the final ZIP." }, "FINAL_ZIP_NOT_AVAILABLE");
+    }
+
+    const url = await createSignedFinalDeliverableUrl(file.path);
+    return Response.json({ url });
+  } catch (error) {
+    return toRouteErrorResponse(error);
   }
-
-  const file = project.fileAssets[0];
-  if (!file) {
-    return jsonError("Final ZIP not available", 404, undefined, "FINAL_ZIP_NOT_AVAILABLE");
-  }
-
-  const url = await createSignedFinalDeliverableUrl(file.path);
-  return Response.json({ url });
 }

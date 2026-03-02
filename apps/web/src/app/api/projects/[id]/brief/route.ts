@@ -2,141 +2,61 @@ import { jsonError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
 import { applyTransition } from "@/lib/project-state-machine";
 import { logAudit } from "@/lib/audit";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireProjectMembership, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 
 export const runtime = "nodejs";
-
 const PROJECT_STATUS_BRIEF_SUBMITTED = "BRIEF_SUBMITTED";
 
 function isUniqueViolation(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code?: string }).code === "P2002"
-  );
+  return typeof error === "object" && error !== null && "code" in error && (error as { code?: string }).code === "P2002";
 }
 
 function parseAnswers(body: unknown) {
   if (typeof body !== "object" || body === null) return null;
-
   const raw = body as Record<string, unknown>;
   const brandName = typeof raw.brandName === "string" ? raw.brandName.trim() : "";
   const industry = typeof raw.industry === "string" ? raw.industry.trim() : "";
   const description = typeof raw.description === "string" ? raw.description.trim() : "";
   const styleNotes = typeof raw.styleNotes === "string" ? raw.styleNotes.trim() : "";
-
-  if (!brandName || !industry || !description || !styleNotes) return null;
-
-  return {
-    brandName,
-    industry,
-    description,
-    styleNotes,
-  };
+  return brandName && industry && description && styleNotes ? { brandName, industry, description, styleNotes } : null;
 }
 
-export async function POST(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const user = await requireUser();
+    const { id } = await params;
+    const body = await req.json().catch(() => null);
+    const answers = parseAnswers(body);
+    if (!answers) return jsonError("Invalid brief payload", 400, { nextStep: "Fill all required brief fields." }, "INVALID_BRIEF_PAYLOAD");
 
-  if (!user) {
-    return jsonError("Unauthorized", 401, undefined, "UNAUTHORIZED");
-  }
+    const projectRef = await requireProjectMembership(user.id, id);
+    const project = await prisma.project.findUnique({ where: { id: projectRef.id }, select: { id: true, status: true } });
+    if (!project) return jsonError("Project not found", 404, { nextStep: "Check the project link." }, "PROJECT_NOT_FOUND");
 
-  const { id } = await params;
-  const body = await req.json().catch(() => null);
-  const answers = parseAnswers(body);
+    const transition = applyTransition(project.status, PROJECT_STATUS_BRIEF_SUBMITTED);
+    if (!transition.ok) return jsonError(`Invalid transition from ${project.status} to ${PROJECT_STATUS_BRIEF_SUBMITTED}`, 400, { allowed: transition.allowed, nextStep: "Submit brief only when project is ready." }, "INVALID_PROJECT_STATUS_TRANSITION");
 
-  if (!answers) {
-    return jsonError("Invalid brief payload", 400, undefined, "INVALID_BRIEF_PAYLOAD");
-  }
-
-  const project = await prisma.project.findFirst({
-    where: {
-      id,
-      client: {
-        memberships: {
-          some: {
-            userId: user.id,
-          },
-        },
-      },
-    },
-    select: { id: true, status: true },
-  });
-
-  if (!project) {
-    return jsonError("Project not found", 404, undefined, "PROJECT_NOT_FOUND");
-  }
-
-  const transition = applyTransition(project.status, PROJECT_STATUS_BRIEF_SUBMITTED);
-  if (!transition.ok) {
-    return jsonError(
-      `Invalid transition from ${project.status} to ${PROJECT_STATUS_BRIEF_SUBMITTED}`,
-      400,
-      { allowed: transition.allowed },
-      "INVALID_PROJECT_STATUS_TRANSITION",
-    );
-  }
-
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    try {
-      const result = await prisma.$transaction(async (tx) => {
-        const latest = await tx.projectBrief.findFirst({
-          where: { projectId: project.id },
-          orderBy: { version: "desc" },
-          select: { version: true },
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        const result = await prisma.$transaction(async (tx) => {
+          const latest = await tx.projectBrief.findFirst({ where: { projectId: project.id }, orderBy: { version: "desc" }, select: { version: true } });
+          const version = (latest?.version ?? 0) + 1;
+          const brief = await tx.projectBrief.create({ data: { projectId: project.id, version, answers, createdBy: user.id }, select: { id: true, version: true } });
+          await tx.project.update({ where: { id: project.id }, data: { status: PROJECT_STATUS_BRIEF_SUBMITTED } });
+          await logAudit(tx, { projectId: project.id, actorId: user.id, type: "brief_submitted", payload: { briefId: brief.id, version } });
+          await logAudit(tx, { projectId: project.id, actorId: user.id, type: "state_changed", payload: { previousStatus: project.status, nextStatus: PROJECT_STATUS_BRIEF_SUBMITTED } });
+          return brief;
         });
 
-        const version = (latest?.version ?? 0) + 1;
-
-        const brief = await tx.projectBrief.create({
-          data: {
-            projectId: project.id,
-            version,
-            answers,
-            createdBy: user.id,
-          },
-          select: { id: true, version: true },
-        });
-
-        await tx.project.update({
-          where: { id: project.id },
-          data: { status: PROJECT_STATUS_BRIEF_SUBMITTED },
-        });
-
-        await logAudit(tx, {
-          projectId: project.id,
-          actorId: user.id,
-          type: "brief_submitted",
-          payload: { briefId: brief.id, version },
-        });
-
-        await logAudit(tx, {
-          projectId: project.id,
-          actorId: user.id,
-          type: "state_changed",
-          payload: { previousStatus: project.status, nextStatus: PROJECT_STATUS_BRIEF_SUBMITTED },
-        });
-
-        return brief;
-      });
-
-      return Response.json({ ok: true, briefId: result.id, version: result.version });
-    } catch (error) {
-      if (attempt === 0 && isUniqueViolation(error)) {
-        continue;
+        return Response.json({ ok: true, briefId: result.id, version: result.version });
+      } catch (error) {
+        if (attempt === 0 && isUniqueViolation(error)) continue;
+        throw error;
       }
-
-      throw error;
     }
-  }
 
-  return jsonError("Could not submit brief", 409, undefined, "BRIEF_CONFLICT");
+    return jsonError("Could not submit brief", 409, { nextStep: "Retry submitting the brief." }, "BRIEF_CONFLICT");
+  } catch (error) {
+    return toRouteErrorResponse(error);
+  }
 }

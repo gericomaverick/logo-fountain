@@ -1,8 +1,7 @@
 import { jsonError } from "@/lib/api-error";
+import { requireAdmin, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { prisma } from "@/lib/prisma";
-import { isAdminUser } from "@/lib/auth/admin";
 import { applyTransition } from "@/lib/project-state-machine";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
@@ -14,18 +13,9 @@ export async function POST(
   _req: Request,
   { params }: { params: Promise<{ id: string; conceptId: string }> },
 ) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return jsonError("Unauthorized", 401, undefined, "UNAUTHORIZED");
-  }
-
-  if (!(await isAdminUser(user))) {
-    return jsonError("Forbidden", 403, undefined, "FORBIDDEN");
-  }
+  try {
+  const user = await requireUser();
+  await requireAdmin(user);
 
   const { id: projectId, conceptId } = await params;
 
@@ -99,4 +89,7 @@ export async function POST(
     concept: result.updatedConcept,
     projectStatus: result.updatedProjectStatus,
   });
+  } catch (error) {
+    return toRouteErrorResponse(error);
+  }
 }
