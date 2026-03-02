@@ -31,18 +31,18 @@ export function HeroCenter({
   secondary: Cta;
 }) {
   return (
-    <section className="bg-[image:radial-gradient(circle_at_top,_rgba(81,80,247,0.14)_0%,_rgba(148,148,247,0.09)_35%,_rgba(255,255,255,1)_72%)]">
+    <section className="bg-[radial-gradient(circle_at_top,_rgba(81,80,247,0.55)_0%,_rgba(148,148,247,0.20)_35%,_rgba(0,0,0,0)_70%)],bg-[linear-gradient(180deg,_#0a0a0d_0%,_#000_75%)] text-white">
       <div className="mx-auto max-w-[1160px] px-6 py-18 text-center md:px-10 md:py-24">
-        <p className="inline-flex rounded-full border border-black/15 bg-white/80 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-transparent [background-image:var(--hyros-gradient-purple)] [background-origin:border-box] [background-clip:text]">
+        <p className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-white">
           {eyebrow}
         </p>
         <h1 className="font-display mx-auto mt-5 max-w-5xl text-[48px] leading-[1.06] tracking-tight md:text-[76px]">{title}</h1>
-        <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-muted md:text-lg">{body}</p>
+        <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-white/80 md:text-lg">{body}</p>
         <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Link href={primary.href} className="rounded-[20px] border border-black bg-black px-7 py-3 text-sm font-semibold text-white">
+          <Link href={primary.href} className="rounded-[20px] border border-white bg-white px-7 py-3 text-sm font-semibold text-black">
             {primary.label}
           </Link>
-          <Link href={secondary.href} className="rounded-[20px] border border-black bg-white px-7 py-3 text-sm font-semibold text-black">
+          <Link href={secondary.href} className="rounded-[20px] border border-white/80 bg-white/10 px-7 py-3 text-sm font-semibold text-white">
             {secondary.label}
           </Link>
         </div>
