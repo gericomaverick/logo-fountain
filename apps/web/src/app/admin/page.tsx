@@ -85,7 +85,12 @@ export default function AdminHomePage() {
   return (
     <main className="mx-auto max-w-4xl p-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">Admin Queue</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-semibold">Admin Queue</h1>
+          <Link className="text-sm underline" href="/admin/health">
+            Health checks
+          </Link>
+        </div>
 
         <label className="text-sm">
           <span className="mr-2 font-medium">Filter</span>
