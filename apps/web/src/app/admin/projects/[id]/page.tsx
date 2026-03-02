@@ -12,6 +12,15 @@ type Snapshot = {
   messages: Array<{ id: string; body: string; createdAt: string; sender: { email: string; fullName: string | null } }>;
   primaryCta?: string | null;
   timeline?: Array<{ state: string; label: string; completed: boolean; current: boolean; timestamp?: string }>;
+  recentAuditEventsCount?: number;
+};
+
+type AuditEvent = {
+  id: string;
+  type: string;
+  payload: unknown;
+  createdAt: string;
+  actor: { email: string; fullName: string | null } | null;
 };
 
 function readError(payload: { error?: { message?: string; details?: { nextStep?: string } } | string } | null, fallback: string): string {
@@ -21,10 +30,31 @@ function readError(payload: { error?: { message?: string; details?: { nextStep?:
   return nextStep ? `${message} — ${nextStep}` : message;
 }
 
+function summarizePayload(payload: unknown): string {
+  if (payload == null) return "—";
+  if (typeof payload === "string" || typeof payload === "number" || typeof payload === "boolean") return String(payload);
+  if (Array.isArray(payload)) return `${payload.length} item${payload.length === 1 ? "" : "s"}`;
+  if (typeof payload !== "object") return "—";
+
+  const entries = Object.entries(payload as Record<string, unknown>).slice(0, 3);
+  if (entries.length === 0) return "{}";
+
+  return entries
+    .map(([key, value]) => {
+      if (value == null) return `${key}=null`;
+      if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") return `${key}=${String(value)}`;
+      if (Array.isArray(value)) return `${key}=[${value.length}]`;
+      if (typeof value === "object") return `${key}={…}`;
+      return `${key}=…`;
+    })
+    .join(", ");
+}
+
 export default function AdminProjectPage() {
   const params = useParams<{ id: string }>();
   const projectId = params.id;
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
+  const [auditEvents, setAuditEvents] = useState<AuditEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,10 +65,19 @@ export default function AdminProjectPage() {
   const [messageBody, setMessageBody] = useState("");
 
   async function refresh(id: string) {
-    const response = await fetch(`/api/admin/projects/${id}`, { cache: "no-store" });
-    const payload = await response.json().catch(() => null);
-    if (!response.ok) throw new Error(readError(payload, "Failed to load"));
-    setSnapshot(payload?.snapshot ?? null);
+    const [snapshotResponse, auditResponse] = await Promise.all([
+      fetch(`/api/admin/projects/${id}`, { cache: "no-store" }),
+      fetch(`/api/admin/projects/${id}/audit`, { cache: "no-store" }),
+    ]);
+
+    const snapshotPayload = await snapshotResponse.json().catch(() => null);
+    const auditPayload = await auditResponse.json().catch(() => null);
+
+    if (!snapshotResponse.ok) throw new Error(readError(snapshotPayload, "Failed to load"));
+    if (!auditResponse.ok) throw new Error(readError(auditPayload, "Failed to load audit log"));
+
+    setSnapshot(snapshotPayload?.snapshot ?? null);
+    setAuditEvents(auditPayload?.events ?? []);
   }
 
   useEffect(() => {
@@ -67,6 +106,7 @@ export default function AdminProjectPage() {
       <h1 className="mt-2 text-2xl font-semibold">Admin project</h1>
       <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
       <p className="mt-1 text-sm text-neutral-600">Status: {snapshot?.status || "—"}</p>
+      <p className="mt-1 text-sm text-neutral-600">Recent audit events: {snapshot?.recentAuditEventsCount ?? 0}</p>
       {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
 
       {snapshot?.timeline ? <ProjectTimeline timeline={snapshot.timeline} primaryCta={snapshot.primaryCta} /> : null}
@@ -120,6 +160,20 @@ export default function AdminProjectPage() {
           <textarea className="mt-1 w-full rounded border border-neutral-300 px-2 py-1" rows={3} maxLength={2000} value={messageBody} onChange={(e) => setMessageBody(e.target.value)} />
           <button className="mt-2 rounded border border-neutral-300 px-3 py-1 text-sm" type="submit" disabled={busy || !messageBody.trim()}>Send message</button>
         </form>
+      </section>
+
+      <section className="mt-8 rounded border border-neutral-200 p-4">
+        <h2 className="text-lg font-medium">Audit log</h2>
+        <ul className="mt-3 space-y-3">
+          {auditEvents.map((event) => (
+            <li key={event.id} className="rounded border border-neutral-200 p-3 text-sm">
+              <p className="text-xs text-neutral-500">{new Date(event.createdAt).toLocaleString()} · {event.actor?.email ?? "System"}</p>
+              <p className="mt-1"><span className="font-medium">{event.type}</span></p>
+              <p className="mt-1 text-neutral-700">{summarizePayload(event.payload)}</p>
+            </li>
+          ))}
+          {auditEvents.length === 0 ? <li className="text-sm text-neutral-500">No audit events yet.</li> : null}
+        </ul>
       </section>
     </main>
   );

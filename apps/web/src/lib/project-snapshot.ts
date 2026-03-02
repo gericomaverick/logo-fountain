@@ -76,6 +76,9 @@ export async function getProjectSnapshot({ projectId }: SnapshotArgs) {
         orderBy: [{ createdAt: "desc" }],
         select: { kind: true, path: true, createdAt: true },
       },
+      _count: {
+        select: { auditEvents: true },
+      },
     },
   });
 
@@ -153,5 +156,6 @@ export async function getProjectSnapshot({ projectId }: SnapshotArgs) {
     latestRevisionRequests: project.revisionRequests.slice(0, 5),
     messages: project.messages,
     finalZip,
+    recentAuditEventsCount: project._count.auditEvents,
   };
 }
