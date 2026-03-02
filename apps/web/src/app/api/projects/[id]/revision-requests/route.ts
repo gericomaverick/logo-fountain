@@ -1,3 +1,4 @@
+import { jsonError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -37,35 +38,23 @@ export async function POST(
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!user) return jsonError("Unauthorized", 401, { nextStep: "Sign in and retry." }, "UNAUTHORIZED");
 
   const payload = await req.json().catch(() => null);
   const parsed = parseBody(payload);
-  if (!parsed) {
-    return Response.json({ error: "Body is required (1-5000 chars)" }, { status: 400 });
-  }
+  if (!parsed) return jsonError("Body is required (1-5000 chars)", 400, undefined, "INVALID_BODY");
 
   const { id: projectId } = await params;
 
   const project = await prisma.project.findFirst({
     where: {
       id: projectId,
-      client: {
-        memberships: {
-          some: {
-            userId: user.id,
-          },
-        },
-      },
+      client: { memberships: { some: { userId: user.id } } },
     },
     select: { id: true },
   });
 
-  if (!project) {
-    return Response.json({ error: "Project not found" }, { status: 404 });
-  }
+  if (!project) return jsonError("Project not found", 404, undefined, "PROJECT_NOT_FOUND");
 
   const latestPublishedConcept = await prisma.concept.findFirst({
     where: { projectId: project.id, status: CONCEPT_STATUS_PUBLISHED },
@@ -76,14 +65,8 @@ export async function POST(
   const conceptId = parsed.conceptId ?? latestPublishedConcept?.id ?? null;
 
   if (conceptId) {
-    const concept = await prisma.concept.findFirst({
-      where: { id: conceptId, projectId: project.id },
-      select: { id: true },
-    });
-
-    if (!concept) {
-      return Response.json({ error: "Concept not found for project" }, { status: 400 });
-    }
+    const concept = await prisma.concept.findFirst({ where: { id: conceptId, projectId: project.id }, select: { id: true } });
+    if (!concept) return jsonError("Concept not found for project", 400, undefined, "CONCEPT_NOT_FOUND");
   }
 
   try {
@@ -99,35 +82,19 @@ export async function POST(
         RETURNING "id"
       `;
 
-      if (updated.length === 0) {
-        throw new Error("NO_REVISIONS_REMAINING");
-      }
+      if (updated.length === 0) throw new Error("NO_REVISIONS_REMAINING");
 
       return tx.revisionRequest.create({
-        data: {
-          projectId: project.id,
-          conceptId,
-          status: REVISION_STATUS_REQUESTED,
-          requestedBy: user.id,
-          body: parsed.body,
-        },
-        select: {
-          id: true,
-          projectId: true,
-          conceptId: true,
-          status: true,
-          body: true,
-          createdAt: true,
-        },
+        data: { projectId: project.id, conceptId, status: REVISION_STATUS_REQUESTED, requestedBy: user.id, body: parsed.body },
+        select: { id: true, projectId: true, conceptId: true, status: true, body: true, createdAt: true },
       });
     });
 
     return Response.json({ ok: true, revisionRequest }, { status: 201 });
   } catch (error) {
     if (error instanceof Error && error.message === "NO_REVISIONS_REMAINING") {
-      return Response.json({ error: "No revisions remaining" }, { status: 400 });
+      return jsonError("No revisions remaining", 400, { nextStep: "No revisions remaining—buy add-on." }, "NO_REVISIONS_REMAINING");
     }
-
-    return Response.json({ error: "Failed to submit revision request" }, { status: 500 });
+    return jsonError("Failed to submit revision request", 500, undefined, "REVISION_REQUEST_FAILED");
   }
 }

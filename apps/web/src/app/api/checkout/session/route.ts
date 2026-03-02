@@ -1,3 +1,4 @@
+import { jsonError } from "@/lib/api-error";
 import { PACKAGE_TO_PRICE_ID, type PackageCode, stripe } from "@/lib/stripe";
 
 export const runtime = "nodejs";
@@ -26,17 +27,12 @@ export async function POST(req: Request) {
   try {
     payload = (await req.json()) as CreateCheckoutSessionBody;
   } catch {
-    return Response.json({ error: "Invalid JSON body" }, { status: 400 });
+    return jsonError("Invalid JSON body", 400, { nextStep: "Send a valid JSON payload." }, "INVALID_JSON");
   }
 
   const packageCode = parsePackageCode(payload.package_code);
   if (!packageCode) {
-    return Response.json(
-      {
-        error: "Invalid package_code. Expected one of: essential, professional, complete",
-      },
-      { status: 400 }
-    );
+    return jsonError("Invalid package_code. Expected one of: essential, professional, complete", 400, undefined, "INVALID_PACKAGE");
   }
 
   const campaignSlug = parseCampaignSlug(payload.campaign_slug);
@@ -55,9 +51,7 @@ export async function POST(req: Request) {
     },
   });
 
-  if (!session.url) {
-    return Response.json({ error: "Failed to create checkout session URL" }, { status: 500 });
-  }
+  if (!session.url) return jsonError("Failed to create checkout session URL", 500, undefined, "CHECKOUT_URL_MISSING");
 
   return Response.json({ url: session.url });
 }

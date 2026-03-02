@@ -1,3 +1,4 @@
+import { jsonError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
 import { isAdminUser } from "@/lib/auth/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -28,11 +29,11 @@ export async function POST(
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+    return jsonError("Unauthorized", 401, undefined, "UNAUTHORIZED");
   }
 
   if (!(await isAdminUser(user))) {
-    return Response.json({ error: "Forbidden" }, { status: 403 });
+    return jsonError("Forbidden", 403, undefined, "FORBIDDEN");
   }
 
   const { id } = await params;
@@ -49,7 +50,7 @@ export async function POST(
   });
 
   if (!project) {
-    return Response.json({ error: "Project not found" }, { status: 404 });
+    return jsonError("Project not found", 404, undefined, "PROJECT_NOT_FOUND");
   }
 
   const allowedTargets = ALLOWED_TRANSITIONS[project.status] ?? [];

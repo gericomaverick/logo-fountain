@@ -1,3 +1,4 @@
+import { jsonError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -44,7 +45,7 @@ export async function POST(
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+    return jsonError("Unauthorized", 401, undefined, "UNAUTHORIZED");
   }
 
   const { id } = await params;
@@ -52,7 +53,7 @@ export async function POST(
   const answers = parseAnswers(body);
 
   if (!answers) {
-    return Response.json({ error: "Invalid brief payload" }, { status: 400 });
+    return jsonError("Invalid brief payload", 400, undefined, "INVALID_BRIEF_PAYLOAD");
   }
 
   const project = await prisma.project.findFirst({
@@ -70,7 +71,7 @@ export async function POST(
   });
 
   if (!project) {
-    return Response.json({ error: "Project not found" }, { status: 404 });
+    return jsonError("Project not found", 404, undefined, "PROJECT_NOT_FOUND");
   }
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
@@ -114,5 +115,5 @@ export async function POST(
     }
   }
 
-  return Response.json({ error: "Could not submit brief" }, { status: 409 });
+  return jsonError("Could not submit brief", 409, undefined, "BRIEF_CONFLICT");
 }

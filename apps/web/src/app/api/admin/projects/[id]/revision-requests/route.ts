@@ -1,4 +1,5 @@
 import { isAdminUser } from "@/lib/auth/admin";
+import { jsonError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -14,11 +15,11 @@ export async function GET(
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+    return jsonError("Unauthorized", 401, undefined, "UNAUTHORIZED");
   }
 
   if (!(await isAdminUser(user))) {
-    return Response.json({ error: "Forbidden" }, { status: 403 });
+    return jsonError("Forbidden", 403, undefined, "FORBIDDEN");
   }
 
   const { id: projectId } = await params;

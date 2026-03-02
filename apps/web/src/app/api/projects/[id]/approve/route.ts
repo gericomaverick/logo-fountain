@@ -1,3 +1,4 @@
+import { jsonError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -33,14 +34,14 @@ export async function POST(
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+    return jsonError("Unauthorized", 401, undefined, "UNAUTHORIZED");
   }
 
   const payload = await req.json().catch(() => null);
   const parsed = parseBody(payload);
 
   if (!parsed) {
-    return Response.json({ error: "conceptId is required" }, { status: 400 });
+    return jsonError("conceptId is required", 400, undefined, "INVALID_CONCEPT_ID");
   }
 
   const { id: projectId } = await params;
@@ -60,7 +61,7 @@ export async function POST(
   });
 
   if (!project) {
-    return Response.json({ error: "Project not found" }, { status: 404 });
+    return jsonError("Project not found", 404, undefined, "PROJECT_NOT_FOUND");
   }
 
   const concept = await prisma.concept.findFirst({
@@ -73,7 +74,7 @@ export async function POST(
   });
 
   if (!concept) {
-    return Response.json({ error: "Published concept not found" }, { status: 404 });
+    return jsonError("Published concept not found", 404, undefined, "CONCEPT_NOT_FOUND");
   }
 
   const result = await prisma.$transaction(async (tx) => {

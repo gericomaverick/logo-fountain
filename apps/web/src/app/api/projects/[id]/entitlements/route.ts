@@ -1,3 +1,4 @@
+import { jsonError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -13,7 +14,7 @@ export async function GET(
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+    return jsonError("Unauthorized", 401, undefined, "UNAUTHORIZED");
   }
 
   const { id } = await params;
@@ -33,7 +34,7 @@ export async function GET(
   });
 
   if (!project) {
-    return Response.json({ error: "Project not found" }, { status: 404 });
+    return jsonError("Project not found", 404, undefined, "PROJECT_NOT_FOUND");
   }
 
   const entitlements = await prisma.projectEntitlement.findMany({
