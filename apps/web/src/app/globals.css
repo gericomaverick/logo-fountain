@@ -10,7 +10,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
-  --font-display: var(--font-fraunces);
+  --font-display: var(--font-reckless);
 }
 
 * {
@@ -25,7 +25,8 @@ body {
 }
 
 .font-display {
-  font-family: var(--font-fraunces), Georgia, serif;
+  font-family: var(--font-reckless), Georgia, serif;
+  font-weight: 400;
   letter-spacing: 0;
   line-height: 1.2;
 }

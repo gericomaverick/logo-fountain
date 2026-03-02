@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import "../styles/hyros-theme.css";
 
@@ -8,9 +9,15 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
-  subsets: ["latin"],
+const reckless = localFont({
+  variable: "--font-reckless",
+  src: [
+    {
+      path: "../../fonts/RecklessStandardS-TRIAL-Regular.woff2",
+      weight: "400",
+      style: "normal",
+    },
+  ],
 });
 
 export const metadata: Metadata = {
@@ -25,7 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${fraunces.variable} antialiased`}>{children}</body>
+      <body className={`${inter.variable} ${reckless.variable} antialiased`}>{children}</body>
     </html>
   );
 }
