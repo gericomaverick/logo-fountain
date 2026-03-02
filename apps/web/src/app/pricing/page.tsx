@@ -3,8 +3,11 @@
 import { useState } from "react";
 
 import { HeaderNav } from "@/components/header-nav";
-
-type PackageCode = "essential" | "professional" | "complete";
+import {
+  PACKAGE_TO_PRICE_ID,
+  isPlaceholderPriceId,
+  type PackageCode,
+} from "@/lib/stripe-price-allowlist";
 
 type PricingOption = {
   code: PackageCode;
@@ -35,6 +38,14 @@ export default function PricingPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   async function startCheckout(packageCode: PackageCode) {
+    const mappedPriceId = PACKAGE_TO_PRICE_ID[packageCode];
+    if (isPlaceholderPriceId(mappedPriceId)) {
+      setErrorMessage(
+        `Checkout is temporarily unavailable for '${packageCode}' because its Stripe price ID is not configured yet. Please contact support.`
+      );
+      return;
+    }
+
     setSubmittingCode(packageCode);
     setErrorMessage(null);
 

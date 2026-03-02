@@ -2,11 +2,12 @@ import Stripe from "stripe";
 
 import { requireAdmin, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { prisma } from "@/lib/prisma";
+import { STRIPE_PLACEHOLDER_PRICE_IDS } from "@/lib/stripe";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
   SUPABASE_STORAGE_BUCKET_CONCEPTS,
   SUPABASE_STORAGE_BUCKET_FINAL_DELIVERABLES,
 } from "@/lib/supabase/storage";
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 
@@ -52,6 +53,28 @@ export async function GET() {
       envCheck("STRIPE_WEBHOOK_SECRET", "Stripe webhook secret"),
       envCheck("ADMIN_EMAILS", "Admin emails allowlist"),
     ];
+
+    checks.push({
+      key: "stripe_allowlist",
+      label: "Stripe allowlist",
+      passed: STRIPE_PLACEHOLDER_PRICE_IDS.length === 0,
+      summary:
+        STRIPE_PLACEHOLDER_PRICE_IDS.length === 0
+          ? "All package codes map to real Stripe price IDs"
+          : `Placeholder price IDs detected: ${STRIPE_PLACEHOLDER_PRICE_IDS
+              .map(({ packageCode, priceId }) => `${packageCode}=${priceId || "<empty>"}`)
+              .join(", ")}`,
+      nextStep:
+        STRIPE_PLACEHOLDER_PRICE_IDS.length === 0
+          ? "No action needed."
+          : "Update src/lib/stripe.ts.",
+      details:
+        STRIPE_PLACEHOLDER_PRICE_IDS.length === 0
+          ? undefined
+          : {
+              placeholders: STRIPE_PLACEHOLDER_PRICE_IDS,
+            },
+    });
 
     try {
       await prisma.$queryRaw`SELECT 1`;

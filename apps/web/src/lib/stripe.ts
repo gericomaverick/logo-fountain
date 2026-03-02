@@ -2,18 +2,25 @@ import "server-only";
 
 import Stripe from "stripe";
 
-export type PackageCode = "essential" | "professional" | "complete";
+import {
+  PACKAGE_TO_PRICE_ID,
+  STRIPE_PLACEHOLDER_PRICE_IDS,
+  type PackageCode,
+} from "@/lib/stripe-price-allowlist";
 
-export const PACKAGE_TO_PRICE_ID: Record<PackageCode, string> = {
-  // docs/stripe-price-mapping-v1.0.md
-  essential: "price_REPLACE_ESSENTIAL",
-  professional: "price_1ScMRpFM0K9Qd7oXxcBdr8ad",
-  complete: "price_1SwQmSFM0K9Qd7oX2CeIAJTa",
-};
+export { PACKAGE_TO_PRICE_ID, STRIPE_PLACEHOLDER_PRICE_IDS };
+export type { PackageCode };
 
 export const PRICE_ID_TO_PACKAGE: Record<string, PackageCode> = Object.fromEntries(
   Object.entries(PACKAGE_TO_PRICE_ID).map(([packageCode, priceId]) => [priceId, packageCode as PackageCode])
 );
+
+if (STRIPE_PLACEHOLDER_PRICE_IDS.length > 0) {
+  console.error(
+    "[stripe] Placeholder Stripe price IDs detected in PACKAGE_TO_PRICE_ID:",
+    STRIPE_PLACEHOLDER_PRICE_IDS
+  );
+}
 
 function getRequiredEnv(name: string): string {
   const value = process.env[name];
