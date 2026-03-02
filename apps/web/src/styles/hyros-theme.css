@@ -26,6 +26,16 @@
   --hyros-radius: 20px;
   --hyros-border: 1px solid var(--hyros-black);
   --hyros-max: 1160px;
+
+  /* Utopia-inspired fluid type scale (320px → 1200px viewport) */
+  --step--1: clamp(0.88rem, 0.84rem + 0.17vw, 0.98rem);
+  --step-0: clamp(1.00rem, 0.95rem + 0.23vw, 1.13rem);
+  --step-1: clamp(1.25rem, 1.15rem + 0.45vw, 1.50rem);
+  --step-2: clamp(1.56rem, 1.38rem + 0.82vw, 2.00rem);
+  --step-3: clamp(1.95rem, 1.64rem + 1.36vw, 2.75rem);
+  --step-4: clamp(2.44rem, 1.95rem + 2.14vw, 3.75rem);
+  --step-5: clamp(3.05rem, 2.27rem + 3.36vw, 5.00rem);
+  --step-6: clamp(3.81rem, 2.62rem + 5.02vw, 6.25rem);
 }
 
 .hyros-container {

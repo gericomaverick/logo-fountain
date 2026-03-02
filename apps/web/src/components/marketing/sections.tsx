@@ -45,13 +45,13 @@ export function HeroCenter({
 
       <div className="mx-auto max-w-[1160px] px-6 py-20 text-center md:px-10 md:py-28">
         <div className="mb-10 flex items-center justify-center">
-          <img src="/img/logo.svg" alt="Logo Fountain" className="h-10 w-auto" />
+          <img src="/img/logo.svg" alt="Logo Fountain" className="h-10 w-auto invert" />
         </div>
 
         <p className="inline-flex rounded-full border border-white/30 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-white">
           {eyebrow}
         </p>
-        <h1 className="font-display mx-auto mt-5 max-w-5xl text-[48px] leading-[1.06] tracking-tight md:text-[76px]">{title}</h1>
+        <h1 className="font-display mx-auto mt-5 max-w-5xl text-[length:var(--step-6)] leading-[1.06] tracking-tight">{title}</h1>
         <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-white/80 md:text-lg">{body}</p>
         <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Link href={primary.href} className="rounded-[20px] border border-white bg-white px-7 py-3 text-sm font-semibold text-black">
