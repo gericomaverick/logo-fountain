@@ -96,7 +96,7 @@ export default function AdminHomePage() {
 
   useEffect(() => {
     void loadProjects(filter);
-  }, [filter]);
+  }, [filter, loadProjects]);
 
   return (
     <>
