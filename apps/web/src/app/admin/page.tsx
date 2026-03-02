@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { HeaderNav } from "@/components/header-nav";
 
@@ -31,7 +31,7 @@ export default function AdminHomePage() {
   const [error, setError] = useState<string | null>(null);
   const [mutatingId, setMutatingId] = useState<string | null>(null);
 
-  async function loadProjects(nextFilter: string) {
+  const loadProjects = useCallback(async (nextFilter: string) => {
     setLoading(true);
     setError(null);
 
@@ -62,7 +62,7 @@ export default function AdminHomePage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [router]);
 
   async function transitionProject(projectId: string, nextStatus: string) {
     setMutatingId(projectId);
