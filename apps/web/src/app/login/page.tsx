@@ -1,10 +1,120 @@
+"use client";
+
+import { FormEvent, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+
 export default function LoginPage() {
+  const router = useRouter();
+  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [status, setStatus] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function onPasswordSignIn(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsSubmitting(true);
+    setStatus(null);
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    setIsSubmitting(false);
+
+    if (error) {
+      setStatus(error.message);
+      return;
+    }
+
+    router.push("/dashboard");
+    router.refresh();
+  }
+
+  async function onMagicLinkRequest() {
+    if (!email) {
+      setStatus("Enter your email first.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setStatus(null);
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/dashboard`,
+      },
+    });
+
+    setIsSubmitting(false);
+
+    if (error) {
+      setStatus(error.message);
+      return;
+    }
+
+    setStatus("Magic link sent. Check your inbox.");
+  }
+
   return (
-    <main className="mx-auto max-w-xl p-8">
+    <main className="mx-auto max-w-md p-8">
       <h1 className="text-2xl font-semibold">Sign in</h1>
-      <p className="mt-2 text-sm text-neutral-600">
-        Auth UI will land here (email+password + magic link).
-      </p>
+
+      <form className="mt-6 space-y-4" onSubmit={onPasswordSignIn}>
+        <div>
+          <label className="mb-1 block text-sm" htmlFor="email">
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            className="w-full rounded border border-neutral-300 px-3 py-2"
+          />
+        </div>
+
+        <div>
+          <label className="mb-1 block text-sm" htmlFor="password">
+            Password
+          </label>
+          <input
+            id="password"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            className="w-full rounded border border-neutral-300 px-3 py-2"
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full rounded bg-black px-4 py-2 text-white disabled:opacity-60"
+        >
+          {isSubmitting ? "Signing in..." : "Sign in"}
+        </button>
+      </form>
+
+      <button
+        type="button"
+        onClick={onMagicLinkRequest}
+        disabled={isSubmitting}
+        className="mt-3 w-full rounded border border-neutral-300 px-4 py-2 disabled:opacity-60"
+      >
+        Send magic link
+      </button>
+
+      {status ? <p className="mt-4 text-sm text-neutral-700">{status}</p> : null}
     </main>
   );
 }
