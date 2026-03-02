@@ -55,14 +55,13 @@ async function main() {
 
   if (!userId) throw new Error("Failed to resolve user id");
 
-  // Ensure profile row + admin flag.
-  const upsertProfile = await supabase.from("profiles").upsert(
-    { id: userId, email, is_admin: true },
-    { onConflict: "id" }
-  );
-  if (upsertProfile.error) throw upsertProfile.error;
+  // NOTE: This project currently uses Prisma-managed tables (e.g. "Profile"),
+  // which are not exposed via Supabase PostgREST as `public.profiles`.
+  // Admin access is therefore granted via ADMIN_EMAILS (recommended) and/or
+  // a future migration to Supabase-conventional table names.
 
-  console.log(`Admin user ready: ${email} (userId=${userId})`);
+  console.log(`Auth user ready: ${email} (userId=${userId})`);
+  console.log("To grant admin access in the app, add this email to ADMIN_EMAILS in .env.local.");
   console.log("You can now sign in at /login with the provided password.");
 }
 
