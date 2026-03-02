@@ -13,22 +13,23 @@ function asIso(value: Date | null | undefined): string | undefined {
 }
 
 async function fetchAuditStateTimestamps(projectId: string): Promise<Partial<Record<ProjectState, string>>> {
-  try {
-    const rows = await prisma.$queryRawUnsafe<Array<{ next_state: string; created_at: Date }>>(
-      `SELECT "next_state", "created_at" FROM "audit_events" WHERE "project_id" = $1::uuid AND "event_type" = 'state_changed' ORDER BY "created_at" ASC`,
-      projectId,
-    );
+  const rows = await prisma.auditEvent.findMany({
+    where: { projectId, type: "state_changed" },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+    select: { payload: true, createdAt: true },
+  });
 
-    const map: Partial<Record<ProjectState, string>> = {};
-    for (const row of rows) {
-      if ((PROJECT_STATES as readonly string[]).includes(row.next_state) && !map[row.next_state as ProjectState]) {
-        map[row.next_state as ProjectState] = row.created_at.toISOString();
-      }
+  const map: Partial<Record<ProjectState, string>> = {};
+  for (const row of rows) {
+    const payload = row.payload as { nextStatus?: unknown } | null;
+    const nextStatus = typeof payload?.nextStatus === "string" ? payload.nextStatus : null;
+
+    if (nextStatus && (PROJECT_STATES as readonly string[]).includes(nextStatus) && !map[nextStatus as ProjectState]) {
+      map[nextStatus as ProjectState] = row.createdAt.toISOString();
     }
-    return map;
-  } catch {
-    return {};
   }
+
+  return map;
 }
 
 export async function getProjectSnapshot({ projectId }: SnapshotArgs) {

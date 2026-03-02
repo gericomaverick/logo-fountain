@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { isAdminUser } from "@/lib/auth/admin";
 import { applyTransition } from "@/lib/project-state-machine";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
 
@@ -59,10 +60,21 @@ export async function POST(
     );
   }
 
-  const updated = await prisma.project.update({
-    where: { id: project.id },
-    data: { status: nextStatus },
-    select: { id: true, status: true },
+  const updated = await prisma.$transaction(async (tx) => {
+    const updatedProject = await tx.project.update({
+      where: { id: project.id },
+      data: { status: nextStatus },
+      select: { id: true, status: true },
+    });
+
+    await logAudit(tx, {
+      projectId: project.id,
+      actorId: user.id,
+      type: "state_changed",
+      payload: { previousStatus: project.status, nextStatus },
+    });
+
+    return updatedProject;
   });
 
   return Response.json({ ok: true, project: updated });

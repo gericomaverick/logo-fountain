@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { isAdminUser } from "@/lib/auth/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { uploadConceptAsset } from "@/lib/supabase/storage";
+import { logAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
 
@@ -118,6 +119,13 @@ export async function POST(
         size: upload.size,
         uploadedBy: user.id,
       },
+    });
+
+    await logAudit(prisma, {
+      projectId,
+      actorId: user.id,
+      type: "concept_uploaded",
+      payload: { conceptId: concept.id, conceptNumber: concept.number, filePath: upload.path },
     });
 
     return Response.json({ ok: true, concept });

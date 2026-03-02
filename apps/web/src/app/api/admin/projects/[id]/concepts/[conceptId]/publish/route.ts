@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { isAdminUser } from "@/lib/auth/admin";
 import { applyTransition } from "@/lib/project-state-machine";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
 
@@ -67,6 +68,13 @@ export async function POST(
 
     let updatedProjectStatus: string | null = null;
 
+    await logAudit(tx, {
+      projectId,
+      actorId: user.id,
+      type: "concept_published",
+      payload: { conceptId: updatedConcept.id },
+    });
+
     if (alreadyPublishedCount === 0) {
       const updatedProject = await tx.project.update({
         where: { id: projectId },
@@ -74,6 +82,13 @@ export async function POST(
         select: { status: true },
       });
       updatedProjectStatus = updatedProject.status;
+
+      await logAudit(tx, {
+        projectId,
+        actorId: user.id,
+        type: "state_changed",
+        payload: { previousStatus: project.status, nextStatus: PROJECT_STATUS_CONCEPTS_READY },
+      });
     }
 
     return { updatedConcept, updatedProjectStatus };

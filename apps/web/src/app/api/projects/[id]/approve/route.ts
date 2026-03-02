@@ -2,6 +2,7 @@ import { jsonError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
 import { applyTransition } from "@/lib/project-state-machine";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
 
@@ -108,6 +109,20 @@ export async function POST(
       where: { id: project.id },
       data: { status: PROJECT_STATUS_AWAITING_APPROVAL },
       select: { id: true, status: true },
+    });
+
+    await logAudit(tx, {
+      projectId: project.id,
+      actorId: user.id,
+      type: "concept_approved",
+      payload: { conceptId: approved.id, conceptNumber: approved.number },
+    });
+
+    await logAudit(tx, {
+      projectId: project.id,
+      actorId: user.id,
+      type: "state_changed",
+      payload: { previousStatus: project.status, nextStatus: PROJECT_STATUS_AWAITING_APPROVAL },
     });
 
     return { approved, project: updatedProject };

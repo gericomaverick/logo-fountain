@@ -2,6 +2,7 @@ import { isAdminUser } from "@/lib/auth/admin";
 import { jsonError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { logAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
 
@@ -57,10 +58,19 @@ export async function POST(req: Request, { params }: RouteParams) {
 
   const message = await prisma.$transaction(async (tx) => {
     const thread = await tx.messageThread.upsert({ where: { projectId: auth.projectId }, update: {}, create: { projectId: auth.projectId }, select: { id: true } });
-    return tx.message.create({
+    const created = await tx.message.create({
       data: { threadId: thread.id, projectId: auth.projectId, senderId: auth.user.id, body },
       select: { id: true, body: true, createdAt: true, sender: { select: { id: true, email: true, fullName: true } } },
     });
+
+    await logAudit(tx, {
+      projectId: auth.projectId,
+      actorId: auth.user.id,
+      type: "message_sent",
+      payload: { messageId: created.id, isAdmin: auth.admin },
+    });
+
+    return created;
   });
 
   return Response.json({ ok: true, message }, { status: 201 });

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { applyTransition } from "@/lib/project-state-machine";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { uploadFinalDeliverable } from "@/lib/supabase/storage";
+import { logAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
 
@@ -107,6 +108,20 @@ export async function POST(
         where: { id: project.id },
         data: { status: targetStatus },
         select: { id: true, status: true },
+      });
+
+      await logAudit(tx, {
+        projectId: project.id,
+        actorId: user.id,
+        type: "finals_uploaded",
+        payload: { fileAssetId: asset.id, path: asset.path },
+      });
+
+      await logAudit(tx, {
+        projectId: project.id,
+        actorId: user.id,
+        type: "state_changed",
+        payload: { previousStatus: project.status, nextStatus: targetStatus },
       });
 
       return { asset, project: updatedProject };

@@ -2,6 +2,7 @@ import type Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 import { PRICE_ID_TO_PACKAGE, stripe, type PackageCode } from "@/lib/stripe";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { logAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
 
@@ -158,6 +159,20 @@ async function fulfillCheckoutSession(session: Stripe.Checkout.Session): Promise
         stripeCheckoutSessionId: sessionId,
         stripePaymentIntentId: paymentIntentId,
       },
+    });
+
+    await logAudit(tx, {
+      projectId: project.id,
+      actorId: null,
+      type: "order_fulfilled",
+      payload: { orderId: order.id, orderStatus, checkoutSessionId: sessionId },
+    });
+
+    await logAudit(tx, {
+      projectId: project.id,
+      actorId: null,
+      type: "state_changed",
+      payload: { previousStatus: null, nextStatus: PROJECT_STATUS_AWAITING_BRIEF },
     });
 
     return {

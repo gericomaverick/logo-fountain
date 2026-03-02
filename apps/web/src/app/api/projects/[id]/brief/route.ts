@@ -1,6 +1,7 @@
 import { jsonError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
 import { applyTransition } from "@/lib/project-state-machine";
+import { logAudit } from "@/lib/audit";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -108,6 +109,20 @@ export async function POST(
         await tx.project.update({
           where: { id: project.id },
           data: { status: PROJECT_STATUS_BRIEF_SUBMITTED },
+        });
+
+        await logAudit(tx, {
+          projectId: project.id,
+          actorId: user.id,
+          type: "brief_submitted",
+          payload: { briefId: brief.id, version },
+        });
+
+        await logAudit(tx, {
+          projectId: project.id,
+          actorId: user.id,
+          type: "state_changed",
+          payload: { previousStatus: project.status, nextStatus: PROJECT_STATUS_BRIEF_SUBMITTED },
         });
 
         return brief;
