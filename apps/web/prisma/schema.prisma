@@ -20,7 +20,8 @@ model Profile {
   memberships  ClientMembership[]
   createdBriefs ProjectBrief[]
   uploadedFiles FileAsset[]
-  sentMessages Message[]
+  sentMessages      Message[]
+  revisionRequests  RevisionRequest[]
 }
 
 model Client {
@@ -66,7 +67,8 @@ model Project {
   concepts      Concept[]
   fileAssets    FileAsset[]
   messageThread MessageThread?
-  messages      Message[]
+  messages         Message[]
+  revisionRequests RevisionRequest[]
 
   @@index([clientId])
   @@index([status])
@@ -132,7 +134,8 @@ model Concept {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project          Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  revisionRequests RevisionRequest[]
 
   @@unique([projectId, number])
   @@index([projectId])
@@ -184,6 +187,26 @@ model Message {
   @@index([projectId])
   @@index([senderId])
   @@index([createdAt])
+}
+
+model RevisionRequest {
+  id          String   @id @default(uuid()) @db.Uuid
+  projectId   String   @db.Uuid
+  conceptId   String?  @db.Uuid
+  status      String
+  requestedBy String   @db.Uuid
+  body        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  project Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  concept Concept? @relation(fields: [conceptId], references: [id], onDelete: SetNull)
+  user    Profile  @relation(fields: [requestedBy], references: [id], onDelete: Restrict)
+
+  @@index([projectId])
+  @@index([conceptId])
+  @@index([requestedBy])
+  @@index([status])
 }
 
 model StripeEvent {

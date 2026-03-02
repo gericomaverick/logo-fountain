@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type ConceptItem = {
   id: string;
@@ -22,12 +22,18 @@ type MessageItem = {
   };
 };
 
+type Entitlements = {
+  concepts: number;
+  revisions: number;
+};
+
 export default function ProjectPage() {
   const params = useParams<{ id: string }>();
   const projectId = params.id;
 
   const [concepts, setConcepts] = useState<ConceptItem[]>([]);
   const [messages, setMessages] = useState<MessageItem[]>([]);
+  const [entitlements, setEntitlements] = useState<Entitlements>({ concepts: 0, revisions: 0 });
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +41,15 @@ export default function ProjectPage() {
   const [messageBody, setMessageBody] = useState("");
   const [sending, setSending] = useState(false);
   const [messageError, setMessageError] = useState<string | null>(null);
+
+  const [revisionBody, setRevisionBody] = useState("");
+  const [submittingRevision, setSubmittingRevision] = useState(false);
+  const [revisionError, setRevisionError] = useState<string | null>(null);
+
+  const latestPublishedConcept = useMemo(
+    () => concepts.slice().sort((a, b) => b.number - a.number)[0] ?? null,
+    [concepts],
+  );
 
   async function loadMessages(id: string) {
     const response = await fetch(`/api/projects/${id}/messages`, { cache: "no-store" });
@@ -44,6 +59,16 @@ export default function ProjectPage() {
 
     if (!response.ok) throw new Error(payload?.error ?? "Failed to load messages");
     setMessages(payload?.messages ?? []);
+  }
+
+  async function loadEntitlements(id: string) {
+    const response = await fetch(`/api/projects/${id}/entitlements`, { cache: "no-store" });
+    const payload = (await response.json().catch(() => null)) as
+      | { entitlements?: Entitlements; error?: string }
+      | null;
+
+    if (!response.ok) throw new Error(payload?.error ?? "Failed to load entitlements");
+    setEntitlements(payload?.entitlements ?? { concepts: 0, revisions: 0 });
   }
 
   useEffect(() => {
@@ -64,7 +89,7 @@ export default function ProjectPage() {
 
         if (!cancelled) {
           setConcepts(conceptsPayload?.concepts ?? []);
-          await loadMessages(projectId);
+          await Promise.all([loadMessages(projectId), loadEntitlements(projectId)]);
           setError(null);
         }
       } catch (loadError) {
@@ -116,10 +141,40 @@ export default function ProjectPage() {
     }
   }
 
+  async function submitRevisionRequest(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!projectId) return;
+
+    const body = revisionBody.trim();
+    if (!body) return;
+
+    setSubmittingRevision(true);
+    setRevisionError(null);
+
+    try {
+      const response = await fetch(`/api/projects/${projectId}/revision-requests`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ body, conceptId: latestPublishedConcept?.id ?? null }),
+      });
+
+      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      if (!response.ok) throw new Error(payload?.error ?? "Failed to submit revision request");
+
+      setRevisionBody("");
+      await loadEntitlements(projectId);
+    } catch (submitError) {
+      setRevisionError(submitError instanceof Error ? submitError.message : "Failed to submit revision request");
+    } finally {
+      setSubmittingRevision(false);
+    }
+  }
+
   return (
     <main className="mx-auto max-w-4xl p-8">
       <h1 className="text-2xl font-semibold">Project concepts</h1>
       <p className="mt-2 text-sm text-neutral-600">Project {projectId}</p>
+      <p className="mt-1 text-sm text-neutral-600">Revisions remaining: {entitlements.revisions}</p>
 
       {loading ? <p className="mt-4 text-sm text-neutral-600">Loading…</p> : null}
       {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
@@ -144,6 +199,34 @@ export default function ProjectPage() {
           ))}
         </ul>
       ) : null}
+
+      <section className="mt-10 rounded border border-neutral-200 p-4">
+        <h2 className="text-lg font-medium">Request a revision</h2>
+        <p className="mt-1 text-sm text-neutral-600">
+          {latestPublishedConcept
+            ? `This request will be linked to Concept #${latestPublishedConcept.number}.`
+            : "No published concept selected. Request will be project-level."}
+        </p>
+        <form className="mt-4" onSubmit={submitRevisionRequest}>
+          <label className="block text-sm">What should change?
+            <textarea
+              className="mt-1 w-full rounded border border-neutral-300 px-2 py-1"
+              rows={4}
+              maxLength={5000}
+              value={revisionBody}
+              onChange={(e) => setRevisionBody(e.target.value)}
+            />
+          </label>
+          {revisionError ? <p className="mt-2 text-sm text-red-600">{revisionError}</p> : null}
+          <button
+            className="mt-2 rounded border border-neutral-300 px-3 py-1 text-sm"
+            type="submit"
+            disabled={submittingRevision || !revisionBody.trim() || entitlements.revisions <= 0}
+          >
+            {submittingRevision ? "Submitting…" : "Submit revision request"}
+          </button>
+        </form>
+      </section>
 
       <section className="mt-10 rounded border border-neutral-200 p-4">
         <h2 className="text-lg font-medium">Project messages</h2>

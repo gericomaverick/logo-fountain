@@ -22,12 +22,23 @@ type MessageItem = {
   };
 };
 
+type RevisionRequest = {
+  id: string;
+  status: string;
+  body: string;
+  createdAt: string;
+  updatedAt: string;
+  concept: { id: string; number: number } | null;
+  user: { id: string; email: string; fullName: string | null };
+};
+
 export default function AdminProjectPage() {
   const params = useParams<{ id: string }>();
   const projectId = params.id;
 
   const [concepts, setConcepts] = useState<Concept[]>([]);
   const [messages, setMessages] = useState<MessageItem[]>([]);
+  const [revisionRequests, setRevisionRequests] = useState<RevisionRequest[]>([]);
 
   const [conceptNumber, setConceptNumber] = useState(1);
   const [notes, setNotes] = useState("");
@@ -60,13 +71,23 @@ export default function AdminProjectPage() {
     setMessages(payload?.messages ?? []);
   }
 
+  async function loadRevisionRequests(id: string) {
+    const response = await fetch(`/api/admin/projects/${id}/revision-requests`, { cache: "no-store" });
+    const payload = (await response.json().catch(() => null)) as
+      | { revisionRequests?: RevisionRequest[]; error?: string }
+      | null;
+
+    if (!response.ok) throw new Error(payload?.error ?? "Failed to load revision requests");
+    setRevisionRequests(payload?.revisionRequests ?? []);
+  }
+
   useEffect(() => {
     if (!projectId) return;
 
     let cancelled = false;
     async function run() {
       try {
-        await Promise.all([loadConcepts(projectId), loadMessages(projectId)]);
+        await Promise.all([loadConcepts(projectId), loadMessages(projectId), loadRevisionRequests(projectId)]);
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load");
       } finally {
@@ -159,6 +180,30 @@ export default function AdminProjectPage() {
     }
   }
 
+  async function markDelivered(revisionRequestId: string) {
+    if (!projectId) return;
+
+    setBusy(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/admin/projects/${projectId}/revision-requests/${revisionRequestId}/delivered`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ setConceptsReady: true }),
+      });
+
+      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      if (!response.ok) throw new Error(payload?.error ?? "Failed to mark delivered");
+
+      await loadRevisionRequests(projectId);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to mark delivered");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <main className="mx-auto max-w-4xl p-8">
       <p className="text-sm"><Link href="/admin" className="underline">← Back to queue</Link></p>
@@ -201,6 +246,32 @@ export default function AdminProjectPage() {
               {concept.status !== "published" ? (
                 <button className="mt-2 rounded border border-neutral-300 px-2 py-1" disabled={busy} onClick={() => void publishConcept(concept.id)}>
                   Publish
+                </button>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="mt-8 rounded border border-neutral-200 p-4">
+        <h2 className="text-lg font-medium">Revision requests</h2>
+        {!loading && revisionRequests.length === 0 ? <p className="mt-3 text-sm text-neutral-600">No revision requests yet.</p> : null}
+        <ul className="mt-3 space-y-3">
+          {revisionRequests.map((revisionRequest) => (
+            <li key={revisionRequest.id} className="rounded border border-neutral-200 p-3 text-sm">
+              <p className="text-xs text-neutral-500">
+                {revisionRequest.user.fullName ?? revisionRequest.user.email} · {new Date(revisionRequest.createdAt).toLocaleString()}
+              </p>
+              <p className="mt-1">Status: <span className="font-medium">{revisionRequest.status}</span></p>
+              {revisionRequest.concept ? <p className="mt-1 text-neutral-700">Linked concept: #{revisionRequest.concept.number}</p> : null}
+              <p className="mt-2 whitespace-pre-wrap text-neutral-800">{revisionRequest.body}</p>
+              {revisionRequest.status !== "delivered" ? (
+                <button
+                  className="mt-2 rounded border border-neutral-300 px-2 py-1"
+                  disabled={busy}
+                  onClick={() => void markDelivered(revisionRequest.id)}
+                >
+                  Mark delivered
                 </button>
               ) : null}
             </li>
