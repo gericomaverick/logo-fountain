@@ -1,19 +1,12 @@
-import Stripe from "stripe";
+import type Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
+import { PRICE_ID_TO_PACKAGE, stripe, type PackageCode } from "@/lib/stripe";
 
 export const runtime = "nodejs";
 
 const PROJECT_STATUS_AWAITING_BRIEF = "AWAITING_BRIEF";
 const ORDER_STATUS_FULFILLED = "FULFILLED";
 
-type PackageCode = "essential" | "professional" | "complete";
-
-const PRICE_ID_TO_PACKAGE: Record<string, PackageCode> = {
-  // docs/stripe-price-mapping-v1.0.md
-  price_REPLACE_ESSENTIAL: "essential",
-  price_1ScMRpFM0K9Qd7oXxcBdr8ad: "professional",
-  price_1SwQmSFM0K9Qd7oX2CeIAJTa: "complete",
-};
 
 const PACKAGE_ENTITLEMENTS: Record<PackageCode, Array<{ key: string; limitInt: number }>> = {
   // Option B (docs/prd-v1.1.md)
@@ -30,16 +23,6 @@ const PACKAGE_ENTITLEMENTS: Record<PackageCode, Array<{ key: string; limitInt: n
     { key: "revisions_allowed", limitInt: 5 },
   ],
 };
-
-function getRequiredEnv(name: string): string {
-  const v = process.env[name];
-  if (!v) throw new Error(`Missing env var: ${name}`);
-  return v;
-}
-
-const stripe = new Stripe(getRequiredEnv("STRIPE_SECRET_KEY"), {
-  apiVersion: "2026-02-25.clover",
-});
 
 function toSlug(input: string): string {
   return input
