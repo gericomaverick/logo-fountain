@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 type QueueProject = {
@@ -116,6 +117,9 @@ export default function AdminHomePage() {
                 <p><span className="font-medium">Client:</span> {project.clientName}</p>
                 <p><span className="font-medium">Package:</span> {project.packageCode}</p>
                 <p><span className="font-medium">Status:</span> {project.status}</p>
+                <Link className="mt-2 inline-block underline" href={`/admin/projects/${project.id}`}>
+                  Open project
+                </Link>
 
                 {nextStatuses.length > 0 ? (
                   <div className="mt-3 flex flex-wrap gap-2">
