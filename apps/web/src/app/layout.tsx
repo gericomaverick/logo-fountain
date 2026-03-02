@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
+import "../styles/hyros-theme.css";
 
 const inter = Inter({
   variable: "--font-inter",
