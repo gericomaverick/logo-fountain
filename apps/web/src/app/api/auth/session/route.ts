@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { isAdminUser } from "@/lib/auth/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function GET() {
@@ -16,5 +17,6 @@ export async function GET() {
     authenticated: true,
     userId: session.user.id,
     email: session.user.email ?? undefined,
+    isAdmin: await isAdminUser(session.user),
   });
 }

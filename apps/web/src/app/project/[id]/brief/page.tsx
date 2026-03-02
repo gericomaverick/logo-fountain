@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { HeaderNav } from "@/components/header-nav";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -40,22 +41,28 @@ export default async function ProjectBriefPage({ params }: ProjectBriefPageProps
 
   if (!project) {
     return (
-      <main className="mx-auto max-w-3xl p-8">
-        <h1 className="text-2xl font-semibold">Project brief</h1>
-        <p className="mt-2 text-sm text-neutral-600">Project not found.</p>
-      </main>
+      <>
+        <HeaderNav />
+        <main className="mx-auto max-w-3xl p-8">
+          <h1 className="text-2xl font-semibold">Project brief</h1>
+          <p className="mt-2 text-sm text-neutral-600">Project not found.</p>
+        </main>
+      </>
     );
   }
 
   return (
-    <main className="mx-auto max-w-3xl p-8">
-      <h1 className="text-2xl font-semibold">Project brief</h1>
-      <p className="mt-2 text-sm text-neutral-600">
-        Tell us about your brand so we can start logo concepts.
-      </p>
-      <p className="mt-1 text-xs text-neutral-500">Current status: {project.status}</p>
+    <>
+      <HeaderNav />
+      <main className="mx-auto max-w-3xl p-8">
+        <h1 className="text-2xl font-semibold">Project brief</h1>
+        <p className="mt-2 text-sm text-neutral-600">
+          Tell us about your brand so we can start logo concepts.
+        </p>
+        <p className="mt-1 text-xs text-neutral-500">Current status: {project.status}</p>
 
-      <BriefForm projectId={project.id} />
-    </main>
+        <BriefForm projectId={project.id} />
+      </main>
+    </>
   );
 }

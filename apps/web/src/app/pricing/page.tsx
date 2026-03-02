@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import { HeaderNav } from "@/components/header-nav";
+
 type PackageCode = "essential" | "professional" | "complete";
 
 type PricingOption = {
@@ -57,11 +59,13 @@ export default function PricingPage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl p-8">
-      <h1 className="text-3xl font-semibold">Pricing</h1>
-      <p className="mt-2 text-sm text-neutral-600">Choose a package to continue to secure checkout.</p>
+    <>
+      <HeaderNav />
+      <main className="mx-auto max-w-3xl p-8">
+        <h1 className="text-3xl font-semibold">Pricing</h1>
+        <p className="mt-2 text-sm text-neutral-600">Choose a package to continue to secure checkout.</p>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+        <div className="mt-8 grid gap-4 sm:grid-cols-3">
         {PACKAGES.map((pkg) => {
           const isSubmitting = submittingCode === pkg.code;
 
@@ -82,7 +86,8 @@ export default function PricingPage() {
         })}
       </div>
 
-      {errorMessage ? <p className="mt-4 text-sm text-red-600">{errorMessage}</p> : null}
-    </main>
+        {errorMessage ? <p className="mt-4 text-sm text-red-600">{errorMessage}</p> : null}
+      </main>
+    </>
   );
 }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ProjectTimeline } from "@/app/project-timeline";
+import { HeaderNav } from "@/components/header-nav";
 
 type Snapshot = {
   status: string;
@@ -105,8 +106,10 @@ export default function AdminProjectPage() {
   }
 
   return (
-    <main className="mx-auto max-w-4xl p-8">
-      <p className="text-sm"><Link href="/admin" className="underline">← Back to queue</Link></p>
+    <>
+      <HeaderNav />
+      <main className="mx-auto max-w-4xl p-8">
+        <p className="text-sm"><Link href="/admin" className="underline">← Back to queue</Link></p>
       <h1 className="mt-2 text-2xl font-semibold">Admin project</h1>
       <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
       <p className="mt-1 text-sm text-neutral-600">Status: {snapshot?.status || "—"}</p>
@@ -213,6 +216,7 @@ export default function AdminProjectPage() {
           {auditEvents.length === 0 ? <li className="text-sm text-neutral-500">No audit events yet.</li> : null}
         </ul>
       </section>
-    </main>
+      </main>
+    </>
   );
 }

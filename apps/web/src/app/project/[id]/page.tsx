@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { ProjectTimeline } from "@/app/project-timeline";
+import { HeaderNav } from "@/components/header-nav";
 
 type Snapshot = {
   status: string;
@@ -109,8 +110,10 @@ export default function ProjectPage() {
   }
 
   return (
-    <main className="mx-auto max-w-4xl p-8">
-      <h1 className="text-2xl font-semibold">Project concepts</h1>
+    <>
+      <HeaderNav />
+      <main className="mx-auto max-w-4xl p-8">
+        <h1 className="text-2xl font-semibold">Project concepts</h1>
       <p className="mt-2 text-sm text-neutral-600">Project {projectId}</p>
       <p className="mt-1 text-sm text-neutral-600">Status: {snapshot?.status || "—"}</p>
       <p className="mt-1 text-sm text-neutral-600">Revisions remaining: {snapshot?.entitlements.revisions ?? 0}</p>
@@ -166,6 +169,7 @@ export default function ProjectPage() {
           <button className="mt-2 rounded border border-neutral-300 px-3 py-1 text-sm" type="submit" disabled={busy || !messageBody.trim()}>Send message</button>
         </form>
       </section>
-    </main>
+      </main>
+    </>
   );
 }
