@@ -95,7 +95,7 @@ export default function Home() {
       <DarkFeatureSection
         eyebrow="Why teams switch"
         title="A faster, sharper logo process with less back-and-forth"
-        body="HYROS-style cadence, adapted for Logo Fountain: clear strategic segments, proof-heavy trust blocks, and a dark product section to anchor value."
+        body="A proven conversion cadence, adapted for Logo Fountain: clear strategic segments, proof-heavy trust blocks, and a dark product section to anchor value."
         cards={[
           {
             title: "Strategic first pass",

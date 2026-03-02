@@ -2,7 +2,7 @@
 
 ## What changed
 
-### 1) Design token system (HYROS-like)
+### 1) Design token system (reference-like)
 - Shifted from dark neon styling to a black/white marketing palette.
 - Applied layout width target of `max-w-[1160px]`.
 - Applied page padding rhythm: `px-8` (32px) and `md:px-12` (48px).
@@ -16,7 +16,7 @@
 
 ### 2) Landing page (`apps/web/src/app/page.tsx`) structure
 - Rebuilt into centered headline-first composition.
-- Added HYROS-style hero hierarchy:
+- Added reference-style hero hierarchy:
   - small uppercase preheadline
   - large centered display headline
   - centered supporting copy
@@ -32,7 +32,7 @@
 - Converted top area into centered headline composition matching landing style.
 - Restyled filter block and filter pills to monochrome bordered system.
 - Reworked project cards into bordered 20px cards with muted metadata and repeated `Learn more` links.
-- Added HYROS-style closing CTA band with image/gradient background and two-button treatment.
+- Added reference-style closing CTA band with image/gradient background and two-button treatment.
 
 ### 4) Global style + font pipeline
 - Updated `layout.tsx` to load `Fraunces` + `Inter` via `next/font/google`.

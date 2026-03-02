@@ -1,8 +1,8 @@
-# HYROS → Logo Fountain section map
+# reference → Logo Fountain section map
 
-Reference source: `workspace/tmp/hyros.html` (Framer export snapshot).
+Reference source: `workspace/tmp/reference.html` (Framer export snapshot).
 
-## Observed HYROS homepage cadence (high-level)
+## Observed reference homepage cadence (high-level)
 
 1. Hero (centered headline + dual CTAs)
 2. Immediate proof/trust block (testimonial/credibility + key numbers)
@@ -52,12 +52,12 @@ Location: `apps/web/src/components/marketing/sections.tsx`
 
 ## Color notes
 
-- Accent tokens now mirror HYROS hues in `apps/web/src/styles/hyros-theme.css`:
-  - `--hyros-accent-purple: rgb(81 80 247)`
-  - `--hyros-accent-purple-2: rgb(148 148 247)`
-  - `--hyros-accent-blue: rgb(0 153 255)`
+- Accent tokens now mirror reference hues in `apps/web/src/styles/reference-theme.css`:
+  - `--reference-accent-purple: rgb(81 80 247)`
+  - `--reference-accent-purple-2: rgb(148 148 247)`
+  - `--reference-accent-blue: rgb(0 153 255)`
   - Gradient tokens for purple, soft purple wash, and purple→blue accent blend.
-- Section tint cadence now follows HYROS-like flow with low saturation:
+- Section tint cadence now follows reference-like flow with low saturation:
   - Hero: soft purple radial tint over white.
   - Proof row: white.
   - Logo wall: light gray.
@@ -70,7 +70,7 @@ Location: `apps/web/src/components/marketing/sections.tsx`
   - Gradient hero overline badge.
   - Testimonial byline name highlight using purple gradient text.
   - Stat card underline lines using purple gradient.
-  - Blue accent used sparingly on segment icons (HYROS link-blue cue).
+  - Blue accent used sparingly on segment icons (reference link-blue cue).
 
 ## Style constraints applied
 

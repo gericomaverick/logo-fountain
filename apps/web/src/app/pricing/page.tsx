@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { HeaderNav } from "@/components/header-nav";
+import { MarketingNav } from "@/components/marketing/nav";
 import {
   PACKAGE_TO_PRICE_ID,
   isPlaceholderPriceId,
@@ -71,7 +71,7 @@ export default function PricingPage() {
 
   return (
     <>
-      <HeaderNav />
+      <div className="bg-[#5150f7] text-white"><MarketingNav /></div>
       <main className="mx-auto max-w-3xl p-8">
         <h1 className="text-3xl font-semibold">Pricing</h1>
         <p className="mt-2 text-sm text-neutral-600">Choose a package to continue to secure checkout.</p>

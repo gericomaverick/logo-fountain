@@ -50,7 +50,7 @@ export default function WorkPage() {
       <HeroCenter
         eyebrow="Logo Fountain portfolio"
         title="Work built for conversion and category authority"
-        body="A HYROS-style section flow applied to our gallery: proof, segmentation, testimonials, and a dark value block before conversion CTA."
+        body="A conversion-focused section flow applied to our gallery: proof, segmentation, testimonials, and a dark value block before CTA."
         primary={{ href: "/pricing", label: "Start your project" }}
         secondary={{ href: "/", label: "Back to homepage" }}
       />
@@ -74,7 +74,7 @@ export default function WorkPage() {
       <DarkFeatureSection
         eyebrow="How we deliver"
         title="Structured process, premium output, and predictable turnaround"
-        body="This dark section mirrors HYROS cadence with simplified sticky-card feel and transparent production steps."
+        body="This dark section follows the same cadence with a simplified sticky-card feel and transparent production steps."
         cards={[
           {
             title: "Brief + positioning",
