@@ -36,6 +36,8 @@ Confirm one set of records created:
 - `Project` row with `status=AWAITING_BRIEF`
 - `ProjectOrder` row with `stripeCheckoutSessionId`, `stripePaymentIntentId`, `currency`, `totalCents`
 - `ProjectEntitlement` rows for package defaults
+- If purchaser email is present: `ProjectOrder.status=FULFILLED`, plus `Profile` row and `ClientMembership` row (`role=owner`)
+- If purchaser email is missing: DB records still exist, but `ProjectOrder.status=NEEDS_CONTACT` and no membership is required yet
 
 ## 4) Verify idempotency
 
@@ -43,6 +45,7 @@ Replay the same event id via Stripe dashboard (Events → Resend) or Stripe CLI 
 
 Expected:
 - No duplicate `ProjectOrder` / `Project` / `Client` rows.
+- No duplicate `Profile` or `ClientMembership` rows for the same purchaser.
 - Webhook returns deduped response.
 
 ## 5) Verify checkout status polling endpoint
