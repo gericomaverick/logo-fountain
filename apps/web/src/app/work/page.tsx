@@ -55,29 +55,21 @@ export default function WorkPage() {
         secondary={{ href: "/", label: "Back to homepage" }}
       />
 
-      <div className="bg-[#f7f7f7]">
-        <ProofStatsRow
-          quote="Our new logo lifted response rates across paid traffic and sales decks in the same month."
-          byline="— Placeholder testimonial, ecommerce founder"
-          stats={[
-            { value: "12", label: "Industries served" },
-            { value: "300+", label: "Concepts refined" },
-            { value: "72h", label: "Average first pass" },
-          ]}
-        />
-      </div>
+      <ProofStatsRow
+        quote="Our new logo lifted response rates across paid traffic and sales decks in the same month."
+        byline="— Placeholder testimonial, ecommerce founder"
+        stats={[
+          { value: "12", label: "Industries served" },
+          { value: "300+", label: "Concepts refined" },
+          { value: "72h", label: "Average first pass" },
+        ]}
+      />
 
-      <div className="bg-white">
-        <LogoWall title="Selected logo directions" logos={logos} />
-      </div>
+      <LogoWall title="Selected logo directions" logos={logos} />
 
-      <div className="bg-[#f7f7f7]">
-        <SegmentCards eyebrow="Segments we support" title="Designed for teams that move quickly" items={verticals} />
-      </div>
+      <SegmentCards eyebrow="Segments we support" title="Designed for teams that move quickly" items={verticals} />
 
-      <div className="bg-white">
-        <TestimonialCardsRow title="What clients say after launch" items={testimonials} />
-      </div>
+      <TestimonialCardsRow title="What clients say after launch" items={testimonials} />
 
       <DarkFeatureSection
         eyebrow="How we deliver"
@@ -101,25 +93,23 @@ export default function WorkPage() {
         secondary={{ href: "/", label: "See full site" }}
       />
 
-      <div className="bg-white">
-        <FAQ
-          title="Work page FAQ"
-          items={[
-            {
-              q: "Can you design inside our current visual system?",
-              a: "Yes. We can extend existing brand elements or evolve them into a cleaner logo direction.",
-            },
-            {
-              q: "Do you support agencies?",
-              a: "Yes, with white-label workflows and predictable delivery windows for client handoff.",
-            },
-            {
-              q: "What files are included?",
-              a: "Vector source files and common web/print exports, organized for immediate use.",
-            },
-          ]}
-        />
-      </div>
+      <FAQ
+        title="Work page FAQ"
+        items={[
+          {
+            q: "Can you design inside our current visual system?",
+            a: "Yes. We can extend existing brand elements or evolve them into a cleaner logo direction.",
+          },
+          {
+            q: "Do you support agencies?",
+            a: "Yes, with white-label workflows and predictable delivery windows for client handoff.",
+          },
+          {
+            q: "What files are included?",
+            a: "Vector source files and common web/print exports, organized for immediate use.",
+          },
+        ]}
+      />
 
       <FinalCTA
         title="Want your logo featured here next?"

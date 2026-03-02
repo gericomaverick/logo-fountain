@@ -80,25 +80,17 @@ export default function Home() {
         secondary={{ href: "/work", label: "Our work" }}
       />
 
-      <div className="bg-[#f7f7f7]">
-        <ProofStatsRow
-          quote="They made us look like the category leader before we raised our next round."
-          byline="— Placeholder testimonial, SaaS founder"
-          stats={stats}
-        />
-      </div>
+      <ProofStatsRow
+        quote="They made us look like the category leader before we raised our next round."
+        byline="— Placeholder testimonial, SaaS founder"
+        stats={stats}
+      />
 
-      <div className="bg-white">
-        <LogoWall title="Recent marks we’ve crafted" logos={logoMarks} />
-      </div>
+      <LogoWall title="Recent marks we’ve crafted" logos={logoMarks} />
 
-      <div className="bg-[#f7f7f7]">
-        <SegmentCards eyebrow="Who this is for" title="Built for teams that ship fast" items={segments} />
-      </div>
+      <SegmentCards eyebrow="Who this is for" title="Built for teams that ship fast" items={segments} />
 
-      <div className="bg-white">
-        <TestimonialCardsRow title="Trusted by teams shipping serious offers" items={testimonials} />
-      </div>
+      <TestimonialCardsRow title="Trusted by teams shipping serious offers" items={testimonials} />
 
       <DarkFeatureSection
         eyebrow="Why teams switch"
@@ -122,9 +114,7 @@ export default function Home() {
         secondary={{ href: "/work", label: "See examples" }}
       />
 
-      <div className="bg-white">
-        <FAQ title="Frequently asked questions" items={faqs} />
-      </div>
+      <FAQ title="Frequently asked questions" items={faqs} />
 
       <FinalCTA
         title="Ready to look like the market leader?"

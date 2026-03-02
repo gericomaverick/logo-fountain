@@ -50,6 +50,28 @@ Location: `apps/web/src/components/marketing/sections.tsx`
 7. `FAQ`
 8. `FinalCTA`
 
+## Color notes
+
+- Accent tokens now mirror HYROS hues in `apps/web/src/styles/hyros-theme.css`:
+  - `--hyros-accent-purple: rgb(81 80 247)`
+  - `--hyros-accent-purple-2: rgb(148 148 247)`
+  - `--hyros-accent-blue: rgb(0 153 255)`
+  - Gradient tokens for purple, soft purple wash, and purple→blue accent blend.
+- Section tint cadence now follows HYROS-like flow with low saturation:
+  - Hero: soft purple radial tint over white.
+  - Proof row: white.
+  - Logo wall: light gray.
+  - Segments: white.
+  - Testimonials: white.
+  - Dark feature: black base with gradient eyebrow badge + gradient primary CTA.
+  - FAQ: white.
+  - Final CTA: subtle purple/blue gradient background.
+- Accent usage updates in marketing sections include:
+  - Gradient hero overline badge.
+  - Testimonial byline name highlight using purple gradient text.
+  - Stat card underline lines using purple gradient.
+  - Blue accent used sparingly on segment icons (HYROS link-blue cue).
+
 ## Style constraints applied
 
 - Alternating white / light-gray sections with a black feature section.
