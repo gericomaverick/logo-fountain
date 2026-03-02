@@ -2,7 +2,7 @@ export type PackageCode = "essential" | "professional" | "complete";
 
 export const PACKAGE_TO_PRICE_ID: Record<PackageCode, string> = {
   // docs/stripe-price-mapping-v1.0.md
-  essential: "price_REPLACE_ESSENTIAL",
+  essential: "price_1ScMRAFM0K9Qd7oX0tVHJuwB",
   professional: "price_1ScMRpFM0K9Qd7oXxcBdr8ad",
   complete: "price_1SwQmSFM0K9Qd7oX2CeIAJTa",
 };
