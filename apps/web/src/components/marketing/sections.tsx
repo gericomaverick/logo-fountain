@@ -39,8 +39,8 @@ export function HeroCenter({ eyebrow, title, body, primary, secondary }: { eyebr
         <p className="mt-5 inline-flex rounded-full border border-white/30 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-white">
           {eyebrow}
         </p>
-        <h1 className="font-display mt-4 max-w-5xl text-[48px] leading-[1.02] tracking-tight md:text-[76px]">{title}</h1>
-        <p className="mt-6 max-w-2xl text-base leading-relaxed text-white/80 md:text-lg">{body}</p>
+        <h1 className="font-display mt-4 max-w-5xl text-[length:var(--step-5)] leading-[1.02] tracking-tight">{title}</h1>
+        <p className="mt-6 max-w-2xl text-[length:var(--step-0)] leading-relaxed text-white/80">{body}</p>
         <div className="mt-9 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
           <Link href={primary.href} className="lf-btn lf-btn--primary">
             {primary.label}
