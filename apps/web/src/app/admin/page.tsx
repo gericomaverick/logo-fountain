@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 type QueueProject = {
@@ -21,6 +22,7 @@ const NEXT_STATUS_OPTIONS: Record<string, string[]> = {
 };
 
 export default function AdminHomePage() {
+  const router = useRouter();
   const [filter, setFilter] = useState("ALL");
   const [projects, setProjects] = useState<QueueProject[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,11 +37,19 @@ export default function AdminHomePage() {
       const query = nextFilter === "ALL" ? "" : `?status=${encodeURIComponent(nextFilter)}`;
       const response = await fetch(`/api/admin/projects${query}`, { cache: "no-store" });
       const payload = (await response.json().catch(() => null)) as
-        | { projects?: QueueProject[]; error?: string }
+        | { projects?: QueueProject[]; error?: { message?: string; details?: { nextStep?: string } } }
         | null;
 
       if (!response.ok) {
-        throw new Error(payload?.error ?? "Failed to load admin queue");
+        const msg = payload?.error?.message ?? "Failed to load admin queue";
+        const nextStep = payload?.error?.details?.nextStep;
+
+        if (response.status === 401) {
+          router.push(`/login?next=${encodeURIComponent("/admin")}`);
+          return;
+        }
+
+        throw new Error(nextStep ? `${msg} (${nextStep})` : msg);
       }
 
       setProjects(payload?.projects ?? []);
@@ -63,10 +73,14 @@ export default function AdminHomePage() {
         body: JSON.stringify({ status: nextStatus }),
       });
 
-      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      const payload = (await response.json().catch(() => null)) as
+        | { error?: { message?: string; details?: { nextStep?: string } } }
+        | null;
 
       if (!response.ok) {
-        throw new Error(payload?.error ?? "Failed to update status");
+        const msg = payload?.error?.message ?? "Failed to update status";
+        const nextStep = payload?.error?.details?.nextStep;
+        throw new Error(nextStep ? `${msg} (${nextStep})` : msg);
       }
 
       await loadProjects(filter);
