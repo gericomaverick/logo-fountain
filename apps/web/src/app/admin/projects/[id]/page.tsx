@@ -11,16 +11,34 @@ type Concept = {
   notes: string | null;
 };
 
+type MessageItem = {
+  id: string;
+  body: string;
+  createdAt: string;
+  sender: {
+    id: string;
+    email: string;
+    fullName: string | null;
+  };
+};
+
 export default function AdminProjectPage() {
   const params = useParams<{ id: string }>();
   const projectId = params.id;
+
   const [concepts, setConcepts] = useState<Concept[]>([]);
+  const [messages, setMessages] = useState<MessageItem[]>([]);
+
   const [conceptNumber, setConceptNumber] = useState(1);
   const [notes, setNotes] = useState("");
   const [file, setFile] = useState<File | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const [messageBody, setMessageBody] = useState("");
+  const [messageError, setMessageError] = useState<string | null>(null);
 
   async function loadConcepts(id: string) {
     const response = await fetch(`/api/admin/projects/${id}/concepts`, { cache: "no-store" });
@@ -32,13 +50,23 @@ export default function AdminProjectPage() {
     setConcepts(payload?.concepts ?? []);
   }
 
+  async function loadMessages(id: string) {
+    const response = await fetch(`/api/projects/${id}/messages`, { cache: "no-store" });
+    const payload = (await response.json().catch(() => null)) as
+      | { messages?: MessageItem[]; error?: string }
+      | null;
+
+    if (!response.ok) throw new Error(payload?.error ?? "Failed to load messages");
+    setMessages(payload?.messages ?? []);
+  }
+
   useEffect(() => {
     if (!projectId) return;
 
     let cancelled = false;
     async function run() {
       try {
-        await loadConcepts(projectId);
+        await Promise.all([loadConcepts(projectId), loadMessages(projectId)]);
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load");
       } finally {
@@ -102,6 +130,35 @@ export default function AdminProjectPage() {
     }
   }
 
+  async function sendMessage(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!projectId) return;
+
+    const body = messageBody.trim();
+    if (!body) return;
+
+    setBusy(true);
+    setMessageError(null);
+
+    try {
+      const response = await fetch(`/api/projects/${projectId}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ body }),
+      });
+
+      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      if (!response.ok) throw new Error(payload?.error ?? "Send failed");
+
+      setMessageBody("");
+      await loadMessages(projectId);
+    } catch (e) {
+      setMessageError(e instanceof Error ? e.message : "Send failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <main className="mx-auto max-w-4xl p-8">
       <p className="text-sm"><Link href="/admin" className="underline">← Back to queue</Link></p>
@@ -149,6 +206,43 @@ export default function AdminProjectPage() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className="mt-8 rounded border border-neutral-200 p-4">
+        <h2 className="text-lg font-medium">Project messages</h2>
+
+        {!loading && messages.length === 0 ? (
+          <p className="mt-3 text-sm text-neutral-600">No messages yet.</p>
+        ) : null}
+
+        {messages.length > 0 ? (
+          <ul className="mt-3 space-y-3">
+            {messages.map((message) => (
+              <li key={message.id} className="rounded border border-neutral-200 p-3 text-sm">
+                <p className="text-xs text-neutral-500">
+                  {message.sender.fullName ?? message.sender.email} · {new Date(message.createdAt).toLocaleString()}
+                </p>
+                <p className="mt-1 whitespace-pre-wrap text-neutral-800">{message.body}</p>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+
+        <form className="mt-4" onSubmit={sendMessage}>
+          <label className="block text-sm">Add message
+            <textarea
+              className="mt-1 w-full rounded border border-neutral-300 px-2 py-1"
+              rows={3}
+              maxLength={2000}
+              value={messageBody}
+              onChange={(e) => setMessageBody(e.target.value)}
+            />
+          </label>
+          {messageError ? <p className="mt-2 text-sm text-red-600">{messageError}</p> : null}
+          <button className="mt-2 rounded border border-neutral-300 px-3 py-1 text-sm" type="submit" disabled={busy || !messageBody.trim()}>
+            Send message
+          </button>
+        </form>
       </section>
     </main>
   );
