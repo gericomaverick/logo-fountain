@@ -32,15 +32,23 @@ export function HeroCenter({
 }) {
   return (
     <section
-      className="text-white"
+      className="relative overflow-hidden text-white"
       style={{
-        backgroundColor: "#000",
+        backgroundColor: "#5150f7", // HYROS: .framer-1wjt1vx
         backgroundImage:
-          "radial-gradient(circle at top, rgba(81,80,247,0.55) 0%, rgba(148,148,247,0.20) 35%, rgba(0,0,0,0) 70%), linear-gradient(180deg, #0a0a0d 0%, #000 75%)",
+          "radial-gradient(circle at 20% 0%, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.0) 55%), radial-gradient(circle at 80% 0%, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.0) 55%)",
       }}
     >
-      <div className="mx-auto max-w-[1160px] px-6 py-18 text-center md:px-10 md:py-24">
-        <p className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-white">
+      <div className="pointer-events-none absolute inset-0 opacity-35" aria-hidden>
+        <div className="absolute inset-x-0 top-0 h-[720px] bg-[radial-gradient(circle_at_top,_rgba(148,148,247,0.55)_0%,_rgba(81,80,247,0.0)_70%)]" />
+      </div>
+
+      <div className="mx-auto max-w-[1160px] px-6 py-20 text-center md:px-10 md:py-28">
+        <div className="mb-10 flex items-center justify-center">
+          <img src="/img/logo.svg" alt="Logo Fountain" className="h-10 w-auto" />
+        </div>
+
+        <p className="inline-flex rounded-full border border-white/30 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-white">
           {eyebrow}
         </p>
         <h1 className="font-display mx-auto mt-5 max-w-5xl text-[48px] leading-[1.06] tracking-tight md:text-[76px]">{title}</h1>
