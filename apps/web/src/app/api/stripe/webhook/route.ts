@@ -82,7 +82,10 @@ export async function POST(req: Request) {
 
     let provisionedUserId: string | null = null;
     if (fulfillment.purchaserEmail) {
-      const provisioning = await ensureAccessProvisioning(fulfillment.clientId, fulfillment.purchaserEmail);
+      const provisioning = await ensureAccessProvisioning(fulfillment.clientId, fulfillment.purchaserEmail, {
+        firstName: fulfillment.firstName,
+        lastName: fulfillment.lastName,
+      });
       provisionedUserId = provisioning.userId;
     }
 

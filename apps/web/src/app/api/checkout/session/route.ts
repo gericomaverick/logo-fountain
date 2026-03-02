@@ -41,10 +41,29 @@ export async function POST(req: Request) {
   const origin = new URL(req.url).origin;
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
+    customer_creation: "always",
     billing_address_collection: "auto",
+    customer_update: { name: "auto" },
+    phone_number_collection: { enabled: false },
     success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/pricing`,
     line_items: [{ price: priceId, quantity: 1 }],
+    custom_fields: [
+      {
+        key: "first_name",
+        label: { type: "custom", custom: "First name" },
+        type: "text",
+        text: { minimum_length: 1, maximum_length: 80 },
+        optional: false,
+      },
+      {
+        key: "last_name",
+        label: { type: "custom", custom: "Last name" },
+        type: "text",
+        text: { minimum_length: 1, maximum_length: 80 },
+        optional: false,
+      },
+    ],
     metadata: {
       package_code: packageCode,
       ...(campaignSlug ? { campaign_slug: campaignSlug } : {}),

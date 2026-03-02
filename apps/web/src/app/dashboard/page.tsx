@@ -44,6 +44,11 @@ export default async function DashboardPage() {
     );
   }
 
+  const profile = await prisma.profile.findUnique({
+    where: { id: user.id },
+    select: { firstName: true },
+  });
+
   const memberships = await prisma.clientMembership.findMany({
     where: { userId: user.id },
     include: {
@@ -69,6 +74,7 @@ export default async function DashboardPage() {
       <HeaderNav />
       <main className="mx-auto max-w-3xl p-8">
         <h1 className="text-2xl font-semibold">Dashboard</h1>
+        {profile?.firstName ? <p className="mt-2 text-sm text-neutral-700">Welcome, {profile.firstName}</p> : null}
 
         {projects.length === 0 ? (
           <p className="mt-4 text-sm text-neutral-600">No projects yet.</p>

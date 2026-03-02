@@ -58,6 +58,7 @@ export function HeaderNav() {
         <div className="flex items-center gap-4">
           <Link href="/" className="font-semibold">Logo Fountain</Link>
           <Link className="underline" href="/dashboard">Dashboard</Link>
+          {session.authenticated ? <Link className="underline" href="/settings">Settings</Link> : null}
           {session.isAdmin ? <Link className="underline" href="/admin">Admin</Link> : null}
           <Link className="underline" href="/pricing">Pricing</Link>
         </div>

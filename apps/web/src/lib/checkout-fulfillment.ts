@@ -24,6 +24,12 @@ const PACKAGE_ENTITLEMENTS: Record<PackageCode, Array<{ key: string; limitInt: n
   ],
 };
 
+type CheckoutName = {
+  firstName: string | null;
+  lastName: string | null;
+  fullName: string | null;
+};
+
 function toSlug(input: string): string {
   return input
     .toLowerCase()
@@ -32,8 +38,32 @@ function toSlug(input: string): string {
     .slice(0, 48);
 }
 
-function inferClientName(session: Stripe.Checkout.Session): string {
-  const fromStripe = session.customer_details?.name?.trim();
+function normalizeText(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function checkoutNameFromSession(session: Stripe.Checkout.Session): CheckoutName {
+  const customFields = session.custom_fields ?? [];
+
+  const firstName = normalizeText(
+    customFields.find((field) => field.key === "first_name" && field.type === "text")?.text?.value,
+  );
+  const lastName = normalizeText(
+    customFields.find((field) => field.key === "last_name" && field.type === "text")?.text?.value,
+  );
+
+  const fullNameFromFields = normalizeText([firstName, lastName].filter(Boolean).join(" "));
+  const fullName = fullNameFromFields ?? normalizeText(session.customer_details?.name);
+
+  return { firstName, lastName, fullName };
+}
+
+function inferClientName(session: Stripe.Checkout.Session, checkoutName: CheckoutName): string {
+  if (checkoutName.fullName) return checkoutName.fullName;
+
+  const fromStripe = normalizeText(session.customer_details?.name);
   if (fromStripe) return fromStripe;
 
   const email = session.customer_details?.email?.trim() || "";
@@ -90,11 +120,14 @@ export type FulfillmentResult = {
   orderId: string;
   clientId: string;
   purchaserEmail: string | null;
+  firstName: string | null;
+  lastName: string | null;
 };
 
 export async function fulfillCheckoutSession(session: Stripe.Checkout.Session): Promise<FulfillmentResult> {
   const sessionId = session.id;
   const purchaserEmail = await purchaserEmailFromSession(session);
+  const checkoutName = checkoutNameFromSession(session);
 
   const existingOrder = await prisma.projectOrder.findUnique({
     where: { stripeCheckoutSessionId: sessionId },
@@ -108,11 +141,13 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session): 
       orderId: existingOrder.id,
       clientId: existingOrder.clientId,
       purchaserEmail,
+      firstName: checkoutName.firstName,
+      lastName: checkoutName.lastName,
     };
   }
 
   const packageCode = await packageCodeFromSession(sessionId);
-  const clientName = inferClientName(session);
+  const clientName = inferClientName(session, checkoutName);
   const slugBase = toSlug(clientName) || "logo-fountain-client";
   const slug = `${slugBase}-${sessionId.slice(-8).toLowerCase()}`;
 
@@ -180,6 +215,8 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session): 
       orderId: order.id,
       clientId: client.id,
       purchaserEmail,
+      firstName: checkoutName.firstName,
+      lastName: checkoutName.lastName,
     };
   });
 }
@@ -225,21 +262,48 @@ async function resolveOrCreateAuthUserId(email: string): Promise<string> {
   return invited.data.user.id;
 }
 
-export async function ensureAccessProvisioning(clientId: string, purchaserEmail: string): Promise<{ userId: string }> {
+export async function ensureAccessProvisioning(
+  clientId: string,
+  purchaserEmail: string,
+  checkoutName?: Pick<CheckoutName, "firstName" | "lastName">,
+): Promise<{ userId: string }> {
   const userId = await resolveOrCreateAuthUserId(purchaserEmail);
+  const firstName = normalizeText(checkoutName?.firstName);
+  const lastName = normalizeText(checkoutName?.lastName);
+  const fullName = normalizeText([firstName, lastName].filter(Boolean).join(" "));
 
   await prisma.$transaction(async (tx) => {
     try {
       await tx.profile.upsert({
         where: { id: userId },
-        create: { id: userId, email: purchaserEmail },
-        update: { email: purchaserEmail },
+        create: {
+          id: userId,
+          email: purchaserEmail,
+          fullName,
+          firstName,
+          lastName,
+        },
+        update: {
+          email: purchaserEmail,
+          ...(firstName !== null ? { firstName } : {}),
+          ...(lastName !== null ? { lastName } : {}),
+          ...(fullName !== null ? { fullName } : {}),
+        },
       });
     } catch (error) {
       if (!isUniqueViolation(error)) throw error;
 
       const byEmail = await tx.profile.findUnique({ where: { email: purchaserEmail } });
       if (!byEmail) throw error;
+
+      await tx.profile.update({
+        where: { id: byEmail.id },
+        data: {
+          ...(firstName !== null ? { firstName } : {}),
+          ...(lastName !== null ? { lastName } : {}),
+          ...(fullName !== null ? { fullName } : {}),
+        },
+      });
     }
 
     await tx.clientMembership.createMany({
