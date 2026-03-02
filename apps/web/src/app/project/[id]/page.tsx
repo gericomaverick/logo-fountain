@@ -34,6 +34,7 @@ export default function ProjectPage() {
   const [concepts, setConcepts] = useState<ConceptItem[]>([]);
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [entitlements, setEntitlements] = useState<Entitlements>({ concepts: 0, revisions: 0 });
+  const [projectStatus, setProjectStatus] = useState<string>("");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +46,11 @@ export default function ProjectPage() {
   const [revisionBody, setRevisionBody] = useState("");
   const [submittingRevision, setSubmittingRevision] = useState(false);
   const [revisionError, setRevisionError] = useState<string | null>(null);
+  const [approveError, setApproveError] = useState<string | null>(null);
+  const [approvingConceptId, setApprovingConceptId] = useState<string | null>(null);
+  const [finalUrl, setFinalUrl] = useState<string | null>(null);
+  const [finalError, setFinalError] = useState<string | null>(null);
+  const [loadingFinal, setLoadingFinal] = useState(false);
 
   const latestPublishedConcept = useMemo(
     () => concepts.slice().sort((a, b) => b.number - a.number)[0] ?? null,
@@ -80,7 +86,7 @@ export default function ProjectPage() {
       try {
         const conceptsResponse = await fetch(`/api/projects/${projectId}/concepts`, { cache: "no-store" });
         const conceptsPayload = (await conceptsResponse.json().catch(() => null)) as
-          | { concepts?: ConceptItem[]; error?: string }
+          | { concepts?: ConceptItem[]; projectStatus?: string; error?: string }
           | null;
 
         if (!conceptsResponse.ok) {
@@ -89,6 +95,7 @@ export default function ProjectPage() {
 
         if (!cancelled) {
           setConcepts(conceptsPayload?.concepts ?? []);
+          setProjectStatus(conceptsPayload?.projectStatus ?? "");
           await Promise.all([loadMessages(projectId), loadEntitlements(projectId)]);
           setError(null);
         }
@@ -141,6 +148,17 @@ export default function ProjectPage() {
     }
   }
 
+  async function reloadConcepts(id: string) {
+    const conceptsResponse = await fetch(`/api/projects/${id}/concepts`, { cache: "no-store" });
+    const conceptsPayload = (await conceptsResponse.json().catch(() => null)) as
+      | { concepts?: ConceptItem[]; projectStatus?: string; error?: string }
+      | null;
+
+    if (!conceptsResponse.ok) throw new Error(conceptsPayload?.error ?? "Failed to load concepts");
+    setConcepts(conceptsPayload?.concepts ?? []);
+    setProjectStatus(conceptsPayload?.projectStatus ?? "");
+  }
+
   async function submitRevisionRequest(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!projectId) return;
@@ -170,10 +188,53 @@ export default function ProjectPage() {
     }
   }
 
+  async function approveConcept(conceptId: string) {
+    if (!projectId) return;
+
+    setApprovingConceptId(conceptId);
+    setApproveError(null);
+
+    try {
+      const response = await fetch(`/api/projects/${projectId}/approve`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ conceptId }),
+      });
+
+      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      if (!response.ok) throw new Error(payload?.error ?? "Failed to approve concept");
+
+      await reloadConcepts(projectId);
+    } catch (approveErr) {
+      setApproveError(approveErr instanceof Error ? approveErr.message : "Failed to approve concept");
+    } finally {
+      setApprovingConceptId(null);
+    }
+  }
+
+  async function fetchFinalZip() {
+    if (!projectId) return;
+
+    setLoadingFinal(true);
+    setFinalError(null);
+
+    try {
+      const response = await fetch(`/api/projects/${projectId}/finals`, { cache: "no-store" });
+      const payload = (await response.json().catch(() => null)) as { url?: string; error?: string } | null;
+      if (!response.ok || !payload?.url) throw new Error(payload?.error ?? "Final ZIP is not available");
+      setFinalUrl(payload.url);
+    } catch (finalErr) {
+      setFinalError(finalErr instanceof Error ? finalErr.message : "Failed to load final ZIP");
+    } finally {
+      setLoadingFinal(false);
+    }
+  }
+
   return (
     <main className="mx-auto max-w-4xl p-8">
       <h1 className="text-2xl font-semibold">Project concepts</h1>
       <p className="mt-2 text-sm text-neutral-600">Project {projectId}</p>
+      <p className="mt-1 text-sm text-neutral-600">Status: {projectStatus || "—"}</p>
       <p className="mt-1 text-sm text-neutral-600">Revisions remaining: {entitlements.revisions}</p>
 
       {loading ? <p className="mt-4 text-sm text-neutral-600">Loading…</p> : null}
@@ -195,9 +256,31 @@ export default function ProjectPage() {
               ) : (
                 <p className="mt-3 text-sm text-neutral-500">No image available.</p>
               )}
+              {projectStatus === "CONCEPTS_READY" && concept.status === "published" ? (
+                <button
+                  className="mt-3 rounded border border-neutral-300 px-3 py-1 text-sm"
+                  onClick={() => void approveConcept(concept.id)}
+                  disabled={approvingConceptId === concept.id}
+                >
+                  {approvingConceptId === concept.id ? "Approving…" : "Approve concept"}
+                </button>
+              ) : null}
             </li>
           ))}
         </ul>
+      ) : null}
+
+      {approveError ? <p className="mt-3 text-sm text-red-600">{approveError}</p> : null}
+
+      {projectStatus === "FINAL_FILES_READY" ? (
+        <section className="mt-10 rounded border border-neutral-200 p-4">
+          <h2 className="text-lg font-medium">Final files</h2>
+          <button className="mt-3 rounded border border-neutral-300 px-3 py-1 text-sm" onClick={() => void fetchFinalZip()} disabled={loadingFinal}>
+            {loadingFinal ? "Loading…" : "Get download link"}
+          </button>
+          {finalUrl ? <p className="mt-3 text-sm"><a className="underline" href={finalUrl} target="_blank" rel="noreferrer">Download final ZIP</a></p> : null}
+          {finalError ? <p className="mt-2 text-sm text-red-600">{finalError}</p> : null}
+        </section>
       ) : null}
 
       <section className="mt-10 rounded border border-neutral-200 p-4">

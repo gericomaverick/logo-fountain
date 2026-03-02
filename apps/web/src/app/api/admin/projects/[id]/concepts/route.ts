@@ -46,13 +46,16 @@ export async function GET(
 
   const { id: projectId } = await params;
 
-  const concepts = await prisma.concept.findMany({
-    where: { projectId },
-    orderBy: [{ number: "asc" }, { createdAt: "asc" }],
-    select: { id: true, number: true, status: true, notes: true },
-  });
+  const [project, concepts] = await Promise.all([
+    prisma.project.findUnique({ where: { id: projectId }, select: { status: true } }),
+    prisma.concept.findMany({
+      where: { projectId },
+      orderBy: [{ number: "asc" }, { createdAt: "asc" }],
+      select: { id: true, number: true, status: true, notes: true },
+    }),
+  ]);
 
-  return Response.json({ concepts });
+  return Response.json({ concepts, projectStatus: project?.status ?? null });
 }
 
 export async function POST(

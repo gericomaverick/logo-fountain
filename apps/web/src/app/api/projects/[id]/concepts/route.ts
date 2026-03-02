@@ -5,6 +5,7 @@ import { createSignedConceptAssetUrl } from "@/lib/supabase/storage";
 export const runtime = "nodejs";
 
 const CONCEPT_STATUS_PUBLISHED = "published";
+const CONCEPT_STATUS_APPROVED = "approved";
 
 export async function GET(
   _req: Request,
@@ -34,8 +35,9 @@ export async function GET(
     },
     select: {
       id: true,
+      status: true,
       concepts: {
-        where: { status: CONCEPT_STATUS_PUBLISHED },
+        where: { status: { in: [CONCEPT_STATUS_PUBLISHED, CONCEPT_STATUS_APPROVED] } },
         orderBy: { number: "asc" },
         select: {
           id: true,
@@ -85,5 +87,5 @@ export async function GET(
     }),
   );
 
-  return Response.json({ concepts });
+  return Response.json({ concepts, projectStatus: project.status });
 }

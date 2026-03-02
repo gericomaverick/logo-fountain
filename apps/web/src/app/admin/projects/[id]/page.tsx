@@ -39,10 +39,12 @@ export default function AdminProjectPage() {
   const [concepts, setConcepts] = useState<Concept[]>([]);
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [revisionRequests, setRevisionRequests] = useState<RevisionRequest[]>([]);
+  const [projectStatus, setProjectStatus] = useState<string>("");
 
   const [conceptNumber, setConceptNumber] = useState(1);
   const [notes, setNotes] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [finalZipFile, setFinalZipFile] = useState<File | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,11 +56,12 @@ export default function AdminProjectPage() {
   async function loadConcepts(id: string) {
     const response = await fetch(`/api/admin/projects/${id}/concepts`, { cache: "no-store" });
     const payload = (await response.json().catch(() => null)) as
-      | { concepts?: Concept[]; error?: string }
+      | { concepts?: Concept[]; projectStatus?: string | null; error?: string }
       | null;
 
     if (!response.ok) throw new Error(payload?.error ?? "Failed to load concepts");
     setConcepts(payload?.concepts ?? []);
+    setProjectStatus(payload?.projectStatus ?? "");
   }
 
   async function loadMessages(id: string) {
@@ -151,6 +154,34 @@ export default function AdminProjectPage() {
     }
   }
 
+  async function uploadFinalZip(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!projectId || !finalZipFile) return;
+
+    setBusy(true);
+    setError(null);
+
+    try {
+      const data = new FormData();
+      data.set("file", finalZipFile);
+
+      const response = await fetch(`/api/admin/projects/${projectId}/finals`, {
+        method: "POST",
+        body: data,
+      });
+
+      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      if (!response.ok) throw new Error(payload?.error ?? "Final ZIP upload failed");
+
+      setFinalZipFile(null);
+      await loadConcepts(projectId);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Final ZIP upload failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function sendMessage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!projectId) return;
@@ -196,7 +227,7 @@ export default function AdminProjectPage() {
       const payload = (await response.json().catch(() => null)) as { error?: string } | null;
       if (!response.ok) throw new Error(payload?.error ?? "Failed to mark delivered");
 
-      await loadRevisionRequests(projectId);
+      await Promise.all([loadRevisionRequests(projectId), loadConcepts(projectId)]);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to mark delivered");
     } finally {
@@ -209,6 +240,7 @@ export default function AdminProjectPage() {
       <p className="text-sm"><Link href="/admin" className="underline">← Back to queue</Link></p>
       <h1 className="mt-2 text-2xl font-semibold">Admin project</h1>
       <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
+      <p className="mt-1 text-sm text-neutral-600">Status: {projectStatus || "—"}</p>
 
       {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
 
@@ -232,6 +264,17 @@ export default function AdminProjectPage() {
           <textarea className="mt-1 w-full rounded border border-neutral-300 px-2 py-1" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
         </label>
         <button className="mt-3 rounded border border-neutral-300 px-3 py-1 text-sm" type="submit" disabled={busy || !file}>Upload</button>
+      </form>
+
+      <form className="mt-6 rounded border border-neutral-200 p-4" onSubmit={uploadFinalZip}>
+        <h2 className="text-lg font-medium">Final ZIP delivery</h2>
+        <p className="mt-1 text-sm text-neutral-600">
+          Upload final deliverable ZIP. If a concept is already approved, project moves to FINAL_FILES_READY.
+        </p>
+        <label className="mt-3 block text-sm">ZIP file
+          <input className="mt-1 w-full" type="file" accept=".zip,application/zip" onChange={(e) => setFinalZipFile(e.target.files?.[0] ?? null)} />
+        </label>
+        <button className="mt-3 rounded border border-neutral-300 px-3 py-1 text-sm" type="submit" disabled={busy || !finalZipFile}>Upload final ZIP</button>
       </form>
 
       <section className="mt-6">
