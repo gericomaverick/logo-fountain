@@ -30,7 +30,11 @@ vi.mock("@/lib/auth/require", () => ({
   toRouteErrorResponse: mocks.toRouteErrorResponse,
 }));
 vi.mock("@/lib/prisma", () => ({ prisma: mocks.prisma }));
-vi.mock("@/lib/supabase/storage", () => ({ uploadConceptAsset: mocks.uploadConceptAsset }));
+vi.mock("@/lib/supabase/storage", () => ({
+  uploadConceptAsset: mocks.uploadConceptAsset,
+  inferExtension: () => "png",
+  createSignedConceptAssetUrl: vi.fn(),
+}));
 vi.mock("@/lib/audit", () => ({ logAudit: mocks.logAudit }));
 vi.mock("@/lib/system-messages", () => ({ createProjectSystemMessage: mocks.createProjectSystemMessage }));
 

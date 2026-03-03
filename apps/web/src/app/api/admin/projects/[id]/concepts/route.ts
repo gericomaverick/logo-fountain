@@ -1,6 +1,6 @@
 import { jsonError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
-import { createSignedConceptAssetUrl, uploadConceptAsset } from "@/lib/supabase/storage";
+import { createSignedConceptAssetUrl, inferExtension, uploadConceptAsset } from "@/lib/supabase/storage";
 import { logAudit } from "@/lib/audit";
 import { applyTransition } from "@/lib/project-state-machine";
 import { requireAdmin, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
@@ -66,9 +66,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
           where: {
             projectId,
             kind: "concept",
-            OR: conceptIds.map((conceptId) => ({
-              path: { startsWith: `${projectId}/${conceptId}.` },
-            })),
+            OR: conceptIds.flatMap((conceptId) => ([
+              { path: { startsWith: `${projectId}/${conceptId}.` } },
+              { path: { startsWith: `${projectId}/${conceptId}/v` } },
+            ])),
           },
           orderBy: [{ createdAt: "desc" }],
           select: { path: true },
@@ -76,12 +77,25 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       : [];
 
     const fileByConceptId = new Map<string, { path: string }>();
+    const versionByConceptId = new Map<string, number>();
+
     for (const file of files) {
-      const fileName = file.path.split("/").pop() ?? "";
-      const conceptId = fileName.split(".")[0];
-      if (conceptId && !fileByConceptId.has(conceptId)) {
-        fileByConceptId.set(conceptId, { path: file.path });
-      }
+      const parts = file.path.split("/");
+      const fileName = parts.at(-1) ?? "";
+
+      // Legacy path:   <projectId>/<conceptId>.<ext>
+      // Versioned path:<projectId>/<conceptId>/vN.<ext>
+      const conceptId = parts.length >= 3 ? (parts[1] ?? "") : fileName.split(".")[0];
+      if (!conceptId) continue;
+
+      const versionMatch = fileName.match(/^v(\d+)\./);
+      const parsedVersion = versionMatch?.[1] ? Number.parseInt(versionMatch[1], 10) : 1;
+      const safeVersion = Number.isFinite(parsedVersion) && parsedVersion > 0 ? parsedVersion : 1;
+
+      versionByConceptId.set(conceptId, Math.max(versionByConceptId.get(conceptId) ?? 0, safeVersion));
+
+      // files are ordered DESC, so first seen is latest.
+      if (!fileByConceptId.has(conceptId)) fileByConceptId.set(conceptId, { path: file.path });
     }
 
     const pendingByConceptId = new Map(
@@ -105,10 +119,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     const conceptsWithMeta = await Promise.all(
       concepts.map(async (concept) => {
         const file = fileByConceptId.get(concept.id);
-        const deliveredCount = deliveredByConceptId.get(concept.id) ?? 0;
+        const version = versionByConceptId.get(concept.id) ?? 0;
         return {
           ...concept,
-          revisionVersion: deliveredCount + 1,
+          revisionVersion: Math.max(version, 1),
           imageUrl: file ? await createSignedConceptAssetUrl(file.path) : null,
           pendingRevisionCount: pendingByConceptId.get(concept.id) ?? 0,
           commentCount: commentsByConceptId.get(concept.id) ?? 0,
@@ -182,7 +196,42 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       shouldConsumeEntitlement = uploadMode === "concept" && (!existingConcept || existingConcept.status !== CONCEPT_STATUS_PUBLISHED);
     }
 
-    const upload = await uploadConceptAsset({ projectId, conceptId: concept.id, file: fileEntry });
+    const ext = inferExtension(fileEntry);
+
+    let bucketPath = `${projectId}/${concept.id}.${ext}`;
+    let upsert = true;
+
+    if (uploadMode === "revision") {
+      const existingFiles = await prisma.fileAsset.findMany({
+        where: {
+          projectId,
+          kind: "concept",
+          OR: [
+            { path: { startsWith: `${projectId}/${concept.id}/v` } },
+            { path: { startsWith: `${projectId}/${concept.id}.` } },
+          ],
+        },
+        select: { path: true },
+      });
+
+      let maxVersion = 0;
+      for (const file of existingFiles) {
+        const match = file.path.match(/\/v(\d+)\./);
+        if (match?.[1]) {
+          const parsed = Number.parseInt(match[1], 10);
+          if (Number.isFinite(parsed)) maxVersion = Math.max(maxVersion, parsed);
+          continue;
+        }
+        // Legacy single-file path counts as version 1.
+        maxVersion = Math.max(maxVersion, 1);
+      }
+
+      const nextVersion = Math.max(maxVersion + 1, 2);
+      bucketPath = `${projectId}/${concept.id}/v${nextVersion}.${ext}`;
+      upsert = false;
+    }
+
+    const upload = await uploadConceptAsset({ bucketPath, file: fileEntry, upsert });
 
     const alreadyPublishedCount = await prisma.concept.count({
       where: {

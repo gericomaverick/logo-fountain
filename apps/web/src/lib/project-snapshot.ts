@@ -161,31 +161,41 @@ export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
   };
 
   const conceptFiles = new Map<string, string>();
+  const versionByConceptId = new Map<string, number>();
+
   for (const file of project.fileAssets) {
     if (file.kind !== "concept") continue;
-    const fileName = file.path.split("/").pop() ?? "";
-    const conceptId = fileName.split(".")[0];
-    if (conceptId && !conceptFiles.has(conceptId)) conceptFiles.set(conceptId, file.path);
+
+    const parts = file.path.split("/");
+    const fileName = parts.at(-1) ?? "";
+    const conceptId = parts.length >= 3 ? (parts[1] ?? "") : fileName.split(".")[0];
+    if (!conceptId) continue;
+
+    const versionMatch = fileName.match(/^v(\d+)\./);
+    const parsedVersion = versionMatch?.[1] ? Number.parseInt(versionMatch[1], 10) : 1;
+    const safeVersion = Number.isFinite(parsedVersion) && parsedVersion > 0 ? parsedVersion : 1;
+    versionByConceptId.set(conceptId, Math.max(versionByConceptId.get(conceptId) ?? 0, safeVersion));
+
+    // fileAssets are ordered DESC, so first seen is latest.
+    if (!conceptFiles.has(conceptId)) conceptFiles.set(conceptId, file.path);
   }
 
-  const deliveredByConceptId = new Map(
-    deliveredRevisionCounts
-      .filter((entry) => Boolean(entry.conceptId))
-      .map((entry) => [entry.conceptId as string, entry._count._all]),
-  );
+  const concepts = await Promise.all(project.concepts.map(async (concept) => {
+    const version = versionByConceptId.get(concept.id) ?? 0;
 
-  const concepts = await Promise.all(project.concepts.map(async (concept) => ({
-    id: concept.id,
-    number: concept.number,
-    status: concept.status,
-    notes: concept.notes,
-    createdAt: concept.createdAt,
-    updatedAt: concept.updatedAt,
-    revisionVersion: (deliveredByConceptId.get(concept.id) ?? 0) + 1,
-    imageUrl: conceptFiles.get(concept.id)
-      ? await createSignedConceptAssetUrl(conceptFiles.get(concept.id) as string)
-      : null,
-  })));
+    return {
+      id: concept.id,
+      number: concept.number,
+      status: concept.status,
+      notes: concept.notes,
+      createdAt: concept.createdAt,
+      updatedAt: concept.updatedAt,
+      revisionVersion: Math.max(version, 1),
+      imageUrl: conceptFiles.get(concept.id)
+        ? await createSignedConceptAssetUrl(conceptFiles.get(concept.id) as string)
+        : null,
+    };
+  }));
 
   const finalAsset = project.fileAssets.find((f) => f.kind === "final_zip");
   const finalZip = finalAsset

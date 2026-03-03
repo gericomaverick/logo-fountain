@@ -6,9 +6,9 @@ export const SUPABASE_STORAGE_BUCKET_CONCEPTS = "concepts";
 export const SUPABASE_STORAGE_BUCKET_FINAL_DELIVERABLES = "final-deliverables";
 
 type UploadConceptAssetInput = {
-  projectId: string;
-  conceptId: string;
+  bucketPath: string;
   file: File;
+  upsert?: boolean;
 };
 
 type UploadFinalDeliverableInput = {
@@ -16,7 +16,7 @@ type UploadFinalDeliverableInput = {
   file: File;
 };
 
-function inferExtension(file: File): string {
+export function inferExtension(file: File): string {
   const namePart = file.name.split(".").pop()?.trim().toLowerCase();
   if (namePart && /^[a-z0-9]+$/.test(namePart)) return namePart;
 
@@ -37,17 +37,15 @@ function inferExtension(file: File): string {
   }
 }
 
-export async function uploadConceptAsset({ projectId, conceptId, file }: UploadConceptAssetInput) {
-  const ext = inferExtension(file);
-  const path = `${projectId}/${conceptId}.${ext}`;
+export async function uploadConceptAsset({ bucketPath, file, upsert = true }: UploadConceptAssetInput) {
   const bytes = new Uint8Array(await file.arrayBuffer());
   const admin = createSupabaseAdminClient();
 
   const { error } = await admin.storage
     .from(SUPABASE_STORAGE_BUCKET_CONCEPTS)
-    .upload(path, bytes, {
+    .upload(bucketPath, bytes, {
       contentType: file.type || "application/octet-stream",
-      upsert: true,
+      upsert,
     });
 
   if (error) {
@@ -56,7 +54,7 @@ export async function uploadConceptAsset({ projectId, conceptId, file }: UploadC
 
   return {
     bucket: SUPABASE_STORAGE_BUCKET_CONCEPTS,
-    path,
+    path: bucketPath,
     mime: file.type || "application/octet-stream",
     size: file.size,
   };

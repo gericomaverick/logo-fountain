@@ -52,17 +52,6 @@ export async function GET(
       return Response.json({ concepts: [], projectStatus: null });
     }
 
-    const deliveredRevisionCounts = await prisma.revisionRequest.groupBy({
-      by: ["conceptId"],
-      where: { projectId: project.id, status: "delivered", conceptId: { not: null } },
-      _count: { _all: true },
-    });
-
-    const deliveredByConceptId = new Map(
-      deliveredRevisionCounts
-        .filter((entry) => Boolean(entry.conceptId))
-        .map((entry) => [entry.conceptId as string, entry._count._all]),
-    );
 
     const conceptIds = project.concepts.map((concept) => concept.id);
     const files = conceptIds.length
@@ -70,21 +59,30 @@ export async function GET(
           where: {
             projectId: project.id,
             kind: "concept",
-            OR: conceptIds.map((conceptId) => ({
-              path: { startsWith: `${project.id}/${conceptId}.` },
-            })),
+            OR: conceptIds.flatMap((conceptId) => ([
+              { path: { startsWith: `${project.id}/${conceptId}.` } },
+              { path: { startsWith: `${project.id}/${conceptId}/v` } },
+            ])),
           },
           orderBy: [{ createdAt: "desc" }],
         })
       : [];
 
     const fileByConceptId = new Map<string, { path: string }>();
+    const versionByConceptId = new Map<string, number>();
+
     for (const file of files) {
-      const fileName = file.path.split("/").pop() ?? "";
-      const conceptId = fileName.split(".")[0];
-      if (conceptId && !fileByConceptId.has(conceptId)) {
-        fileByConceptId.set(conceptId, { path: file.path });
-      }
+      const parts = file.path.split("/");
+      const fileName = parts.at(-1) ?? "";
+      const conceptId = parts.length >= 3 ? (parts[1] ?? "") : fileName.split(".")[0];
+      if (!conceptId) continue;
+
+      const versionMatch = fileName.match(/^v(\d+)\./);
+      const parsedVersion = versionMatch?.[1] ? Number.parseInt(versionMatch[1], 10) : 1;
+      const safeVersion = Number.isFinite(parsedVersion) && parsedVersion > 0 ? parsedVersion : 1;
+      versionByConceptId.set(conceptId, Math.max(versionByConceptId.get(conceptId) ?? 0, safeVersion));
+
+      if (!fileByConceptId.has(conceptId)) fileByConceptId.set(conceptId, { path: file.path });
     }
 
     const concepts = await Promise.all(
@@ -92,9 +90,11 @@ export async function GET(
         const file = fileByConceptId.get(concept.id);
         const imageUrl = file ? await createSignedConceptAssetUrl(file.path) : null;
 
+        const version = versionByConceptId.get(concept.id) ?? 0;
+
         return {
           ...concept,
-          revisionVersion: (deliveredByConceptId.get(concept.id) ?? 0) + 1,
+          revisionVersion: Math.max(version, 1),
           imageUrl,
         };
       }),
