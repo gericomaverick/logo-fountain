@@ -3,10 +3,25 @@ import Link from "next/link";
 import { HeaderNav } from "@/components/header-nav";
 import { ProjectStatusBadge } from "@/components/project-status-badge";
 import { prisma } from "@/lib/prisma";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/auth/require";
 
 export const dynamic = "force-dynamic";
 
 type AdminSectionKey = "needs-action" | "in-progress" | "delivered";
+
+type AdminProjectRow = {
+  id: string;
+  status: string;
+  packageCode: string;
+  createdAt: Date;
+  updatedAt: Date;
+  client: { name: string };
+  orders: Array<{ status: string; stripeCheckoutSessionId: string | null }>;
+  revisionRequests: Array<{ id: string }>;
+  latestMessageAt: Date | null;
+  hasNewMessages: boolean;
+};
 
 const NEEDS_ACTION_STATUSES = ["BRIEF_SUBMITTED", "CONCEPTS_READY", "ON_HOLD"] as const;
 const DELIVERED_STATUSES = ["DELIVERED", "CANCELLED", "REFUNDED"] as const;
@@ -52,16 +67,7 @@ function AdminSection({
 }: {
   title: string;
   description: string;
-  projects: Array<{
-    id: string;
-    status: string;
-    packageCode: string;
-    createdAt: Date;
-    updatedAt: Date;
-    client: { name: string };
-    orders: Array<{ status: string; stripeCheckoutSessionId: string | null }>;
-    revisionRequests: Array<{ id: string }>;
-  }>;
+  projects: AdminProjectRow[];
 }) {
   return (
     <section className="mt-8">
@@ -93,7 +99,7 @@ function AdminSection({
                       Open project
                     </Link>
                     <Link className="text-sm text-neutral-700 underline" href={`/admin/projects/${project.id}/messages`}>
-                      Messages
+                      Messages{project.hasNewMessages ? <span className="ml-2 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">New</span> : null}
                     </Link>
                     <Link className="text-sm text-neutral-700 underline" href={`/admin/projects/${project.id}/upload`}>
                       Upload concepts
@@ -112,6 +118,25 @@ function AdminSection({
 }
 
 export default async function AdminHomePage() {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    // admin layout should guard, but keep safe.
+    return (
+      <>
+        <HeaderNav />
+        <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
+          <p className="text-sm text-neutral-700">Unauthorized.</p>
+        </main>
+      </>
+    );
+  }
+
+  await requireAdmin(user);
+
   const projects = await prisma.project.findMany({
     select: {
       id: true,
@@ -134,15 +159,39 @@ export default async function AdminHomePage() {
     orderBy: { createdAt: "desc" },
   });
 
-  const sectioned: Record<AdminSectionKey, typeof projects> = {
+  const latestMessages = await prisma.message.groupBy({
+    by: ["projectId"],
+    _max: { createdAt: true },
+  });
+  const latestMessageByProject = new Map(latestMessages.map((row) => [row.projectId, row._max.createdAt ?? null]));
+
+  const readStates = await prisma.projectReadState.findMany({
+    where: { userId: user.id },
+    select: { projectId: true, lastSeenMessagesAt: true },
+  });
+  const lastSeenByProject = new Map(readStates.map((r) => [r.projectId, r.lastSeenMessagesAt ?? null]));
+
+  const enriched: AdminProjectRow[] = projects.map((p) => {
+    const latestMessageAt = latestMessageByProject.get(p.id) ?? null;
+    const lastSeenMessagesAt = lastSeenByProject.get(p.id) ?? null;
+    const hasNewMessages = Boolean(latestMessageAt && (!lastSeenMessagesAt || latestMessageAt > lastSeenMessagesAt));
+
+    return {
+      ...p,
+      latestMessageAt,
+      hasNewMessages,
+    };
+  });
+
+  const sectioned: Record<AdminSectionKey, AdminProjectRow[]> = {
     "needs-action": [],
     "in-progress": [],
     delivered: [],
   };
 
-  for (const project of projects) {
-    // If there is a pending revision request, treat as needs-action regardless of status.
-    if (project.revisionRequests.length > 0) {
+  for (const project of enriched) {
+    // If there is pending client feedback or unread messages, treat as needs-action regardless of status.
+    if (project.revisionRequests.length > 0 || project.hasNewMessages) {
       sectioned["needs-action"].push(project);
       continue;
     }
