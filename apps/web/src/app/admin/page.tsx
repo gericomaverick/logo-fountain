@@ -1,12 +1,13 @@
 import Link from "next/link";
 
 import { HeaderNav } from "@/components/header-nav";
+import { Card, PageShell, SubCard } from "@/components/page-shell";
 import { ProjectStatusBadge } from "@/components/project-status-badge";
+import { deriveProjectBadgeState, type AdminSectionKey } from "@/lib/admin-dashboard";
+import { computeLatestConceptActivityAt } from "@/lib/concept-activity";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth/require";
-import { deriveProjectBadgeState, type AdminSectionKey } from "@/lib/admin-dashboard";
-import { computeLatestConceptActivityAt } from "@/lib/concept-activity";
 
 export const dynamic = "force-dynamic";
 
@@ -82,6 +83,25 @@ function getPrimaryClientContact(
   };
 }
 
+function computeActionPriority(project: AdminProjectRow): number {
+  let score = 0;
+  score += project.pendingFeedbackCount * 100;
+  if (project.hasNewMessages) score += 60;
+  if (project.hasNewConcepts) score += 20;
+  const stuckReason = getStuckReason(project.orders[0] ?? null);
+  if (stuckReason) score += 50;
+  return score;
+}
+
+function compareByUrgency(a: AdminProjectRow, b: AdminProjectRow): number {
+  const scoreDiff = computeActionPriority(b) - computeActionPriority(a);
+  if (scoreDiff !== 0) return scoreDiff;
+
+  const aLatest = Math.max(a.updatedAt.getTime(), a.latestMessageAt?.getTime() ?? 0, a.latestConceptAt?.getTime() ?? 0);
+  const bLatest = Math.max(b.updatedAt.getTime(), b.latestMessageAt?.getTime() ?? 0, b.latestConceptAt?.getTime() ?? 0);
+  return bLatest - aLatest;
+}
+
 function AdminSection({
   title,
   description,
@@ -99,16 +119,19 @@ function AdminSection({
       </div>
 
       {projects.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-4 text-sm text-neutral-600">No projects in this section.</p>
+        <SubCard>
+          <p className="text-sm text-neutral-600">No projects in this section.</p>
+        </SubCard>
       ) : (
         <div className="space-y-4">
           {projects.map((project) => {
             const latestOrder = project.orders[0] ?? null;
             const stuckReason = getStuckReason(latestOrder);
             const primaryClientContact = getPrimaryClientContact(project.client.memberships);
+            const needsFeedback = project.pendingFeedbackCount > 0;
 
             return (
-              <article key={project.id} className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
+              <Card key={project.id} className="mt-0">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <ProjectStatusBadge status={project.status} />
@@ -123,25 +146,33 @@ function AdminSection({
                   </div>
 
                   <div className="flex flex-col gap-2 sm:items-end">
-                    <Link className="inline-flex rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white" href={`/admin/projects/${project.id}`}>
-                      Open project
-                    </Link>
+                    {needsFeedback ? (
+                      <Link className="inline-flex rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white" href={`/admin/projects/${project.id}/concepts#pending-feedback`}>
+                        Resolve pending feedback
+                      </Link>
+                    ) : (
+                      <Link className="inline-flex rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white" href={`/admin/projects/${project.id}`}>
+                        Open project
+                      </Link>
+                    )}
                     <div className="flex flex-wrap gap-2 sm:justify-end">
                       {project.hasNewMessages ? <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">New messages</span> : null}
                       {project.pendingFeedbackCount > 0 ? <span className="inline-flex rounded-full bg-rose-100 px-2 py-0.5 text-xs font-semibold text-rose-900">Pending feedback ({project.pendingFeedbackCount})</span> : null}
                       {project.hasNewConcepts ? <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-900">New concepts</span> : null}
                     </div>
-                    <Link className="text-sm text-neutral-700 underline" href={`/admin/projects/${project.id}/messages`}>
-                      Messages
-                    </Link>
-                    <Link className="text-sm text-neutral-700 underline" href={`/admin/projects/${project.id}/concepts`}>
-                      Concepts manager
-                    </Link>
+                    <div className="flex flex-wrap gap-3 text-sm text-neutral-700">
+                      <Link className="underline" href={`/admin/projects/${project.id}/messages`}>
+                        Project thread
+                      </Link>
+                      <Link className="underline" href={`/admin/projects/${project.id}/concepts`}>
+                        Concept thread(s)
+                      </Link>
+                    </div>
                   </div>
                 </div>
 
                 {stuckReason ? <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">⚠ {stuckReason}</p> : null}
-              </article>
+              </Card>
             );
           })}
         </div>
@@ -157,14 +188,13 @@ export default async function AdminHomePage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    // admin layout should guard, but keep safe.
     return (
-      <>
+      <PageShell>
         <HeaderNav />
         <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
           <p className="text-sm text-neutral-700">Unauthorized.</p>
         </main>
-      </>
+      </PageShell>
     );
   }
 
@@ -276,8 +306,12 @@ export default async function AdminHomePage() {
     sectioned[badgeState.section].push(project);
   }
 
+  sectioned["needs-action"].sort(compareByUrgency);
+  sectioned["in-progress"].sort(compareByUrgency);
+  sectioned.delivered.sort(compareByUrgency);
+
   return (
-    <>
+    <PageShell>
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -289,6 +323,6 @@ export default async function AdminHomePage() {
         <AdminSection {...getSectionMeta("in-progress")} projects={sectioned["in-progress"]} />
         <AdminSection {...getSectionMeta("delivered")} projects={sectioned.delivered} />
       </main>
-    </>
+    </PageShell>
   );
 }

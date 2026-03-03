@@ -20,7 +20,7 @@ const mocks = vi.hoisted(() => {
     prisma: {
       project: { findUnique: vi.fn() },
       concept: { findUnique: vi.fn(), findMany: vi.fn(), upsert: vi.fn(), count: vi.fn() },
-      revisionRequest: { groupBy: vi.fn() },
+      revisionRequest: { groupBy: vi.fn(), findMany: vi.fn() },
       conceptComment: { groupBy: vi.fn() },
       fileAsset: { findMany: vi.fn() },
       $transaction: vi.fn(async (fn: (trx: typeof tx) => Promise<unknown>) => fn(tx)),
@@ -60,6 +60,7 @@ describe("/api/admin/projects/[id]/concepts", () => {
     mocks.prisma.concept.upsert.mockResolvedValue({ id: "c1", number: 1, status: "published", notes: null });
     mocks.prisma.concept.count.mockResolvedValue(0);
     mocks.prisma.revisionRequest.groupBy.mockResolvedValue([]);
+    mocks.prisma.revisionRequest.findMany.mockResolvedValue([]);
     mocks.prisma.conceptComment.groupBy.mockResolvedValue([]);
     mocks.prisma.fileAsset.findMany.mockResolvedValue([]);
     mocks.uploadConceptAsset.mockResolvedValue({ bucket: "b", path: "p", mime: "image/png", size: 123 });

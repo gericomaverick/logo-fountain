@@ -36,7 +36,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     await requireAdmin(user);
 
     const { id: projectId } = await params;
-    const [project, concepts, pendingRevisionCounts, commentsCounts] = await Promise.all([
+    const [project, concepts, pendingRevisionCounts, pendingRevisionRequests, commentsCounts] = await Promise.all([
       prisma.project.findUnique({ where: { id: projectId }, select: { status: true } }),
       prisma.concept.findMany({
         where: { projectId },
@@ -47,6 +47,18 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         by: ["conceptId"],
         where: { projectId, status: { not: "delivered" } },
         _count: { _all: true },
+      }),
+      prisma.revisionRequest.findMany({
+        where: { projectId, status: { not: "delivered" } },
+        orderBy: { createdAt: "asc" },
+        select: {
+          id: true,
+          conceptId: true,
+          body: true,
+          createdAt: true,
+          concept: { select: { id: true, number: true } },
+          user: { select: { email: true, firstName: true, lastName: true } },
+        },
       }),
       prisma.conceptComment.groupBy({
         by: ["conceptId"],
@@ -128,6 +140,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       concepts: conceptsWithMeta,
       projectStatus: project?.status ?? null,
       conceptlessPendingRevisionCount: conceptlessPendingCount,
+      pendingRevisionRequests: pendingRevisionRequests.map((request) => ({
+        id: request.id,
+        conceptId: request.conceptId,
+        body: request.body,
+        createdAt: request.createdAt,
+        concept: request.concept,
+        user: {
+          email: request.user.email,
+          fullName: [request.user.firstName, request.user.lastName].filter(Boolean).join(" ").trim() || null,
+        },
+      })),
     });
   } catch (error) {
     return toRouteErrorResponse(error);

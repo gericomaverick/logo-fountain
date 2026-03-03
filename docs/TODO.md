@@ -15,9 +15,14 @@ Step 2 notes:
 - Mission control activity feed now highlights attention-worthy events and de-duplicates repetitive system noise.
 
 ### Step 3 — Admin ops speed (reduce clicking / mistakes)
-- [ ] Admin project listing: strongest sort/grouping for “needs action” items.
-- [ ] Admin concept workflow: minimal steps to upload new concept / upload revision / mark delivered.
-- [ ] Admin comms: fast reply in the correct thread (concept vs project).
+- [x] Admin project listing: strongest sort/grouping for “needs action” items.
+- [x] Admin concept workflow: minimal steps to upload new concept / upload revision / mark delivered.
+- [x] Admin comms: fast reply in the correct thread (concept vs project).
+
+Step 3 notes:
+- `/admin` now urgency-sorts each section (pending feedback + unread messages first) and adds direct “Resolve pending feedback” routing into the concepts inbox.
+- `/admin/projects/[id]/concepts` now includes a pending-feedback inbox with one-click actions: open concept thread, upload revision, mark delivered, or fall back to project thread.
+- Admin comms/navigation now reinforces thread choice (project thread vs concept thread) across `/admin/projects/[id]`, concepts manager, upload flow, and messages view; styling aligned with `PageShell` + `Card`/`SubCard` surfaces.
 
 ### Step 1 — Premium polish (visual refinement)
 - [ ] Typography rhythm + spacing consistency across all portal pages.

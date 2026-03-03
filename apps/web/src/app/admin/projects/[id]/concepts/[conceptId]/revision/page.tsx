@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { HeaderNav } from "@/components/header-nav";
+import { Card, PageShell } from "@/components/page-shell";
 
 function readError(payload: { error?: { message?: string; details?: { nextStep?: string } } | string } | null, fallback: string): string {
   const err = payload?.error;
@@ -61,7 +62,7 @@ export default function AdminConceptRevisionUploadPage() {
   }
 
   return (
-    <>
+    <PageShell>
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
         <div className="mb-4 flex items-center justify-between gap-4">
@@ -70,13 +71,13 @@ export default function AdminConceptRevisionUploadPage() {
             <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
           </div>
           <div className="flex gap-4 text-sm">
-            <Link className="underline" href={backHref}>Back to concept</Link>
-            <Link className="underline" href={`/admin/projects/${projectId}`}>Admin overview</Link>
+            <Link className="underline" href={backHref}>Back to concept thread</Link>
+            <Link className="underline" href={`/admin/projects/${projectId}/concepts#pending-feedback`}>Pending feedback inbox</Link>
           </div>
         </div>
 
-        <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6">
-          <p className="text-sm text-neutral-700">Upload the updated image for this concept. This will create a new version (v2/v3/…) and mark pending revision requests as delivered.</p>
+        <Card className="mt-0">
+          <p className="text-sm text-neutral-700">Upload the updated image for this concept. This creates a new version and marks pending revision requests as delivered.</p>
 
           {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
           {success ? <p className="mt-3 text-sm text-green-700">{success}</p> : null}
@@ -99,8 +100,8 @@ export default function AdminConceptRevisionUploadPage() {
               {busy ? "Uploading…" : "Upload revision"}
             </button>
           </form>
-        </section>
+        </Card>
       </main>
-    </>
+    </PageShell>
   );
 }

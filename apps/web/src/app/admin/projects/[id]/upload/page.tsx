@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { HeaderNav } from "@/components/header-nav";
+import { Card, PageShell } from "@/components/page-shell";
 
 type Snapshot = {
   status: string;
@@ -87,7 +88,7 @@ export default function AdminProjectUploadPage() {
   }
 
   return (
-    <>
+    <PageShell>
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
         <div className="mb-4 flex items-center justify-between gap-4">
@@ -97,13 +98,14 @@ export default function AdminProjectUploadPage() {
           </div>
           <div className="flex gap-4 text-sm">
             <Link className="underline" href={`/admin/projects/${projectId}`}>Overview</Link>
-            <Link className="underline" href={`/admin/projects/${projectId}/messages`}>Messages</Link>
+            <Link className="underline" href={`/admin/projects/${projectId}/concepts`}>Concepts manager</Link>
+            <Link className="underline" href={`/admin/projects/${projectId}/messages`}>Project thread</Link>
           </div>
         </div>
 
-        <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
+        <Card className="mt-0">
           <h2 className="text-lg font-medium">Upload and publish concept</h2>
-          <p className="mt-1 text-sm text-neutral-600">Uploading here publishes immediately so the client can view it in project and concept detail pages.</p>
+          <p className="mt-1 text-sm text-neutral-600">Uploading here publishes immediately so the client can review it.</p>
 
           {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
           {success ? <p className="mt-3 text-sm text-green-700">{success}</p> : null}
@@ -129,10 +131,13 @@ export default function AdminProjectUploadPage() {
               {busy ? "Uploading…" : "Upload concept"}
             </button>
           </form>
-        </section>
+        </Card>
 
-        <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
-          <h2 className="text-lg font-medium">Existing concepts</h2>
+        <Card>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-lg font-medium">Existing concepts</h2>
+            <Link className="text-sm underline" href={`/admin/projects/${projectId}/concepts`}>Open concepts manager + feedback inbox</Link>
+          </div>
           {loading ? <p className="mt-3 text-sm text-neutral-600">Loading…</p> : null}
           <ul className="mt-3 space-y-2">
             {(snapshot?.concepts ?? []).map((concept) => (
@@ -142,8 +147,8 @@ export default function AdminProjectUploadPage() {
             ))}
             {!loading && (snapshot?.concepts?.length ?? 0) === 0 ? <li className="text-sm text-neutral-600">No concepts yet.</li> : null}
           </ul>
-        </section>
+        </Card>
       </main>
-    </>
+    </PageShell>
   );
 }

@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { HeaderNav } from "@/components/header-nav";
+import { Card, PageShell, SubCard } from "@/components/page-shell";
 import { resolveSenderLabel, sortMessagesNewestLast, type ChatMessage } from "@/lib/chat-messages";
 
 type Message = ChatMessage;
@@ -13,6 +14,13 @@ type SessionPayload = {
   authenticated: boolean;
   userId?: string;
   isAdmin?: boolean;
+};
+
+type ConceptThreadHint = {
+  id: string;
+  number: number;
+  pendingRevisionCount: number;
+  commentCount: number;
 };
 
 function readError(payload: { error?: { message?: string; details?: { nextStep?: string } } | string } | null, fallback: string): string {
@@ -27,6 +35,7 @@ export default function AdminProjectMessagesPage() {
   const projectId = params.id;
   const [messages, setMessages] = useState<Message[]>([]);
   const [session, setSession] = useState<SessionPayload>({ authenticated: false });
+  const [conceptHints, setConceptHints] = useState<ConceptThreadHint[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [body, setBody] = useState("");
@@ -42,17 +51,21 @@ export default function AdminProjectMessagesPage() {
   }, [sorted.length]);
 
   async function refresh(id: string) {
-    const [messagesRes, sessionRes] = await Promise.all([
+    const [messagesRes, sessionRes, conceptsRes] = await Promise.all([
       fetch(`/api/projects/${id}/messages`, { cache: "no-store" }),
       fetch("/api/auth/session", { cache: "no-store" }),
+      fetch(`/api/admin/projects/${id}/concepts`, { cache: "no-store" }),
     ]);
 
     const messagesPayload = await messagesRes.json().catch(() => null);
     if (!messagesRes.ok) throw new Error(readError(messagesPayload, "Failed to load messages"));
 
     const sessionPayload = await sessionRes.json().catch(() => null);
+    const conceptsPayload = await conceptsRes.json().catch(() => null);
+
     setSession((sessionPayload ?? { authenticated: false }) as SessionPayload);
     setMessages((messagesPayload?.messages ?? []) as Message[]);
+    setConceptHints(((conceptsPayload?.concepts ?? []) as ConceptThreadHint[]).slice(0, 5));
   }
 
   useEffect(() => {
@@ -63,7 +76,6 @@ export default function AdminProjectMessagesPage() {
       try {
         await refresh(projectId);
 
-        // Mark messages as seen for admin read-state notifications.
         await fetch(`/api/projects/${projectId}/read-state`, {
           method: "POST",
           headers: { "content-type": "application/json" },
@@ -110,7 +122,7 @@ export default function AdminProjectMessagesPage() {
   }
 
   return (
-    <>
+    <PageShell>
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
         <div className="mb-4 flex items-center justify-between gap-4">
@@ -120,11 +132,29 @@ export default function AdminProjectMessagesPage() {
           </div>
           <div className="flex gap-4 text-sm">
             <Link className="underline" href={`/admin/projects/${projectId}`}>Overview</Link>
+            <Link className="underline" href={`/admin/projects/${projectId}/concepts#pending-feedback`}>Pending feedback inbox</Link>
             <Link className="underline" href={`/admin/projects/${projectId}/upload`}>Upload concepts</Link>
           </div>
         </div>
 
-        <section className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+        <Card className="mt-0">
+          <h2 className="text-lg font-medium">Reply in the right thread</h2>
+          <p className="mt-1 text-sm text-neutral-600">Use this page for project-level updates. For design-specific feedback, jump into the concept thread.</p>
+          {conceptHints.length > 0 ? (
+            <div className="mt-3 flex flex-wrap gap-2 text-xs">
+              {conceptHints.map((concept) => {
+                const pending = concept.pendingRevisionCount + concept.commentCount;
+                return (
+                  <Link key={concept.id} className="rounded-full border border-neutral-300 bg-white px-2 py-1 text-neutral-700" href={`/project/${projectId}/concept/${concept.id}?from=admin`}>
+                    Concept #{concept.number}{pending > 0 ? ` · ${pending} pending` : ""}
+                  </Link>
+                );
+              })}
+            </div>
+          ) : null}
+        </Card>
+
+        <SubCard className="mt-3">
           <div ref={scrollRef} className="h-[28rem] overflow-y-auto rounded-lg border border-neutral-200 bg-white p-4">
             {loading ? <p className="text-sm text-neutral-600">Loading…</p> : null}
             {!loading && sorted.length === 0 ? <p className="text-sm text-neutral-600">No messages yet.</p> : null}
@@ -160,14 +190,14 @@ export default function AdminProjectMessagesPage() {
           {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
 
           <form className="mt-4" onSubmit={sendMessage}>
-            <label className="text-sm font-medium" htmlFor="message-body">Write a message</label>
+            <label className="text-sm font-medium" htmlFor="message-body">Write a project update</label>
             <textarea id="message-body" className="mt-1 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm" rows={3} maxLength={2000} value={body} onChange={(e) => setBody(e.target.value)} placeholder="Type your message..." />
             <button className="mt-2 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm" type="submit" disabled={busy || !body.trim()}>
               {busy ? "Sending…" : "Send"}
             </button>
           </form>
-        </section>
+        </SubCard>
       </main>
-    </>
+    </PageShell>
   );
 }

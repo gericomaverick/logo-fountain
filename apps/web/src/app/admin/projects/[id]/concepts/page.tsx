@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { HeaderNav } from "@/components/header-nav";
+import { Card, PageShell, SubCard } from "@/components/page-shell";
 
 type Concept = {
   id: string;
@@ -15,6 +16,15 @@ type Concept = {
   imageUrl: string | null;
   pendingRevisionCount: number;
   commentCount: number;
+};
+
+type PendingRevisionRequest = {
+  id: string;
+  conceptId: string | null;
+  body: string;
+  createdAt: string;
+  concept: { id: string; number: number } | null;
+  user: { email: string; fullName: string | null };
 };
 
 function readError(payload: { error?: { message?: string; details?: { nextStep?: string } } | string } | null, fallback: string): string {
@@ -29,6 +39,7 @@ export default function AdminProjectConceptsPage() {
   const projectId = params.id;
 
   const [concepts, setConcepts] = useState<Concept[]>([]);
+  const [pendingRevisionRequests, setPendingRevisionRequests] = useState<PendingRevisionRequest[]>([]);
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,6 +58,7 @@ export default function AdminProjectConceptsPage() {
     if (!conceptsResponse.ok) throw new Error(readError(conceptsPayload, "Failed to load concepts"));
 
     setConcepts((conceptsPayload?.concepts ?? []) as Concept[]);
+    setPendingRevisionRequests((conceptsPayload?.pendingRevisionRequests ?? []) as PendingRevisionRequest[]);
     setUnassignedPendingRevisionCount(Number(conceptsPayload?.conceptlessPendingRevisionCount ?? 0));
   }
 
@@ -104,13 +116,35 @@ export default function AdminProjectConceptsPage() {
     setBusy(false);
   }
 
+  async function markDelivered(revisionRequestId: string) {
+    if (!projectId) return;
+
+    setBusy(true);
+    setError(null);
+    const response = await fetch(`/api/admin/projects/${projectId}/revision-requests/${revisionRequestId}/delivered`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ setConceptsReady: true }),
+    });
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      setError(readError(payload, "Failed to mark delivered"));
+    } else {
+      setSuccess("Revision request marked as delivered.");
+      await refresh(projectId);
+    }
+
+    setBusy(false);
+  }
+
   const totalPending = useMemo(
     () => concepts.reduce((acc, concept) => acc + concept.pendingRevisionCount + concept.commentCount, 0) + unassignedPendingRevisionCount,
     [concepts, unassignedPendingRevisionCount],
   );
 
   return (
-    <>
+    <PageShell>
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
         <div className="mb-4 flex items-center justify-between gap-4">
@@ -118,19 +152,66 @@ export default function AdminProjectConceptsPage() {
             <h1 className="text-2xl font-semibold">Concepts manager</h1>
             <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
             <p className="mt-1 text-sm text-neutral-600">Pending feedback items: {totalPending}</p>
-            {unassignedPendingRevisionCount > 0 ? (
-              <p className="mt-1 text-xs text-amber-700">
-                {unassignedPendingRevisionCount} pending revision request{unassignedPendingRevisionCount === 1 ? "" : "s"} not linked to a concept.
-              </p>
-            ) : null}
           </div>
           <div className="flex gap-4 text-sm">
             <Link className="underline" href={`/admin/projects/${projectId}`}>Overview</Link>
-            <Link className="underline" href={`/admin/projects/${projectId}/messages`}>Messages</Link>
+            <Link className="underline" href={`/admin/projects/${projectId}/messages`}>Project thread</Link>
           </div>
         </div>
 
-        <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
+        <Card className="mt-0" id="pending-feedback">
+          <h2 className="text-lg font-medium">Pending feedback inbox</h2>
+          <p className="mt-1 text-sm text-neutral-600">Handle revision requests directly, then jump into concept or project threads.</p>
+          {unassignedPendingRevisionCount > 0 ? (
+            <p className="mt-2 text-xs text-amber-700">
+              {unassignedPendingRevisionCount} pending revision request{unassignedPendingRevisionCount === 1 ? "" : "s"} are not linked to a concept yet.
+            </p>
+          ) : null}
+
+          <div className="mt-4 space-y-3">
+            {pendingRevisionRequests.map((request) => (
+              <SubCard key={request.id} className="bg-white">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs text-neutral-500">
+                      {request.user.fullName ?? request.user.email} · {new Date(request.createdAt).toLocaleString()}
+                    </p>
+                    <p className="mt-2 whitespace-pre-wrap text-sm text-neutral-800">{request.body}</p>
+                    <p className="mt-2 text-xs text-neutral-600">
+                      {request.concept ? `Concept #${request.concept.number}` : "No concept linked"}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-start gap-2 text-sm sm:items-end">
+                    {request.concept ? (
+                      <>
+                        <Link className="underline" href={`/project/${projectId}/concept/${request.concept.id}?from=admin`}>
+                          Open concept thread
+                        </Link>
+                        <Link className="underline" href={`/admin/projects/${projectId}/concepts/${request.concept.id}/revision`}>
+                          Upload revision
+                        </Link>
+                      </>
+                    ) : null}
+                    <Link className="underline" href={`/admin/projects/${projectId}/messages`}>
+                      Open project thread
+                    </Link>
+                    <button
+                      className="rounded border border-neutral-300 bg-white px-3 py-1"
+                      disabled={busy}
+                      onClick={() => void markDelivered(request.id)}
+                      type="button"
+                    >
+                      Mark delivered
+                    </button>
+                  </div>
+                </div>
+              </SubCard>
+            ))}
+            {pendingRevisionRequests.length === 0 ? <p className="text-sm text-neutral-600">No pending revision requests.</p> : null}
+          </div>
+        </Card>
+
+        <Card>
           <h2 className="text-lg font-medium">Upload and publish concept</h2>
           {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
           {success ? <p className="mt-3 text-sm text-green-700">{success}</p> : null}
@@ -155,7 +236,7 @@ export default function AdminProjectConceptsPage() {
               {busy ? "Uploading…" : "Upload concept"}
             </button>
           </form>
-        </section>
+        </Card>
 
         <section className="mt-8">
           <h2 className="text-lg font-medium">Published concepts</h2>
@@ -195,9 +276,12 @@ export default function AdminProjectConceptsPage() {
                     </div>
                   </Link>
 
-                  <div className="border-t border-neutral-200 p-3 text-xs">
+                  <div className="flex items-center justify-between gap-2 border-t border-neutral-200 p-3 text-xs">
                     <Link className="underline" href={`/project/${projectId}/concept/${concept.id}?from=admin`}>
-                      Open discussion
+                      Open concept thread
+                    </Link>
+                    <Link className="underline" href={`/admin/projects/${projectId}/concepts/${concept.id}/revision`}>
+                      Upload revision
                     </Link>
                   </div>
                 </article>
@@ -207,6 +291,6 @@ export default function AdminProjectConceptsPage() {
           {!loading && concepts.length === 0 ? <p className="mt-4 text-sm text-neutral-600">No concepts yet.</p> : null}
         </section>
       </main>
-    </>
+    </PageShell>
   );
 }
