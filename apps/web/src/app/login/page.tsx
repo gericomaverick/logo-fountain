@@ -9,6 +9,12 @@ export default function LoginPage() {
   const router = useRouter();
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 
+  const nextPath = (() => {
+    if (typeof window === "undefined") return "/dashboard";
+    const rawNext = new URLSearchParams(window.location.search).get("next") || "/dashboard";
+    return rawNext.startsWith("/") ? rawNext : "/dashboard";
+  })();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<string | null>(null);
@@ -31,7 +37,7 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/dashboard");
+    router.push(nextPath);
     router.refresh();
   }
 
@@ -47,7 +53,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/dashboard`,
+        emailRedirectTo: `${window.location.origin}${nextPath}`,
       },
     });
 

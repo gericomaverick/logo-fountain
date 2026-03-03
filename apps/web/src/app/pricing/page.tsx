@@ -15,6 +15,22 @@ type PricingOption = {
   description: string;
 };
 
+type ApiErrorPayload = {
+  error?: string | { message?: string };
+  message?: string;
+  url?: string;
+};
+
+function parseApiError(payload: ApiErrorPayload | null): string | null {
+  if (!payload) return null;
+  if (typeof payload.error === "string") return payload.error;
+  if (payload.error && typeof payload.error === "object" && typeof payload.error.message === "string") {
+    return payload.error.message;
+  }
+  if (typeof payload.message === "string") return payload.message;
+  return null;
+}
+
 const PACKAGES: PricingOption[] = [
   {
     code: "essential",
@@ -56,10 +72,15 @@ export default function PricingPage() {
         body: JSON.stringify({ package_code: packageCode }),
       });
 
-      const data = (await res.json()) as { url?: string; error?: string };
+      const isJson = res.headers.get("content-type")?.includes("application/json");
+      const data = isJson ? ((await res.json().catch(() => null)) as ApiErrorPayload | null) : null;
 
-      if (!res.ok || !data.url) {
-        throw new Error(data.error ?? "Unable to start checkout");
+      if (!res.ok) {
+        throw new Error(parseApiError(data) ?? `Unable to start checkout (HTTP ${res.status})`);
+      }
+
+      if (!data?.url) {
+        throw new Error("Checkout session was created without a redirect URL. Please contact support.");
       }
 
       window.location.assign(data.url);

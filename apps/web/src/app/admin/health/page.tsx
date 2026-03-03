@@ -18,6 +18,21 @@ type HealthPayload = {
   generatedAt: string;
 };
 
+type HealthErrorPayload = {
+  error?: string | { message?: string };
+  message?: string;
+};
+
+function readError(payload: HealthErrorPayload | null, fallback: string): string {
+  if (!payload) return fallback;
+  if (typeof payload.error === "string") return payload.error;
+  if (payload.error && typeof payload.error === "object" && typeof payload.error.message === "string") {
+    return payload.error.message;
+  }
+  if (typeof payload.message === "string") return payload.message;
+  return fallback;
+}
+
 export default function AdminHealthPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,13 +44,10 @@ export default function AdminHealthPage() {
 
     try {
       const response = await fetch("/api/admin/health", { cache: "no-store" });
-      const data = (await response.json().catch(() => null)) as
-        | HealthPayload
-        | { error?: string }
-        | null;
+      const data = (await response.json().catch(() => null)) as HealthPayload | HealthErrorPayload | null;
 
       if (!response.ok) {
-        throw new Error((data as { error?: string } | null)?.error ?? "Failed to run health checks");
+        throw new Error(readError(data as HealthErrorPayload | null, "Failed to run health checks"));
       }
 
       setPayload(data as HealthPayload);
