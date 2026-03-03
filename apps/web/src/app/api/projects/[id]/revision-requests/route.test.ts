@@ -82,7 +82,7 @@ describe("POST /api/projects/[id]/revision-requests", () => {
     expect(mocks.tx.revisionRequest.create).not.toHaveBeenCalled();
   });
 
-  it("creates the revision request for the explicit conceptId", async () => {
+  it("first revision request transitions project to REVISIONS_IN_PROGRESS", async () => {
     const req = new Request("http://localhost", {
       method: "POST",
       body: JSON.stringify({ body: "Please adjust typography", conceptId: "c2" }),
@@ -92,6 +92,12 @@ describe("POST /api/projects/[id]/revision-requests", () => {
     const res = await POST(req, { params: Promise.resolve({ id: "p1" }) });
 
     expect(res.status).toBe(201);
+    expect(mocks.applyTransition).toHaveBeenCalledWith("CONCEPTS_READY", "REVISIONS_IN_PROGRESS");
+    expect(mocks.tx.project.update).toHaveBeenCalledWith({
+      where: { id: "p1" },
+      data: { status: "REVISIONS_IN_PROGRESS" },
+      select: { id: true, status: true },
+    });
     expect(mocks.prisma.concept.findFirst).toHaveBeenCalledWith({
       where: { id: "c2", projectId: "p1" },
       select: { id: true },
@@ -100,6 +106,44 @@ describe("POST /api/projects/[id]/revision-requests", () => {
       expect.objectContaining({
         data: expect.objectContaining({ conceptId: "c2", status: "requested" }),
       }),
+    );
+    expect(mocks.tx.$queryRaw).toHaveBeenCalledTimes(1);
+  });
+
+  it("allows a second revision request while already in REVISIONS_IN_PROGRESS", async () => {
+    mocks.prisma.project.findUnique.mockResolvedValue({ id: "p1", status: "REVISIONS_IN_PROGRESS" });
+
+    const req = new Request("http://localhost", {
+      method: "POST",
+      body: JSON.stringify({ body: "Please explore another direction", conceptId: "c3" }),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    mocks.prisma.concept.findFirst.mockResolvedValue({ id: "c3" });
+    mocks.tx.revisionRequest.create.mockResolvedValue({
+      id: "rr-2",
+      projectId: "p1",
+      conceptId: "c3",
+      status: "requested",
+      body: "Please explore another direction",
+      createdAt: new Date("2026-03-03T12:05:00Z"),
+    });
+
+    const res = await POST(req, { params: Promise.resolve({ id: "p1" }) });
+
+    expect(res.status).toBe(201);
+    expect(mocks.applyTransition).not.toHaveBeenCalled();
+    expect(mocks.tx.project.update).not.toHaveBeenCalled();
+    expect(mocks.tx.$queryRaw).toHaveBeenCalledTimes(1);
+    expect(mocks.tx.revisionRequest.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ conceptId: "c3", status: "requested" }),
+      }),
+    );
+    expect(mocks.logAudit).toHaveBeenCalledTimes(1);
+    expect(mocks.logAudit).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ type: "revision_requested" }),
     );
   });
 });

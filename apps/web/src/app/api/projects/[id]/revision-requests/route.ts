@@ -41,8 +41,18 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const project = await prisma.project.findUnique({ where: { id: projectRef.id }, select: { id: true, status: true } });
     if (!project) return jsonError("Project not found", 404, { nextStep: "Check the project link." }, "PROJECT_NOT_FOUND");
 
-    const transition = applyTransition(project.status, PROJECT_STATUS_REVISIONS_IN_PROGRESS);
-    if (!transition.ok) return jsonError(`Invalid transition from ${project.status} to ${PROJECT_STATUS_REVISIONS_IN_PROGRESS}`, 400, { allowed: transition.allowed, nextStep: "Request revision when project is eligible." }, "INVALID_PROJECT_STATUS_TRANSITION");
+    const shouldTransitionToRevisions = project.status !== PROJECT_STATUS_REVISIONS_IN_PROGRESS;
+    if (shouldTransitionToRevisions) {
+      const transition = applyTransition(project.status, PROJECT_STATUS_REVISIONS_IN_PROGRESS);
+      if (!transition.ok) {
+        return jsonError(
+          `Invalid transition from ${project.status} to ${PROJECT_STATUS_REVISIONS_IN_PROGRESS}`,
+          400,
+          { allowed: transition.allowed, nextStep: "Request revision when project is eligible." },
+          "INVALID_PROJECT_STATUS_TRANSITION",
+        );
+      }
+    }
 
     const concept = await prisma.concept.findFirst({ where: { id: parsed.conceptId, projectId: project.id }, select: { id: true } });
     if (!concept) return jsonError("Concept not found for project", 400, { nextStep: "Choose a concept from this project." }, "CONCEPT_NOT_FOUND");
@@ -63,14 +73,18 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       if (updated.length === 0) throw new Error("NO_REVISIONS_REMAINING");
 
       const created = await tx.revisionRequest.create({ data: { projectId: project.id, conceptId, status: REVISION_STATUS_REQUESTED, requestedBy: user.id, body: parsed.body }, select: { id: true, projectId: true, conceptId: true, status: true, body: true, createdAt: true } });
-      const updatedProject = await tx.project.update({ where: { id: project.id }, data: { status: PROJECT_STATUS_REVISIONS_IN_PROGRESS }, select: { id: true, status: true } });
+      const updatedProject = shouldTransitionToRevisions
+        ? await tx.project.update({ where: { id: project.id }, data: { status: PROJECT_STATUS_REVISIONS_IN_PROGRESS }, select: { id: true, status: true } })
+        : { id: project.id, status: project.status };
       await logAudit(tx, { projectId: project.id, actorId: user.id, type: "revision_requested", payload: { revisionRequestId: created.id, conceptId } });
       await createProjectSystemMessage(tx, {
         projectId: project.id,
         fallbackUserId: user.id,
         body: `Revision request received (${created.id.slice(0, 8)}).`,
       });
-      await logAudit(tx, { projectId: project.id, actorId: user.id, type: "state_changed", payload: { previousStatus: project.status, nextStatus: PROJECT_STATUS_REVISIONS_IN_PROGRESS } });
+      if (shouldTransitionToRevisions) {
+        await logAudit(tx, { projectId: project.id, actorId: user.id, type: "state_changed", payload: { previousStatus: project.status, nextStatus: PROJECT_STATUS_REVISIONS_IN_PROGRESS } });
+      }
       return { revisionRequest: created, project: updatedProject };
     });
 
