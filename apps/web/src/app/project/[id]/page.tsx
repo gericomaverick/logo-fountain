@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ProjectTimeline } from "@/app/project-timeline";
 import { HeaderNav } from "@/components/header-nav";
 import { ProjectStatusBadge } from "@/components/project-status-badge";
+import { buildActivityGroups, getMissionControlPrimaryCta, getPendingFeedbackCountForLatestConcept } from "@/lib/project-hub";
 
 type EntitlementUsage = {
   limit: number;
@@ -25,6 +26,7 @@ type Snapshot = {
     revisions?: EntitlementUsage;
   };
   concepts: Array<{ id: string; number: number; status: string; notes: string | null; imageUrl: string | null }>;
+  revisionRequests?: Array<{ id: string; status: string; concept?: { id: string } | null }>;
   latestBrief?: { version: number; createdAt: string; answers: { brandName: string; industry: string; description: string; styleNotes: string } } | null;
   messages?: Array<{ id: string; kind?: string; body: string; createdAt: string }>;
   hasNewMessages?: boolean;
@@ -37,12 +39,6 @@ type Snapshot = {
 type SessionPayload = {
   authenticated: boolean;
   isAdmin?: boolean;
-};
-
-type ActivityItem = {
-  id: string;
-  label: string;
-  at: string;
 };
 
 function readError(payload: { error?: { message?: string; details?: { nextStep?: string } } | string } | null, fallback: string): string {
@@ -75,14 +71,6 @@ function resolveUsage(usage: EntitlementUsage | undefined) {
   const ratio = limit > 0 ? Math.min((used / limit) * 100, 100) : 0;
 
   return { limit, used, remaining, ratio };
-}
-
-function nextActionForStatus(projectId: string, status: string) {
-  if (status === "AWAITING_BRIEF") return { label: "Submit project brief", href: `/project/${projectId}/brief` };
-  if (status === "CONCEPTS_READY") return { label: "Review latest concepts", href: `/project/${projectId}/concepts` };
-  if (status === "FINAL_FILES_READY") return { label: "Download final files", href: `#final-files` };
-  if (status === "ON_HOLD") return { label: "Check project messages", href: `/project/${projectId}/messages` };
-  return { label: "Open project messages", href: `/project/${projectId}/messages` };
 }
 
 function EntitlementProgress({
@@ -124,48 +112,42 @@ function AreaCard({ title, href, hasNew, subtitle }: { title: string; href: stri
   );
 }
 
-function ActivityPanel({ projectId, snapshot }: { projectId: string; snapshot: Snapshot | null }) {
-  const nextAction = nextActionForStatus(projectId, snapshot?.status ?? "");
-
-  const activity = useMemo<ActivityItem[]>(() => {
-    if (!snapshot) return [];
-
-    const systemMessages = (snapshot.messages ?? [])
-      .filter((message) => message.kind === "system")
-      .slice(-4)
-      .reverse()
-      .map((message) => ({ id: message.id, label: message.body, at: message.createdAt }));
-
-    const statusLine = {
-      id: "status",
-      label: `Status is now ${snapshot.status.replaceAll("_", " ").toLowerCase()}.`,
-      at: snapshot.updatedAt ?? snapshot.createdAt ?? new Date().toISOString(),
-    };
-
-    return [statusLine, ...systemMessages].slice(0, 5);
-  }, [snapshot]);
+function ActivityPanel({ projectId, snapshot, pendingFeedbackCount }: { projectId: string; snapshot: Snapshot | null; pendingFeedbackCount: number }) {
+  const nextAction = getMissionControlPrimaryCta(projectId, snapshot?.status ?? "", { pendingFeedbackCount });
+  const groups = useMemo(() => buildActivityGroups(snapshot, 6), [snapshot]);
 
   return (
     <section className="mt-8 rounded-2xl border border-neutral-200 bg-white p-5">
-      <h2 className="text-lg font-semibold text-neutral-900">Activity + next action</h2>
-      <p className="mt-1 text-sm text-neutral-600">Mission control for this project: what happened recently, and what to do now.</p>
-
-      <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
-        <p className="text-xs uppercase tracking-wide text-neutral-500">Next action</p>
-        <Link href={nextAction.href} className="mt-2 inline-flex rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-semibold text-neutral-900">Mission control</h2>
+          <p className="mt-1 text-sm text-neutral-600">Recent milestones, latest system updates, and the next best action.</p>
+        </div>
+        <Link href={nextAction.href} className="inline-flex rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white">
           {nextAction.label}
         </Link>
       </div>
 
-      <ul className="mt-4 space-y-3">
-        {activity.map((item) => (
-          <li key={item.id} className="rounded-lg border border-neutral-200 p-3 text-sm">
-            <p className="text-neutral-900">{item.label}</p>
-            <p className="mt-1 text-xs text-neutral-500">{formatDateTime(item.at)}</p>
-          </li>
+      <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+        Pending feedback on latest concept: <span className="font-semibold">{pendingFeedbackCount}</span>
+      </div>
+
+      <div className="mt-5 space-y-4">
+        {groups.map((group) => (
+          <div key={group.dayLabel}>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">{group.dayLabel}</p>
+            <ul className="space-y-2">
+              {group.items.map((item) => (
+                <li key={item.id} className="rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-sm">
+                  <p className="text-neutral-900">{item.label}</p>
+                  <p className="mt-1 text-xs text-neutral-500">{formatDateTime(item.at)}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
         ))}
-        {activity.length === 0 ? <li className="text-sm text-neutral-600">No activity yet.</li> : null}
-      </ul>
+        {groups.length === 0 ? <p className="text-sm text-neutral-600">No activity yet.</p> : null}
+      </div>
     </section>
   );
 }
@@ -237,18 +219,39 @@ export default function ProjectPage() {
     () => resolveUsage(snapshot?.entitlementUsage?.revisions),
     [snapshot?.entitlementUsage?.revisions],
   );
+  const latestConcept = snapshot?.concepts?.[0] ?? null;
+  const pendingFeedbackCount = useMemo(
+    () => getPendingFeedbackCountForLatestConcept(snapshot?.concepts ?? [], snapshot?.revisionRequests ?? []),
+    [snapshot?.concepts, snapshot?.revisionRequests],
+  );
 
   return (
     <>
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
         <section className="rounded-2xl border border-neutral-200 bg-gradient-to-b from-white to-neutral-50 p-6 shadow-sm">
-          <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
             <div>
               <ProjectStatusBadge status={snapshot?.status ?? "UNKNOWN"} />
               <h1 className="mt-3 text-2xl font-semibold text-neutral-900">Project overview</h1>
               <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
               <p className="text-sm text-neutral-600">Package: {snapshot?.packageCode ?? "—"}</p>
+            </div>
+
+            <div className="rounded-xl border border-neutral-200 bg-white p-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs uppercase tracking-wide text-neutral-500">Latest concept</p>
+                <Link className="text-xs font-medium text-neutral-700 underline" href={`/project/${projectId}/concepts`}>View all</Link>
+              </div>
+              {latestConcept?.imageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={latestConcept.imageUrl} alt={`Latest concept #${latestConcept.number}`} className="mt-2 h-36 w-full rounded-lg border border-neutral-200 object-cover" />
+              ) : (
+                <div className="mt-2 flex h-36 items-center justify-center rounded-lg border border-dashed border-neutral-300 text-xs text-neutral-500">
+                  No concept preview yet
+                </div>
+              )}
+              <p className="mt-2 text-xs text-neutral-600">Pending feedback: <span className="font-semibold text-neutral-900">{pendingFeedbackCount}</span></p>
             </div>
           </div>
 
@@ -282,24 +285,9 @@ export default function ProjectPage() {
         {loading ? <p className="mt-4 text-sm text-neutral-600">Loading…</p> : null}
         {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
 
-        <ActivityPanel projectId={projectId} snapshot={snapshot} />
+        <ActivityPanel projectId={projectId} snapshot={snapshot} pendingFeedbackCount={pendingFeedbackCount} />
 
         {snapshot?.timeline ? <ProjectTimeline timeline={snapshot.timeline} primaryCta={snapshot.primaryCta} /> : null}
-
-        <section className="mt-8 rounded border border-neutral-200 p-4">
-          <h2 className="text-lg font-medium">Latest concepts</h2>
-          <ul className="mt-3 space-y-3">
-            {(snapshot?.concepts ?? []).slice(0, 3).map((concept) => (
-              <li key={concept.id} className="rounded border border-neutral-200 p-3 text-sm">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="font-medium">Concept #{concept.number}</p>
-                  <Link className="underline" href={`/project/${projectId}/concept/${concept.id}`}>View concept</Link>
-                </div>
-              </li>
-            ))}
-            {(snapshot?.concepts?.length ?? 0) === 0 ? <li className="text-sm text-neutral-600">No concepts published yet.</li> : null}
-          </ul>
-        </section>
 
         {snapshot?.status === "FINAL_FILES_READY" && snapshot?.finalZip.url ? (
           <section id="final-files" className="mt-10 rounded border border-neutral-200 p-4">

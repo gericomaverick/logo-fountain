@@ -17,6 +17,13 @@ type BriefAnswers = {
   styleNotes: string;
 };
 
+type ParsedBrief = {
+  id: string;
+  version: number;
+  createdAt: string;
+  answers: BriefAnswers;
+};
+
 function parseBriefAnswers(value: unknown): BriefAnswers | null {
   if (typeof value !== "object" || value === null) return null;
   const raw = value as Record<string, unknown>;
@@ -66,8 +73,8 @@ export default async function ProjectBriefPage({ params }: ProjectBriefPageProps
       status: true,
       briefs: {
         orderBy: { version: "desc" },
-        take: 1,
-        select: { version: true, answers: true, createdAt: true },
+        take: 8,
+        select: { id: true, version: true, answers: true, createdAt: true },
       },
     },
   });
@@ -84,15 +91,18 @@ export default async function ProjectBriefPage({ params }: ProjectBriefPageProps
     );
   }
 
-  const latestBriefRecord = project.briefs[0] ?? null;
-  const parsedAnswers = parseBriefAnswers(latestBriefRecord?.answers);
-  const latestBrief = latestBriefRecord && parsedAnswers
-    ? {
-        version: latestBriefRecord.version,
-        createdAt: latestBriefRecord.createdAt.toISOString(),
+  const briefVersions: ParsedBrief[] = project.briefs
+    .map((record) => {
+      const parsedAnswers = parseBriefAnswers(record.answers);
+      if (!parsedAnswers) return null;
+      return {
+        id: record.id,
+        version: record.version,
+        createdAt: record.createdAt.toISOString(),
         answers: parsedAnswers,
-      }
-    : null;
+      };
+    })
+    .filter((brief): brief is ParsedBrief => Boolean(brief));
 
   return (
     <>
@@ -102,13 +112,13 @@ export default async function ProjectBriefPage({ params }: ProjectBriefPageProps
           <div>
             <h1 className="text-2xl font-semibold">Project brief</h1>
             <p className="mt-2 text-sm text-neutral-600">
-              Review your latest brief, and edit/resubmit when details change.
+              Review your brief history and resubmit updates when priorities shift.
             </p>
             <p className="mt-1 text-xs text-neutral-500">Current status: {project.status}</p>
           </div>
         </div>
 
-        <BriefForm projectId={project.id} latestBrief={latestBrief} />
+        <BriefForm projectId={project.id} briefVersions={briefVersions} />
       </main>
     </>
   );
