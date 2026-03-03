@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-type ConceptAssetItem = { path: string; version: number; createdAt: string; url: string };
+type ConceptAssetItem = { path: string; version: number; createdAt: string; url: string; notes: string | null };
 
 import { HeaderNav } from "@/components/header-nav";
 import { PageShell } from "@/components/page-shell";
@@ -55,7 +55,7 @@ export default function ConceptDetailPage() {
   const [designerReply, setDesignerReply] = useState("");
   const [comments, setComments] = useState<ConceptComment[]>([]);
   const [assets, setAssets] = useState<ConceptAssetItem[]>([]);
-  const [selectedAssetUrl, setSelectedAssetUrl] = useState<string | null>(null);
+  const [selectedAssetPath, setSelectedAssetPath] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
@@ -189,12 +189,18 @@ export default function ConceptDetailPage() {
   const isAdminView = fromAdmin || session.isAdmin;
   const backHref = fromAdmin ? `/admin/projects/${projectId}` : `/project/${projectId}`;
 
-  const latestAssetUrl = assets[0]?.url ?? concept?.imageUrl ?? null;
+  const selectedAsset = useMemo(() => {
+    if (selectedAssetPath) return assets.find((asset) => asset.path === selectedAssetPath) ?? null;
+    return assets[0] ?? null;
+  }, [assets, selectedAssetPath]);
+
+  const selectedAssetUrl = selectedAsset?.url ?? concept?.imageUrl ?? null;
 
   useEffect(() => {
-    if (!latestAssetUrl) return;
-    setSelectedAssetUrl((prev) => prev ?? latestAssetUrl);
-  }, [latestAssetUrl]);
+    if (selectedAssetPath) return;
+    if (!assets[0]?.path) return;
+    setSelectedAssetPath(assets[0].path);
+  }, [assets, selectedAssetPath]);
 
   return (
     <PageShell>
@@ -220,6 +226,12 @@ export default function ConceptDetailPage() {
           <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
             <p className="text-sm font-medium">Concept #{concept.number} · v{concept.revisionVersion}</p>
             {concept.notes ? <p className="mt-1 whitespace-pre-wrap text-sm text-neutral-700">{concept.notes}</p> : null}
+            {selectedAsset?.notes ? (
+              <div className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2">
+                <p className="text-xs font-semibold text-neutral-700">Revision note (v{selectedAsset.version})</p>
+                <p className="mt-1 whitespace-pre-wrap text-sm text-neutral-800">{selectedAsset.notes}</p>
+              </div>
+            ) : null}
             {selectedAssetUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img className="mt-3 w-full rounded border border-neutral-200" src={selectedAssetUrl} alt={`Concept ${concept.number}`} />
@@ -233,8 +245,8 @@ export default function ConceptDetailPage() {
                     <button
                       key={asset.path}
                       type="button"
-                      className={`overflow-hidden rounded border ${selectedAssetUrl === asset.url ? "border-neutral-900" : "border-neutral-200"}`}
-                      onClick={() => setSelectedAssetUrl(asset.url)}
+                      className={`overflow-hidden rounded border ${selectedAssetPath === asset.path ? "border-neutral-900" : "border-neutral-200"}`}
+                      onClick={() => setSelectedAssetPath(asset.path)}
                       aria-label={`View v${asset.version}`}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -256,7 +268,7 @@ export default function ConceptDetailPage() {
               </div>
             ) : null}
 
-            {snapshot?.status === "CONCEPTS_READY" && concept.status === "published" ? (
+            {!isAdminView && snapshot?.status === "CONCEPTS_READY" && concept.status === "published" ? (
               <button className="mt-3 rounded border border-neutral-300 px-3 py-1 text-sm" disabled={busy} onClick={() => void approveConcept()}>
                 Approve concept
               </button>

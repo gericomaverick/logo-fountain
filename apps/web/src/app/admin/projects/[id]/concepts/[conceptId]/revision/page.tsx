@@ -63,7 +63,7 @@ export default function AdminConceptRevisionUploadPage() {
   return (
     <>
       <HeaderNav />
-      <main className="mx-auto w-full max-w-[860px] px-6 py-8 md:px-10">
+      <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
         <div className="mb-4 flex items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold">Upload concept revision</h1>
@@ -85,8 +85,8 @@ export default function AdminConceptRevisionUploadPage() {
             <label className="block text-sm font-medium">Revision asset file</label>
             <input className="mt-1 block" type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
 
-            <label className="mt-4 block text-sm font-medium">Description / explainer (optional)</label>
-            <p className="mt-1 text-xs text-neutral-600">If provided, this will update the concept description shown to the client.</p>
+            <label className="mt-4 block text-sm font-medium">Revision note (optional)</label>
+            <p className="mt-1 text-xs text-neutral-600">Shown on the concept page when the client selects this revision version.</p>
             <textarea
               className="mt-2 w-full rounded border border-neutral-300 px-2 py-1"
               rows={4}

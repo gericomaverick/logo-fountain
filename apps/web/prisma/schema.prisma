@@ -160,6 +160,7 @@ model FileAsset {
   path       String
   mime       String
   size       Int
+  notes      String?
   uploadedBy String   @db.Uuid
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt

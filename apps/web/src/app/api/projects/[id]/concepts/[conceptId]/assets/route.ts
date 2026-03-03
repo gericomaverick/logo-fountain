@@ -22,6 +22,7 @@ type ConceptAssetItem = {
   version: number;
   createdAt: string;
   url: string;
+  notes: string | null;
 };
 
 function parseAssetVersion(path: string): number {
@@ -55,7 +56,7 @@ export async function GET(
         ],
       },
       orderBy: [{ createdAt: "desc" }],
-      select: { path: true, createdAt: true },
+      select: { path: true, createdAt: true, notes: true },
     });
 
     const assets: ConceptAssetItem[] = [];
@@ -65,6 +66,7 @@ export async function GET(
         version: parseAssetVersion(file.path),
         createdAt: file.createdAt.toISOString(),
         url: await createSignedConceptAssetUrl(file.path),
+        notes: file.notes ?? null,
       });
     }
 

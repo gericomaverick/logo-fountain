@@ -175,7 +175,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
       concept = await prisma.concept.update({
         where: { id: existingConcept.id },
-        data: { status: CONCEPT_STATUS_PUBLISHED, notes: notes ?? existingConcept.notes },
+        data: { status: CONCEPT_STATUS_PUBLISHED },
         select: { id: true, number: true, status: true, notes: true },
       });
     } else {
@@ -290,7 +290,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       }
 
       await tx.fileAsset.create({
-        data: { projectId, kind: "concept", bucket: upload.bucket, path: upload.path, mime: upload.mime, size: upload.size, uploadedBy: user.id },
+        data: {
+          projectId,
+          kind: "concept",
+          bucket: upload.bucket,
+          path: upload.path,
+          mime: upload.mime,
+          size: upload.size,
+          notes: uploadMode === "revision" ? notes : null,
+          uploadedBy: user.id,
+        },
       });
 
       let deliveredCount = 0;
