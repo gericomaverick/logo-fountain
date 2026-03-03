@@ -60,6 +60,7 @@ function AdminSection({
     updatedAt: Date;
     client: { name: string };
     orders: Array<{ status: string; stripeCheckoutSessionId: string | null }>;
+    revisionRequests: Array<{ id: string }>;
   }>;
 }) {
   return (
@@ -124,6 +125,11 @@ export default async function AdminHomePage() {
         take: 1,
         select: { status: true, stripeCheckoutSessionId: true },
       },
+      revisionRequests: {
+        where: { status: "requested" },
+        take: 1,
+        select: { id: true },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -135,6 +141,12 @@ export default async function AdminHomePage() {
   };
 
   for (const project of projects) {
+    // If there is a pending revision request, treat as needs-action regardless of status.
+    if (project.revisionRequests.length > 0) {
+      sectioned["needs-action"].push(project);
+      continue;
+    }
+
     sectioned[getSectionKey(project.status)].push(project);
   }
 
