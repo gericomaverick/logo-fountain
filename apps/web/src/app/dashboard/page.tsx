@@ -135,7 +135,7 @@ function DashboardSection({ section, projects }: { section: DashboardSectionKey;
       </div>
 
       {projects.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-4 text-sm text-neutral-600">No projects in this section.</p>
+        <p className="rounded-xl border border-neutral-200 bg-white p-4 text-sm text-neutral-600">No projects in this section.</p>
       ) : (
         <div className="space-y-4">
           {projects.map((project) => (
@@ -155,7 +155,7 @@ export default async function DashboardPage() {
 
   if (!user) {
     return (
-      <>
+      <div className="min-h-screen bg-[#faf9f5]">
         <HeaderNav />
         <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
           <h1 className="text-2xl font-semibold">Dashboard</h1>
@@ -163,7 +163,7 @@ export default async function DashboardPage() {
             You need to <Link className="underline" href="/login">sign in</Link> to view your projects.
           </p>
         </main>
-      </>
+      </div>
     );
   }
 
@@ -254,14 +254,14 @@ export default async function DashboardPage() {
   }
 
   return (
-    <>
+    <div className="min-h-screen bg-[#faf9f5]">
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
         <h1 className="text-3xl font-semibold text-neutral-900">Dashboard</h1>
         {profile?.firstName ? <p className="mt-2 text-sm text-neutral-700">Welcome back, {profile.firstName}</p> : null}
 
         {projects.length === 0 ? (
-          <p className="mt-6 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-4 text-sm text-neutral-600">No projects yet.</p>
+          <p className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 text-sm text-neutral-600">No projects yet.</p>
         ) : (
           <>
             <DashboardSection section="needs-action" projects={sectioned["needs-action"]} />
@@ -270,6 +270,6 @@ export default async function DashboardPage() {
           </>
         )}
       </main>
-    </>
+    </div>
   );
 }

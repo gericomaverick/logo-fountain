@@ -14,5 +14,5 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     redirect(`/login?next=${encodeURIComponent("/admin")}`);
   }
 
-  return children;
+  return <div className="min-h-screen bg-[#faf9f5]">{children}</div>;
 }

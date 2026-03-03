@@ -95,7 +95,7 @@ function EntitlementProgress({
   }, [stats.ratio]);
 
   return (
-    <article className="rounded-xl border border-neutral-200 bg-white p-4">
+    <article className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-sm font-semibold text-neutral-900">{label}</h3>
         <p className="text-xs text-neutral-500">{stats.remaining} left</p>
@@ -117,7 +117,7 @@ function EntitlementProgress({
 
 function AreaCard({ title, href, hasNew, subtitle }: { title: string; href: string; hasNew?: boolean; subtitle?: string }) {
   return (
-    <Link href={href} className="rounded-xl border border-neutral-200 bg-white p-4 transition hover:border-neutral-300">
+    <Link href={href} className="rounded-xl border border-neutral-200 bg-neutral-50 p-4 transition hover:border-neutral-300 hover:bg-white">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-sm font-semibold text-neutral-900">{title}</h3>
         {hasNew ? <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">New</span> : null}
@@ -241,10 +241,10 @@ export default function ProjectPage() {
   );
 
   return (
-    <>
+    <div className="min-h-screen bg-[#faf9f5]">
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
-        <section className="rounded-2xl border border-neutral-200 bg-gradient-to-b from-white to-neutral-50 p-6 shadow-sm">
+        <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
           <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
             <div>
               <ProjectStatusBadge status={snapshot?.status ?? "UNKNOWN"} />
@@ -253,7 +253,7 @@ export default function ProjectPage() {
               <p className="text-sm text-neutral-600">Package: {snapshot?.packageCode ?? "—"}</p>
             </div>
 
-            <div className="rounded-xl border border-neutral-200 bg-white p-3">
+            <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
               <div className="flex items-center justify-between">
                 <p className="text-xs uppercase tracking-wide text-neutral-500">Latest concept</p>
                 <Link className="text-xs font-medium text-neutral-700 underline" href={`/project/${projectId}/concepts`}>View all</Link>
@@ -271,11 +271,11 @@ export default function ProjectPage() {
           </div>
 
           <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-            <div className="rounded-xl border border-neutral-200 bg-white px-4 py-3">
+            <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3">
               <p className="text-xs uppercase tracking-wide text-neutral-500">Created</p>
               <p className="mt-1 font-medium text-neutral-900">{formatDateTime(snapshot?.createdAt)}</p>
             </div>
-            <div className="rounded-xl border border-neutral-200 bg-white px-4 py-3">
+            <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3">
               <p className="text-xs uppercase tracking-wide text-neutral-500">Last updated</p>
               <p className="mt-1 font-medium text-neutral-900">{formatDateTime(snapshot?.updatedAt)}</p>
             </div>
@@ -315,6 +315,6 @@ export default function ProjectPage() {
           </section>
         ) : null}
       </main>
-    </>
+    </div>
   );
 }
