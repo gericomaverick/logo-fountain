@@ -20,6 +20,17 @@ const reckless = localFont({
   ],
 });
 
+const sfizia = localFont({
+  variable: "--font-sfizia",
+  src: [
+    {
+      path: "../fonts/atipo-sfizia-regular.ttf",
+      weight: "400",
+      style: "normal",
+    },
+  ],
+});
+
 export const metadata: Metadata = {
   title: "Logo Fountain",
   description: "Premium direct-response logo design for growth-focused brands.",
@@ -32,7 +43,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${reckless.variable} lf-theme antialiased`}>{children}</body>
+      <body className={`${inter.variable} ${reckless.variable} ${sfizia.variable} lf-theme antialiased`}>{children}</body>
     </html>
   );
 }
