@@ -44,7 +44,6 @@ export async function POST(req: Request) {
       mode: "payment",
       customer_creation: "always",
       billing_address_collection: "auto",
-      customer_update: { name: "auto" },
       phone_number_collection: { enabled: false },
       success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/pricing`,
