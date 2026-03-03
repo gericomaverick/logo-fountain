@@ -73,7 +73,7 @@ describe("/api/admin/projects/[id]/concepts", () => {
     mocks.createProjectSystemMessage.mockResolvedValue(undefined);
   });
 
-  it("GET attributes conceptless pending revisions to latest concept and preserves per-concept comments", async () => {
+  it("GET keeps concept-specific pending counts intact and reports unassigned pending revisions separately", async () => {
     mocks.prisma.project.findUnique.mockResolvedValue({ status: "CONCEPTS_READY" });
     mocks.prisma.concept.findMany.mockResolvedValue([
       { id: "c1", number: 1, status: "published", notes: null, createdAt: new Date("2026-03-01T10:00:00Z") },
@@ -96,9 +96,10 @@ describe("/api/admin/projects/[id]/concepts", () => {
     expect(payload.concepts).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ id: "c1", pendingRevisionCount: 1, commentCount: 0 }),
-        expect.objectContaining({ id: "c2", pendingRevisionCount: 1, commentCount: 1 }),
+        expect.objectContaining({ id: "c2", pendingRevisionCount: 0, commentCount: 1 }),
       ]),
     );
+    expect(payload.conceptlessPendingRevisionCount).toBe(1);
   });
 
   it("POST accepts first concept upload from BRIEF_SUBMITTED and transitions to CONCEPTS_READY", async () => {

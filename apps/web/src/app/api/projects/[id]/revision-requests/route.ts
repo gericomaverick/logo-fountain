@@ -9,16 +9,17 @@ export const runtime = "nodejs";
 
 const MAX_BODY_LENGTH = 5000;
 const REVISION_STATUS_REQUESTED = "requested";
-const CONCEPT_STATUS_PUBLISHED = "published";
 const PROJECT_STATUS_REVISIONS_IN_PROGRESS = "REVISIONS_IN_PROGRESS";
 
-type RevisionBody = { body: string; conceptId?: string | null };
+type RevisionBody = { body: string; conceptId: string };
 function parseBody(raw: unknown): RevisionBody | null {
   if (typeof raw !== "object" || raw === null) return null;
   const body = typeof (raw as { body?: unknown }).body === "string" ? (raw as { body: string }).body.trim() : "";
-  const rawConceptId = typeof (raw as { conceptId?: unknown }).conceptId === "string" ? (raw as { conceptId: string }).conceptId.trim() : "";
-  const conceptId = rawConceptId.length > 0 ? rawConceptId : null;
-  return body && body.length <= MAX_BODY_LENGTH ? { body, conceptId } : null;
+  const conceptId = typeof (raw as { conceptId?: unknown }).conceptId === "string"
+    ? (raw as { conceptId: string }).conceptId.trim()
+    : "";
+  if (!body || body.length > MAX_BODY_LENGTH || !conceptId) return null;
+  return { body, conceptId };
 }
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -26,7 +27,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const user = await requireUser();
     const payload = await req.json().catch(() => null);
     const parsed = parseBody(payload);
-    if (!parsed) return jsonError("Body is required (1-5000 chars)", 400, { nextStep: "Provide a revision body up to 5000 chars." }, "INVALID_BODY");
+    if (!parsed) {
+      return jsonError(
+        "Body (1-5000 chars) and conceptId are required",
+        400,
+        { nextStep: "Submit feedback from a specific concept, including conceptId." },
+        "INVALID_BODY",
+      );
+    }
 
     const { id: projectId } = await params;
     const projectRef = await requireProjectMembership(user.id, projectId);
@@ -36,12 +44,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const transition = applyTransition(project.status, PROJECT_STATUS_REVISIONS_IN_PROGRESS);
     if (!transition.ok) return jsonError(`Invalid transition from ${project.status} to ${PROJECT_STATUS_REVISIONS_IN_PROGRESS}`, 400, { allowed: transition.allowed, nextStep: "Request revision when project is eligible." }, "INVALID_PROJECT_STATUS_TRANSITION");
 
-    const latestPublishedConcept = await prisma.concept.findFirst({ where: { projectId: project.id, status: CONCEPT_STATUS_PUBLISHED }, orderBy: [{ number: "desc" }, { createdAt: "desc" }], select: { id: true } });
-    const conceptId = parsed.conceptId ?? latestPublishedConcept?.id ?? null;
-    if (conceptId) {
-      const concept = await prisma.concept.findFirst({ where: { id: conceptId, projectId: project.id }, select: { id: true } });
-      if (!concept) return jsonError("Concept not found for project", 400, { nextStep: "Choose a concept from this project." }, "CONCEPT_NOT_FOUND");
-    }
+    const concept = await prisma.concept.findFirst({ where: { id: parsed.conceptId, projectId: project.id }, select: { id: true } });
+    if (!concept) return jsonError("Concept not found for project", 400, { nextStep: "Choose a concept from this project." }, "CONCEPT_NOT_FOUND");
+
+    const conceptId = concept.id;
 
     const revisionRequest = await prisma.$transaction(async (tx) => {
       const updated = await tx.$queryRaw<Array<{ id: string }>>`

@@ -103,17 +103,6 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       .filter((entry) => !entry.conceptId)
       .reduce((sum, entry) => sum + entry._count._all, 0);
 
-    if (conceptlessPendingCount > 0 && concepts.length > 0) {
-      const fallbackConcept = concepts
-        .slice()
-        .sort((a, b) => (b.number - a.number) || b.createdAt.getTime() - a.createdAt.getTime())[0];
-
-      if (fallbackConcept) {
-        const previousCount = pendingByConceptId.get(fallbackConcept.id) ?? 0;
-        pendingByConceptId.set(fallbackConcept.id, previousCount + conceptlessPendingCount);
-      }
-    }
-
     const commentsByConceptId = new Map(
       commentsCounts
         .filter((entry) => Boolean(entry.conceptId))
@@ -135,7 +124,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       }),
     );
 
-    return Response.json({ concepts: conceptsWithMeta, projectStatus: project?.status ?? null });
+    return Response.json({
+      concepts: conceptsWithMeta,
+      projectStatus: project?.status ?? null,
+      conceptlessPendingRevisionCount: conceptlessPendingCount,
+    });
   } catch (error) {
     return toRouteErrorResponse(error);
   }

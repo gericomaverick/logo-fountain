@@ -33,6 +33,7 @@ export default function AdminProjectConceptsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [unassignedPendingRevisionCount, setUnassignedPendingRevisionCount] = useState(0);
 
   const [conceptNumber, setConceptNumber] = useState(1);
   const [notes, setNotes] = useState("");
@@ -46,6 +47,7 @@ export default function AdminProjectConceptsPage() {
     if (!conceptsResponse.ok) throw new Error(readError(conceptsPayload, "Failed to load concepts"));
 
     setConcepts((conceptsPayload?.concepts ?? []) as Concept[]);
+    setUnassignedPendingRevisionCount(Number(conceptsPayload?.conceptlessPendingRevisionCount ?? 0));
   }
 
   useEffect(() => {
@@ -103,8 +105,8 @@ export default function AdminProjectConceptsPage() {
   }
 
   const totalPending = useMemo(
-    () => concepts.reduce((acc, concept) => acc + concept.pendingRevisionCount + concept.commentCount, 0),
-    [concepts],
+    () => concepts.reduce((acc, concept) => acc + concept.pendingRevisionCount + concept.commentCount, 0) + unassignedPendingRevisionCount,
+    [concepts, unassignedPendingRevisionCount],
   );
 
   return (
@@ -116,6 +118,11 @@ export default function AdminProjectConceptsPage() {
             <h1 className="text-2xl font-semibold">Concepts manager</h1>
             <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
             <p className="mt-1 text-sm text-neutral-600">Pending feedback items: {totalPending}</p>
+            {unassignedPendingRevisionCount > 0 ? (
+              <p className="mt-1 text-xs text-amber-700">
+                {unassignedPendingRevisionCount} pending revision request{unassignedPendingRevisionCount === 1 ? "" : "s"} not linked to a concept.
+              </p>
+            ) : null}
           </div>
           <div className="flex gap-4 text-sm">
             <Link className="underline" href={`/admin/projects/${projectId}`}>Overview</Link>
