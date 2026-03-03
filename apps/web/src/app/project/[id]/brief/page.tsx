@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { HeaderNav } from "@/components/header-nav";
+import { PageShell } from "@/components/page-shell";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -81,13 +82,13 @@ export default async function ProjectBriefPage({ params }: ProjectBriefPageProps
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-[#faf9f5]">
+      <PageShell>
         <HeaderNav />
         <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
           <h1 className="text-2xl font-semibold">Project brief</h1>
           <p className="mt-2 text-sm text-neutral-600">Project not found.</p>
         </main>
-      </div>
+      </PageShell>
     );
   }
 
@@ -105,7 +106,7 @@ export default async function ProjectBriefPage({ params }: ProjectBriefPageProps
     .filter((brief): brief is ParsedBrief => Boolean(brief));
 
   return (
-    <div className="min-h-screen bg-[#faf9f5]">
+    <PageShell>
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -120,6 +121,6 @@ export default async function ProjectBriefPage({ params }: ProjectBriefPageProps
 
         <BriefForm projectId={project.id} briefVersions={briefVersions} />
       </main>
-    </div>
+    </PageShell>
   );
 }

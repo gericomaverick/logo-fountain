@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { HeaderNav } from "@/components/header-nav";
+import { PageShell } from "@/components/page-shell";
 
 type ProfilePayload = {
   profile: {
@@ -79,7 +80,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#faf9f5]">
+    <PageShell>
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
         <header className="mb-6">
@@ -138,6 +139,6 @@ export default function SettingsPage() {
           </section>
         ) : null}
       </main>
-    </div>
+    </PageShell>
   );
 }

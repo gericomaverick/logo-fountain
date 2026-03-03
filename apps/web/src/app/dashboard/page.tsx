@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { HeaderNav } from "@/components/header-nav";
+import { PageShell } from "@/components/page-shell";
 import { isAdminUser } from "@/lib/auth/admin";
 import { ProjectStatusBadge } from "@/components/project-status-badge";
 import { type ProjectState } from "@/lib/project-state-machine";
@@ -155,7 +156,7 @@ export default async function DashboardPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#faf9f5]">
+      <PageShell>
         <HeaderNav />
         <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
           <h1 className="text-2xl font-semibold">Dashboard</h1>
@@ -163,7 +164,7 @@ export default async function DashboardPage() {
             You need to <Link className="underline" href="/login">sign in</Link> to view your projects.
           </p>
         </main>
-      </div>
+      </PageShell>
     );
   }
 
@@ -254,7 +255,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#faf9f5]">
+    <PageShell>
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
         <h1 className="text-3xl font-semibold text-neutral-900">Dashboard</h1>
@@ -270,6 +271,6 @@ export default async function DashboardPage() {
           </>
         )}
       </main>
-    </div>
+    </PageShell>
   );
 }

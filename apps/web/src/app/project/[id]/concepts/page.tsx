@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { HeaderNav } from "@/components/header-nav";
+import { PageShell } from "@/components/page-shell";
 
 type Concept = {
   id: string;
@@ -64,7 +65,7 @@ export default function ProjectConceptsPage() {
   }, [projectId]);
 
   return (
-    <div className="min-h-screen bg-[#faf9f5]">
+    <PageShell>
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
         <div className="mb-4 flex items-center justify-between gap-4">
@@ -100,6 +101,6 @@ export default function ProjectConceptsPage() {
 
         {!loading && concepts.length === 0 ? <p className="mt-4 text-sm text-neutral-600">No concepts published yet.</p> : null}
       </main>
-    </div>
+    </PageShell>
   );
 }

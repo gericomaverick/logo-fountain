@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { ProjectTimeline } from "@/app/project-timeline";
 import { HeaderNav } from "@/components/header-nav";
+import { PageShell } from "@/components/page-shell";
 import { ProjectStatusBadge } from "@/components/project-status-badge";
 import { buildActivityGroups, getMissionControlPrimaryCta, getPendingFeedbackCountForLatestConcept } from "@/lib/project-hub";
 
@@ -241,7 +242,7 @@ export default function ProjectPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#faf9f5]">
+    <PageShell>
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
         <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
@@ -315,6 +316,6 @@ export default function ProjectPage() {
           </section>
         ) : null}
       </main>
-    </div>
+    </PageShell>
   );
 }

@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { redirect } from "next/navigation";
 
+import { PageShell } from "@/components/page-shell";
 import { isAdminUser } from "@/lib/auth/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -14,5 +15,5 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     redirect(`/login?next=${encodeURIComponent("/admin")}`);
   }
 
-  return <div className="min-h-screen bg-[#faf9f5]">{children}</div>;
+  return <PageShell>{children}</PageShell>;
 }
