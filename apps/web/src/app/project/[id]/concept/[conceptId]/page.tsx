@@ -10,6 +10,7 @@ type Snapshot = {
   status: string;
   entitlements: { revisions: number };
   concepts: Array<{ id: string; number: number; status: string; notes: string | null; imageUrl: string | null }>;
+  revisionRequests?: Array<{ id: string; status: string; body: string; createdAt: string; concept?: { id: string; number: number } | null }>;
 };
 
 function readError(payload: { error?: { message?: string; details?: { nextStep?: string } } | string } | null, fallback: string): string {
@@ -17,6 +18,21 @@ function readError(payload: { error?: { message?: string; details?: { nextStep?:
   const message = typeof err === "string" ? err : err?.message ?? fallback;
   const nextStep = typeof err === "string" ? undefined : err?.details?.nextStep;
   return nextStep ? `${message} — ${nextStep}` : message;
+}
+
+const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+function formatDateTime(value?: string): string {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return DATE_TIME_FORMATTER.format(date);
 }
 
 export default function ConceptDetailPage() {
@@ -30,6 +46,7 @@ export default function ConceptDetailPage() {
   const [revisionBody, setRevisionBody] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
   const concept = useMemo(
     () => snapshot?.concepts.find((item) => item.id === conceptId) ?? null,
@@ -77,6 +94,7 @@ export default function ConceptDetailPage() {
 
     setBusy(true);
     setActionError(null);
+    setActionSuccess(null);
 
     const res = await fetch(`/api/projects/${projectId}/revision-requests`, {
       method: "POST",
@@ -85,8 +103,13 @@ export default function ConceptDetailPage() {
     });
 
     const payload = await res.json().catch(() => null);
-    if (!res.ok) setActionError(readError(payload, "Failed to submit revision request"));
-    else setRevisionBody("");
+    if (!res.ok) {
+      setActionError(readError(payload, "Failed to submit revision request"));
+    } else {
+      setRevisionBody("");
+      setActionSuccess("Feedback sent. Your designer will review it and work on the next revision.");
+      await refresh(projectId);
+    }
 
     setBusy(false);
   }
@@ -152,8 +175,31 @@ export default function ConceptDetailPage() {
             <h2 className="text-lg font-medium">Request a revision for this concept</h2>
             <p className="mt-1 text-sm text-neutral-600">Revisions remaining: {snapshot?.entitlements.revisions ?? 0}</p>
             {actionError ? <p className="mt-2 text-sm text-red-600">{actionError}</p> : null}
+            {actionSuccess ? <p className="mt-2 text-sm text-green-700">{actionSuccess}</p> : null}
 
-            <form className="mt-4" onSubmit={submitRevision}>
+            <div className="mt-4">
+              <h3 className="text-sm font-semibold text-neutral-900">Your feedback on this concept</h3>
+              <ul className="mt-2 space-y-2">
+                {(snapshot?.revisionRequests ?? [])
+                  .filter((r) => r.concept?.id === conceptId)
+                  .slice()
+                  .reverse()
+                  .map((r) => (
+                    <li key={r.id} className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="font-medium text-neutral-900">{r.status}</span>
+                        <span className="text-xs text-neutral-500">{formatDateTime(r.createdAt)}</span>
+                      </div>
+                      <p className="mt-1 whitespace-pre-wrap text-neutral-700">{r.body}</p>
+                    </li>
+                  ))}
+                {(snapshot?.revisionRequests ?? []).filter((r) => r.concept?.id === conceptId).length === 0 ? (
+                  <li className="text-sm text-neutral-600">No feedback submitted yet for this concept.</li>
+                ) : null}
+              </ul>
+            </div>
+
+            <form className="mt-6" onSubmit={submitRevision}>
               <textarea
                 className="mt-1 w-full rounded border border-neutral-300 px-2 py-1"
                 rows={4}
