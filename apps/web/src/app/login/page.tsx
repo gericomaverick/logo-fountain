@@ -50,10 +50,13 @@ export default function LoginPage() {
     setIsSubmitting(true);
     setStatus(null);
 
+    const callbackUrl = new URL("/auth/callback", window.location.origin);
+    callbackUrl.searchParams.set("next", nextPath);
+
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}${nextPath}`,
+        emailRedirectTo: callbackUrl.toString(),
       },
     });
 

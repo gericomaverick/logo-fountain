@@ -17,6 +17,15 @@ function buildSetPasswordRedirect(baseUrl: string, projectId?: string | null): s
   return redirect.toString();
 }
 
+function buildAuthCallbackRedirect(baseUrl: string, projectId?: string | null): string {
+  const setPasswordUrl = new URL(buildSetPasswordRedirect(baseUrl, projectId));
+  const next = `${setPasswordUrl.pathname}${setPasswordUrl.search}`;
+
+  const callback = new URL("/auth/callback", baseUrl);
+  callback.searchParams.set("next", next);
+  return callback.toString();
+}
+
 async function generateMagicLink({
   email,
   baseUrl,
@@ -27,7 +36,7 @@ async function generateMagicLink({
   projectId?: string | null;
 }) {
   const supabaseAdmin = createSupabaseAdminClient();
-  const redirectTo = buildSetPasswordRedirect(baseUrl, projectId);
+  const redirectTo = buildAuthCallbackRedirect(baseUrl, projectId);
 
   const result = await supabaseAdmin.auth.admin.generateLink({
     type: "magiclink",
