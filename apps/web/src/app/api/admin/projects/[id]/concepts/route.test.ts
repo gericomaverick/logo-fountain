@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => {
     fileAsset: { create: vi.fn() },
     project: { update: vi.fn() },
     projectEntitlement: { findFirst: vi.fn() },
+    revisionRequest: { updateMany: vi.fn() },
     $executeRaw: vi.fn(),
   };
 
@@ -13,11 +14,15 @@ const mocks = vi.hoisted(() => {
     requireAdmin: vi.fn(),
     toRouteErrorResponse: vi.fn(),
     uploadConceptAsset: vi.fn(),
+    createSignedConceptAssetUrl: vi.fn(),
     logAudit: vi.fn(),
     createProjectSystemMessage: vi.fn(),
     prisma: {
       project: { findUnique: vi.fn() },
-      concept: { findUnique: vi.fn(), upsert: vi.fn(), count: vi.fn() },
+      concept: { findUnique: vi.fn(), findMany: vi.fn(), upsert: vi.fn(), count: vi.fn() },
+      revisionRequest: { groupBy: vi.fn() },
+      conceptComment: { groupBy: vi.fn() },
+      fileAsset: { findMany: vi.fn() },
       $transaction: vi.fn(async (fn: (trx: typeof tx) => Promise<unknown>) => fn(tx)),
     },
     tx,
@@ -33,14 +38,14 @@ vi.mock("@/lib/prisma", () => ({ prisma: mocks.prisma }));
 vi.mock("@/lib/supabase/storage", () => ({
   uploadConceptAsset: mocks.uploadConceptAsset,
   inferExtension: () => "png",
-  createSignedConceptAssetUrl: vi.fn(),
+  createSignedConceptAssetUrl: mocks.createSignedConceptAssetUrl,
 }));
 vi.mock("@/lib/audit", () => ({ logAudit: mocks.logAudit }));
 vi.mock("@/lib/system-messages", () => ({ createProjectSystemMessage: mocks.createProjectSystemMessage }));
 
-import { POST } from "./route";
+import { GET, POST } from "./route";
 
-describe("POST /api/admin/projects/[id]/concepts", () => {
+describe("/api/admin/projects/[id]/concepts", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.requireUser.mockResolvedValue({ id: "admin-1" });
@@ -51,18 +56,52 @@ describe("POST /api/admin/projects/[id]/concepts", () => {
 
     mocks.prisma.project.findUnique.mockResolvedValue({ id: "p1", status: "BRIEF_SUBMITTED" });
     mocks.prisma.concept.findUnique.mockResolvedValue(null);
+    mocks.prisma.concept.findMany.mockResolvedValue([]);
     mocks.prisma.concept.upsert.mockResolvedValue({ id: "c1", number: 1, status: "published", notes: null });
     mocks.prisma.concept.count.mockResolvedValue(0);
+    mocks.prisma.revisionRequest.groupBy.mockResolvedValue([]);
+    mocks.prisma.conceptComment.groupBy.mockResolvedValue([]);
+    mocks.prisma.fileAsset.findMany.mockResolvedValue([]);
     mocks.uploadConceptAsset.mockResolvedValue({ bucket: "b", path: "p", mime: "image/png", size: 123 });
+    mocks.createSignedConceptAssetUrl.mockResolvedValue("https://example.com/image.png");
     mocks.tx.projectEntitlement.findFirst.mockResolvedValue({ id: "ent1", key: "concepts", limitInt: 2, consumedInt: 0 });
     mocks.tx.$executeRaw.mockResolvedValue(1);
     mocks.tx.fileAsset.create.mockResolvedValue(undefined);
     mocks.tx.project.update.mockResolvedValue({ status: "CONCEPTS_READY" });
+    mocks.tx.revisionRequest.updateMany.mockResolvedValue({ count: 0 });
     mocks.logAudit.mockResolvedValue(undefined);
     mocks.createProjectSystemMessage.mockResolvedValue(undefined);
   });
 
-  it("accepts first concept upload from BRIEF_SUBMITTED and transitions to CONCEPTS_READY", async () => {
+  it("GET attributes conceptless pending revisions to latest concept and preserves per-concept comments", async () => {
+    mocks.prisma.project.findUnique.mockResolvedValue({ status: "CONCEPTS_READY" });
+    mocks.prisma.concept.findMany.mockResolvedValue([
+      { id: "c1", number: 1, status: "published", notes: null, createdAt: new Date("2026-03-01T10:00:00Z") },
+      { id: "c2", number: 2, status: "published", notes: null, createdAt: new Date("2026-03-01T11:00:00Z") },
+    ]);
+    mocks.prisma.revisionRequest.groupBy.mockResolvedValue([
+      { conceptId: "c1", _count: { _all: 1 } },
+      { conceptId: null, _count: { _all: 1 } },
+    ]);
+    mocks.prisma.conceptComment.groupBy.mockResolvedValue([
+      { conceptId: "c2", _count: { _all: 1 } },
+    ]);
+
+    const res = await GET(new Request("http://localhost", { method: "GET" }), {
+      params: Promise.resolve({ id: "p1" }),
+    });
+
+    expect(res.status).toBe(200);
+    const payload = await res.json();
+    expect(payload.concepts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "c1", pendingRevisionCount: 1, commentCount: 0 }),
+        expect.objectContaining({ id: "c2", pendingRevisionCount: 1, commentCount: 1 }),
+      ]),
+    );
+  });
+
+  it("POST accepts first concept upload from BRIEF_SUBMITTED and transitions to CONCEPTS_READY", async () => {
     const formData = new FormData();
     formData.set("file", new File([new Uint8Array([1, 2, 3])], "concept.png", { type: "image/png" }));
     formData.set("conceptNumber", "1");

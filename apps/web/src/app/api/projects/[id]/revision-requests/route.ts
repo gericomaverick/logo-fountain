@@ -16,7 +16,8 @@ type RevisionBody = { body: string; conceptId?: string | null };
 function parseBody(raw: unknown): RevisionBody | null {
   if (typeof raw !== "object" || raw === null) return null;
   const body = typeof (raw as { body?: unknown }).body === "string" ? (raw as { body: string }).body.trim() : "";
-  const conceptId = typeof (raw as { conceptId?: unknown }).conceptId === "string" ? (raw as { conceptId: string }).conceptId : null;
+  const rawConceptId = typeof (raw as { conceptId?: unknown }).conceptId === "string" ? (raw as { conceptId: string }).conceptId.trim() : "";
+  const conceptId = rawConceptId.length > 0 ? rawConceptId : null;
   return body && body.length <= MAX_BODY_LENGTH ? { body, conceptId } : null;
 }
 
