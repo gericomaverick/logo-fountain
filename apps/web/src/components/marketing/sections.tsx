@@ -48,24 +48,38 @@ function HeroHello({ children = "Hello" }: { children?: ReactNode }) {
 
 function HeroTrustRow({
   items = defaultHeroTrustItems,
-  lead = "Proof points",
+  lead = "Results teams see",
 }: {
   items?: TrustItem[];
   lead?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-3 rounded-[18px] border border-white/20 bg-white/[0.07] px-4 py-3 backdrop-blur-sm sm:flex-row sm:items-center sm:gap-3 sm:px-5">
-      <p className="text-[length:var(--step--2)] font-semibold uppercase tracking-[0.14em] text-white/65">{lead}</p>
-      <div className="flex flex-wrap gap-2">
-        {items.map((item) => (
-          <span
-            key={item.label}
-            className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/[0.08] px-3 py-1 text-[length:var(--step--2)] font-semibold text-white/90"
-          >
-            {item.icon}
-            {item.label}
-          </span>
-        ))}
+    <div className="grid gap-4 rounded-[20px] bg-white p-5 text-black shadow-[0_18px_55px_rgba(0,0,0,0.22)] md:grid-cols-[1fr_1.2fr] md:items-center md:gap-6 md:p-6">
+      <div>
+        <p className="text-[length:var(--step--2)] font-semibold uppercase tracking-[0.16em] text-black/60">{lead}</p>
+        <p className="mt-2 font-display text-[length:var(--step-1)] leading-tight">&ldquo;We finally look like the category leader.&rdquo;</p>
+        <div className="mt-4 flex items-center gap-3">
+          <div className="grid h-10 w-10 place-items-center rounded-full bg-[#f2f2f2] text-sm font-semibold">AC</div>
+          <div>
+            <p className="text-[length:var(--step--1)] font-semibold leading-none">Alex C.</p>
+            <p className="mt-1 text-[length:var(--step--2)] text-black/60">B2B SaaS founder</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <p className="text-[length:var(--step--2)] font-semibold uppercase tracking-[0.16em] text-black/60">Proof points</p>
+        <div className="flex flex-wrap gap-2">
+          {items.map((item) => (
+            <span
+              key={item.label}
+              className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-[#f8f8f8] px-3 py-1 text-[length:var(--step--2)] font-semibold text-black/80"
+            >
+              {item.icon}
+              {item.label}
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   );
