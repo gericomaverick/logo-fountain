@@ -71,31 +71,10 @@ function getStatusNote(status: ProjectState) {
 }
 
 function getPrimaryCta(project: DashboardProject): ProjectCta {
-  if (project.status === "AWAITING_BRIEF") {
-    return {
-      href: `/project/${project.id}/brief`,
-      label: "Submit brief",
-    };
-  }
-
-  if (project.status === "CONCEPTS_READY") {
-    const firstPublishedConcept = project.concepts.find((concept) => concept.status === "published");
-    return {
-      href: firstPublishedConcept ? `/project/${project.id}/concept/${firstPublishedConcept.id}` : `/project/${project.id}`,
-      label: "View concepts",
-    };
-  }
-
-  if (project.status === "ON_HOLD") {
-    return {
-      href: `/project/${project.id}/messages`,
-      label: "View messages",
-    };
-  }
-
+  // Always route through the project overview so clients don’t bypass the hub.
   return {
     href: `/project/${project.id}`,
-    label: "View project",
+    label: "Open project",
   };
 }
 
