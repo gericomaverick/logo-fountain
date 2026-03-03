@@ -79,7 +79,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
         customer_creation: "always",
-        success_url: `${origin}/project/${project.id}`,
+        success_url: `${origin}/project/${project.id}?upsell=1&kind=addon&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/project/${project.id}`,
         line_items: [{ price: EXTRA_REVISION_PRICE_ID, quantity: 1 }],
         metadata: {
@@ -108,7 +108,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       customer_creation: "always",
-      success_url: `${origin}/project/${project.id}`,
+      success_url: `${origin}/project/${project.id}?upsell=1&kind=upgrade&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/project/${project.id}`,
       line_items: [{ price: upgradePriceId, quantity: 1 }],
       metadata: {

@@ -196,26 +196,37 @@ export default function AdminProjectPage() {
         <p className="text-sm"><Link href="/admin" className="portal-link no-underline">← Back to dashboard</Link></p>
 
         <section className="mt-3 portal-card">
-          <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,360px)]">
             <div>
               <ProjectStatusBadge status={snapshot?.status ?? "UNKNOWN"} />
               <h1 className="mt-3 text-2xl font-semibold">Admin project</h1>
-              <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
-              <p className="mt-1 text-sm text-neutral-600">Recent audit events: {snapshot?.recentAuditEventsCount ?? 0}</p>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm">
+                  <p className="text-xs uppercase tracking-wide text-neutral-500">Project id</p>
+                  <p className="mt-1 font-medium text-neutral-900 break-all">{projectId}</p>
+                </div>
+                <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm">
+                  <p className="text-xs uppercase tracking-wide text-neutral-500">Recent audit events</p>
+                  <p className="mt-1 font-medium text-neutral-900">{snapshot?.recentAuditEventsCount ?? 0}</p>
+                </div>
+              </div>
             </div>
-            <div className="flex flex-col gap-2 sm:items-end">
-              <Link className="portal-btn-secondary" href={`/admin/projects/${projectId}/messages`}>
-                Open messages
-              </Link>
-              <Link className="portal-btn-secondary" href={`/admin/projects/${projectId}/brief`}>
-                View brief
-              </Link>
-              <Link className="portal-btn-secondary" href={`/admin/projects/${projectId}/concepts`}>
-                Concepts manager
-              </Link>
-              <Link className="portal-btn-secondary" href={`/admin/projects/${projectId}/upload`}>
-                Legacy upload
-              </Link>
+            <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+              <p className="text-xs uppercase tracking-wide text-neutral-500">Quick actions</p>
+              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1">
+                <Link className="portal-btn-secondary justify-center" href={`/admin/projects/${projectId}/messages`}>
+                  Open messages
+                </Link>
+                <Link className="portal-btn-secondary justify-center" href={`/admin/projects/${projectId}/brief`}>
+                  View brief
+                </Link>
+                <Link className="portal-btn-secondary justify-center" href={`/admin/projects/${projectId}/concepts`}>
+                  Concepts manager
+                </Link>
+                <Link className="portal-btn-secondary justify-center" href={`/admin/projects/${projectId}/upload`}>
+                  Legacy upload
+                </Link>
+              </div>
             </div>
           </div>
 

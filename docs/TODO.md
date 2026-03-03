@@ -35,9 +35,16 @@ Step 1 notes:
 - Unified interaction polish with consistent focus rings, hover transitions, and button/link styles; updated status badge baseline and action affordances for a more premium, coherent feel.
 
 ### Step 4 — Upsell conversion
-- [ ] Upsell panel rules: show upgrade vs add-on at the right moments.
-- [ ] Post-purchase confirmation UX: obvious success + updated entitlements.
-- [ ] Edge cases: delayed webhooks, double-click, refresh.
+- [x] Upsell panel rules: show upgrade vs add-on at the right moments.
+- [x] Post-purchase confirmation UX: obvious success + updated entitlements.
+- [x] Edge cases: delayed webhooks, double-click, refresh.
+
+Step 4 notes:
+- Upsell rules now trigger by project phase + entitlement pressure: add-on appears only when revision capacity is effectively exhausted, while upgrades appear when headroom is low; completed/non-revision phases no longer nag users.
+- Upsell panel includes a "Not now" snooze (session-scoped) to reduce repeated prompts and avoid nagging during the same working session.
+- Upsell checkout now returns to `/project/[id]` with purchase context (`upsell`, `kind`, `session_id`), and the project page shows a confirmation banner that polls checkout status until fulfilled.
+- Delayed webhook path is now explicit in UX (pending confirmation message), double-click is guarded by disabled purchase buttons during redirect, and refresh keeps confirmation state via URL session context.
+- Admin overview top panel (`/admin/projects/[id]`) was refactored from uneven flex rows into a responsive two-column grid with uniform summary cards and quick-action grid for cleaner alignment on desktop and mobile.
 
 ## Marketing site (after backend/dashboard steps)
 - [ ] Add pricing cards to homepage (in HYROS style, inspired by https://claude.com/pricing).

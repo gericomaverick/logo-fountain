@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { ProjectTimeline } from "@/app/project-timeline";
@@ -178,19 +178,44 @@ function ActivityPanel({ projectId, snapshot, pendingFeedbackCount }: { projectI
 function UpsellPanel({
   projectId,
   packageCode,
+  projectStatus,
   revisionUsage,
 }: {
   projectId: string;
   packageCode: string | undefined;
+  projectStatus: string | undefined;
   revisionUsage: ReturnType<typeof resolveUsage>;
 }) {
   const [submitting, setSubmitting] = useState<"addon" | "upgrade" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [dismissed, setDismissed] = useState(false);
 
-  const isLow = revisionUsage.remaining <= 1 || revisionUsage.reserved >= Math.max(revisionUsage.limit - 1, 1);
   const upgradeTarget = packageCode === "essential" ? "professional" : packageCode === "professional" ? "complete" : null;
+  const shouldOfferAddon = revisionUsage.remaining <= 0 || revisionUsage.reserved >= Math.max(revisionUsage.remaining, 1);
+  const shouldOfferUpgrade = Boolean(upgradeTarget) && (revisionUsage.remaining <= 1 || revisionUsage.limit <= 2);
+  const shouldRender = shouldOfferAddon || shouldOfferUpgrade;
+  const inRelevantPhase = projectStatus === "CONCEPTS_READY" || projectStatus === "REVISIONS_IN_PROGRESS" || projectStatus === "AWAITING_APPROVAL";
 
-  if (!isLow && !upgradeTarget) return null;
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const key = `upsell:dismissed:${projectId}:${packageCode ?? "unknown"}`;
+    const raw = window.sessionStorage.getItem(key);
+    if (!raw) {
+      setDismissed(false);
+      return;
+    }
+
+    const expiresAt = Number.parseInt(raw, 10);
+    if (Number.isFinite(expiresAt) && Date.now() < expiresAt) {
+      setDismissed(true);
+      return;
+    }
+
+    window.sessionStorage.removeItem(key);
+    setDismissed(false);
+  }, [packageCode, projectId]);
+
+  if (!inRelevantPhase || !shouldRender || dismissed) return null;
 
   async function startPurchase(body: Record<string, unknown>, mode: "addon" | "upgrade") {
     setSubmitting(mode);
@@ -218,12 +243,31 @@ function UpsellPanel({
 
   return (
     <section className="mt-6 rounded-2xl border border-violet-200 bg-violet-50 p-5">
-      <h2 className="text-lg font-semibold text-violet-950">Need more flexibility?</h2>
-      <p className="mt-1 text-sm text-violet-900">
-        You’re running low on revision capacity. Buy an extra revision for £49, or upgrade your package.
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold text-violet-950">Need more flexibility?</h2>
+          <p className="mt-1 text-sm text-violet-900">
+            {shouldOfferAddon
+              ? "You’re at the revision limit for this stage. Add one extra revision now, or upgrade for more headroom."
+              : "You’re getting close to your revision limit. Upgrade now to avoid interruptions later."}
+          </p>
+        </div>
+        <button
+          type="button"
+          className="text-xs font-medium text-violet-900 underline underline-offset-2"
+          onClick={() => {
+            if (typeof window !== "undefined") {
+              const key = `upsell:dismissed:${projectId}:${packageCode ?? "unknown"}`;
+              window.sessionStorage.setItem(key, String(Date.now() + 1000 * 60 * 60 * 24));
+            }
+            setDismissed(true);
+          }}
+        >
+          Not now
+        </button>
+      </div>
       <div className="mt-4 flex flex-wrap gap-3">
-        {isLow ? (
+        {shouldOfferAddon ? (
           <button
             type="button"
             className="rounded-lg bg-violet-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
@@ -234,7 +278,7 @@ function UpsellPanel({
           </button>
         ) : null}
 
-        {upgradeTarget ? (
+        {shouldOfferUpgrade && upgradeTarget ? (
           <button
             type="button"
             className="portal-btn-secondary border-violet-400 text-violet-900"
@@ -252,8 +296,74 @@ function UpsellPanel({
   );
 }
 
+function UpsellPurchaseStatus({
+  sessionId,
+  kind,
+}: {
+  sessionId: string | null;
+  kind: "addon" | "upgrade" | null;
+}) {
+  const [status, setStatus] = useState<"idle" | "pending" | "fulfilled" | "failed">("idle");
+  const [message, setMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!sessionId) {
+      setStatus("idle");
+      setMessage(null);
+      return;
+    }
+
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const poll = async (slow = false) => {
+      if (cancelled) return;
+      setStatus((prev) => (prev === "fulfilled" ? prev : "pending"));
+
+      try {
+        const res = await fetch(`/api/checkout/status?session_id=${encodeURIComponent(sessionId)}`, { cache: "no-store" });
+        const payload = (await res.json().catch(() => null)) as { fulfilled?: boolean; status?: string } | null;
+
+        if (!res.ok) throw new Error("Could not confirm purchase status.");
+
+        if (payload?.fulfilled) {
+          setStatus("fulfilled");
+          setMessage(kind === "upgrade" ? "Upgrade confirmed. Your package and limits are updated." : "Add-on confirmed. Your extra revision is now available.");
+          return;
+        }
+
+        setStatus("pending");
+        setMessage("Payment received. We’re still waiting for confirmation from the webhook.");
+        timer = window.setTimeout(() => void poll(true), slow ? 7000 : 2500);
+      } catch {
+        setStatus("failed");
+        setMessage("Could not confirm purchase yet. Refresh the page in a moment.");
+      }
+    };
+
+    void poll();
+
+    return () => {
+      cancelled = true;
+      if (timer) window.clearTimeout(timer);
+    };
+  }, [kind, sessionId]);
+
+  if (!sessionId || status === "idle") return null;
+
+  return (
+    <section className={`mt-4 rounded-xl border px-4 py-3 text-sm ${status === "fulfilled" ? "border-emerald-200 bg-emerald-50 text-emerald-900" : status === "failed" ? "border-rose-200 bg-rose-50 text-rose-900" : "border-amber-200 bg-amber-50 text-amber-900"}`}>
+      <p className="font-medium">
+        {status === "fulfilled" ? "Purchase confirmed" : status === "failed" ? "Purchase confirmation delayed" : "Confirming your purchase"}
+      </p>
+      {message ? <p className="mt-1">{message}</p> : null}
+    </section>
+  );
+}
+
 export default function ProjectPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const params = useParams<{ id: string }>();
   const projectId = params.id;
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
@@ -335,6 +445,11 @@ export default function ProjectPage() {
     () => getMissionControlPrimaryCta(projectId, snapshot?.status ?? "", { pendingFeedbackCount }),
     [pendingFeedbackCount, projectId, snapshot?.status],
   );
+  const upsellSessionId = searchParams.get("upsell") === "1" ? searchParams.get("session_id")?.trim() ?? null : null;
+  const upsellKind = useMemo(() => {
+    const raw = searchParams.get("kind");
+    return raw === "addon" || raw === "upgrade" ? raw : null;
+  }, [searchParams]);
 
   return (
     <PageShell>
@@ -400,7 +515,8 @@ export default function ProjectPage() {
             </div>
           </div>
 
-          <UpsellPanel projectId={projectId} packageCode={snapshot?.packageCode} revisionUsage={revisionUsage} />
+          <UpsellPurchaseStatus sessionId={upsellSessionId} kind={upsellKind} />
+          <UpsellPanel projectId={projectId} packageCode={snapshot?.packageCode} projectStatus={snapshot?.status} revisionUsage={revisionUsage} />
         </section>
 
         {loading ? <p className="mt-4 text-sm text-neutral-600">Loading…</p> : null}
