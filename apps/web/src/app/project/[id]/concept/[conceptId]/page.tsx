@@ -10,8 +10,10 @@ type Snapshot = {
   status: string;
   entitlements: { revisions: number };
   concepts: Array<{ id: string; number: number; status: string; notes: string | null; imageUrl: string | null }>;
-  revisionRequests?: Array<{ id: string; status: string; body: string; createdAt: string; concept?: { id: string; number: number } | null }>;
+  revisionRequests?: Array<{ id: string; status: string; body: string; createdAt: string; concept?: { id: string; number: number } | null; user?: { email: string; fullName: string | null } | null }>;
 };
+
+type SessionPayload = { authenticated: boolean; isAdmin?: boolean; email?: string; fullName?: string | null };
 
 function readError(payload: { error?: { message?: string; details?: { nextStep?: string } } | string } | null, fallback: string): string {
   const err = payload?.error;
@@ -41,9 +43,11 @@ export default function ConceptDetailPage() {
   const conceptId = params.conceptId;
 
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
+  const [session, setSession] = useState<SessionPayload>({ authenticated: false });
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [revisionBody, setRevisionBody] = useState("");
+  const [designerReply, setDesignerReply] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
@@ -54,9 +58,16 @@ export default function ConceptDetailPage() {
   );
 
   async function refresh(id: string) {
-    const res = await fetch(`/api/projects/${id}`, { cache: "no-store" });
+    const [res, sessionRes] = await Promise.all([
+      fetch(`/api/projects/${id}`, { cache: "no-store" }),
+      fetch("/api/auth/session", { cache: "no-store" }),
+    ]);
+
     const payload = await res.json().catch(() => null);
     if (!res.ok) throw new Error(readError(payload, "Failed to load concept"));
+
+    const sessionPayload = (await sessionRes.json().catch(() => null)) as SessionPayload | null;
+    setSession(sessionPayload ?? { authenticated: false });
     setSnapshot(payload?.snapshot ?? null);
   }
 
@@ -66,12 +77,9 @@ export default function ConceptDetailPage() {
 
     const load = async () => {
       try {
-        const res = await fetch(`/api/projects/${projectId}`, { cache: "no-store" });
-        const payload = await res.json().catch(() => null);
-        if (!res.ok) throw new Error(readError(payload, "Failed to load concept"));
+        await refresh(projectId);
 
         if (!cancelled) {
-          setSnapshot(payload?.snapshot ?? null);
           setError(null);
         }
       } catch (e) {
@@ -109,6 +117,33 @@ export default function ConceptDetailPage() {
       setRevisionBody("");
       setActionSuccess("Feedback sent. Your designer will review it and work on the next revision.");
       await refresh(projectId);
+    }
+
+    setBusy(false);
+  }
+
+  async function submitDesignerMessage(e: React.FormEvent) {
+    e.preventDefault();
+    if (!projectId || !conceptId || !designerReply.trim()) return;
+
+    setBusy(true);
+    setActionError(null);
+    setActionSuccess(null);
+
+    const prefix = concept ? `Concept #${concept.number}: ` : "";
+
+    const res = await fetch(`/api/projects/${projectId}/messages`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ body: `${prefix}${designerReply.trim()}` }),
+    });
+
+    const payload = await res.json().catch(() => null);
+    if (!res.ok) {
+      setActionError(readError(payload, "Failed to send message"));
+    } else {
+      setDesignerReply("");
+      setActionSuccess("Reply sent to client.");
     }
 
     setBusy(false);
@@ -172,7 +207,7 @@ export default function ConceptDetailPage() {
 
         {concept ? (
           <section className="mt-8 rounded border border-neutral-200 p-4">
-            <h2 className="text-lg font-medium">Request a revision for this concept</h2>
+            <h2 className="text-lg font-medium">Feedback & revisions</h2>
             <p className="mt-1 text-sm text-neutral-600">Revisions remaining: {snapshot?.entitlements.revisions ?? 0}</p>
             {actionError ? <p className="mt-2 text-sm text-red-600">{actionError}</p> : null}
             {actionSuccess ? <p className="mt-2 text-sm text-green-700">{actionSuccess}</p> : null}
@@ -185,12 +220,15 @@ export default function ConceptDetailPage() {
                   .slice()
                   .reverse()
                   .map((r) => (
-                    <li key={r.id} className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm">
+                    <li key={r.id} className="rounded-xl border border-neutral-200 bg-white p-3 text-sm">
                       <div className="flex items-center justify-between gap-3">
-                        <span className="font-medium text-neutral-900">{r.status}</span>
-                        <span className="text-xs text-neutral-500">{formatDateTime(r.createdAt)}</span>
+                        <p className="text-xs font-semibold text-neutral-700">{r.user?.fullName ?? r.user?.email ?? "Client"}</p>
+                        <p className="text-xs text-neutral-500">{formatDateTime(r.createdAt)}</p>
                       </div>
-                      <p className="mt-1 whitespace-pre-wrap text-neutral-700">{r.body}</p>
+                      <div className="mt-2 rounded-2xl bg-neutral-100 px-3 py-2 text-neutral-900">
+                        <p className="whitespace-pre-wrap">{r.body}</p>
+                      </div>
+                      <p className="mt-2 inline-flex rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-700">{r.status}</p>
                     </li>
                   ))}
                 {(snapshot?.revisionRequests ?? []).filter((r) => r.concept?.id === conceptId).length === 0 ? (
@@ -199,22 +237,45 @@ export default function ConceptDetailPage() {
               </ul>
             </div>
 
-            <form className="mt-6" onSubmit={submitRevision}>
-              <textarea
-                className="mt-1 w-full rounded border border-neutral-300 px-2 py-1"
-                rows={4}
-                maxLength={5000}
-                value={revisionBody}
-                onChange={(e) => setRevisionBody(e.target.value)}
-              />
-              <button
-                className="mt-2 rounded border border-neutral-300 px-3 py-1 text-sm"
-                type="submit"
-                disabled={busy || !revisionBody.trim() || (snapshot?.entitlements.revisions ?? 0) <= 0}
-              >
-                Submit revision request
-              </button>
-            </form>
+            {session.isAdmin ? (
+              <form className="mt-6" onSubmit={submitDesignerMessage}>
+                <label className="block text-sm font-semibold text-neutral-900">Reply to client about this concept</label>
+                <textarea
+                  className="mt-2 w-full rounded border border-neutral-300 px-2 py-1"
+                  rows={4}
+                  maxLength={2000}
+                  value={designerReply}
+                  onChange={(e) => setDesignerReply(e.target.value)}
+                  placeholder="Write a quick update (this does not create a revision request)…"
+                />
+                <button
+                  className="mt-2 rounded border border-neutral-300 px-3 py-1 text-sm"
+                  type="submit"
+                  disabled={busy || !designerReply.trim()}
+                >
+                  Reply to client
+                </button>
+              </form>
+            ) : (
+              <form className="mt-6" onSubmit={submitRevision}>
+                <label className="block text-sm font-semibold text-neutral-900">Request a revision for this concept</label>
+                <p className="mt-1 text-sm text-neutral-600">Once submitted, your designer will review your notes and work on the next revision.</p>
+                <textarea
+                  className="mt-2 w-full rounded border border-neutral-300 px-2 py-1"
+                  rows={4}
+                  maxLength={5000}
+                  value={revisionBody}
+                  onChange={(e) => setRevisionBody(e.target.value)}
+                />
+                <button
+                  className="mt-2 rounded border border-neutral-300 px-3 py-1 text-sm"
+                  type="submit"
+                  disabled={busy || !revisionBody.trim() || (snapshot?.entitlements.revisions ?? 0) <= 0}
+                >
+                  Submit revision request
+                </button>
+              </form>
+            )}
           </section>
         ) : null}
       </main>
