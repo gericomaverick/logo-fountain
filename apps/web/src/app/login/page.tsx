@@ -17,7 +17,21 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [status, setStatus] = useState<string | null>(null);
+  const [status, setStatus] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    const hash = window.location.hash;
+    if (!hash || hash.length < 2) return null;
+
+    const params = new URLSearchParams(hash.slice(1));
+    const description = params.get("error_description");
+    const code = params.get("error_code");
+
+    if (!description) return null;
+
+    const message = code ? `${description} (${code})` : description;
+    return message.replace(/\+/g, " ");
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function onPasswordSignIn(event: FormEvent<HTMLFormElement>) {
