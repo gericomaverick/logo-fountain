@@ -1,4 +1,4 @@
-import { toRouteErrorResponse, requireProjectMembership, requireUser } from "@/lib/auth/require";
+import { RouteAuthError, requireAdmin, toRouteErrorResponse, requireProjectMembership, requireUser } from "@/lib/auth/require";
 import { jsonError } from "@/lib/api-error";
 import { getProjectSnapshot } from "@/lib/project-snapshot";
 
@@ -9,9 +9,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     const user = await requireUser();
     const { id } = await params;
 
-    const project = await requireProjectMembership(user.id, id);
+    let projectId = id;
 
-    const snapshot = await getProjectSnapshot({ projectId: project.id, userId: user.id });
+    try {
+      await requireAdmin(user);
+    } catch (error) {
+      if (!(error instanceof RouteAuthError) || error.status !== 403) throw error;
+      const project = await requireProjectMembership(user.id, id);
+      projectId = project.id;
+    }
+
+    const snapshot = await getProjectSnapshot({ projectId, userId: user.id });
     if (!snapshot) return jsonError("Project not found", 404, { nextStep: "Check the project link." }, "PROJECT_NOT_FOUND");
 
     return Response.json({ snapshot });

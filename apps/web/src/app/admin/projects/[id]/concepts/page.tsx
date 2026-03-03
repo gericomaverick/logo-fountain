@@ -89,6 +89,25 @@ export default function AdminProjectConceptsPage() {
     setBusy(false);
   }
 
+  async function deleteConcept(conceptId: string) {
+    if (!projectId) return;
+    setBusy(true);
+    setError(null);
+    setSuccess(null);
+
+    const response = await fetch(`/api/admin/projects/${projectId}/concepts/${conceptId}`, { method: "DELETE" });
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      setError(readError(payload, "Delete failed"));
+    } else {
+      setSuccess("Concept deleted.");
+      await refresh(projectId);
+    }
+
+    setBusy(false);
+  }
+
   return (
     <>
       <HeaderNav />
@@ -130,18 +149,36 @@ export default function AdminProjectConceptsPage() {
           {loading ? <p className="mt-3 text-sm text-neutral-600">Loading…</p> : null}
           <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {concepts.map((concept) => (
-              <Link key={concept.id} href={`/project/${projectId}/concept/${concept.id}`} className="overflow-hidden rounded-xl border border-neutral-200 bg-white transition hover:border-neutral-300">
-                {concept.imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={concept.imageUrl} alt={`Concept ${concept.number}`} className="h-56 w-full object-cover" />
-                ) : (
-                  <div className="flex h-56 items-center justify-center bg-neutral-100 text-sm text-neutral-500">No preview</div>
-                )}
-                <div className="p-3">
-                  <p className="text-sm font-medium text-neutral-900">Concept #{concept.number}</p>
-                  <p className="text-xs text-neutral-500">{concept.status}</p>
+              <article key={concept.id} className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+                <Link href={`/project/${projectId}/concept/${concept.id}`} className="block transition hover:border-neutral-300">
+                  {concept.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={concept.imageUrl} alt={`Concept ${concept.number}`} className="h-56 w-full object-cover" />
+                  ) : (
+                    <div className="flex h-56 items-center justify-center bg-neutral-100 text-sm text-neutral-500">No preview</div>
+                  )}
+                  <div className="p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm font-medium text-neutral-900">Concept #{concept.number}</p>
+                      <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-700">{concept.status}</span>
+                    </div>
+                    {concept.notes ? <p className="mt-1 line-clamp-2 text-xs text-neutral-500">{concept.notes}</p> : null}
+                  </div>
+                </Link>
+                <div className="flex items-center justify-between gap-2 border-t border-neutral-200 p-3 text-xs">
+                  <Link className="underline" href={`/admin/projects/${projectId}/upload`}>Replace</Link>
+                  <button
+                    type="button"
+                    className="rounded border border-neutral-300 px-2 py-1 text-red-700"
+                    disabled={busy}
+                    onClick={() => {
+                      void deleteConcept(concept.id);
+                    }}
+                  >
+                    Delete
+                  </button>
                 </div>
-              </Link>
+              </article>
             ))}
           </div>
           {!loading && concepts.length === 0 ? <p className="mt-4 text-sm text-neutral-600">No concepts yet.</p> : null}
