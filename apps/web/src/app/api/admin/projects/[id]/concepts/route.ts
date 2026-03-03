@@ -1,6 +1,6 @@
 import { jsonError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
-import { uploadConceptAsset } from "@/lib/supabase/storage";
+import { createSignedConceptAssetUrl, uploadConceptAsset } from "@/lib/supabase/storage";
 import { logAudit } from "@/lib/audit";
 import { applyTransition } from "@/lib/project-state-machine";
 import { requireAdmin, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
@@ -29,16 +29,74 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     await requireAdmin(user);
 
     const { id: projectId } = await params;
-    const [project, concepts] = await Promise.all([
+    const [project, concepts, pendingRevisionCounts, commentsCounts] = await Promise.all([
       prisma.project.findUnique({ where: { id: projectId }, select: { status: true } }),
       prisma.concept.findMany({
         where: { projectId },
         orderBy: [{ number: "asc" }, { createdAt: "asc" }],
         select: { id: true, number: true, status: true, notes: true },
       }),
+      prisma.revisionRequest.groupBy({
+        by: ["conceptId"],
+        where: { projectId, status: { not: "delivered" }, conceptId: { not: null } },
+        _count: { _all: true },
+      }),
+      prisma.conceptComment.groupBy({
+        by: ["conceptId"],
+        where: { projectId },
+        _count: { _all: true },
+      }),
     ]);
 
-    return Response.json({ concepts, projectStatus: project?.status ?? null });
+    const conceptIds = concepts.map((concept) => concept.id);
+    const files = conceptIds.length
+      ? await prisma.fileAsset.findMany({
+          where: {
+            projectId,
+            kind: "concept",
+            OR: conceptIds.map((conceptId) => ({
+              path: { startsWith: `${projectId}/${conceptId}.` },
+            })),
+          },
+          orderBy: [{ createdAt: "desc" }],
+          select: { path: true },
+        })
+      : [];
+
+    const fileByConceptId = new Map<string, { path: string }>();
+    for (const file of files) {
+      const fileName = file.path.split("/").pop() ?? "";
+      const conceptId = fileName.split(".")[0];
+      if (conceptId && !fileByConceptId.has(conceptId)) {
+        fileByConceptId.set(conceptId, { path: file.path });
+      }
+    }
+
+    const pendingByConceptId = new Map(
+      pendingRevisionCounts
+        .filter((entry) => Boolean(entry.conceptId))
+        .map((entry) => [entry.conceptId as string, entry._count._all]),
+    );
+
+    const commentsByConceptId = new Map(
+      commentsCounts
+        .filter((entry) => Boolean(entry.conceptId))
+        .map((entry) => [entry.conceptId as string, entry._count._all]),
+    );
+
+    const conceptsWithMeta = await Promise.all(
+      concepts.map(async (concept) => {
+        const file = fileByConceptId.get(concept.id);
+        return {
+          ...concept,
+          imageUrl: file ? await createSignedConceptAssetUrl(file.path) : null,
+          pendingRevisionCount: pendingByConceptId.get(concept.id) ?? 0,
+          commentCount: commentsByConceptId.get(concept.id) ?? 0,
+        };
+      }),
+    );
+
+    return Response.json({ concepts: conceptsWithMeta, projectStatus: project?.status ?? null });
   } catch (error) {
     return toRouteErrorResponse(error);
   }

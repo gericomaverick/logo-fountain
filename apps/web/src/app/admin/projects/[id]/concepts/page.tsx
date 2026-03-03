@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { HeaderNav } from "@/components/header-nav";
 
@@ -12,6 +12,14 @@ type Concept = {
   status: string;
   notes: string | null;
   imageUrl: string | null;
+  pendingRevisionCount: number;
+  commentCount: number;
+};
+
+type RevisionRequest = {
+  id: string;
+  status: string;
+  concept: { id: string; number: number } | null;
 };
 
 function readError(payload: { error?: { message?: string; details?: { nextStep?: string } } | string } | null, fallback: string): string {
@@ -26,6 +34,7 @@ export default function AdminProjectConceptsPage() {
   const projectId = params.id;
 
   const [concepts, setConcepts] = useState<Concept[]>([]);
+  const [revisionRequests, setRevisionRequests] = useState<RevisionRequest[]>([]);
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,12 +43,22 @@ export default function AdminProjectConceptsPage() {
   const [conceptNumber, setConceptNumber] = useState(1);
   const [notes, setNotes] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [replaceFiles, setReplaceFiles] = useState<Record<string, File | null>>({});
 
   async function refresh(id: string) {
-    const response = await fetch(`/api/projects/${id}/concepts`, { cache: "no-store" });
-    const payload = await response.json().catch(() => null);
-    if (!response.ok) throw new Error(readError(payload, "Failed to load concepts"));
-    setConcepts((payload?.concepts ?? []) as Concept[]);
+    const [conceptsResponse, revisionsResponse] = await Promise.all([
+      fetch(`/api/admin/projects/${id}/concepts`, { cache: "no-store" }),
+      fetch(`/api/admin/projects/${id}/revision-requests`, { cache: "no-store" }),
+    ]);
+
+    const conceptsPayload = await conceptsResponse.json().catch(() => null);
+    const revisionsPayload = await revisionsResponse.json().catch(() => null);
+
+    if (!conceptsResponse.ok) throw new Error(readError(conceptsPayload, "Failed to load concepts"));
+    if (!revisionsResponse.ok) throw new Error(readError(revisionsPayload, "Failed to load revision requests"));
+
+    setConcepts((conceptsPayload?.concepts ?? []) as Concept[]);
+    setRevisionRequests((revisionsPayload?.revisionRequests ?? []) as RevisionRequest[]);
   }
 
   useEffect(() => {
@@ -96,6 +115,71 @@ export default function AdminProjectConceptsPage() {
     setBusy(false);
   }
 
+  async function replaceConceptAsset(concept: Concept) {
+    if (!projectId) return;
+    const nextFile = replaceFiles[concept.id];
+    if (!nextFile) return;
+
+    setBusy(true);
+    setError(null);
+    setSuccess(null);
+
+    const data = new FormData();
+    data.set("file", nextFile);
+    data.set("conceptNumber", String(concept.number));
+    data.set("notes", concept.notes ?? "");
+
+    const response = await fetch(`/api/admin/projects/${projectId}/concepts`, {
+      method: "POST",
+      body: data,
+    });
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      setError(readError(payload, `Failed to replace concept #${concept.number}`));
+    } else {
+      setReplaceFiles((prev) => ({ ...prev, [concept.id]: null }));
+      setSuccess(`Concept #${concept.number} asset replaced.`);
+      await refresh(projectId);
+    }
+
+    setBusy(false);
+  }
+
+  async function markConceptRevisionRequestsDelivered(concept: Concept) {
+    if (!projectId) return;
+
+    const pending = revisionRequests.filter((request) => request.status !== "delivered" && request.concept?.id === concept.id);
+    if (pending.length === 0) return;
+
+    setBusy(true);
+    setError(null);
+    setSuccess(null);
+
+    let delivered = 0;
+    try {
+      for (const [index, request] of pending.entries()) {
+        const response = await fetch(`/api/admin/projects/${projectId}/revision-requests/${request.id}/delivered`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ setConceptsReady: index === 0 }),
+        });
+        const payload = await response.json().catch(() => null);
+        if (!response.ok) {
+          throw new Error(readError(payload, "Failed to mark delivered"));
+        }
+        delivered += 1;
+      }
+
+      setSuccess(`Marked ${delivered} revision request${delivered === 1 ? "" : "s"} delivered for concept #${concept.number}.`);
+      await refresh(projectId);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to mark delivered");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function deleteConcept(conceptId: string) {
     if (!projectId) return;
     setBusy(true);
@@ -115,6 +199,11 @@ export default function AdminProjectConceptsPage() {
     setBusy(false);
   }
 
+  const totalPending = useMemo(
+    () => concepts.reduce((acc, concept) => acc + concept.pendingRevisionCount + concept.commentCount, 0),
+    [concepts],
+  );
+
   return (
     <>
       <HeaderNav />
@@ -123,6 +212,7 @@ export default function AdminProjectConceptsPage() {
           <div>
             <h1 className="text-2xl font-semibold">Concepts manager</h1>
             <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
+            <p className="mt-1 text-sm text-neutral-600">Pending feedback items: {totalPending}</p>
           </div>
           <div className="flex gap-4 text-sm">
             <Link className="underline" href={`/admin/projects/${projectId}`}>Overview</Link>
@@ -155,38 +245,95 @@ export default function AdminProjectConceptsPage() {
           <h2 className="text-lg font-medium">Published concepts</h2>
           {loading ? <p className="mt-3 text-sm text-neutral-600">Loading…</p> : null}
           <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {concepts.map((concept) => (
-              <article key={concept.id} className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
-                <Link href={`/project/${projectId}/concept/${concept.id}?from=admin`} className="block transition hover:border-neutral-300">
-                  {concept.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={concept.imageUrl} alt={`Concept ${concept.number}`} className="h-56 w-full object-cover" />
-                  ) : (
-                    <div className="flex h-56 items-center justify-center bg-neutral-100 text-sm text-neutral-500">No preview</div>
-                  )}
-                  <div className="p-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-medium text-neutral-900">Concept #{concept.number}</p>
-                      <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-700">{concept.status}</span>
+            {concepts.map((concept) => {
+              const pendingFeedbackCount = concept.pendingRevisionCount + concept.commentCount;
+
+              return (
+                <article id={`concept-${concept.id}`} key={concept.id} className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+                  <Link href={`/project/${projectId}/concept/${concept.id}?from=admin`} className="block transition hover:border-neutral-300">
+                    {concept.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={concept.imageUrl} alt={`Concept ${concept.number}`} className="h-56 w-full object-cover" />
+                    ) : (
+                      <div className="flex h-56 items-center justify-center bg-neutral-100 text-sm text-neutral-500">No preview</div>
+                    )}
+                    <div className="space-y-2 p-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm font-medium text-neutral-900">Concept #{concept.number}</p>
+                        <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-700">{concept.status}</span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {pendingFeedbackCount > 0 ? (
+                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">{pendingFeedbackCount} pending</span>
+                        ) : (
+                          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800">No pending feedback</span>
+                        )}
+                        {concept.pendingRevisionCount > 0 ? (
+                          <span className="rounded-full bg-fuchsia-100 px-2 py-0.5 text-xs font-medium text-fuchsia-800">{concept.pendingRevisionCount} revisions</span>
+                        ) : null}
+                        {concept.commentCount > 0 ? (
+                          <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-800">{concept.commentCount} comments</span>
+                        ) : null}
+                      </div>
+                      {concept.notes ? <p className="line-clamp-2 text-xs text-neutral-500">{concept.notes}</p> : null}
                     </div>
-                    {concept.notes ? <p className="mt-1 line-clamp-2 text-xs text-neutral-500">{concept.notes}</p> : null}
+                  </Link>
+
+                  <div className="space-y-2 border-t border-neutral-200 p-3 text-xs">
+                    <div className="flex items-center justify-between gap-2">
+                      <Link className="underline" href={`/project/${projectId}/concept/${concept.id}?from=admin`}>
+                        Open discussion
+                      </Link>
+                      <button
+                        type="button"
+                        className="rounded border border-neutral-300 px-2 py-1"
+                        disabled={busy || concept.pendingRevisionCount === 0}
+                        onClick={() => {
+                          void markConceptRevisionRequestsDelivered(concept);
+                        }}
+                      >
+                        Mark delivered ({concept.pendingRevisionCount})
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <input
+                        className="block w-full text-xs"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const nextFile = e.target.files?.[0] ?? null;
+                          setReplaceFiles((prev) => ({ ...prev, [concept.id]: nextFile }));
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className="rounded border border-neutral-300 px-2 py-1"
+                        disabled={busy || !replaceFiles[concept.id]}
+                        onClick={() => {
+                          void replaceConceptAsset(concept);
+                        }}
+                      >
+                        Replace asset
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-end">
+                      <button
+                        type="button"
+                        className="rounded border border-neutral-300 px-2 py-1 text-red-700"
+                        disabled={busy}
+                        onClick={() => {
+                          void deleteConcept(concept.id);
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
-                </Link>
-                <div className="flex items-center justify-between gap-2 border-t border-neutral-200 p-3 text-xs">
-                  <Link className="underline" href={`/admin/projects/${projectId}/upload`}>Replace</Link>
-                  <button
-                    type="button"
-                    className="rounded border border-neutral-300 px-2 py-1 text-red-700"
-                    disabled={busy}
-                    onClick={() => {
-                      void deleteConcept(concept.id);
-                    }}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </div>
           {!loading && concepts.length === 0 ? <p className="mt-4 text-sm text-neutral-600">No concepts yet.</p> : null}
         </section>

@@ -342,13 +342,13 @@ export default function AdminProjectPage() {
               <h2 className="text-lg font-medium">Concepts</h2>
               <p className="mt-1 text-sm text-neutral-600">Published concepts visible to the client.</p>
             </div>
-            <Link className="text-sm underline" href={`/admin/projects/${projectId}/concepts`}>Open concepts manager</Link>
+            <Link className="text-sm underline" href={`/admin/projects/${projectId}/concepts`}>Open concepts manager + quick actions</Link>
           </div>
 
           {loading ? <p className="mt-3 text-sm text-neutral-600">Loading…</p> : null}
           <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {(snapshot?.concepts ?? []).map((concept) => {
-              const hasPendingRevision = (snapshot?.revisionRequests ?? []).some((r) => r.status !== "delivered" && r.concept?.id === concept.id);
+              const pendingRevisionCount = (snapshot?.revisionRequests ?? []).filter((r) => r.status !== "delivered" && r.concept?.id === concept.id).length;
 
               return (
                 <li key={concept.id} className="rounded-xl border border-neutral-200 bg-white p-3 text-sm">
@@ -362,10 +362,13 @@ export default function AdminProjectPage() {
                     <p className="font-medium">#{concept.number}</p>
                     <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-700">{concept.status}</span>
                   </div>
-                  {hasPendingRevision ? (
-                    <p className="mt-2 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">Revision requested</p>
+                  {pendingRevisionCount > 0 ? (
+                    <p className="mt-2 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">{pendingRevisionCount} pending revision request{pendingRevisionCount === 1 ? "" : "s"}</p>
                   ) : null}
-                  <p className="mt-2"><Link className="text-xs underline" href={`/project/${projectId}/concept/${concept.id}?from=admin`}>Open discussion</Link></p>
+                  <div className="mt-2 flex items-center justify-between gap-2 text-xs">
+                    <Link className="underline" href={`/project/${projectId}/concept/${concept.id}?from=admin`}>Open discussion</Link>
+                    <Link className="underline" href={`/admin/projects/${projectId}/concepts#concept-${concept.id}`}>Quick actions</Link>
+                  </div>
                 </li>
               );
             })}
