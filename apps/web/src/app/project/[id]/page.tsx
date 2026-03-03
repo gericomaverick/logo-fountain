@@ -62,7 +62,15 @@ function resolveUsage(usage: EntitlementUsage | undefined) {
   return { limit, used, remaining, ratio };
 }
 
-function EntitlementProgress({ label, usage }: { label: string; usage: EntitlementUsage | undefined }) {
+function EntitlementProgress({
+  label,
+  usage,
+  fillClassName,
+}: {
+  label: string;
+  usage: EntitlementUsage | undefined;
+  fillClassName: string;
+}) {
   const stats = resolveUsage(usage);
 
   return (
@@ -75,7 +83,7 @@ function EntitlementProgress({ label, usage }: { label: string; usage: Entitleme
         {stats.used} of {stats.limit} used
       </p>
       <div className="mt-3 h-2 rounded-full bg-neutral-200">
-        <div className="h-2 rounded-full bg-neutral-900 transition-all" style={{ width: `${stats.ratio}%` }} />
+        <div className={`h-2 rounded-full transition-all ${fillClassName}`} style={{ width: `${stats.ratio}%` }} />
       </div>
     </article>
   );
@@ -152,7 +160,7 @@ export default function ProjectPage() {
   return (
     <>
       <HeaderNav />
-      <main className="mx-auto max-w-4xl p-8">
+      <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
         <section className="rounded-2xl border border-neutral-200 bg-gradient-to-b from-white to-neutral-50 p-6 shadow-sm">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
@@ -180,8 +188,8 @@ export default function ProjectPage() {
           </div>
 
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <EntitlementProgress label="Concepts" usage={snapshot?.entitlementUsage?.concepts} />
-            <EntitlementProgress label="Revisions" usage={snapshot?.entitlementUsage?.revisions} />
+            <EntitlementProgress label="Concepts" usage={snapshot?.entitlementUsage?.concepts} fillClassName="bg-gradient-to-r from-indigo-600 to-sky-500" />
+            <EntitlementProgress label="Revisions" usage={snapshot?.entitlementUsage?.revisions} fillClassName="bg-gradient-to-r from-fuchsia-600 to-violet-500" />
           </div>
 
           <p className="mt-2 text-xs text-neutral-500">

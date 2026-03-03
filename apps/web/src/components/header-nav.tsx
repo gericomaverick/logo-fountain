@@ -54,13 +54,13 @@ export function HeaderNav() {
 
   return (
     <header className="border-b border-neutral-200 bg-white">
-      <nav className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-6 py-3 text-sm">
+      <nav className="mx-auto flex w-full max-w-[1160px] items-center justify-between gap-3 px-6 py-3 text-sm md:px-10">
         <div className="flex items-center gap-4">
           <Link href="/" className="font-semibold">Logo Fountain</Link>
           <Link className="underline" href="/dashboard">Dashboard</Link>
           {session.authenticated ? <Link className="underline" href="/settings">Settings</Link> : null}
           {session.isAdmin ? <Link className="underline" href="/admin">Admin</Link> : null}
-          <Link className="underline" href="/pricing">Pricing</Link>
+          {!session.authenticated ? <Link className="underline" href="/pricing">Pricing</Link> : null}
         </div>
 
         <div className="flex items-center gap-3">

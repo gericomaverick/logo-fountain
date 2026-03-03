@@ -104,6 +104,22 @@ export async function getProjectSnapshot({ projectId }: SnapshotArgs) {
     if (entitlement.key === "revisions") entitlementUsage.revisions = { limit, consumed, remaining };
   }
 
+  // Fallback for legacy projects where entitlement rows may be missing.
+  // (If both limits are 0, we assume missing rows rather than a fully-consumed package.)
+  const PACKAGE_DEFAULTS: Record<string, { concepts: number; revisions: number }> = {
+    essential: { concepts: 2, revisions: 2 },
+    professional: { concepts: 3, revisions: 2 },
+    complete: { concepts: 3, revisions: 5 },
+  };
+
+  if (entitlementUsage.concepts.limit === 0 && entitlementUsage.revisions.limit === 0) {
+    const defaults = PACKAGE_DEFAULTS[project.packageCode] ?? null;
+    if (defaults) {
+      entitlementUsage.concepts = { limit: defaults.concepts, consumed: 0, remaining: defaults.concepts };
+      entitlementUsage.revisions = { limit: defaults.revisions, consumed: 0, remaining: defaults.revisions };
+    }
+  }
+
   const entitlements = {
     concepts: entitlementUsage.concepts.remaining,
     revisions: entitlementUsage.revisions.remaining,
