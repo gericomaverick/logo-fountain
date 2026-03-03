@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 type CheckoutStatusResponse = {
   fulfilled: boolean;
@@ -12,30 +12,19 @@ const FAST_POLL_INTERVAL_MS = 2000;
 const SLOW_POLL_INTERVAL_MS = 10000;
 const TROUBLESHOOTING_TIMEOUT_MS = 45000;
 
-async function isAuthenticated() {
-  try {
-    const res = await fetch("/api/auth/session", {
-      cache: "no-store",
-      credentials: "include",
-    });
-
-    if (!res.ok) return false;
-
-    const body = (await res.json()) as { authenticated?: boolean };
-    return Boolean(body.authenticated);
-  } catch {
-    return false;
-  }
-}
+type ResendState = "idle" | "sending" | "sent" | "error";
 
 export default function SuccessProcessingClient() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id")?.trim() ?? "";
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showTroubleshooting, setShowTroubleshooting] = useState(false);
   const [retryNonce, setRetryNonce] = useState(0);
+  const [isFulfilled, setIsFulfilled] = useState(false);
+  const [fulfilledProjectId, setFulfilledProjectId] = useState<string | null>(null);
+  const [resendState, setResendState] = useState<ResendState>("idle");
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
 
   const statusUrl = useMemo(() => {
     if (!sessionId) return null;
@@ -57,35 +46,18 @@ export default function SuccessProcessingClient() {
       const elapsed = Date.now() - startedAt;
       const timedOut = elapsed >= TROUBLESHOOTING_TIMEOUT_MS;
 
-      if (timedOut) {
-        setShowTroubleshooting(true);
-      }
+      if (timedOut) setShowTroubleshooting(true);
 
       try {
         const res = await fetch(statusUrl, { cache: "no-store" });
-        if (!res.ok) {
-          throw new Error("Unable to check payment status.");
-        }
+        if (!res.ok) throw new Error("Unable to check payment status.");
 
         const data = (await res.json()) as CheckoutStatusResponse;
 
         if (data.fulfilled) {
-          const authed = await isAuthenticated();
-          const params = new URLSearchParams();
-
-          if (data.projectId) {
-            params.set("projectId", data.projectId);
-          }
-
-          if (authed) {
-            const nextUrl = params.toString() ? `/dashboard?${params.toString()}` : "/dashboard";
-            router.replace(nextUrl);
-            return;
-          }
-
-          // Require password setup after magic-link sign-in.
-          const setPasswordUrl = params.toString() ? `/set-password?next=/dashboard&${params.toString()}` : "/set-password?next=/dashboard";
-          router.replace(`/login?next=${encodeURIComponent(setPasswordUrl)}`);
+          setIsFulfilled(true);
+          setFulfilledProjectId(data.projectId ?? null);
+          setErrorMessage(null);
           return;
         }
 
@@ -105,18 +77,75 @@ export default function SuccessProcessingClient() {
     return () => {
       cancelled = true;
     };
-  }, [retryNonce, router, statusUrl]);
+  }, [retryNonce, statusUrl]);
+
+  async function onResendEmail() {
+    if (!sessionId) return;
+
+    setResendState("sending");
+    setResendMessage(null);
+
+    try {
+      const res = await fetch("/api/checkout/resend-magic-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: sessionId }),
+      });
+
+      const body = (await res.json()) as {
+        error?: { message?: string };
+        skipped?: boolean;
+        reason?: string;
+      };
+
+      if (!res.ok) {
+        setResendState("error");
+        setResendMessage(body.error?.message || "Could not resend email. Please try again.");
+        return;
+      }
+
+      setResendState("sent");
+      setResendMessage(
+        body.skipped
+          ? body.reason || "Email sending is currently not configured."
+          : "Sign-in link sent. Check your inbox."
+      );
+    } catch {
+      setResendState("error");
+      setResendMessage("Could not resend email. Please try again.");
+    }
+  }
 
   return (
     <main className="mx-auto max-w-xl p-8">
-      <h1 className="text-2xl font-semibold">Processing…</h1>
-      <p className="mt-2 text-sm text-neutral-600">
-        We&apos;re confirming your payment and setting up your project.
-      </p>
+      {!isFulfilled ? (
+        <>
+          <h1 className="text-2xl font-semibold">Processing…</h1>
+          <p className="mt-2 text-sm text-neutral-600">
+            We&apos;re confirming your payment and setting up your project.
+          </p>
+        </>
+      ) : (
+        <>
+          <h1 className="text-2xl font-semibold">Check your email for your sign-in link</h1>
+          <p className="mt-2 text-sm text-neutral-600">
+            We sent a secure sign-in link. After opening it, you&apos;ll set your password and land in your dashboard.
+          </p>
+          <button
+            type="button"
+            onClick={() => void onResendEmail()}
+            disabled={resendState === "sending"}
+            className="mt-4 rounded border border-neutral-300 px-4 py-2 text-sm disabled:opacity-60"
+          >
+            {resendState === "sending" ? "Resending..." : "Resend email"}
+          </button>
+          {resendMessage ? <p className="mt-3 text-sm text-neutral-700">{resendMessage}</p> : null}
+        </>
+      )}
 
       {sessionId ? <p className="mt-4 text-xs text-neutral-500">Session: {sessionId}</p> : null}
 
-      {showTroubleshooting ? (
+      {showTroubleshooting && !fulfilledProjectId ? (
         <div className="mt-6 rounded-lg border border-amber-300 bg-amber-50 p-4">
           <p className="text-sm font-medium text-amber-900">Still waiting for confirmation</p>
           <p className="mt-2 text-sm text-amber-800">

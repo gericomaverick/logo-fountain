@@ -9,6 +9,7 @@ import {
   ORDER_STATUS_FULFILLED,
   ORDER_STATUS_NEEDS_CONTACT,
 } from "@/lib/checkout-fulfillment";
+import { generateAndSendMagicLinkEmail } from "@/lib/magic-link-email";
 
 export const runtime = "nodejs";
 
@@ -87,6 +88,19 @@ export async function POST(req: Request) {
         lastName: fulfillment.lastName,
       });
       provisionedUserId = provisioning.userId;
+    }
+
+    if (fulfillment.purchaserEmail) {
+      const appBaseUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(req.url).origin;
+      try {
+        await generateAndSendMagicLinkEmail({
+          purchaserEmail: fulfillment.purchaserEmail,
+          projectId: fulfillment.projectId,
+          baseUrl: appBaseUrl,
+        });
+      } catch (emailError) {
+        console.error("Failed to send checkout magic-link email", emailError);
+      }
     }
 
     await prisma.stripeEvent.update({
