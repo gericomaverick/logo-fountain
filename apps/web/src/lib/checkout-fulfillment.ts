@@ -10,17 +10,18 @@ export const ORDER_STATUS_NEEDS_CONTACT = "NEEDS_CONTACT";
 const PROJECT_STATUS_AWAITING_BRIEF = "AWAITING_BRIEF";
 
 const PACKAGE_ENTITLEMENTS: Record<PackageCode, Array<{ key: string; limitInt: number }>> = {
+  // Canonical entitlement keys used across the app.
   essential: [
-    { key: "concepts_allowed", limitInt: 2 },
-    { key: "revisions_allowed", limitInt: 2 },
+    { key: "concepts", limitInt: 2 },
+    { key: "revisions", limitInt: 2 },
   ],
   professional: [
-    { key: "concepts_allowed", limitInt: 3 },
-    { key: "revisions_allowed", limitInt: 2 },
+    { key: "concepts", limitInt: 3 },
+    { key: "revisions", limitInt: 2 },
   ],
   complete: [
-    { key: "concepts_allowed", limitInt: 3 },
-    { key: "revisions_allowed", limitInt: 5 },
+    { key: "concepts", limitInt: 3 },
+    { key: "revisions", limitInt: 5 },
   ],
 };
 
