@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { MarketingNav } from "@/components/marketing/nav";
 
 type Cta = {
@@ -18,7 +19,21 @@ function BylineWithAccent({ byline }: { byline: string }) {
   );
 }
 
-export function HeroCenter({ eyebrow, title, body, primary, secondary }: { eyebrow: string; title: string; body: string; primary: Cta; secondary: Cta }) {
+export function HeroCenter({
+  eyebrow,
+  title,
+  body,
+  primary,
+  secondary,
+  trust,
+}: {
+  eyebrow: string;
+  title: string;
+  body: string;
+  primary: Cta;
+  secondary: Cta;
+  trust?: ReactNode;
+}) {
   return (
     <section
       className="relative overflow-hidden text-white"
@@ -38,7 +53,7 @@ export function HeroCenter({ eyebrow, title, body, primary, secondary }: { eyebr
         <p className="inline-flex rounded-full border border-white/30 bg-white/10 px-4 py-1.5 text-[length:var(--step--2)] font-semibold uppercase tracking-[0.18em] text-white">
           {eyebrow}
         </p>
-        <p className="mt-5 font-display text-[length:var(--step--1)] font-medium uppercase tracking-[0.14em] text-white/60">Hello</p>
+        <h2 className="mt-5 font-display text-[length:var(--step-4)] font-medium text-white/70">Hello</h2>
         <h1 className="font-display mt-3 max-w-5xl text-[length:var(--step-7)] leading-[1.02] tracking-tight">{title}</h1>
         <p className="mt-6 max-w-2xl text-[length:var(--step-0)] leading-relaxed text-white/80">{body}</p>
         <div className="mt-9 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
@@ -48,6 +63,20 @@ export function HeroCenter({ eyebrow, title, body, primary, secondary }: { eyebr
           <Link href={secondary.href} className="lf-btn lf-btn--ghost">
             {secondary.label}
           </Link>
+        </div>
+
+        {/* Trust-building slot (HYROS-style). Pass `trust` for custom content. */}
+        <div className="mt-10">
+          {trust ?? (
+            <div className="flex flex-col gap-3 text-white/80 sm:flex-row sm:items-center sm:gap-4">
+              <p className="text-[length:var(--step--2)] font-semibold uppercase tracking-[0.16em] text-white/60">Trusted by</p>
+              <div className="flex flex-wrap gap-2">
+                <span className="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[length:var(--step--2)] font-semibold">Founders</span>
+                <span className="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[length:var(--step--2)] font-semibold">Agencies</span>
+                <span className="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[length:var(--step--2)] font-semibold">Growth teams</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </section>
