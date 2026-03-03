@@ -37,7 +37,6 @@ export default function AdminProjectConceptsPage() {
   const [conceptNumber, setConceptNumber] = useState(1);
   const [notes, setNotes] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const [replaceFiles, setReplaceFiles] = useState<Record<string, File | null>>({});
 
   async function refresh(id: string) {
     const conceptsResponse = await fetch(`/api/admin/projects/${id}/concepts`, { cache: "no-store" });
@@ -103,91 +102,6 @@ export default function AdminProjectConceptsPage() {
     setBusy(false);
   }
 
-  async function replaceConceptAsset(concept: Concept) {
-    if (!projectId) return;
-    const nextFile = replaceFiles[concept.id];
-    if (!nextFile) return;
-
-    setBusy(true);
-    setError(null);
-    setSuccess(null);
-
-    const data = new FormData();
-    data.set("file", nextFile);
-    data.set("conceptId", concept.id);
-    data.set("conceptNumber", String(concept.number));
-    data.set("notes", concept.notes ?? "");
-    data.set("uploadMode", "replace");
-
-    const response = await fetch(`/api/admin/projects/${projectId}/concepts`, {
-      method: "POST",
-      body: data,
-    });
-    const payload = await response.json().catch(() => null);
-
-    if (!response.ok) {
-      setError(readError(payload, `Failed to replace concept #${concept.number}`));
-    } else {
-      setReplaceFiles((prev) => ({ ...prev, [concept.id]: null }));
-      setSuccess(`Concept #${concept.number} asset replaced.`);
-      await refresh(projectId);
-    }
-
-    setBusy(false);
-  }
-
-  async function uploadRevision(concept: Concept) {
-    if (!projectId) return;
-    const nextFile = replaceFiles[concept.id];
-    if (!nextFile) return;
-
-    setBusy(true);
-    setError(null);
-    setSuccess(null);
-
-    const data = new FormData();
-    data.set("file", nextFile);
-    data.set("conceptId", concept.id);
-    data.set("conceptNumber", String(concept.number));
-    data.set("notes", concept.notes ?? "");
-    data.set("uploadMode", "revision");
-
-    const response = await fetch(`/api/admin/projects/${projectId}/concepts`, {
-      method: "POST",
-      body: data,
-    });
-    const payload = await response.json().catch(() => null);
-
-    if (!response.ok) {
-      setError(readError(payload, `Failed to upload revision for concept #${concept.number}`));
-    } else {
-      setReplaceFiles((prev) => ({ ...prev, [concept.id]: null }));
-      setSuccess(`Revision uploaded for Concept #${concept.number} (v${concept.revisionVersion + 1}).`);
-      await refresh(projectId);
-    }
-
-    setBusy(false);
-  }
-
-  async function deleteConcept(conceptId: string) {
-    if (!projectId) return;
-    setBusy(true);
-    setError(null);
-    setSuccess(null);
-
-    const response = await fetch(`/api/admin/projects/${projectId}/concepts/${conceptId}`, { method: "DELETE" });
-    const payload = await response.json().catch(() => null);
-
-    if (!response.ok) {
-      setError(readError(payload, "Delete failed"));
-    } else {
-      setSuccess("Concept deleted.");
-      await refresh(projectId);
-    }
-
-    setBusy(false);
-  }
-
   const totalPending = useMemo(
     () => concepts.reduce((acc, concept) => acc + concept.pendingRevisionCount + concept.commentCount, 0),
     [concepts],
@@ -216,7 +130,13 @@ export default function AdminProjectConceptsPage() {
 
           <form className="mt-4" onSubmit={uploadConcept}>
             <label className="block text-sm font-medium">Concept number</label>
-            <input className="mt-1 rounded border border-neutral-300 px-2 py-1" type="number" min={1} value={conceptNumber} onChange={(e) => setConceptNumber(Number.parseInt(e.target.value || "1", 10))} />
+            <input
+              className="mt-1 rounded border border-neutral-300 px-2 py-1"
+              type="number"
+              min={1}
+              value={conceptNumber}
+              onChange={(e) => setConceptNumber(Number.parseInt(e.target.value || "1", 10))}
+            />
 
             <label className="mt-4 block text-sm font-medium">Asset file</label>
             <input className="mt-1 block" type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
@@ -268,57 +188,10 @@ export default function AdminProjectConceptsPage() {
                     </div>
                   </Link>
 
-                  <div className="space-y-2 border-t border-neutral-200 p-3 text-xs">
-                    <div className="flex items-center justify-between gap-2">
-                      <Link className="underline" href={`/project/${projectId}/concept/${concept.id}?from=admin`}>
-                        Open discussion
-                      </Link>
-                      <button
-                        type="button"
-                        className="rounded border border-neutral-300 px-2 py-1"
-                        disabled={busy || !replaceFiles[concept.id]}
-                        onClick={() => {
-                          void uploadRevision(concept);
-                        }}
-                      >
-                        Upload revision
-                      </button>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <input
-                        className="block w-full text-xs"
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const nextFile = e.target.files?.[0] ?? null;
-                          setReplaceFiles((prev) => ({ ...prev, [concept.id]: nextFile }));
-                        }}
-                      />
-                      <button
-                        type="button"
-                        className="rounded border border-neutral-300 px-2 py-1"
-                        disabled={busy || !replaceFiles[concept.id]}
-                        onClick={() => {
-                          void replaceConceptAsset(concept);
-                        }}
-                      >
-                        Replace asset only
-                      </button>
-                    </div>
-
-                    <div className="flex items-center justify-end">
-                      <button
-                        type="button"
-                        className="rounded border border-neutral-300 px-2 py-1 text-red-700"
-                        disabled={busy}
-                        onClick={() => {
-                          void deleteConcept(concept.id);
-                        }}
-                      >
-                        Delete
-                      </button>
-                    </div>
+                  <div className="border-t border-neutral-200 p-3 text-xs">
+                    <Link className="underline" href={`/project/${projectId}/concept/${concept.id}?from=admin`}>
+                      Open discussion
+                    </Link>
                   </div>
                 </article>
               );

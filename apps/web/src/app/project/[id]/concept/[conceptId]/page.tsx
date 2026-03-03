@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+type ConceptAssetItem = { path: string; version: number; createdAt: string; url: string };
+
 import { HeaderNav } from "@/components/header-nav";
 import { PageShell } from "@/components/page-shell";
 
@@ -52,6 +54,8 @@ export default function ConceptDetailPage() {
   const [revisionBody, setRevisionBody] = useState("");
   const [designerReply, setDesignerReply] = useState("");
   const [comments, setComments] = useState<ConceptComment[]>([]);
+  const [assets, setAssets] = useState<ConceptAssetItem[]>([]);
+  const [selectedAssetUrl, setSelectedAssetUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
@@ -62,10 +66,11 @@ export default function ConceptDetailPage() {
   );
 
   const refresh = useCallback(async (id: string) => {
-    const [res, sessionRes, commentRes] = await Promise.all([
+    const [res, sessionRes, commentRes, assetsRes] = await Promise.all([
       fetch(`/api/projects/${id}`, { cache: "no-store" }),
       fetch("/api/auth/session", { cache: "no-store" }),
       fetch(`/api/projects/${id}/concepts/${conceptId}/comments`, { cache: "no-store" }),
+      fetch(`/api/projects/${id}/concepts/${conceptId}/assets`, { cache: "no-store" }),
     ]);
 
     const payload = await res.json().catch(() => null);
@@ -74,10 +79,14 @@ export default function ConceptDetailPage() {
     const commentPayload = await commentRes.json().catch(() => null);
     if (!commentRes.ok) throw new Error(readError(commentPayload, "Failed to load discussion"));
 
+    const assetsPayload = await assetsRes.json().catch(() => null);
+    if (!assetsRes.ok) throw new Error(readError(assetsPayload, "Failed to load concept assets"));
+
     const sessionPayload = (await sessionRes.json().catch(() => null)) as SessionPayload | null;
     setSession(sessionPayload ?? { authenticated: false });
     setSnapshot(payload?.snapshot ?? null);
     setComments((commentPayload?.comments ?? []) as ConceptComment[]);
+    setAssets((assetsPayload?.assets ?? []) as ConceptAssetItem[]);
   }, [conceptId]);
 
   useEffect(() => {
@@ -177,7 +186,15 @@ export default function ConceptDetailPage() {
   }
 
   const fromAdmin = searchParams.get("from") === "admin";
+  const isAdminView = fromAdmin || session.isAdmin;
   const backHref = fromAdmin ? `/admin/projects/${projectId}` : `/project/${projectId}`;
+
+  const latestAssetUrl = assets[0]?.url ?? concept?.imageUrl ?? null;
+
+  useEffect(() => {
+    if (!latestAssetUrl) return;
+    setSelectedAssetUrl((prev) => prev ?? latestAssetUrl);
+  }, [latestAssetUrl]);
 
   return (
     <PageShell>
@@ -203,9 +220,40 @@ export default function ConceptDetailPage() {
           <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
             <p className="text-sm font-medium">Concept #{concept.number} · v{concept.revisionVersion}</p>
             {concept.notes ? <p className="mt-1 text-sm text-neutral-700">{concept.notes}</p> : null}
-            {concept.imageUrl ? (
+            {selectedAssetUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img className="mt-3 w-full rounded border border-neutral-200" src={concept.imageUrl} alt={`Concept ${concept.number}`} />
+              <img className="mt-3 w-full rounded border border-neutral-200" src={selectedAssetUrl} alt={`Concept ${concept.number}`} />
+            ) : null}
+
+            {assets.length > 1 ? (
+              <div className="mt-3">
+                <p className="text-xs font-medium text-neutral-600">Revision history</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {assets.map((asset) => (
+                    <button
+                      key={asset.path}
+                      type="button"
+                      className={`overflow-hidden rounded border ${selectedAssetUrl === asset.url ? "border-neutral-900" : "border-neutral-200"}`}
+                      onClick={() => setSelectedAssetUrl(asset.url)}
+                      aria-label={`View v${asset.version}`}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={asset.url} alt={`Concept ${concept.number} v${asset.version}`} className="h-16 w-16 object-cover" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {isAdminView ? (
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <Link
+                  className="rounded border border-neutral-300 bg-neutral-50 px-3 py-1 text-sm"
+                  href={`/admin/projects/${projectId}/concepts/${conceptId}/revision`}
+                >
+                  Upload revision
+                </Link>
+              </div>
             ) : null}
 
             {snapshot?.status === "CONCEPTS_READY" && concept.status === "published" ? (
