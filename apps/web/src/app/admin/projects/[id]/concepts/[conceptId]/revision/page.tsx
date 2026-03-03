@@ -21,6 +21,7 @@ export default function AdminConceptRevisionUploadPage() {
 
   const [busy, setBusy] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -38,6 +39,7 @@ export default function AdminConceptRevisionUploadPage() {
     data.set("file", file);
     data.set("conceptId", conceptId);
     data.set("uploadMode", "revision");
+    data.set("notes", notes);
 
     const response = await fetch(`/api/admin/projects/${projectId}/concepts`, {
       method: "POST",
@@ -82,6 +84,16 @@ export default function AdminConceptRevisionUploadPage() {
           <form className="mt-4" onSubmit={uploadRevision}>
             <label className="block text-sm font-medium">Revision asset file</label>
             <input className="mt-1 block" type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+
+            <label className="mt-4 block text-sm font-medium">Description / explainer (optional)</label>
+            <p className="mt-1 text-xs text-neutral-600">If provided, this will update the concept description shown to the client.</p>
+            <textarea
+              className="mt-2 w-full rounded border border-neutral-300 px-2 py-1"
+              rows={4}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="e.g. What's changed in this revision and why"
+            />
 
             <button className="mt-4 rounded border border-neutral-300 px-3 py-1 text-sm" type="submit" disabled={busy || !file}>
               {busy ? "Uploading…" : "Upload revision"}

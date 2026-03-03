@@ -83,20 +83,41 @@ export default function ProjectConceptsPage() {
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {concepts.map((concept) => (
-            <Link key={concept.id} href={`/project/${projectId}/concept/${concept.id}`} className="overflow-hidden rounded-xl border border-neutral-200 bg-white transition hover:border-neutral-300">
-              {concept.imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={concept.imageUrl} alt={`Concept ${concept.number}`} className="h-56 w-full object-cover" />
-              ) : (
-                <div className="flex h-56 items-center justify-center bg-neutral-100 text-sm text-neutral-500">No preview</div>
-              )}
-              <div className="p-3">
-                <p className="text-sm font-medium text-neutral-900">Concept #{concept.number} · v{concept.revisionVersion}</p>
-                <p className="text-xs text-neutral-500">{concept.status}</p>
-              </div>
-            </Link>
-          ))}
+          {concepts.map((concept) => {
+            const notesPreview = concept.notes
+              ? concept.notes
+                  .trim()
+                  .replace(/\s+/g, " ")
+                  .slice(0, 140)
+              : null;
+
+            const showEllipsis = Boolean(concept.notes && concept.notes.trim().replace(/\s+/g, " ").length > 140);
+
+            return (
+              <Link
+                key={concept.id}
+                href={`/project/${projectId}/concept/${concept.id}`}
+                className="overflow-hidden rounded-xl border border-neutral-200 bg-white transition hover:border-neutral-300"
+              >
+                {concept.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={concept.imageUrl} alt={`Concept ${concept.number}`} className="h-56 w-full object-cover" />
+                ) : (
+                  <div className="flex h-56 items-center justify-center bg-neutral-100 text-sm text-neutral-500">No preview</div>
+                )}
+                <div className="p-3">
+                  <p className="text-sm font-medium text-neutral-900">Concept #{concept.number} · v{concept.revisionVersion}</p>
+                  <p className="text-xs text-neutral-500">{concept.status}</p>
+                  {notesPreview ? (
+                    <p className="mt-2 text-xs text-neutral-700">
+                      {notesPreview}
+                      {showEllipsis ? "…" : null}
+                    </p>
+                  ) : null}
+                </div>
+              </Link>
+            );
+          })}
         </section>
 
         {!loading && concepts.length === 0 ? <p className="mt-4 text-sm text-neutral-600">No concepts published yet.</p> : null}

@@ -219,7 +219,7 @@ export default function ConceptDetailPage() {
         {concept ? (
           <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
             <p className="text-sm font-medium">Concept #{concept.number} · v{concept.revisionVersion}</p>
-            {concept.notes ? <p className="mt-1 text-sm text-neutral-700">{concept.notes}</p> : null}
+            {concept.notes ? <p className="mt-1 whitespace-pre-wrap text-sm text-neutral-700">{concept.notes}</p> : null}
             {selectedAssetUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img className="mt-3 w-full rounded border border-neutral-200" src={selectedAssetUrl} alt={`Concept ${concept.number}`} />

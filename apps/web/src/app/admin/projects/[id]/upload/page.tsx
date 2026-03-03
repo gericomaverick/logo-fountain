@@ -115,8 +115,15 @@ export default function AdminProjectUploadPage() {
             <label className="mt-4 block text-sm font-medium">Asset file</label>
             <input className="mt-1 block" type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
 
-            <label className="mt-4 block text-sm font-medium">Notes</label>
-            <textarea className="mt-1 w-full rounded border border-neutral-300 px-2 py-1" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
+            <label className="mt-4 block text-sm font-medium">Description / explainer</label>
+            <p className="mt-1 text-xs text-neutral-600">Shown to the client on the concept page. You can use multiple lines.</p>
+            <textarea
+              className="mt-2 w-full rounded border border-neutral-300 px-2 py-1"
+              rows={4}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="e.g. Why this direction, what to look for, and any rationale"
+            />
 
             <button className="mt-4 rounded border border-neutral-300 px-3 py-1 text-sm" type="submit" disabled={busy || !file}>
               {busy ? "Uploading…" : "Upload concept"}
