@@ -140,6 +140,10 @@ export default function LoginPage() {
         Send magic link
       </button>
 
+      <div className="mt-4 flex items-center justify-between text-sm">
+        <a className="underline" href="/forgot-password">Forgot password?</a>
+      </div>
+
       {status ? <p className="mt-4 text-sm text-neutral-700">{status}</p> : null}
     </main>
   );
