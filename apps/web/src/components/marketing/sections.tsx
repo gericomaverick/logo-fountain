@@ -34,12 +34,27 @@ function SectionContainer({ children, className = "", yClass = sectionTokens.sec
   return <div className={`${sectionTokens.shell} ${yClass} ${className}`.trim()}>{children}</div>;
 }
 
-function HeroEyebrowPill({ children }: { children: ReactNode }) {
+function PretitlePill({
+  children,
+  variant = "dark",
+}: {
+  children: ReactNode;
+  variant?: "dark" | "light";
+}) {
+  const shell =
+    variant === "dark"
+      ? "inline-flex rounded-full border border-white/30 bg-white/10 px-4 py-1.5 text-[length:var(--step--2)] font-semibold uppercase tracking-[0.18em]"
+      : "inline-flex rounded-full border border-black/10 bg-black/[0.03] px-4 py-1.5 text-[length:var(--step--2)] font-semibold uppercase tracking-[0.18em]";
+
   return (
-    <p className="inline-flex rounded-full border border-white/30 bg-white/10 px-4 py-1.5 text-[length:var(--step--2)] font-semibold uppercase tracking-[0.18em] text-white">
-      {children}
+    <p className={shell}>
+      <span className="bg-[image:var(--lf-gradient-rainbow)] bg-clip-text text-transparent">{children}</span>
     </p>
   );
+}
+
+function HeroEyebrowPill({ children }: { children: ReactNode }) {
+  return <PretitlePill variant="dark">{children}</PretitlePill>;
 }
 
 function HeroHello({ children = "Hello" }: { children?: ReactNode }) {
@@ -138,7 +153,7 @@ export function HeroCenter({
       <MarketingNav />
 
       <SectionContainer yClass="pb-24 pt-12 md:pb-32 md:pt-16">
-        <HeroEyebrowPill>{eyebrow}</HeroEyebrowPill>
+        {eyebrow?.trim() ? <HeroEyebrowPill>{eyebrow}</HeroEyebrowPill> : null}
         <HeroHello />
         <h1 className="font-display mt-3 max-w-5xl text-[length:var(--step-7)] leading-[1.02] tracking-tight">{title}</h1>
         <p className="mt-6 max-w-2xl text-[length:var(--step-0)] leading-relaxed text-white/80">{body}</p>
@@ -183,7 +198,7 @@ export function LogoWall({ title, logos }: { title: string; logos: string[] }) {
 }
 
 export function SegmentCards({ eyebrow, title, items }: { eyebrow: string; title: string; items: Array<{ title: string; body: string; icon: string }> }) {
-  return <section className="bg-white"><SectionContainer><p className="text-center text-[length:var(--step--2)] font-semibold uppercase tracking-[0.18em] text-muted">{eyebrow}</p><h2 className="font-display mx-auto mt-3 max-w-3xl text-center text-[length:var(--step-4)] leading-tight">{title}</h2><div className="mt-8 grid gap-4 md:grid-cols-3">{items.map((item) => (<article key={item.title} className="rounded-[20px] border border-black bg-white p-6"><span className="text-xl text-[rgb(0,153,255)]">{item.icon}</span><h3 className="mt-3 text-[length:var(--step-1)] font-semibold">{item.title}</h3><p className="mt-2 text-[length:var(--step-0)] leading-relaxed text-muted">{item.body}</p></article>))}</div></SectionContainer></section>;
+  return <section className="bg-white"><SectionContainer><div className="flex justify-center">{eyebrow?.trim() ? <PretitlePill variant="light">{eyebrow}</PretitlePill> : null}</div><h2 className="font-display mx-auto mt-3 max-w-3xl text-center text-[length:var(--step-4)] leading-tight">{title}</h2><div className="mt-8 grid gap-4 md:grid-cols-3">{items.map((item) => (<article key={item.title} className="rounded-[20px] border border-black bg-white p-6"><span className="text-xl text-[rgb(0,153,255)]">{item.icon}</span><h3 className="mt-3 text-[length:var(--step-1)] font-semibold">{item.title}</h3><p className="mt-2 text-[length:var(--step-0)] leading-relaxed text-muted">{item.body}</p></article>))}</div></SectionContainer></section>;
 }
 
 export function TestimonialCardsRow({ title, items }: { title: string; items: Array<{ quote: string; byline: string }> }) {
@@ -194,7 +209,7 @@ export function DarkFeatureSection({ eyebrow, title, body, cards, primary, secon
   return (
     <section className="bg-black text-white">
       <SectionContainer yClass="py-16 md:py-22">
-        <p className="inline-flex rounded-full border border-white/35 bg-[image:var(--lf-gradient-purple)] px-4 py-1.5 text-[length:var(--step--2)] font-semibold uppercase tracking-[0.18em] text-white">{eyebrow}</p>
+        {eyebrow?.trim() ? <PretitlePill variant="dark">{eyebrow}</PretitlePill> : null}
         <h2 className="font-display mt-3 max-w-4xl text-[length:var(--step-4)] leading-tight">{title}</h2>
         <p className="mt-4 max-w-2xl text-[length:var(--step-0)] leading-relaxed text-white/80">{body}</p>
         <div className="mt-8 grid gap-4 md:grid-cols-3">{cards.map((card) => (<article key={card.title} className="rounded-[20px] border border-white/25 bg-white/5 p-6 backdrop-blur-sm md:sticky md:top-8"><h3 className="text-[length:var(--step-1)] font-semibold">{card.title}</h3><p className="mt-2 text-[length:var(--step-0)] leading-relaxed text-white/75">{card.body}</p></article>))}</div>

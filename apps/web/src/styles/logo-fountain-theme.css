@@ -21,6 +21,16 @@
   --lf-gradient-purple: linear-gradient(90deg, var(--lf-accent-purple) 0%, var(--lf-accent-purple-2) 100%);
   --lf-gradient-purple-soft: linear-gradient(135deg, rgb(81 80 247 / 0.14) 0%, rgb(148 148 247 / 0.08) 100%);
   --lf-gradient-accent-mix: linear-gradient(130deg, rgb(81 80 247 / 0.16) 0%, rgb(148 148 247 / 0.1) 45%, rgb(0 153 255 / 0.12) 100%);
+  --lf-gradient-rainbow: linear-gradient(
+    90deg,
+    rgb(255 214 165) 0%,
+    rgb(253 255 182) 16%,
+    rgb(202 255 191) 32%,
+    rgb(155 246 255) 48%,
+    rgb(160 196 255) 64%,
+    rgb(189 178 255) 80%,
+    rgb(255 198 255) 100%
+  );
 
   --lf-radius: 20px;
   --lf-border: 1px solid var(--lf-black);
