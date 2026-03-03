@@ -92,13 +92,15 @@ function EntitlementProgress({
 }
 
 function AreaCard({ title, href, hasNew }: { title: string; href: string; hasNew?: boolean }) {
+  const subtitle = hasNew && title === "Concepts" ? "New concepts/revisions available" : `Open ${title.toLowerCase()}`;
+
   return (
     <Link href={href} className="rounded-xl border border-neutral-200 bg-white p-4 transition hover:border-neutral-300">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-sm font-semibold text-neutral-900">{title}</h3>
         {hasNew ? <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">New</span> : null}
       </div>
-      <p className="mt-1 text-sm text-neutral-600">Open {title.toLowerCase()}</p>
+      <p className="mt-1 text-sm text-neutral-600">{subtitle}</p>
     </Link>
   );
 }

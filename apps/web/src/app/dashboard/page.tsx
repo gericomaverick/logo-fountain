@@ -15,6 +15,8 @@ type DashboardProject = {
   createdAt: Date;
   updatedAt: Date;
   concepts: Array<{ id: string; status: string; number: number }>;
+  hasNewMessages?: boolean;
+  hasNewConcepts?: boolean;
 };
 
 type DashboardSectionKey = "needs-action" | "in-progress" | "delivered";
@@ -92,7 +94,11 @@ function ProjectCard({ project }: { project: DashboardProject }) {
     <article className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <ProjectStatusBadge status={project.status} />
+          <div className="flex flex-wrap items-center gap-2">
+            <ProjectStatusBadge status={project.status} />
+            {project.hasNewConcepts ? <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800">New concepts</span> : null}
+            {project.hasNewMessages ? <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">New message</span> : null}
+          </div>
           <h3 className="mt-3 text-base font-semibold text-neutral-900">Project {project.id.slice(0, 8)}</h3>
           <p className="mt-1 text-sm text-neutral-600">Package: {project.packageCode}</p>
           <p className="mt-1 text-xs text-neutral-500">{formatProjectDate(project)}</p>
@@ -189,7 +195,47 @@ export default async function DashboardPage() {
     },
   });
 
-  const projects = memberships.flatMap((membership) => membership.client.projects) as DashboardProject[];
+  const projectsRaw = memberships.flatMap((membership) => membership.client.projects) as DashboardProject[];
+  const projectIds = projectsRaw.map((p) => p.id);
+
+  const [readStates, latestMessages, latestConcepts] = await Promise.all([
+    prisma.projectReadState.findMany({
+      where: { userId: user.id, projectId: { in: projectIds } },
+      select: { projectId: true, lastSeenMessagesAt: true, lastSeenConceptsAt: true },
+    }),
+    prisma.message.groupBy({
+      by: ["projectId"],
+      where: { projectId: { in: projectIds } },
+      _max: { createdAt: true },
+    }),
+    prisma.concept.groupBy({
+      by: ["projectId"],
+      where: { projectId: { in: projectIds }, status: { in: ["published", "approved"] } },
+      _max: { createdAt: true, updatedAt: true },
+    }),
+  ]);
+
+  const readStateByProject = new Map(readStates.map((r) => [r.projectId, r]));
+  const latestMessageByProject = new Map(latestMessages.map((row) => [row.projectId, row._max.createdAt ?? null]));
+  const latestConceptByProject = new Map(
+    latestConcepts.map((row) => {
+      const latest = row._max.updatedAt && row._max.createdAt
+        ? (row._max.updatedAt > row._max.createdAt ? row._max.updatedAt : row._max.createdAt)
+        : (row._max.updatedAt ?? row._max.createdAt ?? null);
+      return [row.projectId, latest];
+    }),
+  );
+
+  const projects = projectsRaw.map((p) => {
+    const rs = readStateByProject.get(p.id);
+    const latestMessageAt = latestMessageByProject.get(p.id) ?? null;
+    const latestConceptAt = latestConceptByProject.get(p.id) ?? null;
+
+    const hasNewMessages = Boolean(latestMessageAt && (!rs?.lastSeenMessagesAt || latestMessageAt > rs.lastSeenMessagesAt));
+    const hasNewConcepts = Boolean(latestConceptAt && (!rs?.lastSeenConceptsAt || latestConceptAt > rs.lastSeenConceptsAt));
+
+    return { ...p, hasNewMessages, hasNewConcepts };
+  });
 
   const sectioned: Record<DashboardSectionKey, DashboardProject[]> = {
     "needs-action": [],
