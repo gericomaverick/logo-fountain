@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { applyTransition } from "@/lib/project-state-machine";
 import { logAudit } from "@/lib/audit";
 import { requireProjectMembership, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
+import { createProjectSystemMessage } from "@/lib/system-messages";
 
 export const runtime = "nodejs";
 
@@ -57,6 +58,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       const created = await tx.revisionRequest.create({ data: { projectId: project.id, conceptId, status: REVISION_STATUS_REQUESTED, requestedBy: user.id, body: parsed.body }, select: { id: true, projectId: true, conceptId: true, status: true, body: true, createdAt: true } });
       const updatedProject = await tx.project.update({ where: { id: project.id }, data: { status: PROJECT_STATUS_REVISIONS_IN_PROGRESS }, select: { id: true, status: true } });
       await logAudit(tx, { projectId: project.id, actorId: user.id, type: "revision_requested", payload: { revisionRequestId: created.id, conceptId } });
+      await createProjectSystemMessage(tx, {
+        projectId: project.id,
+        fallbackUserId: user.id,
+        body: `Revision request received (${created.id.slice(0, 8)}).`,
+      });
       await logAudit(tx, { projectId: project.id, actorId: user.id, type: "state_changed", payload: { previousStatus: project.status, nextStatus: PROJECT_STATUS_REVISIONS_IN_PROGRESS } });
       return { revisionRequest: created, project: updatedProject };
     });

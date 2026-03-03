@@ -3,6 +3,7 @@ import { requireAdmin, requireUser, toRouteErrorResponse } from "@/lib/auth/requ
 import { prisma } from "@/lib/prisma";
 import { applyTransition } from "@/lib/project-state-machine";
 import { logAudit } from "@/lib/audit";
+import { createProjectSystemMessage } from "@/lib/system-messages";
 
 export const runtime = "nodejs";
 
@@ -21,7 +22,7 @@ export async function POST(
 
   const concept = await prisma.concept.findFirst({
     where: { id: conceptId, projectId },
-    select: { id: true },
+    select: { id: true, number: true },
   });
 
   if (!concept) {
@@ -53,7 +54,7 @@ export async function POST(
     const updatedConcept = await tx.concept.update({
       where: { id: conceptId },
       data: { status: CONCEPT_STATUS_PUBLISHED },
-      select: { id: true, status: true },
+      select: { id: true, number: true, status: true },
     });
 
     let updatedProjectStatus: string | null = null;
@@ -63,6 +64,12 @@ export async function POST(
       actorId: user.id,
       type: "concept_published",
       payload: { conceptId: updatedConcept.id },
+    });
+
+    await createProjectSystemMessage(tx, {
+      projectId,
+      fallbackUserId: user.id,
+      body: `Concept ${updatedConcept.number} is ready for review.`,
     });
 
     if (alreadyPublishedCount === 0) {

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { applyTransition } from "@/lib/project-state-machine";
 import { logAudit } from "@/lib/audit";
 import { RouteAuthError, requireAdmin, requireProjectMembership, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
+import { createProjectSystemMessage } from "@/lib/system-messages";
 
 export const runtime = "nodejs";
 const PROJECT_STATUS_BRIEF_SUBMITTED = "BRIEF_SUBMITTED";
@@ -20,29 +21,6 @@ function parseAnswers(body: unknown) {
   const description = typeof raw.description === "string" ? raw.description.trim() : "";
   const styleNotes = typeof raw.styleNotes === "string" ? raw.styleNotes.trim() : "";
   return brandName && industry && description && styleNotes ? { brandName, industry, description, styleNotes } : null;
-}
-
-function getAdminEmailAllowlist(): string[] {
-  return (process.env.ADMIN_EMAILS ?? "")
-    .split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean);
-}
-
-async function getSystemSenderId(fallbackUserId: string): Promise<string> {
-  const adminByFlag = await prisma.profile.findFirst({ where: { isAdmin: true }, select: { id: true } });
-  if (adminByFlag?.id) return adminByFlag.id;
-
-  const adminEmails = getAdminEmailAllowlist();
-  if (adminEmails.length > 0) {
-    const adminByEmail = await prisma.profile.findFirst({
-      where: { email: { in: adminEmails } },
-      select: { id: true },
-    });
-    if (adminByEmail?.id) return adminByEmail.id;
-  }
-
-  return fallbackUserId;
 }
 
 async function authorizeProjectAccess(projectId: string) {
@@ -94,8 +72,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const transition = applyTransition(project.status, PROJECT_STATUS_BRIEF_SUBMITTED);
     if (!transition.ok) return jsonError(`Invalid transition from ${project.status} to ${PROJECT_STATUS_BRIEF_SUBMITTED}`, 400, { allowed: transition.allowed, nextStep: "Submit brief only when project is ready." }, "INVALID_PROJECT_STATUS_TRANSITION");
 
-    const systemSenderId = await getSystemSenderId(user.id);
-
     for (let attempt = 0; attempt < 2; attempt += 1) {
       try {
         const result = await prisma.$transaction(async (tx) => {
@@ -104,29 +80,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
           const brief = await tx.projectBrief.create({ data: { projectId: project.id, version, answers, createdBy: user.id }, select: { id: true, version: true } });
           await tx.project.update({ where: { id: project.id }, data: { status: PROJECT_STATUS_BRIEF_SUBMITTED } });
 
-          const thread = await tx.messageThread.upsert({
-            where: { projectId: project.id },
-            update: {},
-            create: { projectId: project.id },
-            select: { id: true },
+          await createProjectSystemMessage(tx, {
+            projectId: project.id,
+            fallbackUserId: user.id,
+            body: BRIEF_RECEIVED_SYSTEM_MESSAGE,
           });
-
-          const existingSystemMessage = await tx.message.findFirst({
-            where: { threadId: thread.id, body: BRIEF_RECEIVED_SYSTEM_MESSAGE },
-            select: { id: true },
-          });
-
-          if (!existingSystemMessage) {
-            await tx.message.create({
-              data: {
-                threadId: thread.id,
-                projectId: project.id,
-                senderId: systemSenderId,
-                kind: "system",
-                body: BRIEF_RECEIVED_SYSTEM_MESSAGE,
-              },
-            });
-          }
 
           await logAudit(tx, { projectId: project.id, actorId: user.id, type: "brief_submitted", payload: { briefId: brief.id, version } });
           await logAudit(tx, { projectId: project.id, actorId: user.id, type: "state_changed", payload: { previousStatus: project.status, nextStatus: PROJECT_STATUS_BRIEF_SUBMITTED } });

@@ -3,6 +3,7 @@ import { requireAdmin, requireUser, toRouteErrorResponse } from "@/lib/auth/requ
 import { prisma } from "@/lib/prisma";
 import { applyTransition } from "@/lib/project-state-machine";
 import { logAudit } from "@/lib/audit";
+import { createProjectSystemMessage } from "@/lib/system-messages";
 
 export const runtime = "nodejs";
 
@@ -61,6 +62,12 @@ export async function POST(
       actorId: user.id,
       type: "revision_delivered",
       payload: { revisionRequestId: updatedRevisionRequest.id },
+    });
+
+    await createProjectSystemMessage(tx, {
+      projectId,
+      fallbackUserId: user.id,
+      body: `Revision update delivered (${updatedRevisionRequest.id.slice(0, 8)}).`,
     });
 
     if (setConceptsReady) {

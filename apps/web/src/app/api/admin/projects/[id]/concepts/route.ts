@@ -4,6 +4,7 @@ import { uploadConceptAsset } from "@/lib/supabase/storage";
 import { logAudit } from "@/lib/audit";
 import { applyTransition } from "@/lib/project-state-machine";
 import { requireAdmin, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
+import { createProjectSystemMessage } from "@/lib/system-messages";
 
 export const runtime = "nodejs";
 
@@ -144,6 +145,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         actorId: user.id,
         type: "concept_uploaded",
         payload: { conceptId: concept.id, conceptNumber: concept.number, filePath: upload.path, published: true },
+      });
+
+      await createProjectSystemMessage(tx, {
+        projectId,
+        fallbackUserId: user.id,
+        body: `Concept ${concept.number} is ready for review.`,
       });
 
       if (needsTransition) {

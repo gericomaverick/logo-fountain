@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { applyTransition } from "@/lib/project-state-machine";
 import { uploadFinalDeliverable } from "@/lib/supabase/storage";
 import { logAudit } from "@/lib/audit";
+import { createProjectSystemMessage } from "@/lib/system-messages";
 
 export const runtime = "nodejs";
 
@@ -113,6 +114,14 @@ export async function POST(
         type: "state_changed",
         payload: { previousStatus: project.status, nextStatus: targetStatus },
       });
+
+      if (targetStatus === PROJECT_STATUS_FINAL_FILES_READY) {
+        await createProjectSystemMessage(tx, {
+          projectId: project.id,
+          fallbackUserId: user.id,
+          body: "Final files are ready to download.",
+        });
+      }
 
       return { asset, project: updatedProject };
     });

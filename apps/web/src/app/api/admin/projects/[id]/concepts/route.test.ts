@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => {
     toRouteErrorResponse: vi.fn(),
     uploadConceptAsset: vi.fn(),
     logAudit: vi.fn(),
+    createProjectSystemMessage: vi.fn(),
     prisma: {
       project: { findUnique: vi.fn() },
       concept: { findUnique: vi.fn(), upsert: vi.fn(), count: vi.fn() },
@@ -31,6 +32,7 @@ vi.mock("@/lib/auth/require", () => ({
 vi.mock("@/lib/prisma", () => ({ prisma: mocks.prisma }));
 vi.mock("@/lib/supabase/storage", () => ({ uploadConceptAsset: mocks.uploadConceptAsset }));
 vi.mock("@/lib/audit", () => ({ logAudit: mocks.logAudit }));
+vi.mock("@/lib/system-messages", () => ({ createProjectSystemMessage: mocks.createProjectSystemMessage }));
 
 import { POST } from "./route";
 
@@ -53,6 +55,7 @@ describe("POST /api/admin/projects/[id]/concepts", () => {
     mocks.tx.fileAsset.create.mockResolvedValue(undefined);
     mocks.tx.project.update.mockResolvedValue({ status: "CONCEPTS_READY" });
     mocks.logAudit.mockResolvedValue(undefined);
+    mocks.createProjectSystemMessage.mockResolvedValue(undefined);
   });
 
   it("accepts first concept upload from BRIEF_SUBMITTED and transitions to CONCEPTS_READY", async () => {
@@ -69,6 +72,10 @@ describe("POST /api/admin/projects/[id]/concepts", () => {
     expect(payload.ok).toBe(true);
     expect(payload.projectStatus).toBe("CONCEPTS_READY");
     expect(mocks.tx.project.update).toHaveBeenCalledWith({ where: { id: "p1" }, data: { status: "CONCEPTS_READY" } });
+    expect(mocks.createProjectSystemMessage).toHaveBeenCalledWith(
+      mocks.tx,
+      expect.objectContaining({ projectId: "p1", fallbackUserId: "admin-1", body: "Concept 1 is ready for review." }),
+    );
     expect(mocks.logAudit).toHaveBeenCalledWith(
       mocks.tx,
       expect.objectContaining({ type: "state_changed", payload: { previousStatus: "BRIEF_SUBMITTED", nextStatus: "CONCEPTS_READY" } }),
