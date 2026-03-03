@@ -54,3 +54,9 @@ Step 4 notes:
 ## Notes
 - Use subagents for implementation.
 - After each step: update this file and commit the change.
+
+## Next steps (post-dashboard)
+- [ ] Marketing: add pricing cards to homepage (HYROS style) and ensure pricing routes/CTAs connect to Stripe checkout correctly.
+- [ ] Brief UX: make brief read-only view feel more document-like (typography, section framing, paper feel, version navigation clarity).
+- [ ] QA sweep: mobile review for all portal pages + check any remaining inconsistent surfaces.
+- [ ] Ops: document WSL2 LAN testing + Stripe/Supabase redirect configuration for local testers.
