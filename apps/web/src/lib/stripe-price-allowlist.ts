@@ -13,15 +13,15 @@ export const PACKAGE_TO_PRICE_ID: Record<PackageCode, string> = {
 
 export const UPSELL_PRICE_TO_ACTION: Record<string, UpsellAction> = {
   // £49
-  price_1T_extra_revision_REPLACE_ME: { kind: "addon", addonKey: "extra_revision", revisionDelta: 1 },
+  price_1SzFmjFM0K9Qd7oX5SrRfRvx: { kind: "addon", addonKey: "extra_revision", revisionDelta: 1 },
   // £180
-  price_1T_upgrade_essential_to_professional_REPLACE_ME: {
+  price_1SzFgSFM0K9Qd7oXRfDHdiyO: {
     kind: "upgrade",
     fromPackage: "essential",
     toPackage: "professional",
   },
   // £225
-  price_1T_upgrade_professional_to_complete_REPLACE_ME: {
+  price_1SzFiqFM0K9Qd7oX5j6yP3C0: {
     kind: "upgrade",
     fromPackage: "professional",
     toPackage: "complete",
