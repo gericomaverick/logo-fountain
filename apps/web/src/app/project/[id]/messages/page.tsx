@@ -106,7 +106,7 @@ export default function ProjectMessagesPage() {
   }
 
   return (
-    <>
+    <div className="min-h-screen bg-[#faf9f5]">
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
         <div className="mb-4 flex items-center justify-between gap-4">
@@ -182,6 +182,6 @@ export default function ProjectMessagesPage() {
           </form>
         </section>
       </main>
-    </>
+    </div>
   );
 }

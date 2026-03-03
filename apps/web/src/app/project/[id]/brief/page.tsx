@@ -81,13 +81,13 @@ export default async function ProjectBriefPage({ params }: ProjectBriefPageProps
 
   if (!project) {
     return (
-      <>
+      <div className="min-h-screen bg-[#faf9f5]">
         <HeaderNav />
         <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
           <h1 className="text-2xl font-semibold">Project brief</h1>
           <p className="mt-2 text-sm text-neutral-600">Project not found.</p>
         </main>
-      </>
+      </div>
     );
   }
 
@@ -105,7 +105,7 @@ export default async function ProjectBriefPage({ params }: ProjectBriefPageProps
     .filter((brief): brief is ParsedBrief => Boolean(brief));
 
   return (
-    <>
+    <div className="min-h-screen bg-[#faf9f5]">
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -120,6 +120,6 @@ export default async function ProjectBriefPage({ params }: ProjectBriefPageProps
 
         <BriefForm projectId={project.id} briefVersions={briefVersions} />
       </main>
-    </>
+    </div>
   );
 }
