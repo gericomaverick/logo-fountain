@@ -79,18 +79,21 @@ export default function SettingsPage() {
   }
 
   return (
-    <>
+    <div className="min-h-screen bg-[#faf9f5]">
       <HeaderNav />
-      <main className="mx-auto max-w-3xl p-8">
-        <h1 className="text-2xl font-semibold">Settings</h1>
-        <p className="mt-2 text-sm text-neutral-600">Update your profile details.</p>
+      <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
+        <header className="mb-6">
+          <h1 className="text-2xl font-semibold text-neutral-900">Settings</h1>
+          <p className="mt-2 text-sm text-neutral-600">Update your profile details.</p>
+        </header>
 
         {loading ? <p className="mt-4 text-sm text-neutral-500">Loading…</p> : null}
         {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
 
         {!loading && !error ? (
-          <form className="mt-6 space-y-4" onSubmit={(e) => void onSave(e)}>
-            <label className="block text-sm">
+          <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
+            <form className="space-y-4" onSubmit={(e) => void onSave(e)}>
+              <label className="block text-sm">
               <span className="mb-1 block font-medium">Email</span>
               <input
                 className="w-full rounded border border-neutral-300 bg-neutral-100 px-3 py-2"
@@ -131,9 +134,10 @@ export default function SettingsPage() {
             </button>
 
             {saved ? <p className="text-sm text-green-700">{saved}</p> : null}
-          </form>
+            </form>
+          </section>
         ) : null}
       </main>
-    </>
+    </div>
   );
 }

@@ -179,7 +179,7 @@ export default function ConceptDetailPage() {
   const backHref = fromAdmin ? `/admin/projects/${projectId}` : `/project/${projectId}`;
 
   return (
-    <>
+    <div className="min-h-screen bg-[#faf9f5]">
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
         <div className="mb-4 flex items-center justify-between gap-4">
@@ -199,7 +199,7 @@ export default function ConceptDetailPage() {
         {!loading && !concept ? <p className="text-sm text-neutral-700">Concept not found.</p> : null}
 
         {concept ? (
-          <section className="rounded border border-neutral-200 p-4">
+          <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
             <p className="text-sm font-medium">Concept #{concept.number} · v{concept.revisionVersion}</p>
             {concept.notes ? <p className="mt-1 text-sm text-neutral-700">{concept.notes}</p> : null}
             {concept.imageUrl ? (
@@ -216,7 +216,7 @@ export default function ConceptDetailPage() {
         ) : null}
 
         {concept ? (
-          <section className="mt-8 rounded border border-neutral-200 p-4">
+          <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
             <h2 className="text-lg font-medium">Feedback & revisions</h2>
             <p className="mt-1 text-sm text-neutral-600">Revisions remaining: {snapshot?.entitlements.revisions ?? 0}</p>
             {actionError ? <p className="mt-2 text-sm text-red-600">{actionError}</p> : null}
@@ -307,6 +307,6 @@ export default function ConceptDetailPage() {
           </section>
         ) : null}
       </main>
-    </>
+    </div>
   );
 }
