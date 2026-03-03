@@ -16,6 +16,23 @@ type Concept = {
   imageUrl: string | null;
 };
 
+function formatConceptStatus(status: string) {
+  return status
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+}
+
+function getConceptStatusBadgeClass(status: string) {
+  const normalized = status.toLowerCase();
+
+  if (normalized === "approved") return "bg-emerald-100 text-emerald-800";
+  if (normalized === "published") return "bg-blue-100 text-blue-800";
+  if (normalized === "deleted" || normalized === "archived") return "bg-neutral-200 text-neutral-700";
+
+  return "bg-amber-100 text-amber-900";
+}
+
 function readError(payload: { error?: { message?: string; details?: { nextStep?: string } } | string } | null, fallback: string): string {
   const err = payload?.error;
   const message = typeof err === "string" ? err : err?.message ?? fallback;
@@ -106,8 +123,12 @@ export default function ProjectConceptsPage() {
                   <div className="flex h-56 items-center justify-center bg-neutral-100 text-sm text-neutral-500">No preview</div>
                 )}
                 <div className="p-3">
-                  <p className="text-sm font-medium text-neutral-900">Concept #{concept.number} · v{concept.revisionVersion}</p>
-                  <p className="text-xs text-neutral-500">{concept.status}</p>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-medium text-neutral-900">Concept #{concept.number} · v{concept.revisionVersion}</p>
+                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${getConceptStatusBadgeClass(concept.status)}`}>
+                      {formatConceptStatus(concept.status)}
+                    </span>
+                  </div>
                   {notesPreview ? (
                     <p className="mt-2 text-xs text-neutral-700">
                       {notesPreview}

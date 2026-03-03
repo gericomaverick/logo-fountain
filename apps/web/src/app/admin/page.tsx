@@ -16,7 +16,17 @@ type AdminProjectRow = {
   packageCode: string;
   createdAt: Date;
   updatedAt: Date;
-  client: { name: string };
+  client: {
+    name: string;
+    memberships: Array<{
+      role: string;
+      user: {
+        firstName: string | null;
+        lastName: string | null;
+        email: string;
+      };
+    }>;
+  };
   orders: Array<{ status: string; stripeCheckoutSessionId: string | null }>;
   pendingFeedbackCount: number;
   latestMessageAt: Date | null;
@@ -53,6 +63,25 @@ function getStuckReason(order: { status: string; stripeCheckoutSessionId: string
   return null;
 }
 
+function getPrimaryClientContact(
+  memberships: Array<{
+    role: string;
+    user: { firstName: string | null; lastName: string | null; email: string };
+  }>,
+) {
+  const owner = memberships.find((membership) => membership.role.toLowerCase() === "owner");
+  const primary = owner ?? memberships[0];
+
+  if (!primary) return null;
+
+  const fullName = [primary.user.firstName, primary.user.lastName].filter(Boolean).join(" ").trim();
+
+  return {
+    name: fullName || primary.user.email,
+    email: primary.user.email,
+  };
+}
+
 function AdminSection({
   title,
   description,
@@ -76,6 +105,7 @@ function AdminSection({
           {projects.map((project) => {
             const latestOrder = project.orders[0] ?? null;
             const stuckReason = getStuckReason(latestOrder);
+            const primaryClientContact = getPrimaryClientContact(project.client.memberships);
 
             return (
               <article key={project.id} className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
@@ -84,6 +114,11 @@ function AdminSection({
                     <ProjectStatusBadge status={project.status} />
                     <h3 className="mt-3 text-base font-semibold text-neutral-900">Project {project.id.slice(0, 8)}</h3>
                     <p className="mt-1 text-sm text-neutral-600">Client: {project.client.name}</p>
+                    {primaryClientContact ? (
+                      <p className="text-sm text-neutral-600">
+                        Contact: {primaryClientContact.name} <span className="text-neutral-500">({primaryClientContact.email})</span>
+                      </p>
+                    ) : null}
                     <p className="text-sm text-neutral-600">Package: {project.packageCode}</p>
                   </div>
 
@@ -142,7 +177,23 @@ export default async function AdminHomePage() {
       packageCode: true,
       createdAt: true,
       updatedAt: true,
-      client: { select: { name: true } },
+      client: {
+        select: {
+          name: true,
+          memberships: {
+            select: {
+              role: true,
+              user: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      },
       orders: {
         orderBy: { createdAt: "desc" },
         take: 1,

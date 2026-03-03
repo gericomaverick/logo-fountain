@@ -232,6 +232,8 @@ export default async function DashboardPage() {
     }),
   );
 
+  const greeting = profile?.firstName ? `Hey, ${profile.firstName}` : "Hey there";
+
   const projects = projectsRaw.map((p) => {
     const rs = readStateByProject.get(p.id);
     const latestMessageAt = latestMessageByProject.get(p.id) ?? null;
@@ -258,8 +260,7 @@ export default async function DashboardPage() {
     <PageShell>
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
-        <h1 className="text-3xl font-semibold text-neutral-900">Dashboard</h1>
-        {profile?.firstName ? <p className="mt-2 text-sm text-neutral-700">Welcome back, {profile.firstName}</p> : null}
+        <h1 className="text-3xl font-semibold text-neutral-900">{greeting}</h1>
 
         {projects.length === 0 ? (
           <p className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 text-sm text-neutral-600">No projects yet.</p>
