@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { ProjectTimeline } from "@/app/project-timeline";
@@ -30,6 +30,11 @@ type Snapshot = {
   finalZip: { available: boolean; url: string | null };
   primaryCta?: string | null;
   timeline?: Array<{ state: string; label: string; completed: boolean; current: boolean; timestamp?: string }>;
+};
+
+type SessionPayload = {
+  authenticated: boolean;
+  isAdmin?: boolean;
 };
 
 function readError(payload: { error?: { message?: string; details?: { nextStep?: string } } | string } | null, fallback: string): string {
@@ -106,16 +111,25 @@ function AreaCard({ title, href, hasNew }: { title: string; href: string; hasNew
 }
 
 export default function ProjectPage() {
+  const router = useRouter();
   const params = useParams<{ id: string }>();
   const projectId = params.id;
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
+  const [session, setSession] = useState<SessionPayload>({ authenticated: false });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   async function refresh(id: string) {
-    const response = await fetch(`/api/projects/${id}`, { cache: "no-store" });
+    const [response, sessionRes] = await Promise.all([
+      fetch(`/api/projects/${id}`, { cache: "no-store" }),
+      fetch("/api/auth/session", { cache: "no-store" }),
+    ]);
+
     const payload = await response.json().catch(() => null);
     if (!response.ok) throw new Error(readError(payload, "Failed to load project"));
+
+    const sessionPayload = (await sessionRes.json().catch(() => null)) as SessionPayload | null;
+    setSession(sessionPayload ?? { authenticated: false });
     setSnapshot(payload?.snapshot ?? null);
   }
 
@@ -145,6 +159,15 @@ export default function ProjectPage() {
       clearInterval(timer);
     };
   }, [projectId]);
+
+  useEffect(() => {
+    if (!snapshot) return;
+    if (session.isAdmin) return;
+
+    if (snapshot.status === "AWAITING_BRIEF") {
+      router.replace(`/project/${projectId}/brief`);
+    }
+  }, [projectId, router, session.isAdmin, snapshot]);
 
   const conceptUsage = useMemo(
     () => resolveUsage(snapshot?.entitlementUsage?.concepts),
