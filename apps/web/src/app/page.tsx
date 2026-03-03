@@ -73,7 +73,6 @@ export default function Home() {
   return (
     <main className="bg-white text-black">
       <HeroCenter
-        eyebrow="The UK's best logo design service"
         hello="Hello"
         title="Built for brands that refuse to look average"
         body="Direct-response logo design that turns ‘we should fix our brand’ into ‘we launched and it converts.’"
