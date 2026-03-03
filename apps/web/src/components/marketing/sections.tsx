@@ -21,7 +21,6 @@ const sectionTokens = {
   border: "border border-black",
   subtleBorder: "border border-[#e8e8e8]",
   mutedCard: "bg-[#f9f9f9]",
-  panelShadow: "shadow-[0_18px_55px_rgba(0,0,0,0.08)]",
 };
 
 const defaultHeroTrustItems: TrustItem[] = [
@@ -115,7 +114,7 @@ function BylineWithAccent({ byline }: { byline: string }) {
 
 function StatCard({ item }: { item: StatItem }) {
   return (
-    <article className={`${sectionTokens.radius} ${sectionTokens.subtleBorder} ${sectionTokens.panelShadow} bg-white px-6 py-6 md:px-7`}>
+    <article className={`${sectionTokens.radius} ${sectionTokens.subtleBorder} ${sectionTokens.mutedCard} px-8 pb-8 pt-4`}>
       <p className="font-display text-[length:var(--step-3)] leading-none tracking-tight text-black">{item.value}</p>
       <div className="mt-4 h-px w-full bg-black/10" aria-hidden />
       <p className="mt-3 text-[length:var(--step--1)] font-medium text-muted">{item.label}</p>
@@ -180,7 +179,7 @@ export function ProofStatsRow({ quote, byline, stats }: { quote: string; byline:
     <section className="bg-white">
       <SectionContainer>
         <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
-          <article className={`${sectionTokens.radius} ${sectionTokens.subtleBorder} ${sectionTokens.panelShadow} bg-white p-7 md:p-10`}>
+          <article className={`${sectionTokens.radius} ${sectionTokens.subtleBorder} ${sectionTokens.mutedCard} px-8 pb-10 pt-4`}>
             <p className="font-display text-[length:var(--step-3)] leading-[1.2] text-black">“{quote}”</p>
             <p className="mt-5 text-[length:var(--step--1)] font-semibold text-muted">{byline}</p>
           </article>

@@ -42,8 +42,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.variable} ${reckless.variable} ${sfizia.variable} lf-theme antialiased`}>{children}</body>
+    <html lang="en" className={`${inter.variable} ${reckless.variable} ${sfizia.variable}`}>
+      <body className="lf-theme antialiased">{children}</body>
     </html>
   );
 }
