@@ -18,6 +18,15 @@ type Snapshot = {
 
 type SessionPayload = { authenticated: boolean; isAdmin?: boolean; email?: string; fullName?: string | null };
 type ConceptComment = { id: string; body: string; createdAt: string; author: { id: string; email: string; fullName: string | null; isAdmin: boolean } };
+type UnifiedThreadItem = {
+  id: string;
+  kind: "revision" | "comment";
+  body: string;
+  createdAt: string;
+  authorLabel: string;
+  status?: string;
+  isDesignerReply: boolean;
+};
 
 function readError(payload: { error?: { message?: string; details?: { nextStep?: string } } | string } | null, fallback: string): string {
   const err = payload?.error;
@@ -39,6 +48,11 @@ function formatDateTime(value?: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "—";
   return DATE_TIME_FORMATTER.format(date);
+}
+
+function toTimestamp(value: string): number {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
 }
 
 export default function ConceptDetailPage() {
@@ -64,6 +78,34 @@ export default function ConceptDetailPage() {
     () => snapshot?.concepts.find((item) => item.id === conceptId) ?? null,
     [snapshot?.concepts, conceptId],
   );
+
+  const conceptRevisionRequests = useMemo(
+    () => (snapshot?.revisionRequests ?? []).filter((r) => r.concept?.id === conceptId),
+    [snapshot?.revisionRequests, conceptId],
+  );
+
+  const unifiedThread = useMemo<UnifiedThreadItem[]>(() => {
+    const revisionItems = conceptRevisionRequests.map((r) => ({
+      id: `revision-${r.id}`,
+      kind: "revision" as const,
+      body: r.body,
+      createdAt: r.createdAt,
+      authorLabel: r.user?.fullName ?? r.user?.email ?? "Client",
+      status: r.status,
+      isDesignerReply: false,
+    }));
+
+    const commentItems = comments.map((comment) => ({
+      id: `comment-${comment.id}`,
+      kind: "comment" as const,
+      body: comment.body,
+      createdAt: comment.createdAt,
+      authorLabel: `${comment.author.fullName ?? comment.author.email}${comment.author.isAdmin ? " (Designer)" : ""}`,
+      isDesignerReply: comment.author.isAdmin,
+    }));
+
+    return [...revisionItems, ...commentItems].sort((a, b) => toTimestamp(a.createdAt) - toTimestamp(b.createdAt));
+  }, [comments, conceptRevisionRequests]);
 
   const refresh = useCallback(async (id: string) => {
     const [res, sessionRes, commentRes, assetsRes] = await Promise.all([
@@ -159,7 +201,7 @@ export default function ConceptDetailPage() {
       setActionError(readError(payload, "Failed to send message"));
     } else {
       setDesignerReply("");
-      setActionSuccess("Reply posted in concept discussion.");
+      setActionSuccess("Reply posted in concept thread.");
       await refresh(projectId);
     }
 
@@ -283,52 +325,46 @@ export default function ConceptDetailPage() {
             {actionError ? <p className="mt-2 text-sm text-red-600">{actionError}</p> : null}
             {actionSuccess ? <p className="mt-2 text-sm text-green-700">{actionSuccess}</p> : null}
 
-            <div className="mt-4">
-              <h3 className="text-sm font-semibold text-neutral-900">Your feedback on this concept</h3>
-              <ul className="mt-2 space-y-2">
-                {(snapshot?.revisionRequests ?? [])
-                  .filter((r) => r.concept?.id === conceptId)
-                  .slice()
-                  .reverse()
-                  .map((r) => (
-                    <li key={r.id} className="rounded-xl border border-neutral-200 bg-white p-3 text-sm">
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-xs font-semibold text-neutral-700">{r.user?.fullName ?? r.user?.email ?? "Client"}</p>
-                        <p className="text-xs text-neutral-500">{formatDateTime(r.createdAt)}</p>
-                      </div>
-                      <div className="mt-2 rounded-2xl bg-neutral-100 px-3 py-2 text-neutral-900">
-                        <p className="whitespace-pre-wrap">{r.body}</p>
-                      </div>
-                      <p className="mt-2 inline-flex rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-700">{r.status}</p>
-                    </li>
-                  ))}
-                {(snapshot?.revisionRequests ?? []).filter((r) => r.concept?.id === conceptId).length === 0 ? (
-                  <li className="text-sm text-neutral-600">No feedback submitted yet for this concept.</li>
-                ) : null}
-              </ul>
-            </div>
+            <div className="mt-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+              <h3 className="text-sm font-semibold text-neutral-900">Concept thread</h3>
+              <p className="mt-1 text-xs text-neutral-600">Client feedback and designer replies appear together in one timeline.</p>
 
-            <div className="mt-6">
-              <h3 className="text-sm font-semibold text-neutral-900">Concept discussion (separate from project messages)</h3>
-              <ul className="mt-2 space-y-2">
-                {comments.map((comment) => (
-                  <li key={comment.id} className="rounded-xl border border-neutral-200 bg-white p-3 text-sm">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-xs font-semibold text-neutral-700">{comment.author.fullName ?? comment.author.email}{comment.author.isAdmin ? " (Designer)" : ""}</p>
-                      <p className="text-xs text-neutral-500">{formatDateTime(comment.createdAt)}</p>
-                    </div>
-                    <div className="mt-2 rounded-2xl bg-blue-50 px-3 py-2 text-neutral-900">
-                      <p className="whitespace-pre-wrap">{comment.body}</p>
+              <ul className="mt-4 space-y-3">
+                {unifiedThread.map((item) => (
+                  <li key={item.id} className={`flex ${item.isDesignerReply ? "justify-start" : "justify-end"}`}>
+                    <div className="max-w-[90%]">
+                      <div className="mb-1 flex items-center gap-2 text-xs text-neutral-500">
+                        <p className="font-semibold text-neutral-700">{item.authorLabel}</p>
+                        <span>•</span>
+                        <p>{formatDateTime(item.createdAt)}</p>
+                      </div>
+
+                      <div
+                        className={`rounded-2xl px-3 py-2 text-sm text-neutral-900 ${
+                          item.isDesignerReply ? "border border-blue-200 bg-blue-50" : "border border-neutral-200 bg-white"
+                        }`}
+                      >
+                        <p className="whitespace-pre-wrap">{item.body}</p>
+                      </div>
+
+                      {item.kind === "revision" && item.status ? (
+                        <p className="mt-1 inline-flex rounded-full bg-neutral-200 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-neutral-700">
+                          {item.status}
+                        </p>
+                      ) : null}
                     </div>
                   </li>
                 ))}
-                {comments.length === 0 ? <li className="text-sm text-neutral-600">No discussion replies yet.</li> : null}
+                {unifiedThread.length === 0 ? (
+                  <li className="text-sm text-neutral-600">No feedback or replies yet for this concept.</li>
+                ) : null}
               </ul>
             </div>
 
             {session.isAdmin ? (
               <form className="mt-6" onSubmit={submitDesignerMessage}>
-                <label className="block text-sm font-semibold text-neutral-900">Post designer reply in concept discussion</label>
+                <label className="block text-sm font-semibold text-neutral-900">Post a designer reply</label>
+                <p className="mt-1 text-sm text-neutral-600">Your reply will appear in the same concept thread.</p>
                 <textarea
                   className="mt-2 w-full rounded border border-neutral-300 px-2 py-1"
                   rows={4}
