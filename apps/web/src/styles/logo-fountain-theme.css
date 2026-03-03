@@ -14,6 +14,8 @@
   --lf-white-05: #ffffff0d;
   --lf-white-02: #ffffff05;
 
+  --lf-parchment: #faf9f5;
+
   --lf-accent-purple: rgb(81 80 247);
   --lf-accent-purple-2: rgb(148 148 247);
   --lf-accent-blue: rgb(0 153 255);
@@ -31,6 +33,19 @@
     rgb(189 178 255) 80%,
     rgb(255 198 255) 100%
   );
+
+  --lf-hero-bg:
+    radial-gradient(
+      circle at 20% 0%,
+      rgb(255 255 255 / 0.22) 0%,
+      rgb(255 255 255 / 0) 55%
+    ),
+    radial-gradient(
+      circle at 80% 0%,
+      rgb(0 0 0 / 0.18) 0%,
+      rgb(0 0 0 / 0) 55%
+    ),
+    var(--lf-accent-purple);
 
   --lf-radius: 20px;
   --lf-border: 1px solid var(--lf-black);
@@ -118,4 +133,18 @@
 .lf-link {
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+@layer components {
+  .lf-hero-bg {
+    background: var(--lf-hero-bg);
+  }
+
+  .lf-bg-rainbow {
+    background: var(--lf-gradient-rainbow);
+  }
+
+  .lf-bg-parchment {
+    background: var(--lf-parchment);
+  }
 }

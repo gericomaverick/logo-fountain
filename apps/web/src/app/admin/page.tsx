@@ -78,7 +78,7 @@ function AdminSection({
             const stuckReason = getStuckReason(latestOrder);
 
             return (
-              <article key={project.id} className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+              <article key={project.id} className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <ProjectStatusBadge status={project.status} />

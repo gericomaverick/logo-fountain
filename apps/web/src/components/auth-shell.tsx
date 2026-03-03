@@ -12,7 +12,7 @@ export function AuthShell({
   children: ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[#faf9f5] px-6 py-12">
+    <div className="min-h-screen lf-bg-parchment px-6 py-12 ">
       <div className="mx-auto w-full max-w-md">
         <div className="mb-6 flex items-center justify-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}

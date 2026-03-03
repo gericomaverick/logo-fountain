@@ -188,7 +188,7 @@ export default function AdminProjectPage() {
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
         <p className="text-sm"><Link href="/admin" className="underline">← Back to dashboard</Link></p>
 
-        <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+        <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <ProjectStatusBadge status={snapshot?.status ?? "UNKNOWN"} />
@@ -315,7 +315,7 @@ export default function AdminProjectPage() {
         ) : null}
 
         {(snapshot?.revisionRequests ?? []).some((r) => r.status !== "delivered") ? (
-          <section className="mt-8 rounded border border-neutral-200 p-4">
+          <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
             <h2 className="text-lg font-medium">Outstanding revision requests</h2>
             <p className="mt-1 text-sm text-neutral-600">Client feedback waiting for a designer response.</p>
             <ul className="mt-4 space-y-3">
@@ -366,7 +366,7 @@ export default function AdminProjectPage() {
           </section>
         ) : null}
 
-        <section className="mt-8 rounded border border-neutral-200 p-4">
+        <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
           <div className="flex items-center justify-between gap-3">
             <div>
               <h2 className="text-lg font-medium">Concepts</h2>
@@ -406,7 +406,7 @@ export default function AdminProjectPage() {
           </ul>
         </section>
 
-        <section className="mt-8 rounded border border-neutral-200 p-4">
+        <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
           <h2 className="text-lg font-medium">Audit log</h2>
           <ul className="mt-3 space-y-3">
             {auditEvents.map((event) => (

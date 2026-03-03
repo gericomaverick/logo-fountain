@@ -101,7 +101,7 @@ export default function AdminProjectUploadPage() {
           </div>
         </div>
 
-        <section className="rounded-xl border border-neutral-200 p-4">
+        <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
           <h2 className="text-lg font-medium">Upload and publish concept</h2>
           <p className="mt-1 text-sm text-neutral-600">Uploading here publishes immediately so the client can view it in project and concept detail pages.</p>
 
@@ -124,7 +124,7 @@ export default function AdminProjectUploadPage() {
           </form>
         </section>
 
-        <section className="mt-8 rounded border border-neutral-200 p-4">
+        <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
           <h2 className="text-lg font-medium">Existing concepts</h2>
           {loading ? <p className="mt-3 text-sm text-neutral-600">Loading…</p> : null}
           <ul className="mt-3 space-y-2">

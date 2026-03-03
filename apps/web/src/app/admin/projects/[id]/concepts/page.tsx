@@ -209,7 +209,7 @@ export default function AdminProjectConceptsPage() {
           </div>
         </div>
 
-        <section className="rounded-xl border border-neutral-200 p-4">
+        <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
           <h2 className="text-lg font-medium">Upload and publish concept</h2>
           {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
           {success ? <p className="mt-3 text-sm text-green-700">{success}</p> : null}

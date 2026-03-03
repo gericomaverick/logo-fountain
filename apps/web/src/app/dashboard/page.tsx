@@ -92,7 +92,7 @@ function ProjectCard({ project }: { project: DashboardProject }) {
   const statusNote = getStatusNote(project.status);
 
   return (
-    <article className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+    <article className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">

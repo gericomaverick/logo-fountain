@@ -8,7 +8,7 @@ type TimelineItem = {
 
 export function ProjectTimeline({ timeline, primaryCta }: { timeline: TimelineItem[]; primaryCta?: string | null }) {
   return (
-    <section className="mt-6 rounded border border-neutral-200 p-4">
+    <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
       <h2 className="text-lg font-medium">Timeline</h2>
       {primaryCta ? <p className="mt-1 text-sm text-neutral-600">Next action: <span className="font-medium">{primaryCta}</span></p> : null}
       <ol className="mt-4 space-y-2">
