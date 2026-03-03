@@ -49,6 +49,17 @@ export async function DELETE(
         `;
       }
 
+      if (resolved.count > 0) {
+        // If we resolved revision requests due to concept deletion, also refund the consumed revisions.
+        await tx.$executeRaw`
+          UPDATE "ProjectEntitlement"
+          SET "consumedInt" = GREATEST(COALESCE("consumedInt", 0) - ${resolved.count}, 0),
+              "updatedAt" = NOW()
+          WHERE "projectId" = ${projectId}::uuid
+            AND "key" = 'revisions'
+        `;
+      }
+
       await logAudit(tx, {
         projectId,
         actorId: user.id,
