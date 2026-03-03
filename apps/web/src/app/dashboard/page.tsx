@@ -1,7 +1,8 @@
 import Link from "next/link";
 
 import { HeaderNav } from "@/components/header-nav";
-import { PROJECT_STATE_LABELS, type ProjectState } from "@/lib/project-state-machine";
+import { ProjectStatusBadge } from "@/components/project-status-badge";
+import { type ProjectState } from "@/lib/project-state-machine";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -104,16 +105,13 @@ function formatProjectDate(project: DashboardProject) {
 
 function ProjectCard({ project }: { project: DashboardProject }) {
   const cta = getPrimaryCta(project);
-  const statusLabel = PROJECT_STATE_LABELS[project.status] ?? project.status;
   const statusNote = getStatusNote(project.status);
 
   return (
     <article className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <span className="inline-flex rounded-full border border-neutral-300 bg-neutral-50 px-2.5 py-1 text-xs font-medium uppercase tracking-wide text-neutral-700">
-            {statusLabel}
-          </span>
+          <ProjectStatusBadge status={project.status} />
           <h3 className="mt-3 text-base font-semibold text-neutral-900">Project {project.id.slice(0, 8)}</h3>
           <p className="mt-1 text-sm text-neutral-600">Package: {project.packageCode}</p>
           <p className="mt-1 text-xs text-neutral-500">{formatProjectDate(project)}</p>

@@ -40,6 +40,7 @@ export async function getProjectSnapshot({ projectId }: SnapshotArgs) {
       status: true,
       packageCode: true,
       createdAt: true,
+      updatedAt: true,
       entitlements: {
         where: { key: { in: ["concepts", "revisions"] } },
         select: { key: true, limitInt: true, consumedInt: true },
@@ -89,12 +90,24 @@ export async function getProjectSnapshot({ projectId }: SnapshotArgs) {
 
   if (!project) return null;
 
-  const entitlements = { concepts: 0, revisions: 0 };
+  const entitlementUsage = {
+    concepts: { limit: 0, consumed: 0, remaining: 0 },
+    revisions: { limit: 0, consumed: 0, remaining: 0 },
+  };
+
   for (const entitlement of project.entitlements) {
-    const remaining = Math.max((entitlement.limitInt ?? 0) - entitlement.consumedInt, 0);
-    if (entitlement.key === "concepts") entitlements.concepts = remaining;
-    if (entitlement.key === "revisions") entitlements.revisions = remaining;
+    const limit = Math.max(entitlement.limitInt ?? 0, 0);
+    const consumed = Math.max(entitlement.consumedInt ?? 0, 0);
+    const remaining = Math.max(limit - consumed, 0);
+
+    if (entitlement.key === "concepts") entitlementUsage.concepts = { limit, consumed, remaining };
+    if (entitlement.key === "revisions") entitlementUsage.revisions = { limit, consumed, remaining };
   }
+
+  const entitlements = {
+    concepts: entitlementUsage.concepts.remaining,
+    revisions: entitlementUsage.revisions.remaining,
+  };
 
   const conceptFiles = new Map<string, string>();
   for (const file of project.fileAssets) {
@@ -163,7 +176,10 @@ export async function getProjectSnapshot({ projectId }: SnapshotArgs) {
     primaryCta: PRIMARY_CTA_BY_STATE[project.status as ProjectState] ?? null,
     timeline: buildTimeline(project.status, timestamps),
     packageCode: project.packageCode,
+    createdAt: project.createdAt.toISOString(),
+    updatedAt: project.updatedAt.toISOString(),
     entitlements,
+    entitlementUsage,
     concepts,
     latestConcepts: concepts.slice(0, 5),
     revisionRequests: project.revisionRequests,
