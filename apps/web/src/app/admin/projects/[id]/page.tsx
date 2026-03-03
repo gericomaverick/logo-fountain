@@ -216,9 +216,29 @@ export default function AdminProjectPage() {
                 <input className="rounded border border-neutral-300 bg-white px-2 py-1" value={revisionLimit} onChange={(e) => setRevisionLimit(e.target.value)} placeholder="e.g. 2" inputMode="numeric" />
               </label>
             </div>
-            <button className="mt-3 rounded border border-neutral-300 bg-white px-3 py-1" type="button" disabled={busy} onClick={() => void saveEntitlementOverrides()}>
-              Save entitlement override
-            </button>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button className="rounded border border-neutral-300 bg-white px-3 py-1" type="button" disabled={busy} onClick={() => void saveEntitlementOverrides()}>
+                Save entitlement override
+              </button>
+              <button
+                className="rounded border border-neutral-300 bg-white px-3 py-1"
+                type="button"
+                disabled={busy}
+                onClick={() =>
+                  void runAction(
+                    () =>
+                      fetch(`/api/admin/projects/${projectId}/entitlements/reset`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ key: "concepts" }),
+                      }),
+                    "Failed to reset concepts usage",
+                  )
+                }
+              >
+                Reset concepts used → 0
+              </button>
+            </div>
           </div>
 
           {snapshot?.stuck ? (
