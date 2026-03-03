@@ -88,9 +88,14 @@ export default async function DashboardPage() {
                   <p><span className="font-medium">Project ID:</span> {project.id}</p>
                   <p><span className="font-medium">Status:</span> {project.status}</p>
                   <p><span className="font-medium">Package:</span> {project.packageCode}</p>
-                  <Link className="mt-2 inline-block underline" href={cta.href}>
-                    {cta.label}
-                  </Link>
+                  <div className="mt-2 flex gap-4">
+                    <Link className="inline-block underline" href={cta.href}>
+                      {cta.label}
+                    </Link>
+                    <Link className="inline-block underline" href={`/project/${project.id}/messages`}>
+                      Messages
+                    </Link>
+                  </div>
                 </li>
               );
             })}
