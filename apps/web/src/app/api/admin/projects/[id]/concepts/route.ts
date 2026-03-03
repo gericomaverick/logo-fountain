@@ -2,10 +2,13 @@ import { jsonError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
 import { uploadConceptAsset } from "@/lib/supabase/storage";
 import { logAudit } from "@/lib/audit";
+import { applyTransition } from "@/lib/project-state-machine";
 import { requireAdmin, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 
 export const runtime = "nodejs";
-const CONCEPT_STATUS_DRAFT = "draft";
+
+const PROJECT_STATUS_CONCEPTS_READY = "CONCEPTS_READY";
+const CONCEPT_STATUS_PUBLISHED = "published";
 
 function parseConceptNumber(raw: FormDataEntryValue | null): number | null {
   if (typeof raw !== "string") return null;
@@ -46,7 +49,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     await requireAdmin(user);
 
     const { id: projectId } = await params;
-    const project = await prisma.project.findUnique({ where: { id: projectId }, select: { id: true } });
+    const project = await prisma.project.findUnique({ where: { id: projectId }, select: { id: true, status: true } });
     if (!project) return jsonError("Project not found", 404, { nextStep: "Check the project link." }, "PROJECT_NOT_FOUND");
 
     const formData = await req.formData();
@@ -58,15 +61,66 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (!fileEntry.type.startsWith("image/")) return jsonError("Only image uploads are supported", 400, { nextStep: "Upload a PNG/JPEG/WebP image." }, "INVALID_FILE_TYPE");
     if (!conceptNumber) return jsonError("Valid conceptNumber is required", 400, { nextStep: "Set conceptNumber to a positive integer." }, "INVALID_CONCEPT_NUMBER");
 
-    const concept = await prisma.concept.create({ data: { projectId, number: conceptNumber, status: CONCEPT_STATUS_DRAFT, notes }, select: { id: true, number: true, status: true, notes: true } });
-    const upload = await uploadConceptAsset({ projectId, conceptId: concept.id, file: fileEntry });
-
-    await prisma.fileAsset.create({
-      data: { projectId, kind: "concept", bucket: upload.bucket, path: upload.path, mime: upload.mime, size: upload.size, uploadedBy: user.id },
+    const concept = await prisma.concept.upsert({
+      where: { projectId_number: { projectId, number: conceptNumber } },
+      update: { notes, status: CONCEPT_STATUS_PUBLISHED },
+      create: { projectId, number: conceptNumber, status: CONCEPT_STATUS_PUBLISHED, notes },
+      select: { id: true, number: true, status: true, notes: true },
     });
 
-    await logAudit(prisma, { projectId, actorId: user.id, type: "concept_uploaded", payload: { conceptId: concept.id, conceptNumber: concept.number, filePath: upload.path } });
-    return Response.json({ ok: true, concept });
+    const upload = await uploadConceptAsset({ projectId, conceptId: concept.id, file: fileEntry });
+
+    const alreadyPublishedCount = await prisma.concept.count({
+      where: {
+        projectId,
+        status: CONCEPT_STATUS_PUBLISHED,
+        id: { not: concept.id },
+      },
+    });
+
+    const needsTransition = alreadyPublishedCount === 0 && project.status !== PROJECT_STATUS_CONCEPTS_READY;
+    if (needsTransition) {
+      const transition = applyTransition(project.status, PROJECT_STATUS_CONCEPTS_READY);
+      if (!transition.ok) {
+        return jsonError(
+          `Invalid transition from ${project.status} to ${PROJECT_STATUS_CONCEPTS_READY}`,
+          400,
+          { allowed: transition.allowed },
+          "INVALID_PROJECT_STATUS_TRANSITION",
+        );
+      }
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      await tx.fileAsset.create({
+        data: { projectId, kind: "concept", bucket: upload.bucket, path: upload.path, mime: upload.mime, size: upload.size, uploadedBy: user.id },
+      });
+
+      await logAudit(tx, {
+        projectId,
+        actorId: user.id,
+        type: "concept_uploaded",
+        payload: { conceptId: concept.id, conceptNumber: concept.number, filePath: upload.path, published: true },
+      });
+
+      if (needsTransition) {
+        await tx.project.update({
+          where: { id: projectId },
+          data: { status: PROJECT_STATUS_CONCEPTS_READY },
+        });
+
+        await logAudit(tx, {
+          projectId,
+          actorId: user.id,
+          type: "state_changed",
+          payload: { previousStatus: project.status, nextStatus: PROJECT_STATUS_CONCEPTS_READY },
+        });
+      }
+
+      return { projectStatus: needsTransition ? PROJECT_STATUS_CONCEPTS_READY : project.status };
+    });
+
+    return Response.json({ ok: true, concept, projectStatus: result.projectStatus });
   } catch (error) {
     return toRouteErrorResponse(error);
   }

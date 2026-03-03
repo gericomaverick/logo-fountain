@@ -3,8 +3,12 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+
 import { ProjectTimeline } from "@/app/project-timeline";
 import { HeaderNav } from "@/components/header-nav";
+import { ProjectStatusBadge } from "@/components/project-status-badge";
+
+type EntitlementUsage = { limit: number; consumed: number; remaining: number };
 
 type Snapshot = {
   status: string;
@@ -13,7 +17,11 @@ type Snapshot = {
   latestOrder?: { id: string; status: string; stripeCheckoutSessionId: string | null; createdAt: string } | null;
   concepts: Array<{ id: string; number: number; status: string; notes: string | null }>;
   revisionRequests: Array<{ id: string; status: string; body: string; createdAt: string; concept: { id: string; number: number } | null; user: { email: string; fullName: string | null } }>;
-  messages: Array<{ id: string; body: string; createdAt: string; sender: { email: string; fullName: string | null } }>;
+  entitlements: { concepts: number; revisions: number };
+  entitlementUsage?: {
+    concepts?: EntitlementUsage;
+    revisions?: EntitlementUsage;
+  };
   primaryCta?: string | null;
   timeline?: Array<{ state: string; label: string; completed: boolean; current: boolean; timestamp?: string }>;
   recentAuditEventsCount?: number;
@@ -62,11 +70,6 @@ export default function AdminProjectPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [conceptNumber, setConceptNumber] = useState(1);
-  const [notes, setNotes] = useState("");
-  const [file, setFile] = useState<File | null>(null);
-  const [finalZipFile, setFinalZipFile] = useState<File | null>(null);
-  const [messageBody, setMessageBody] = useState("");
   const [reprocessSessionId, setReprocessSessionId] = useState("");
 
   async function refresh(id: string) {
@@ -108,114 +111,96 @@ export default function AdminProjectPage() {
   return (
     <>
       <HeaderNav />
-      <main className="mx-auto max-w-4xl p-8">
-        <p className="text-sm"><Link href="/admin" className="underline">← Back to queue</Link></p>
-      <h1 className="mt-2 text-2xl font-semibold">Admin project</h1>
-      <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
-      <p className="mt-1 text-sm text-neutral-600">Status: {snapshot?.status || "—"}</p>
-      <p className="mt-1 text-sm text-neutral-600">Recent audit events: {snapshot?.recentAuditEventsCount ?? 0}</p>
-      {snapshot?.stuck ? (
-        <p className="mt-1 text-sm text-red-700">⚠ Stuck: {snapshot.stuckReason ?? "Needs manual intervention."}</p>
-      ) : null}
-      {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
+      <main className="mx-auto max-w-5xl p-8">
+        <p className="text-sm"><Link href="/admin" className="underline">← Back to dashboard</Link></p>
 
-      {snapshot?.timeline ? <ProjectTimeline timeline={snapshot.timeline} primaryCta={snapshot.primaryCta} /> : null}
+        <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <ProjectStatusBadge status={snapshot?.status ?? "UNKNOWN"} />
+              <h1 className="mt-3 text-2xl font-semibold">Admin project</h1>
+              <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
+              <p className="mt-1 text-sm text-neutral-600">Recent audit events: {snapshot?.recentAuditEventsCount ?? 0}</p>
+            </div>
+            <div className="flex flex-col gap-2 sm:items-end">
+              <Link className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm" href={`/admin/projects/${projectId}/messages`}>
+                Open messages
+              </Link>
+              <Link className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm" href={`/admin/projects/${projectId}/upload`}>
+                Upload concepts
+              </Link>
+            </div>
+          </div>
 
-      {snapshot?.stuck ? (
-        <section className="mt-6 rounded border border-red-200 bg-red-50 p-4">
-          <h2 className="text-lg font-medium text-red-800">Webhook recovery</h2>
-          <p className="mt-1 text-sm text-red-700">Use Stripe Checkout session id to retry idempotent fulfillment.</p>
-          <input
-            className="mt-2 w-full rounded border border-red-200 bg-white px-2 py-1 text-sm"
-            placeholder="cs_test_..."
-            value={reprocessSessionId}
-            onChange={(e) => setReprocessSessionId(e.target.value)}
-          />
-          {snapshot.latestOrder?.stripeCheckoutSessionId ? (
-            <p className="mt-1 text-xs text-red-700">Latest order session: {snapshot.latestOrder.stripeCheckoutSessionId}</p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm">
+              <p className="text-xs uppercase tracking-wide text-neutral-500">Concepts remaining</p>
+              <p className="mt-1 font-semibold text-neutral-900">{snapshot?.entitlementUsage?.concepts?.remaining ?? snapshot?.entitlements.concepts ?? 0}</p>
+            </div>
+            <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm">
+              <p className="text-xs uppercase tracking-wide text-neutral-500">Revisions remaining</p>
+              <p className="mt-1 font-semibold text-neutral-900">{snapshot?.entitlementUsage?.revisions?.remaining ?? snapshot?.entitlements.revisions ?? 0}</p>
+            </div>
+          </div>
+
+          {snapshot?.stuck ? (
+            <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">⚠ Stuck: {snapshot.stuckReason ?? "Needs manual intervention."}</p>
           ) : null}
-          <button
-            className="mt-3 rounded border border-red-300 bg-white px-3 py-1 text-sm"
-            type="button"
-            disabled={busy || !reprocessSessionId.trim()}
-            onClick={() => void runAction(
-              () => fetch("/api/admin/checkout/reprocess", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ session_id: reprocessSessionId.trim() }),
-              }),
-              "Reprocess failed"
-            )}
-          >
-            Reprocess checkout session
-          </button>
+          {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
         </section>
-      ) : null}
 
-      <form className="mt-6 rounded border border-neutral-200 p-4" onSubmit={(e) => { e.preventDefault(); if (!projectId || !file) return; void runAction(async () => { const d = new FormData(); d.set("file", file); d.set("conceptNumber", String(conceptNumber)); d.set("notes", notes); return fetch(`/api/admin/projects/${projectId}/concepts`, { method: "POST", body: d }); }, "Upload failed"); }}>
-        <h2 className="text-lg font-medium">Upload concept</h2>
-        <input className="mt-2" type="number" min={1} value={conceptNumber} onChange={(e) => setConceptNumber(Number.parseInt(e.target.value || "1", 10))} />
-        <input className="mt-2 block" type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-        <textarea className="mt-2 w-full rounded border border-neutral-300 px-2 py-1" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
-        <button className="mt-3 rounded border border-neutral-300 px-3 py-1 text-sm" type="submit" disabled={busy || !file}>Upload</button>
-      </form>
+        {snapshot?.timeline ? <ProjectTimeline timeline={snapshot.timeline} primaryCta={snapshot.primaryCta} /> : null}
 
-      <form className="mt-6 rounded border border-neutral-200 p-4" onSubmit={(e) => { e.preventDefault(); if (!projectId || !finalZipFile) return; void runAction(async () => { const d = new FormData(); d.set("file", finalZipFile); return fetch(`/api/admin/projects/${projectId}/finals`, { method: "POST", body: d }); }, "Final ZIP upload failed"); }}>
-        <h2 className="text-lg font-medium">Final ZIP delivery</h2>
-        <input className="mt-2 block" type="file" accept=".zip,application/zip" onChange={(e) => setFinalZipFile(e.target.files?.[0] ?? null)} />
-        <button className="mt-3 rounded border border-neutral-300 px-3 py-1 text-sm" type="submit" disabled={busy || !finalZipFile}>Upload final ZIP</button>
-      </form>
+        {snapshot?.stuck ? (
+          <section className="mt-6 rounded border border-red-200 bg-red-50 p-4">
+            <h2 className="text-lg font-medium text-red-800">Webhook recovery</h2>
+            <p className="mt-1 text-sm text-red-700">Use Stripe Checkout session id to retry idempotent fulfillment.</p>
+            <input className="mt-2 w-full rounded border border-red-200 bg-white px-2 py-1 text-sm" placeholder="cs_test_..." value={reprocessSessionId} onChange={(e) => setReprocessSessionId(e.target.value)} />
+            {snapshot.latestOrder?.stripeCheckoutSessionId ? <p className="mt-1 text-xs text-red-700">Latest order session: {snapshot.latestOrder.stripeCheckoutSessionId}</p> : null}
+            <button className="mt-3 rounded border border-red-300 bg-white px-3 py-1 text-sm" type="button" disabled={busy || !reprocessSessionId.trim()} onClick={() => void runAction(() => fetch("/api/admin/checkout/reprocess", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ session_id: reprocessSessionId.trim() }) }), "Reprocess failed")}>
+              Reprocess checkout session
+            </button>
+          </section>
+        ) : null}
 
-      <section className="mt-6">
-        <h2 className="text-lg font-medium">Concepts</h2>
-        {loading ? <p className="mt-3 text-sm text-neutral-600">Loading…</p> : null}
-        <ul className="mt-3 space-y-2">
-          {(snapshot?.concepts ?? []).map((concept) => (
-            <li key={concept.id} className="rounded border border-neutral-200 p-3 text-sm">
-              <p><span className="font-medium">#{concept.number}</span> — {concept.status}</p>
-              {concept.status !== "published" ? <button className="mt-2 rounded border border-neutral-300 px-2 py-1" disabled={busy} onClick={() => void runAction(() => fetch(`/api/admin/projects/${projectId}/concepts/${concept.id}/publish`, { method: "POST" }), "Publish failed")}>Publish</button> : null}
-            </li>
-          ))}
-        </ul>
-      </section>
+        <section className="mt-8 rounded border border-neutral-200 p-4">
+          <h2 className="text-lg font-medium">Revision requests</h2>
+          <ul className="mt-3 space-y-3">
+            {(snapshot?.revisionRequests ?? []).map((r) => (
+              <li key={r.id} className="rounded border border-neutral-200 p-3 text-sm">
+                <p className="text-xs text-neutral-500">{r.user.fullName ?? r.user.email} · {new Date(r.createdAt).toLocaleString()}</p>
+                <p className="mt-2 whitespace-pre-wrap text-neutral-800">{r.body}</p>
+                {r.status !== "delivered" ? <button className="mt-2 rounded border border-neutral-300 px-2 py-1" disabled={busy} onClick={() => void runAction(() => fetch(`/api/admin/projects/${projectId}/revision-requests/${r.id}/delivered`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ setConceptsReady: true }) }), "Failed to mark delivered")}>Mark delivered</button> : null}
+              </li>
+            ))}
+          </ul>
+        </section>
 
-      <section className="mt-8 rounded border border-neutral-200 p-4">
-        <h2 className="text-lg font-medium">Revision requests</h2>
-        <ul className="mt-3 space-y-3">
-          {(snapshot?.revisionRequests ?? []).map((r) => (
-            <li key={r.id} className="rounded border border-neutral-200 p-3 text-sm">
-              <p className="text-xs text-neutral-500">{r.user.fullName ?? r.user.email} · {new Date(r.createdAt).toLocaleString()}</p>
-              <p className="mt-2 whitespace-pre-wrap text-neutral-800">{r.body}</p>
-              {r.status !== "delivered" ? <button className="mt-2 rounded border border-neutral-300 px-2 py-1" disabled={busy} onClick={() => void runAction(() => fetch(`/api/admin/projects/${projectId}/revision-requests/${r.id}/delivered`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ setConceptsReady: true }) }), "Failed to mark delivered")}>Mark delivered</button> : null}
-            </li>
-          ))}
-        </ul>
-      </section>
+        <section className="mt-8 rounded border border-neutral-200 p-4">
+          <h2 className="text-lg font-medium">Concepts</h2>
+          {loading ? <p className="mt-3 text-sm text-neutral-600">Loading…</p> : null}
+          <ul className="mt-3 space-y-2">
+            {(snapshot?.concepts ?? []).map((concept) => (
+              <li key={concept.id} className="rounded border border-neutral-200 p-3 text-sm">
+                <p><span className="font-medium">#{concept.number}</span> — {concept.status}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
 
-      <section className="mt-8 rounded border border-neutral-200 p-4">
-        <h2 className="text-lg font-medium">Project messages</h2>
-        <ul className="mt-3 space-y-3">
-          {(snapshot?.messages ?? []).map((m) => <li key={m.id} className="rounded border border-neutral-200 p-3 text-sm"><p className="text-xs text-neutral-500">{m.sender.fullName ?? m.sender.email}</p><p className="mt-1 whitespace-pre-wrap text-neutral-800">{m.body}</p></li>)}
-        </ul>
-        <form className="mt-4" onSubmit={(e) => { e.preventDefault(); if (!projectId || !messageBody.trim()) return; void runAction(() => fetch(`/api/projects/${projectId}/messages`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ body: messageBody.trim() }) }), "Send failed").then(() => setMessageBody("")); }}>
-          <textarea className="mt-1 w-full rounded border border-neutral-300 px-2 py-1" rows={3} maxLength={2000} value={messageBody} onChange={(e) => setMessageBody(e.target.value)} />
-          <button className="mt-2 rounded border border-neutral-300 px-3 py-1 text-sm" type="submit" disabled={busy || !messageBody.trim()}>Send message</button>
-        </form>
-      </section>
-
-      <section className="mt-8 rounded border border-neutral-200 p-4">
-        <h2 className="text-lg font-medium">Audit log</h2>
-        <ul className="mt-3 space-y-3">
-          {auditEvents.map((event) => (
-            <li key={event.id} className="rounded border border-neutral-200 p-3 text-sm">
-              <p className="text-xs text-neutral-500">{new Date(event.createdAt).toLocaleString()} · {event.actor?.email ?? "System"}</p>
-              <p className="mt-1"><span className="font-medium">{event.type}</span></p>
-              <p className="mt-1 text-neutral-700">{summarizePayload(event.payload)}</p>
-            </li>
-          ))}
-          {auditEvents.length === 0 ? <li className="text-sm text-neutral-500">No audit events yet.</li> : null}
-        </ul>
-      </section>
+        <section className="mt-8 rounded border border-neutral-200 p-4">
+          <h2 className="text-lg font-medium">Audit log</h2>
+          <ul className="mt-3 space-y-3">
+            {auditEvents.map((event) => (
+              <li key={event.id} className="rounded border border-neutral-200 p-3 text-sm">
+                <p className="text-xs text-neutral-500">{new Date(event.createdAt).toLocaleString()} · {event.actor?.email ?? "System"}</p>
+                <p className="mt-1"><span className="font-medium">{event.type}</span></p>
+                <p className="mt-1 text-neutral-700">{summarizePayload(event.payload)}</p>
+              </li>
+            ))}
+            {auditEvents.length === 0 ? <li className="text-sm text-neutral-500">No audit events yet.</li> : null}
+          </ul>
+        </section>
       </main>
     </>
   );
