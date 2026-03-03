@@ -71,15 +71,21 @@ export default function SuccessProcessingClient() {
 
         if (data.fulfilled) {
           const authed = await isAuthenticated();
-          const destination = authed ? "/dashboard" : "/login";
           const params = new URLSearchParams();
 
           if (data.projectId) {
             params.set("projectId", data.projectId);
           }
 
-          const nextUrl = params.toString() ? `${destination}?${params.toString()}` : destination;
-          router.replace(nextUrl);
+          if (authed) {
+            const nextUrl = params.toString() ? `/dashboard?${params.toString()}` : "/dashboard";
+            router.replace(nextUrl);
+            return;
+          }
+
+          // Require password setup after magic-link sign-in.
+          const setPasswordUrl = params.toString() ? `/set-password?next=/dashboard&${params.toString()}` : "/set-password?next=/dashboard";
+          router.replace(`/login?next=${encodeURIComponent(setPasswordUrl)}`);
           return;
         }
 
