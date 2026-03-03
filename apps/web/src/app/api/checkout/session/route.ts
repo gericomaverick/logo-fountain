@@ -1,4 +1,5 @@
 import { jsonError } from "@/lib/api-error";
+import { getRequestOrigin } from "@/lib/request-origin";
 import { PACKAGE_TO_PRICE_ID, type PackageCode, stripe } from "@/lib/stripe";
 
 export const runtime = "nodejs";
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
   const priceId = PACKAGE_TO_PRICE_ID[packageCode];
 
   try {
-    const origin = new URL(req.url).origin;
+    const origin = getRequestOrigin(req);
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       customer_creation: "always",

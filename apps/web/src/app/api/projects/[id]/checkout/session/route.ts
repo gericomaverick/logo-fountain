@@ -1,4 +1,5 @@
 import { jsonError } from "@/lib/api-error";
+import { getRequestOrigin } from "@/lib/request-origin";
 import { requireProjectMembership, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { prisma } from "@/lib/prisma";
 import { stripe, UPSELL_PRICE_TO_ACTION, type PackageCode } from "@/lib/stripe";
@@ -63,7 +64,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       return jsonError("Invalid kind. Expected 'addon' or 'upgrade'", 400, undefined, "INVALID_KIND");
     }
 
-    const origin = new URL(req.url).origin;
+    const origin = getRequestOrigin(req);
 
     if (kind === "addon") {
       const addonKey = parseAddonKey(payload.addonKey);
