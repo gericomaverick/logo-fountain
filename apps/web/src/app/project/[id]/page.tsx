@@ -133,22 +133,26 @@ function AreaCard({ title, href, hasNew, subtitle }: { title: string; href: stri
 
 function ActivityPanel({ projectId, snapshot, pendingFeedbackCount }: { projectId: string; snapshot: Snapshot | null; pendingFeedbackCount: number }) {
   const nextAction = getMissionControlPrimaryCta(projectId, snapshot?.status ?? "", { pendingFeedbackCount });
-  const groups = useMemo(() => buildActivityGroups(snapshot, 6), [snapshot]);
+  const groups = useMemo(() => buildActivityGroups(snapshot, 8), [snapshot]);
 
   return (
-    <section className="mt-8 rounded-2xl border border-neutral-200 bg-white p-5">
-      <div className="flex items-start justify-between gap-4">
+    <section className="mt-6 rounded-2xl border border-neutral-200 bg-white p-5">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="text-lg font-semibold text-neutral-900">Mission control</h2>
-          <p className="mt-1 text-sm text-neutral-600">Recent milestones, latest system updates, and the next best action.</p>
+          <p className="mt-1 text-sm text-neutral-600">What needs attention now, plus a clean activity timeline.</p>
         </div>
         <Link href={nextAction.href} className="inline-flex rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white">
           {nextAction.label}
         </Link>
       </div>
 
-      <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
-        Pending feedback on latest concept: <span className="font-semibold">{pendingFeedbackCount}</span>
+      <div className={`mt-4 rounded-xl border p-3 text-sm ${pendingFeedbackCount > 0 ? "border-amber-200 bg-amber-50 text-amber-900" : "border-emerald-200 bg-emerald-50 text-emerald-900"}`}>
+        {pendingFeedbackCount > 0 ? (
+          <>Pending feedback on latest concept: <span className="font-semibold">{pendingFeedbackCount}</span></>
+        ) : (
+          <>No pending feedback on latest concept.</>
+        )}
       </div>
 
       <div className="mt-5 space-y-4">
@@ -157,7 +161,7 @@ function ActivityPanel({ projectId, snapshot, pendingFeedbackCount }: { projectI
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">{group.dayLabel}</p>
             <ul className="space-y-2">
               {group.items.map((item) => (
-                <li key={item.id} className="rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-sm">
+                <li key={item.id} className={`rounded-lg border p-3 text-sm ${item.tone === "attention" ? "border-amber-200 bg-amber-50" : "border-neutral-200 bg-neutral-50"}`}>
                   <p className="text-neutral-900">{item.label}</p>
                   <p className="mt-1 text-xs text-neutral-500">{formatDateTime(item.at)}</p>
                 </li>
@@ -327,20 +331,58 @@ export default function ProjectPage() {
     () => getPendingFeedbackCountForLatestConcept(snapshot?.concepts ?? [], snapshot?.revisionRequests ?? []),
     [snapshot?.concepts, snapshot?.revisionRequests],
   );
+  const nextAction = useMemo(
+    () => getMissionControlPrimaryCta(projectId, snapshot?.status ?? "", { pendingFeedbackCount }),
+    [pendingFeedbackCount, projectId, snapshot?.status],
+  );
 
   return (
     <PageShell>
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
-        <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
-          <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
+        <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6">
+          <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
             <div>
               <ProjectStatusBadge status={snapshot?.status ?? "UNKNOWN"} />
               <h1 className="mt-3 text-2xl font-semibold text-neutral-900">Hey{firstName ? `, ${firstName.trim().slice(0, 1).toUpperCase()}${firstName.trim().slice(1)}` : ""}</h1>
               <p className="mt-1 text-sm text-neutral-600">Project overview · {projectId}</p>
               <p className="text-sm text-neutral-600">Package: {snapshot?.packageCode ?? "—"}</p>
+
+              <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3">
+                  <p className="text-xs uppercase tracking-wide text-neutral-500">Created</p>
+                  <p className="mt-1 font-medium text-neutral-900">{formatDateTime(snapshot?.createdAt)}</p>
+                </div>
+                <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3">
+                  <p className="text-xs uppercase tracking-wide text-neutral-500">Last updated</p>
+                  <p className="mt-1 font-medium text-neutral-900">{formatDateTime(snapshot?.updatedAt)}</p>
+                </div>
+              </div>
             </div>
 
+            <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+              <p className="text-xs uppercase tracking-wide text-neutral-500">Next action</p>
+              <p className="mt-1 text-sm text-neutral-700">Do this first to keep your project moving.</p>
+              <Link href={nextAction.href} className="mt-3 inline-flex rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white">
+                {nextAction.label}
+              </Link>
+              <div className={`mt-3 rounded-lg border px-3 py-2 text-xs ${pendingFeedbackCount > 0 ? "border-amber-200 bg-amber-50 text-amber-900" : "border-emerald-200 bg-emerald-50 text-emerald-900"}`}>
+                Pending feedback: <span className="font-semibold">{pendingFeedbackCount}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <AreaCard title="Brief" href={`/project/${projectId}/brief`} subtitle={snapshot?.latestBrief ? `Latest: v${snapshot.latestBrief.version}` : "Submit your project brief"} />
+            <AreaCard title="Concepts" href={`/project/${projectId}/concepts`} hasNew={snapshot?.hasNewConcepts} subtitle={snapshot?.hasNewConcepts ? "New concepts/revisions available" : undefined} />
+            <AreaCard title="Messages" href={`/project/${projectId}/messages`} hasNew={snapshot?.hasNewMessages} subtitle={snapshot?.hasNewMessages ? "Unread updates waiting" : undefined} />
+          </div>
+
+          <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_320px]">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <EntitlementProgress label="Concepts" usage={snapshot?.entitlementUsage?.concepts} fillClassName="bg-gradient-to-r from-indigo-600 to-sky-500" />
+              <EntitlementProgress label="Revisions" usage={snapshot?.entitlementUsage?.revisions} fillClassName="bg-gradient-to-r from-fuchsia-600 to-violet-500" />
+            </div>
             <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
               <div className="flex items-center justify-between">
                 <p className="text-xs uppercase tracking-wide text-neutral-500">Latest concept</p>
@@ -354,35 +396,9 @@ export default function ProjectPage() {
                   No concept preview yet
                 </div>
               )}
-              <p className="mt-2 text-xs text-neutral-600">Pending feedback: <span className="font-semibold text-neutral-900">{pendingFeedbackCount}</span></p>
+              <p className="mt-2 text-xs text-neutral-600">{conceptUsage.remaining} concepts left · {revisionUsage.remaining} revisions left</p>
             </div>
           </div>
-
-          <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-            <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3">
-              <p className="text-xs uppercase tracking-wide text-neutral-500">Created</p>
-              <p className="mt-1 font-medium text-neutral-900">{formatDateTime(snapshot?.createdAt)}</p>
-            </div>
-            <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3">
-              <p className="text-xs uppercase tracking-wide text-neutral-500">Last updated</p>
-              <p className="mt-1 font-medium text-neutral-900">{formatDateTime(snapshot?.updatedAt)}</p>
-            </div>
-          </div>
-
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <AreaCard title="Brief" href={`/project/${projectId}/brief`} subtitle={snapshot?.latestBrief ? `Latest: v${snapshot.latestBrief.version}` : "Submit your project brief"} />
-            <AreaCard title="Concepts" href={`/project/${projectId}/concepts`} hasNew={snapshot?.hasNewConcepts} subtitle={snapshot?.hasNewConcepts ? "New concepts/revisions available" : undefined} />
-            <AreaCard title="Messages" href={`/project/${projectId}/messages`} hasNew={snapshot?.hasNewMessages} />
-          </div>
-
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <EntitlementProgress label="Concepts" usage={snapshot?.entitlementUsage?.concepts} fillClassName="bg-gradient-to-r from-indigo-600 to-sky-500" />
-            <EntitlementProgress label="Revisions" usage={snapshot?.entitlementUsage?.revisions} fillClassName="bg-gradient-to-r from-fuchsia-600 to-violet-500" />
-          </div>
-
-          <p className="mt-2 text-xs text-neutral-500">
-            {conceptUsage.remaining} concepts left · {revisionUsage.remaining} revisions left
-          </p>
 
           <UpsellPanel projectId={projectId} packageCode={snapshot?.packageCode} revisionUsage={revisionUsage} />
         </section>

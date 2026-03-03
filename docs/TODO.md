@@ -5,9 +5,14 @@ This file is the single source of truth for in-progress work. Update it after ea
 ## Dashboard / Portal plan (execute in this order)
 
 ### Step 2 — Mission control clarity (what do I do next?)
-- [ ] Project hub hierarchy: top of `/project/[id]` answers current state + next action clearly.
-- [ ] Pending feedback visibility: pending revisions/comments unmistakable on client + admin.
-- [ ] Timeline/activity feed usefulness: system events are visible and not noisy.
+- [x] Project hub hierarchy: top of `/project/[id]` answers current state + next action clearly.
+- [x] Pending feedback visibility: pending revisions/comments unmistakable on client + admin.
+- [x] Timeline/activity feed usefulness: system events are visible and not noisy.
+
+Step 2 notes:
+- `/project/[id]` now elevates a dedicated “Next action” card in the top hierarchy and keeps status/updated timing in the same decision block.
+- Pending feedback is surfaced with high-contrast state blocks in both client mission control and admin project overview.
+- Mission control activity feed now highlights attention-worthy events and de-duplicates repetitive system noise.
 
 ### Step 3 — Admin ops speed (reduce clicking / mistakes)
 - [ ] Admin project listing: strongest sort/grouping for “needs action” items.

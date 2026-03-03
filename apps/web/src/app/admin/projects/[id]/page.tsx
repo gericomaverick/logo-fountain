@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { ProjectTimeline } from "@/app/project-timeline";
 import { HeaderNav } from "@/components/header-nav";
+import { PageShell } from "@/components/page-shell";
 import { ProjectStatusBadge } from "@/components/project-status-badge";
+import { getPendingFeedbackCountForLatestConcept } from "@/lib/project-hub";
 
 type EntitlementUsage = { limit: number; consumed: number; reserved?: number; remaining: number };
 
@@ -182,8 +184,13 @@ export default function AdminProjectPage() {
     );
   }
 
+  const pendingFeedbackCount = useMemo(
+    () => getPendingFeedbackCountForLatestConcept(snapshot?.concepts ?? [], snapshot?.revisionRequests ?? []),
+    [snapshot?.concepts, snapshot?.revisionRequests],
+  );
+
   return (
-    <>
+    <PageShell>
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
         <p className="text-sm"><Link href="/admin" className="underline">← Back to dashboard</Link></p>
@@ -210,6 +217,17 @@ export default function AdminProjectPage() {
                 Legacy upload
               </Link>
             </div>
+          </div>
+
+          <div className={`mt-4 rounded-xl border px-4 py-3 text-sm ${pendingFeedbackCount > 0 ? "border-amber-200 bg-amber-50 text-amber-900" : "border-emerald-200 bg-emerald-50 text-emerald-900"}`}>
+            {pendingFeedbackCount > 0 ? (
+              <p>
+                Latest concept has <span className="font-semibold">{pendingFeedbackCount}</span> pending feedback request{pendingFeedbackCount === 1 ? "" : "s"}.{" "}
+                <Link className="underline" href={`/admin/projects/${projectId}/concepts`}>Open concepts manager</Link>
+              </p>
+            ) : (
+              <p>No pending feedback on the latest concept.</p>
+            )}
           </div>
 
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -420,6 +438,6 @@ export default function AdminProjectPage() {
           </ul>
         </section>
       </main>
-    </>
+    </PageShell>
   );
 }

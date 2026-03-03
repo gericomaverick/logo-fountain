@@ -4,6 +4,7 @@ type ActivityItem = {
   id: string;
   label: string;
   at: string;
+  tone?: "default" | "attention";
 };
 
 export type ActivityGroup = {
@@ -58,19 +59,35 @@ export function buildActivityGroups(snapshot: {
 
   const systemMessages = (snapshot.messages ?? [])
     .filter((message) => message.kind === "system")
-    .slice(-Math.max(limit - 1, 0))
-    .reverse()
-    .map((message) => ({ id: message.id, label: message.body, at: message.createdAt }));
+    .filter((message) => message.body.trim().length > 0)
+    .map((message) => ({
+      id: message.id,
+      label: message.body,
+      at: message.createdAt,
+      tone: /pending|awaiting|requested|action required/i.test(message.body) ? ("attention" as const) : ("default" as const),
+    }));
 
-  const statusLine = {
+  const statusLine: ActivityItem = {
     id: "status",
-    label: `Status is now ${snapshot.status.replaceAll("_", " ").toLowerCase()}.`,
+    label: `Status changed to ${snapshot.status.replaceAll("_", " ").toLowerCase()}.`,
     at: snapshot.updatedAt ?? snapshot.createdAt ?? new Date().toISOString(),
+    tone: /awaiting|hold/i.test(snapshot.status) ? "attention" : "default",
   };
+
+  const seen = new Set<string>();
+  const timeline = [statusLine, ...systemMessages]
+    .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
+    .filter((item) => {
+      const key = `${item.label}|${item.at}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, limit);
 
   const grouped = new Map<string, ActivityItem[]>();
 
-  for (const item of [statusLine, ...systemMessages].slice(0, limit)) {
+  for (const item of timeline) {
     const dayLabel = normalizeDateLabel(item.at);
     grouped.set(dayLabel, [...(grouped.get(dayLabel) ?? []), item]);
   }
