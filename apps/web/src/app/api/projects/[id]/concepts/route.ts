@@ -52,6 +52,18 @@ export async function GET(
       return Response.json({ concepts: [], projectStatus: null });
     }
 
+    const deliveredRevisionCounts = await prisma.revisionRequest.groupBy({
+      by: ["conceptId"],
+      where: { projectId: project.id, status: "delivered", conceptId: { not: null } },
+      _count: { _all: true },
+    });
+
+    const deliveredByConceptId = new Map(
+      deliveredRevisionCounts
+        .filter((entry) => Boolean(entry.conceptId))
+        .map((entry) => [entry.conceptId as string, entry._count._all]),
+    );
+
     const conceptIds = project.concepts.map((concept) => concept.id);
     const files = conceptIds.length
       ? await prisma.fileAsset.findMany({
@@ -62,6 +74,7 @@ export async function GET(
               path: { startsWith: `${project.id}/${conceptId}.` },
             })),
           },
+          orderBy: [{ createdAt: "desc" }],
         })
       : [];
 
@@ -69,7 +82,7 @@ export async function GET(
     for (const file of files) {
       const fileName = file.path.split("/").pop() ?? "";
       const conceptId = fileName.split(".")[0];
-      if (conceptId) {
+      if (conceptId && !fileByConceptId.has(conceptId)) {
         fileByConceptId.set(conceptId, { path: file.path });
       }
     }
@@ -81,6 +94,7 @@ export async function GET(
 
         return {
           ...concept,
+          revisionVersion: (deliveredByConceptId.get(concept.id) ?? 0) + 1,
           imageUrl,
         };
       }),

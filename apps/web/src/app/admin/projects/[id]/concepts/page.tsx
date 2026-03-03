@@ -9,17 +9,12 @@ import { HeaderNav } from "@/components/header-nav";
 type Concept = {
   id: string;
   number: number;
+  revisionVersion: number;
   status: string;
   notes: string | null;
   imageUrl: string | null;
   pendingRevisionCount: number;
   commentCount: number;
-};
-
-type RevisionRequest = {
-  id: string;
-  status: string;
-  concept: { id: string; number: number } | null;
 };
 
 function readError(payload: { error?: { message?: string; details?: { nextStep?: string } } | string } | null, fallback: string): string {
@@ -34,7 +29,6 @@ export default function AdminProjectConceptsPage() {
   const projectId = params.id;
 
   const [concepts, setConcepts] = useState<Concept[]>([]);
-  const [revisionRequests, setRevisionRequests] = useState<RevisionRequest[]>([]);
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -46,19 +40,13 @@ export default function AdminProjectConceptsPage() {
   const [replaceFiles, setReplaceFiles] = useState<Record<string, File | null>>({});
 
   async function refresh(id: string) {
-    const [conceptsResponse, revisionsResponse] = await Promise.all([
-      fetch(`/api/admin/projects/${id}/concepts`, { cache: "no-store" }),
-      fetch(`/api/admin/projects/${id}/revision-requests`, { cache: "no-store" }),
-    ]);
+    const conceptsResponse = await fetch(`/api/admin/projects/${id}/concepts`, { cache: "no-store" });
 
     const conceptsPayload = await conceptsResponse.json().catch(() => null);
-    const revisionsPayload = await revisionsResponse.json().catch(() => null);
 
     if (!conceptsResponse.ok) throw new Error(readError(conceptsPayload, "Failed to load concepts"));
-    if (!revisionsResponse.ok) throw new Error(readError(revisionsPayload, "Failed to load revision requests"));
 
     setConcepts((conceptsPayload?.concepts ?? []) as Concept[]);
-    setRevisionRequests((revisionsPayload?.revisionRequests ?? []) as RevisionRequest[]);
   }
 
   useEffect(() => {
@@ -126,8 +114,10 @@ export default function AdminProjectConceptsPage() {
 
     const data = new FormData();
     data.set("file", nextFile);
+    data.set("conceptId", concept.id);
     data.set("conceptNumber", String(concept.number));
     data.set("notes", concept.notes ?? "");
+    data.set("uploadMode", "replace");
 
     const response = await fetch(`/api/admin/projects/${projectId}/concepts`, {
       method: "POST",
@@ -146,38 +136,37 @@ export default function AdminProjectConceptsPage() {
     setBusy(false);
   }
 
-  async function markConceptRevisionRequestsDelivered(concept: Concept) {
+  async function uploadRevision(concept: Concept) {
     if (!projectId) return;
-
-    const pending = revisionRequests.filter((request) => request.status !== "delivered" && request.concept?.id === concept.id);
-    if (pending.length === 0) return;
+    const nextFile = replaceFiles[concept.id];
+    if (!nextFile) return;
 
     setBusy(true);
     setError(null);
     setSuccess(null);
 
-    let delivered = 0;
-    try {
-      for (const [index, request] of pending.entries()) {
-        const response = await fetch(`/api/admin/projects/${projectId}/revision-requests/${request.id}/delivered`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ setConceptsReady: index === 0 }),
-        });
-        const payload = await response.json().catch(() => null);
-        if (!response.ok) {
-          throw new Error(readError(payload, "Failed to mark delivered"));
-        }
-        delivered += 1;
-      }
+    const data = new FormData();
+    data.set("file", nextFile);
+    data.set("conceptId", concept.id);
+    data.set("conceptNumber", String(concept.number));
+    data.set("notes", concept.notes ?? "");
+    data.set("uploadMode", "revision");
 
-      setSuccess(`Marked ${delivered} revision request${delivered === 1 ? "" : "s"} delivered for concept #${concept.number}.`);
+    const response = await fetch(`/api/admin/projects/${projectId}/concepts`, {
+      method: "POST",
+      body: data,
+    });
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      setError(readError(payload, `Failed to upload revision for concept #${concept.number}`));
+    } else {
+      setReplaceFiles((prev) => ({ ...prev, [concept.id]: null }));
+      setSuccess(`Revision uploaded for Concept #${concept.number} (v${concept.revisionVersion + 1}).`);
       await refresh(projectId);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to mark delivered");
-    } finally {
-      setBusy(false);
     }
+
+    setBusy(false);
   }
 
   async function deleteConcept(conceptId: string) {
@@ -259,7 +248,7 @@ export default function AdminProjectConceptsPage() {
                     )}
                     <div className="space-y-2 p-3">
                       <div className="flex items-center justify-between gap-2">
-                        <p className="text-sm font-medium text-neutral-900">Concept #{concept.number}</p>
+                        <p className="text-sm font-medium text-neutral-900">Concept #{concept.number} · v{concept.revisionVersion}</p>
                         <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-700">{concept.status}</span>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
@@ -287,12 +276,12 @@ export default function AdminProjectConceptsPage() {
                       <button
                         type="button"
                         className="rounded border border-neutral-300 px-2 py-1"
-                        disabled={busy || concept.pendingRevisionCount === 0}
+                        disabled={busy || !replaceFiles[concept.id]}
                         onClick={() => {
-                          void markConceptRevisionRequestsDelivered(concept);
+                          void uploadRevision(concept);
                         }}
                       >
-                        Mark delivered ({concept.pendingRevisionCount})
+                        Upload revision
                       </button>
                     </div>
 
@@ -314,7 +303,7 @@ export default function AdminProjectConceptsPage() {
                           void replaceConceptAsset(concept);
                         }}
                       >
-                        Replace asset
+                        Replace asset only
                       </button>
                     </div>
 

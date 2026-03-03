@@ -9,6 +9,7 @@ import { HeaderNav } from "@/components/header-nav";
 type Concept = {
   id: string;
   number: number;
+  revisionVersion: number;
   status: string;
   notes: string | null;
   imageUrl: string | null;
@@ -90,7 +91,7 @@ export default function ProjectConceptsPage() {
                 <div className="flex h-56 items-center justify-center bg-neutral-100 text-sm text-neutral-500">No preview</div>
               )}
               <div className="p-3">
-                <p className="text-sm font-medium text-neutral-900">Concept #{concept.number}</p>
+                <p className="text-sm font-medium text-neutral-900">Concept #{concept.number} · v{concept.revisionVersion}</p>
                 <p className="text-xs text-neutral-500">{concept.status}</p>
               </div>
             </Link>

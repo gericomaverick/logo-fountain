@@ -9,7 +9,7 @@ import { HeaderNav } from "@/components/header-nav";
 type Snapshot = {
   status: string;
   entitlements: { revisions: number };
-  concepts: Array<{ id: string; number: number; status: string; notes: string | null; imageUrl: string | null }>;
+  concepts: Array<{ id: string; number: number; revisionVersion: number; status: string; notes: string | null; imageUrl: string | null }>;
   revisionRequests?: Array<{ id: string; status: string; body: string; createdAt: string; concept?: { id: string; number: number } | null; user?: { email: string; fullName: string | null } | null }>;
 };
 
@@ -200,7 +200,7 @@ export default function ConceptDetailPage() {
 
         {concept ? (
           <section className="rounded border border-neutral-200 p-4">
-            <p className="text-sm font-medium">Concept #{concept.number}</p>
+            <p className="text-sm font-medium">Concept #{concept.number} · v{concept.revisionVersion}</p>
             {concept.notes ? <p className="mt-1 text-sm text-neutral-700">{concept.notes}</p> : null}
             {concept.imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element

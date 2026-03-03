@@ -11,6 +11,8 @@ export const runtime = "nodejs";
 const PROJECT_STATUS_CONCEPTS_READY = "CONCEPTS_READY";
 const CONCEPT_STATUS_PUBLISHED = "published";
 
+type UploadMode = "concept" | "replace" | "revision";
+
 function parseConceptNumber(raw: FormDataEntryValue | null): number | null {
   if (typeof raw !== "string") return null;
   const value = Number.parseInt(raw, 10);
@@ -23,13 +25,18 @@ function parseNotes(raw: FormDataEntryValue | null): string | null {
   return value.length > 0 ? value : null;
 }
 
+function parseUploadMode(raw: FormDataEntryValue | null): UploadMode {
+  if (raw === "replace" || raw === "revision") return raw;
+  return "concept";
+}
+
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = await requireUser();
     await requireAdmin(user);
 
     const { id: projectId } = await params;
-    const [project, concepts, pendingRevisionCounts, commentsCounts] = await Promise.all([
+    const [project, concepts, pendingRevisionCounts, deliveredRevisionCounts, commentsCounts] = await Promise.all([
       prisma.project.findUnique({ where: { id: projectId }, select: { status: true } }),
       prisma.concept.findMany({
         where: { projectId },
@@ -39,6 +46,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       prisma.revisionRequest.groupBy({
         by: ["conceptId"],
         where: { projectId, status: { not: "delivered" }, conceptId: { not: null } },
+        _count: { _all: true },
+      }),
+      prisma.revisionRequest.groupBy({
+        by: ["conceptId"],
+        where: { projectId, status: "delivered", conceptId: { not: null } },
         _count: { _all: true },
       }),
       prisma.conceptComment.groupBy({
@@ -78,6 +90,12 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         .map((entry) => [entry.conceptId as string, entry._count._all]),
     );
 
+    const deliveredByConceptId = new Map(
+      deliveredRevisionCounts
+        .filter((entry) => Boolean(entry.conceptId))
+        .map((entry) => [entry.conceptId as string, entry._count._all]),
+    );
+
     const commentsByConceptId = new Map(
       commentsCounts
         .filter((entry) => Boolean(entry.conceptId))
@@ -87,8 +105,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     const conceptsWithMeta = await Promise.all(
       concepts.map(async (concept) => {
         const file = fileByConceptId.get(concept.id);
+        const deliveredCount = deliveredByConceptId.get(concept.id) ?? 0;
         return {
           ...concept,
+          revisionVersion: deliveredCount + 1,
           imageUrl: file ? await createSignedConceptAssetUrl(file.path) : null,
           pendingRevisionCount: pendingByConceptId.get(concept.id) ?? 0,
           commentCount: commentsByConceptId.get(concept.id) ?? 0,
@@ -114,25 +134,53 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const formData = await req.formData();
     const fileEntry = formData.get("file");
     const conceptNumber = parseConceptNumber(formData.get("conceptNumber"));
+    const conceptIdRaw = formData.get("conceptId");
+    const conceptId = typeof conceptIdRaw === "string" && conceptIdRaw.trim() ? conceptIdRaw : null;
     const notes = parseNotes(formData.get("notes"));
+    const uploadMode = parseUploadMode(formData.get("uploadMode"));
 
     if (!(fileEntry instanceof File) || fileEntry.size <= 0) return jsonError("Image file is required", 400, { nextStep: "Upload an image file." }, "FILE_REQUIRED");
     if (!fileEntry.type.startsWith("image/")) return jsonError("Only image uploads are supported", 400, { nextStep: "Upload a PNG/JPEG/WebP image." }, "INVALID_FILE_TYPE");
-    if (!conceptNumber) return jsonError("Valid conceptNumber is required", 400, { nextStep: "Set conceptNumber to a positive integer." }, "INVALID_CONCEPT_NUMBER");
 
-    const existingConcept = await prisma.concept.findUnique({
-      where: { projectId_number: { projectId, number: conceptNumber } },
-      select: { id: true, status: true },
-    });
+    let concept: { id: string; number: number; status: string; notes: string | null } | null = null;
+    let shouldConsumeEntitlement = false;
 
-    const concept = await prisma.concept.upsert({
-      where: { projectId_number: { projectId, number: conceptNumber } },
-      update: { notes, status: CONCEPT_STATUS_PUBLISHED },
-      create: { projectId, number: conceptNumber, status: CONCEPT_STATUS_PUBLISHED, notes },
-      select: { id: true, number: true, status: true, notes: true },
-    });
+    if (uploadMode === "revision") {
+      if (!conceptId) {
+        return jsonError("conceptId is required for revision uploads", 400, { nextStep: "Use Upload revision on a specific concept." }, "CONCEPT_ID_REQUIRED");
+      }
 
-    const shouldConsumeEntitlement = !existingConcept || existingConcept.status !== CONCEPT_STATUS_PUBLISHED;
+      const existingConcept = await prisma.concept.findFirst({
+        where: { id: conceptId, projectId },
+        select: { id: true, number: true, status: true, notes: true },
+      });
+
+      if (!existingConcept) {
+        return jsonError("Concept not found", 404, { nextStep: "Refresh and pick a valid concept." }, "CONCEPT_NOT_FOUND");
+      }
+
+      concept = await prisma.concept.update({
+        where: { id: existingConcept.id },
+        data: { status: CONCEPT_STATUS_PUBLISHED, notes: notes ?? existingConcept.notes },
+        select: { id: true, number: true, status: true, notes: true },
+      });
+    } else {
+      if (!conceptNumber) return jsonError("Valid conceptNumber is required", 400, { nextStep: "Set conceptNumber to a positive integer." }, "INVALID_CONCEPT_NUMBER");
+
+      const existingConcept = await prisma.concept.findUnique({
+        where: { projectId_number: { projectId, number: conceptNumber } },
+        select: { id: true, status: true },
+      });
+
+      concept = await prisma.concept.upsert({
+        where: { projectId_number: { projectId, number: conceptNumber } },
+        update: { notes, status: CONCEPT_STATUS_PUBLISHED },
+        create: { projectId, number: conceptNumber, status: CONCEPT_STATUS_PUBLISHED, notes },
+        select: { id: true, number: true, status: true, notes: true },
+      });
+
+      shouldConsumeEntitlement = uploadMode === "concept" && (!existingConcept || existingConcept.status !== CONCEPT_STATUS_PUBLISHED);
+    }
 
     const upload = await uploadConceptAsset({ projectId, conceptId: concept.id, file: fileEntry });
 
@@ -144,8 +192,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       },
     });
 
-    const needsTransition = alreadyPublishedCount === 0 && project.status !== PROJECT_STATUS_CONCEPTS_READY;
-    if (needsTransition) {
+    const shouldSetConceptsReady = uploadMode === "revision" || (alreadyPublishedCount === 0 && project.status !== PROJECT_STATUS_CONCEPTS_READY);
+    if (shouldSetConceptsReady && project.status !== PROJECT_STATUS_CONCEPTS_READY) {
       const transition = applyTransition(project.status, PROJECT_STATUS_CONCEPTS_READY);
       if (!transition.ok) {
         return jsonError(
@@ -159,8 +207,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     const result = await prisma.$transaction(async (tx) => {
       if (shouldConsumeEntitlement) {
-        // Increment concepts entitlement usage when a concept is first published for a given concept number.
-        // (Re-uploads/replacements should not consume another entitlement.)
         const before = await tx.projectEntitlement.findFirst({
           where: { projectId, key: "concepts" },
           select: { id: true, limitInt: true, consumedInt: true },
@@ -198,20 +244,38 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         data: { projectId, kind: "concept", bucket: upload.bucket, path: upload.path, mime: upload.mime, size: upload.size, uploadedBy: user.id },
       });
 
+      let deliveredCount = 0;
+      if (uploadMode === "revision") {
+        const delivered = await tx.revisionRequest.updateMany({
+          where: { projectId, conceptId: concept.id, status: { not: "delivered" } },
+          data: { status: "delivered" },
+        });
+        deliveredCount = delivered.count;
+      }
+
       await logAudit(tx, {
         projectId,
         actorId: user.id,
-        type: "concept_uploaded",
-        payload: { conceptId: concept.id, conceptNumber: concept.number, filePath: upload.path, published: true },
+        type: uploadMode === "revision" ? "concept_revision_uploaded" : "concept_uploaded",
+        payload: {
+          conceptId: concept.id,
+          conceptNumber: concept.number,
+          filePath: upload.path,
+          published: true,
+          uploadMode,
+          deliveredRevisionRequests: deliveredCount,
+        },
       });
 
       await createProjectSystemMessage(tx, {
         projectId,
         fallbackUserId: user.id,
-        body: `Concept ${concept.number} is ready for review.`,
+        body: uploadMode === "revision"
+          ? `Revision delivered for Concept ${concept.number}.`
+          : `Concept ${concept.number} is ready for review.`,
       });
 
-      if (needsTransition) {
+      if (shouldSetConceptsReady && project.status !== PROJECT_STATUS_CONCEPTS_READY) {
         await tx.project.update({
           where: { id: projectId },
           data: { status: PROJECT_STATUS_CONCEPTS_READY },
@@ -225,7 +289,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         });
       }
 
-      return { projectStatus: needsTransition ? PROJECT_STATUS_CONCEPTS_READY : project.status };
+      return { projectStatus: shouldSetConceptsReady ? PROJECT_STATUS_CONCEPTS_READY : project.status };
     });
 
     return Response.json({ ok: true, concept, projectStatus: result.projectStatus });

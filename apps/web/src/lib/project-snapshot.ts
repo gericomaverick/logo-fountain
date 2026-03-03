@@ -120,7 +120,7 @@ export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
 
   if (!project) return null;
 
-  const [readState, latestMessageAgg, latestConceptCommentAgg] = await Promise.all([
+  const [readState, latestMessageAgg, latestConceptCommentAgg, deliveredRevisionCounts] = await Promise.all([
     userId
       ? prisma.projectReadState.findUnique({
           where: { userId_projectId: { userId, projectId: project.id } },
@@ -129,6 +129,11 @@ export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
       : Promise.resolve(null),
     prisma.message.aggregate({ where: { projectId: project.id }, _max: { createdAt: true } }),
     prisma.conceptComment.aggregate({ where: { projectId: project.id }, _max: { createdAt: true } }),
+    prisma.revisionRequest.groupBy({
+      by: ["conceptId"],
+      where: { projectId: project.id, status: "delivered", conceptId: { not: null } },
+      _count: { _all: true },
+    }),
   ]);
 
   let latestConceptAt: Date | null = null;
@@ -163,6 +168,12 @@ export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
     if (conceptId && !conceptFiles.has(conceptId)) conceptFiles.set(conceptId, file.path);
   }
 
+  const deliveredByConceptId = new Map(
+    deliveredRevisionCounts
+      .filter((entry) => Boolean(entry.conceptId))
+      .map((entry) => [entry.conceptId as string, entry._count._all]),
+  );
+
   const concepts = await Promise.all(project.concepts.map(async (concept) => ({
     id: concept.id,
     number: concept.number,
@@ -170,6 +181,7 @@ export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
     notes: concept.notes,
     createdAt: concept.createdAt,
     updatedAt: concept.updatedAt,
+    revisionVersion: (deliveredByConceptId.get(concept.id) ?? 0) + 1,
     imageUrl: conceptFiles.get(concept.id)
       ? await createSignedConceptAssetUrl(conceptFiles.get(concept.id) as string)
       : null,
