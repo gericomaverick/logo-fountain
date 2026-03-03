@@ -49,6 +49,7 @@ export default function WorkPage() {
     <main className="bg-white text-black">
       <HeroCenter
         eyebrow="Logo Fountain portfolio"
+        hello="Hello"
         title="Work built for conversion and category authority"
         body="A conversion-focused section flow applied to our gallery: proof, segmentation, testimonials, and a dark value block before CTA."
         primary={{ href: "/pricing", label: "Start your project" }}

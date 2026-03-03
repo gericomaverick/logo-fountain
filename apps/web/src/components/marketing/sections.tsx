@@ -124,6 +124,7 @@ function StatCard({ item }: { item: StatItem }) {
 
 export function HeroCenter({
   eyebrow,
+  hello,
   title,
   body,
   primary,
@@ -131,6 +132,7 @@ export function HeroCenter({
   trust,
 }: {
   eyebrow: string;
+  hello?: ReactNode;
   title: string;
   body: string;
   primary: Cta;
@@ -154,7 +156,7 @@ export function HeroCenter({
 
       <SectionContainer yClass="pb-24 pt-12 md:pb-32 md:pt-16">
         {eyebrow?.trim() ? <HeroEyebrowPill>{eyebrow}</HeroEyebrowPill> : null}
-        <HeroHello />
+        <HeroHello>{hello}</HeroHello>
         <h1 className="font-display mt-3 max-w-5xl text-[length:var(--step-7)] leading-[1.02] tracking-tight">{title}</h1>
         <p className="mt-6 max-w-2xl text-[length:var(--step-0)] leading-relaxed text-white/80">{body}</p>
         <div className="mt-9 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
@@ -176,7 +178,7 @@ export function ProofStatsRow({ quote, byline, stats }: { quote: string; byline:
   return (
     <section className="bg-white">
       <SectionContainer>
-        <div className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
+        <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
           <article className={`${sectionTokens.radius} ${sectionTokens.subtleBorder} ${sectionTokens.mutedCard} p-7 md:p-10`}>
             <p className="font-display text-[length:var(--step-3)] leading-[1.2] text-black">“{quote}”</p>
             <p className="mt-5 text-[length:var(--step--1)] font-semibold text-muted">{byline}</p>
