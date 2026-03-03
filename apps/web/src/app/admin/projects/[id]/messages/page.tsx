@@ -62,6 +62,14 @@ export default function AdminProjectMessagesPage() {
     const load = async () => {
       try {
         await refresh(projectId);
+
+        // Mark messages as seen for admin read-state notifications.
+        await fetch(`/api/projects/${projectId}/read-state`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ area: "messages" }),
+        }).catch(() => null);
+
         if (!cancelled) setError(null);
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load messages");
