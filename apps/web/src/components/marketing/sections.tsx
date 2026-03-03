@@ -279,6 +279,64 @@ export function FAQ({ title, items }: { title: string; items: Array<{ q: string;
   return <section className="bg-white"><SectionContainer><h2 className="font-display mx-auto max-w-3xl text-center text-[length:var(--step-4)] leading-tight">{title}</h2><div className="mx-auto mt-7 max-w-4xl space-y-3">{items.map((item) => (<details key={item.q} className="rounded-[20px] border border-black bg-white p-5"><summary className="cursor-pointer text-[length:var(--step-1)] font-semibold">{item.q}</summary><p className="mt-3 text-[length:var(--step-0)] leading-relaxed text-muted">{item.a}</p></details>))}</div></SectionContainer></section>;
 }
 
+export function PricingCardsSection({
+  eyebrow,
+  title,
+  plans,
+}: {
+  eyebrow: string;
+  title: string;
+  plans: Array<{ name: string; price: string; cadence: string; bullets: string[]; ctaLabel: string; ctaHref: string; featured?: boolean }>;
+}) {
+  return (
+    <section className="bg-white">
+      <SectionContainer>
+        <div className="flex justify-center">{eyebrow?.trim() ? <PretitlePill variant="light">{eyebrow}</PretitlePill> : null}</div>
+        <h2 className="font-display mx-auto mt-3 max-w-4xl text-center text-[length:var(--step-4)] leading-tight">{title}</h2>
+
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
+          {plans.map((plan) => (
+            <article
+              key={plan.name}
+              className={`rounded-[20px] border p-7 ${
+                plan.featured
+                  ? "border-black bg-[image:var(--lf-gradient-accent-mix)]"
+                  : "border-[#e8e8e8] bg-[#f9f9f9]"
+              }`}
+            >
+              <p className="text-[length:var(--step--2)] font-semibold uppercase tracking-[0.14em] text-black/60">{plan.name}</p>
+              <div className="mt-3 flex items-end gap-2">
+                <p className="font-display text-[length:var(--step-4)] leading-none text-black">{plan.price}</p>
+                <p className="pb-1 text-[length:var(--step--1)] text-black/65">{plan.cadence}</p>
+              </div>
+
+              <ul className="mt-5 space-y-2">
+                {plan.bullets.map((bullet) => (
+                  <li key={bullet} className="flex items-start gap-2 text-[length:var(--step--1)] text-black/85">
+                    <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-[rgb(81,80,247)]" aria-hidden />
+                    <span>{bullet}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <Link
+                href={plan.ctaHref}
+                className={`mt-7 inline-flex h-10 w-full items-center justify-center rounded-[20px] border px-5 text-sm font-semibold transition hover:-translate-y-[1px] ${
+                  plan.featured
+                    ? "border-black bg-black text-white"
+                    : "border-black/15 bg-white text-black"
+                }`}
+              >
+                {plan.ctaLabel}
+              </Link>
+            </article>
+          ))}
+        </div>
+      </SectionContainer>
+    </section>
+  );
+}
+
 export function FinalCTA({ title, body, primary, secondary }: { title: string; body: string; primary: Cta; secondary: Cta }) {
   return <section className="bg-[image:linear-gradient(140deg,rgba(81,80,247,0.14)_0%,rgba(148,148,247,0.08)_38%,rgba(0,153,255,0.1)_100%)]"><SectionContainer yClass="py-16 text-center md:py-22"><h2 className="font-display mx-auto max-w-4xl text-[length:var(--step-4)] leading-tight">{title}</h2><p className="mx-auto mt-4 max-w-2xl text-[length:var(--step-0)] leading-relaxed text-muted">{body}</p><div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"><Link href={primary.href} className="lf-btn bg-[image:var(--lf-gradient-purple)] text-white">{primary.label}</Link><Link href={secondary.href} className="lf-btn border border-black bg-white text-black">{secondary.label}</Link></div></SectionContainer></section>;
 }

@@ -47,16 +47,17 @@ Step 4 notes:
 - Admin overview top panel (`/admin/projects/[id]`) was refactored from uneven flex rows into a responsive two-column grid with uniform summary cards and quick-action grid for cleaner alignment on desktop and mobile.
 
 ## Marketing site (after backend/dashboard steps)
-- [ ] Add pricing cards to homepage (in HYROS style, inspired by https://claude.com/pricing).
-  - Placement: below key value props / before final CTA.
-  - Cards must match existing HYROS styling + typography.
+- [x] Add pricing cards to homepage (in HYROS style, inspired by https://claude.com/pricing).
+  - Added `PricingCardsSection` below value-prop/FAQ blocks and before `FinalCTA` on `src/app/page.tsx`.
+  - Uses existing marketing typography/tokens with responsive 1-col mobile / 3-col desktop card grid.
+  - Each package CTA routes into the existing Stripe path via `/pricing?package=<tier>`.
 
 ## Notes
 - Use subagents for implementation.
 - After each step: update this file and commit the change.
 
 ## Next steps (post-dashboard)
-- [ ] Marketing: add pricing cards to homepage (HYROS style) and ensure pricing routes/CTAs connect to Stripe checkout correctly.
+- [x] Marketing: add pricing cards to homepage (HYROS style) and ensure pricing routes/CTAs connect to Stripe checkout correctly.
 - [ ] Brief UX: make brief read-only view feel more document-like (typography, section framing, paper feel, version navigation clarity).
 - [ ] QA sweep: mobile review for all portal pages + check any remaining inconsistent surfaces.
 - [ ] Ops: document WSL2 LAN testing + Stripe/Supabase redirect configuration for local testers.

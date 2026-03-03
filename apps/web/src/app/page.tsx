@@ -5,6 +5,7 @@ import {
   HeroCenter,
   LogoWall,
   ProofStatsRow,
+  PricingCardsSection,
   SegmentCards,
   TestimonialCardsRow,
 } from "@/components/marketing/sections";
@@ -47,6 +48,34 @@ const testimonials = [
   {
     quote: "Fastest design partner we’ve worked with and still the cleanest execution.",
     byline: "— Agency Operator",
+  },
+];
+
+const pricingPlans = [
+  {
+    name: "Essential",
+    price: "$995",
+    cadence: "one-time",
+    bullets: ["1 strategic concept", "1 focused revision round", "Logo + web/social-ready exports"],
+    ctaLabel: "Choose Essential",
+    ctaHref: "/pricing?package=essential",
+  },
+  {
+    name: "Professional",
+    price: "$1,995",
+    cadence: "one-time",
+    bullets: ["3 concept directions", "2 revision rounds", "Usage guide + source file handoff"],
+    ctaLabel: "Choose Professional",
+    ctaHref: "/pricing?package=professional",
+    featured: true,
+  },
+  {
+    name: "Complete",
+    price: "$2,995",
+    cadence: "one-time",
+    bullets: ["5 concept directions", "Priority designer turnaround", "Expanded deliverables for paid + product"],
+    ctaLabel: "Choose Complete",
+    ctaHref: "/pricing?package=complete",
   },
 ];
 
@@ -115,6 +144,12 @@ export default function Home() {
       />
 
       <FAQ title="Frequently asked questions" items={faqs} />
+
+      <PricingCardsSection
+        eyebrow="Packages"
+        title="Choose the logo package that fits your growth stage"
+        plans={pricingPlans}
+      />
 
       <FinalCTA
         title="Ready to look like the market leader?"
