@@ -34,6 +34,16 @@ vi.mock("@/lib/checkout-fulfillment", () => ({
 
 import { POST } from "./route";
 
+function deferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
+}
+
 function webhookRequest() {
   return new Request("http://localhost/api/stripe/webhook", {
     method: "POST",
@@ -114,6 +124,94 @@ describe("POST /api/stripe/webhook", () => {
       where: { eventId: "evt_new" },
       data: { processedAt: expect.any(Date) },
     });
+  });
+
+  it("deterministically handles concurrent duplicate deliveries for same event/session", async () => {
+    const inflight = deferred<{
+      deduped: boolean;
+      projectId: string;
+      orderId: string;
+      clientId: string;
+      purchaserEmail: string;
+      firstName: string;
+      lastName: string;
+    }>();
+
+    mocks.constructEvent.mockReturnValue({
+      id: "evt_race",
+      type: "checkout.session.completed",
+      created: 1700000000,
+      data: { object: { id: "cs_race" } },
+    });
+
+    let createCalls = 0;
+    mocks.prisma.stripeEvent.create.mockImplementation(async () => {
+      createCalls += 1;
+      if (createCalls === 1) return undefined;
+      throw { code: "P2002" };
+    });
+    mocks.prisma.stripeEvent.findUnique.mockResolvedValueOnce({ eventId: "evt_race", processedAt: null });
+    mocks.fulfillCheckoutSession.mockImplementationOnce(() => inflight.promise);
+
+    const firstRequest = POST(webhookRequest());
+    await Promise.resolve();
+
+    const secondRes = await POST(webhookRequest());
+    expect(secondRes.status).toBe(202);
+    expect(mocks.fulfillCheckoutSession).toHaveBeenCalledTimes(1);
+
+    inflight.resolve({
+      deduped: false,
+      projectId: "project-race",
+      orderId: "order-race",
+      clientId: "client-race",
+      purchaserEmail: "buyer@example.com",
+      firstName: "Race",
+      lastName: "Case",
+    });
+
+    const firstRes = await firstRequest;
+    expect(firstRes.status).toBe(200);
+    expect(mocks.prisma.stripeEvent.update).toHaveBeenCalledWith({
+      where: { eventId: "evt_race" },
+      data: { processedAt: expect.any(Date) },
+    });
+  });
+
+  it("returns 500/retry shape for transient fulfillment failures", async () => {
+    mocks.constructEvent.mockReturnValue({
+      id: "evt_transient",
+      type: "checkout.session.completed",
+      created: 1700000000,
+      data: { object: { id: "cs_transient" } },
+    });
+    mocks.fulfillCheckoutSession.mockRejectedValueOnce({ code: "P1001" });
+
+    const res = await POST(webhookRequest());
+    const body = await res.json();
+
+    expect(res.status).toBe(500);
+    expect(body.classification).toBe("transient");
+    expect(body.retry).toBe(true);
+  });
+
+  it("returns 200/dead-letter shape for permanent fulfillment failures", async () => {
+    mocks.constructEvent.mockReturnValue({
+      id: "evt_permanent",
+      type: "checkout.session.completed",
+      created: 1700000000,
+      data: { object: { id: "cs_perm" } },
+    });
+    mocks.fulfillCheckoutSession.mockRejectedValueOnce(
+      new Error("Checkout session did not resolve to exactly one allowlisted package"),
+    );
+
+    const res = await POST(webhookRequest());
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.classification).toBe("permanent");
+    expect(body.retry).toBe(false);
   });
 
   it("upserts non-checkout events as ignored", async () => {

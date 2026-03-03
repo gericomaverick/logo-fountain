@@ -10,6 +10,7 @@ import {
   ORDER_STATUS_NEEDS_CONTACT,
 } from "@/lib/checkout-fulfillment";
 import { sendCheckoutContinueEmail } from "@/lib/checkout-continue-email";
+import { classifyWebhookError } from "@/lib/webhook-error-classification";
 
 export const runtime = "nodejs";
 
@@ -132,6 +133,32 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Fulfillment failed";
-    return Response.json({ received: true, fulfilled: false, error: message }, { status: 500 });
+    const classification = classifyWebhookError(error);
+
+    const logPayload = {
+      id: event.id,
+      type: event.type,
+      classification: classification.kind,
+      reason: classification.reason,
+      retry: classification.shouldRetry,
+      error: message,
+    };
+
+    if (classification.logLevel === "warn") {
+      console.warn("Stripe checkout webhook failed permanently", logPayload);
+    } else {
+      console.error("Stripe checkout webhook failed transiently", logPayload);
+    }
+
+    return Response.json(
+      {
+        received: true,
+        fulfilled: false,
+        error: message,
+        classification: classification.kind,
+        retry: classification.shouldRetry,
+      },
+      { status: classification.responseStatus },
+    );
   }
 }
