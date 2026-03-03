@@ -120,7 +120,10 @@ function AreaCard({ title, href, hasNew, subtitle }: { title: string; href: stri
   return (
     <Link href={href} className="rounded-xl border border-neutral-200 bg-neutral-50 p-4 transition hover:border-neutral-300 hover:bg-white">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-sm font-semibold text-neutral-900">{title}</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-neutral-900">{title}</h3>
+          <span aria-hidden className="text-sm text-neutral-400">→</span>
+        </div>
         {hasNew ? <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">New</span> : null}
       </div>
       <p className="mt-1 text-sm text-neutral-600">{subtitle ?? `Open ${title.toLowerCase()}`}</p>
@@ -329,7 +332,7 @@ export default function ProjectPage() {
     <PageShell>
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
-        <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+        <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
           <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
             <div>
               <ProjectStatusBadge status={snapshot?.status ?? "UNKNOWN"} />

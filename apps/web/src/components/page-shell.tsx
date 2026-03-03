@@ -5,7 +5,7 @@ export function PageShell({ children }: { children: ReactNode }) {
 }
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <section className={`rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm ${className}`}>{children}</section>;
+  return <section className={`mt-3 rounded-2xl border border-neutral-200 bg-white p-6  ${className}`}>{children}</section>;
 }
 
 export function SubCard({ children, className = "" }: { children: ReactNode; className?: string }) {

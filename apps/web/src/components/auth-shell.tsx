@@ -19,7 +19,7 @@ export function AuthShell({
           <img src="/img/logo.svg" alt="Logo Fountain" className="h-9 w-auto" />
         </div>
 
-        <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+        <div className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
           <h1 className="text-2xl font-semibold text-neutral-900">{title}</h1>
           {subtitle ? <p className="mt-2 text-sm text-neutral-600">{subtitle}</p> : null}
           <div className="mt-6">{children}</div>
