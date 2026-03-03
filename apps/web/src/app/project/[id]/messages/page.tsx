@@ -1,16 +1,12 @@
 "use client";
 
 import { HeaderNav } from "@/components/header-nav";
+import { resolveSenderLabel, sortMessagesNewestLast, type ChatMessage } from "@/lib/chat-messages";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
-type Message = {
-  id: string;
-  body: string;
-  createdAt: string;
-  sender: { id: string; email: string; fullName: string | null };
-};
+type Message = ChatMessage;
 
 type SessionPayload = {
   authenticated: boolean;
@@ -34,13 +30,15 @@ export default function ProjectMessagesPage() {
   const [busy, setBusy] = useState(false);
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
-  const sessionRoleLabel = session.isAdmin ? "Admin" : "Client";
+  const sorted = useMemo(() => sortMessagesNewestLast(messages), [messages]);
 
-  const sorted = useMemo(
-    () => messages.slice().sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()),
-    [messages],
-  );
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  }, [sorted.length]);
 
   async function refresh(id: string) {
     const [messagesRes, sessionRes] = await Promise.all([
@@ -62,21 +60,8 @@ export default function ProjectMessagesPage() {
 
     const load = async () => {
       try {
-        const [messagesRes, sessionRes] = await Promise.all([
-          fetch(`/api/projects/${projectId}/messages`, { cache: "no-store" }),
-          fetch("/api/auth/session", { cache: "no-store" }),
-        ]);
-
-        const messagesPayload = await messagesRes.json().catch(() => null);
-        if (!messagesRes.ok) throw new Error(readError(messagesPayload, "Failed to load messages"));
-
-        const sessionPayload = await sessionRes.json().catch(() => null);
-
-        if (!cancelled) {
-          setSession((sessionPayload ?? { authenticated: false }) as SessionPayload);
-          setMessages((messagesPayload?.messages ?? []) as Message[]);
-          setError(null);
-        }
+        await refresh(projectId);
+        if (!cancelled) setError(null);
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load messages");
       } finally {
@@ -130,14 +115,13 @@ export default function ProjectMessagesPage() {
         </div>
 
         <section className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
-          <div className="h-[28rem] overflow-y-auto rounded-lg border border-neutral-200 bg-white p-4">
+          <div ref={scrollRef} className="h-[28rem] overflow-y-auto rounded-lg border border-neutral-200 bg-white p-4">
             {loading ? <p className="text-sm text-neutral-600">Loading…</p> : null}
             {!loading && sorted.length === 0 ? <p className="text-sm text-neutral-600">No messages yet.</p> : null}
 
             <ul className="space-y-3">
               {sorted.map((message) => {
                 const isMine = session.userId && message.sender.id === session.userId;
-                const senderRole = isMine ? sessionRoleLabel : session.isAdmin ? "Client" : "Admin";
 
                 return (
                   <li key={message.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
@@ -147,7 +131,7 @@ export default function ProjectMessagesPage() {
                       }`}
                     >
                       <p className={`text-xs ${isMine ? "text-neutral-300" : "text-neutral-500"}`}>
-                        {senderRole} · {message.sender.fullName ?? message.sender.email}
+                        {resolveSenderLabel(message.sender)}
                       </p>
                       <p className="mt-1 whitespace-pre-wrap">{message.body}</p>
                       <p className={`mt-2 text-right text-[11px] ${isMine ? "text-neutral-300" : "text-neutral-500"}`}>

@@ -2,16 +2,12 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { HeaderNav } from "@/components/header-nav";
+import { resolveSenderLabel, sortMessagesNewestLast, type ChatMessage } from "@/lib/chat-messages";
 
-type Message = {
-  id: string;
-  body: string;
-  createdAt: string;
-  sender: { id: string; email: string; fullName: string | null };
-};
+type Message = ChatMessage;
 
 type SessionPayload = {
   authenticated: boolean;
@@ -35,13 +31,15 @@ export default function AdminProjectMessagesPage() {
   const [busy, setBusy] = useState(false);
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
-  const sessionRoleLabel = session.isAdmin ? "Admin" : "Client";
+  const sorted = useMemo(() => sortMessagesNewestLast(messages), [messages]);
 
-  const sorted = useMemo(
-    () => messages.slice().sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()),
-    [messages],
-  );
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  }, [sorted.length]);
 
   async function refresh(id: string) {
     const [messagesRes, sessionRes] = await Promise.all([
@@ -119,19 +117,18 @@ export default function AdminProjectMessagesPage() {
         </div>
 
         <section className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
-          <div className="h-[28rem] overflow-y-auto rounded-lg border border-neutral-200 bg-white p-4">
+          <div ref={scrollRef} className="h-[28rem] overflow-y-auto rounded-lg border border-neutral-200 bg-white p-4">
             {loading ? <p className="text-sm text-neutral-600">Loading…</p> : null}
             {!loading && sorted.length === 0 ? <p className="text-sm text-neutral-600">No messages yet.</p> : null}
 
             <ul className="space-y-3">
               {sorted.map((message) => {
                 const isMine = session.userId && message.sender.id === session.userId;
-                const senderRole = isMine ? sessionRoleLabel : session.isAdmin ? "Client" : "Admin";
                 return (
                   <li key={message.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
                     <article className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm shadow-sm ${isMine ? "bg-neutral-900 text-white" : "bg-neutral-100 text-neutral-900"}`}>
                       <p className={`text-xs ${isMine ? "text-neutral-300" : "text-neutral-500"}`}>
-                        {senderRole} · {message.sender.fullName ?? message.sender.email}
+                        {resolveSenderLabel(message.sender)}
                       </p>
                       <p className="mt-1 whitespace-pre-wrap">{message.body}</p>
                       <p className={`mt-2 text-right text-[11px] ${isMine ? "text-neutral-300" : "text-neutral-500"}`}>{new Date(message.createdAt).toLocaleString()}</p>

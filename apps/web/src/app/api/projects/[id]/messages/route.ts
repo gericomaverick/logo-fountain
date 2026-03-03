@@ -39,7 +39,12 @@ export async function GET(_req: Request, { params }: RouteParams) {
     const messages = await prisma.message.findMany({
       where: { projectId: auth.projectId },
       orderBy: [{ createdAt: "asc" }, { id: "asc" }],
-      select: { id: true, body: true, createdAt: true, sender: { select: { id: true, email: true, fullName: true } } },
+      select: {
+        id: true,
+        body: true,
+        createdAt: true,
+        sender: { select: { id: true, email: true, isAdmin: true, fullName: true, firstName: true, lastName: true } },
+      },
     });
 
     return Response.json({ messages });
@@ -73,7 +78,12 @@ export async function POST(req: Request, { params }: RouteParams) {
       const thread = await tx.messageThread.upsert({ where: { projectId: auth.projectId }, update: {}, create: { projectId: auth.projectId }, select: { id: true } });
       const created = await tx.message.create({
         data: { threadId: thread.id, projectId: auth.projectId, senderId: auth.user.id, body },
-        select: { id: true, body: true, createdAt: true, sender: { select: { id: true, email: true, fullName: true } } },
+        select: {
+          id: true,
+          body: true,
+          createdAt: true,
+          sender: { select: { id: true, email: true, isAdmin: true, fullName: true, firstName: true, lastName: true } },
+        },
       });
 
       await logAudit(tx, {
