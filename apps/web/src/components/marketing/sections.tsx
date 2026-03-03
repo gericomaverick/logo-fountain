@@ -157,7 +157,7 @@ export function HeroCenter({
       <SectionContainer yClass="pb-24 pt-12 md:pb-32 md:pt-16">
         {eyebrow?.trim() ? <HeroEyebrowPill>{eyebrow}</HeroEyebrowPill> : null}
         <HeroHello>{hello}</HeroHello>
-        <h1 className="font-display mt-3 max-w-5xl text-[length:var(--step-7)] leading-[1.02] tracking-tight">{title}</h1>
+        <h1 className="font-display mt-3 max-w-5xl text-[length:var(--step-8)] leading-[1.02] tracking-tight">{title}</h1>
         <p className="mt-6 max-w-2xl text-[length:var(--step-0)] leading-relaxed text-white/80">{body}</p>
         <div className="mt-9 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
           <Link href={primary.href} className="lf-btn lf-btn--primary">
@@ -180,6 +180,10 @@ export function ProofStatsRow({ quote, byline, stats }: { quote: string; byline:
       <SectionContainer>
         <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
           <article className={`${sectionTokens.radius} ${sectionTokens.subtleBorder} ${sectionTokens.mutedCard} px-8 pb-10 pt-4`}>
+            <div className="mb-6">
+              <div className="aspect-[16/9] w-full rounded-[16px] border border-black/10 bg-white/60" aria-hidden />
+              <p className="mt-2 text-[length:var(--step--2)] font-semibold uppercase tracking-[0.16em] text-black/50">Drop in a graphic/logo</p>
+            </div>
             <p className="font-display text-[length:var(--step-3)] leading-[1.2] text-black">“{quote}”</p>
             <p className="mt-5 text-[length:var(--step--1)] font-semibold text-muted">{byline}</p>
           </article>
@@ -200,7 +204,26 @@ export function LogoWall({ title, logos }: { title: string; logos: string[] }) {
 }
 
 export function SegmentCards({ eyebrow, title, items }: { eyebrow: string; title: string; items: Array<{ title: string; body: string; icon: string }> }) {
-  return <section className="bg-white"><SectionContainer><div className="flex justify-center">{eyebrow?.trim() ? <PretitlePill variant="light">{eyebrow}</PretitlePill> : null}</div><h2 className="font-display mx-auto mt-3 max-w-3xl text-center text-[length:var(--step-4)] leading-tight">{title}</h2><div className="mt-8 grid gap-4 md:grid-cols-3">{items.map((item) => (<article key={item.title} className="rounded-[20px] border border-black bg-white p-6"><span className="text-xl text-[rgb(0,153,255)]">{item.icon}</span><h3 className="mt-3 text-[length:var(--step-1)] font-semibold">{item.title}</h3><p className="mt-2 text-[length:var(--step-0)] leading-relaxed text-muted">{item.body}</p></article>))}</div></SectionContainer></section>;
+  return (
+    <section className="bg-white">
+      <SectionContainer>
+        <div className="flex justify-center">{eyebrow?.trim() ? <PretitlePill variant="light">{eyebrow}</PretitlePill> : null}</div>
+        <h2 className="font-display mx-auto mt-3 max-w-3xl text-center text-[length:var(--step-4)] leading-tight">{title}</h2>
+
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
+          {items.map((item) => (
+            <article key={item.title} className={`${sectionTokens.radius} ${sectionTokens.subtleBorder} ${sectionTokens.mutedCard} p-7`}>
+              <div className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-black/10 bg-white/70 text-[rgb(0,153,255)]">
+                <span className="text-lg">{item.icon}</span>
+              </div>
+              <h3 className="font-display mt-4 text-[length:var(--step-1)] leading-tight text-black">{item.title}</h3>
+              <p className="mt-2 text-[length:var(--step-0)] leading-relaxed text-muted">{item.body}</p>
+            </article>
+          ))}
+        </div>
+      </SectionContainer>
+    </section>
+  );
 }
 
 export function TestimonialCardsRow({ title, items }: { title: string; items: Array<{ quote: string; byline: string }> }) {
