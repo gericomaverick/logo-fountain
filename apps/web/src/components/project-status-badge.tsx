@@ -31,7 +31,7 @@ export function getProjectStatusLabel(status: string): string {
 export function ProjectStatusBadge({ status }: { status: string }) {
   return (
     <span
-      className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold uppercase tracking-wide ${getProjectStatusToneClass(status)}`}
+      className={`portal-badge ${getProjectStatusToneClass(status)}`}
     >
       {getProjectStatusLabel(status)}
     </span>

@@ -193,9 +193,9 @@ export default function AdminProjectPage() {
     <PageShell>
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
-        <p className="text-sm"><Link href="/admin" className="underline">← Back to dashboard</Link></p>
+        <p className="text-sm"><Link href="/admin" className="portal-link no-underline">← Back to dashboard</Link></p>
 
-        <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
+        <section className="mt-3 portal-card">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <ProjectStatusBadge status={snapshot?.status ?? "UNKNOWN"} />
@@ -204,16 +204,16 @@ export default function AdminProjectPage() {
               <p className="mt-1 text-sm text-neutral-600">Recent audit events: {snapshot?.recentAuditEventsCount ?? 0}</p>
             </div>
             <div className="flex flex-col gap-2 sm:items-end">
-              <Link className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm" href={`/admin/projects/${projectId}/messages`}>
+              <Link className="portal-btn-secondary" href={`/admin/projects/${projectId}/messages`}>
                 Open messages
               </Link>
-              <Link className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm" href={`/admin/projects/${projectId}/brief`}>
+              <Link className="portal-btn-secondary" href={`/admin/projects/${projectId}/brief`}>
                 View brief
               </Link>
-              <Link className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm" href={`/admin/projects/${projectId}/concepts`}>
+              <Link className="portal-btn-secondary" href={`/admin/projects/${projectId}/concepts`}>
                 Concepts manager
               </Link>
-              <Link className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm" href={`/admin/projects/${projectId}/upload`}>
+              <Link className="portal-btn-secondary" href={`/admin/projects/${projectId}/upload`}>
                 Legacy upload
               </Link>
             </div>
@@ -223,7 +223,7 @@ export default function AdminProjectPage() {
             {pendingFeedbackCount > 0 ? (
               <p>
                 Latest concept has <span className="font-semibold">{pendingFeedbackCount}</span> pending feedback request{pendingFeedbackCount === 1 ? "" : "s"}.{" "}
-                <Link className="underline" href={`/admin/projects/${projectId}/concepts`}>Open concepts manager</Link>
+                <Link className="portal-link no-underline" href={`/admin/projects/${projectId}/concepts`}>Open concepts manager</Link>
               </p>
             ) : (
               <p>No pending feedback on the latest concept.</p>
@@ -333,7 +333,7 @@ export default function AdminProjectPage() {
         ) : null}
 
         {(snapshot?.revisionRequests ?? []).some((r) => r.status !== "delivered") ? (
-          <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
+          <section className="mt-3 portal-card">
             <h2 className="text-lg font-medium">Outstanding revision requests</h2>
             <p className="mt-1 text-sm text-neutral-600">Client feedback waiting for a designer response.</p>
             <ul className="mt-4 space-y-3">
@@ -355,7 +355,7 @@ export default function AdminProjectPage() {
                           ) : (
                             <div className="h-16 w-16 rounded-lg border border-neutral-200 bg-neutral-50" aria-hidden />
                           )}
-                          <Link className="text-sm underline" href={`/admin/projects/${projectId}/concepts`}>
+                          <Link className="portal-link no-underline" href={`/admin/projects/${projectId}/concepts`}>
                             View concept #{concept?.number ?? "—"}
                           </Link>
                         </div>
@@ -384,13 +384,13 @@ export default function AdminProjectPage() {
           </section>
         ) : null}
 
-        <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
+        <section className="mt-3 portal-card">
           <div className="flex items-center justify-between gap-3">
             <div>
               <h2 className="text-lg font-medium">Concepts</h2>
               <p className="mt-1 text-sm text-neutral-600">Published concepts visible to the client.</p>
             </div>
-            <Link className="text-sm underline" href={`/admin/projects/${projectId}/concepts`}>Open concepts manager + quick actions</Link>
+            <Link className="portal-link no-underline" href={`/admin/projects/${projectId}/concepts`}>Open concepts manager + quick actions</Link>
           </div>
 
           {loading ? <p className="mt-3 text-sm text-neutral-600">Loading…</p> : null}
@@ -414,8 +414,8 @@ export default function AdminProjectPage() {
                     <p className="mt-2 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">{pendingRevisionCount} pending revision request{pendingRevisionCount === 1 ? "" : "s"}</p>
                   ) : null}
                   <div className="mt-2 flex items-center justify-between gap-2 text-xs">
-                    <Link className="underline" href={`/project/${projectId}/concept/${concept.id}?from=admin`}>Open discussion</Link>
-                    <Link className="underline" href={`/admin/projects/${projectId}/concepts#concept-${concept.id}`}>Quick actions</Link>
+                    <Link className="portal-link no-underline" href={`/project/${projectId}/concept/${concept.id}?from=admin`}>Open discussion</Link>
+                    <Link className="portal-link no-underline" href={`/admin/projects/${projectId}/concepts#concept-${concept.id}`}>Quick actions</Link>
                   </div>
                 </li>
               );
@@ -424,7 +424,7 @@ export default function AdminProjectPage() {
           </ul>
         </section>
 
-        <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
+        <section className="mt-3 portal-card">
           <h2 className="text-lg font-medium">Audit log</h2>
           <ul className="mt-3 space-y-3">
             {auditEvents.map((event) => (

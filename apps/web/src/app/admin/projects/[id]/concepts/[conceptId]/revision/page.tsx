@@ -71,8 +71,8 @@ export default function AdminConceptRevisionUploadPage() {
             <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
           </div>
           <div className="flex gap-4 text-sm">
-            <Link className="underline" href={backHref}>Back to concept thread</Link>
-            <Link className="underline" href={`/admin/projects/${projectId}/concepts#pending-feedback`}>Pending feedback inbox</Link>
+            <Link className="portal-link no-underline" href={backHref}>Back to concept thread</Link>
+            <Link className="portal-link no-underline" href={`/admin/projects/${projectId}/concepts#pending-feedback`}>Pending feedback inbox</Link>
           </div>
         </div>
 
@@ -89,14 +89,14 @@ export default function AdminConceptRevisionUploadPage() {
             <label className="mt-4 block text-sm font-medium">Revision note (optional)</label>
             <p className="mt-1 text-xs text-neutral-600">Shown on the concept page when the client selects this revision version.</p>
             <textarea
-              className="mt-2 w-full rounded border border-neutral-300 px-2 py-1"
+              className="mt-2 portal-field px-2 py-1"
               rows={4}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="e.g. What's changed in this revision and why"
             />
 
-            <button className="mt-4 rounded border border-neutral-300 px-3 py-1 text-sm" type="submit" disabled={busy || !file}>
+            <button className="mt-4 portal-btn-secondary" type="submit" disabled={busy || !file}>
               {busy ? "Uploading…" : "Upload revision"}
             </button>
           </form>

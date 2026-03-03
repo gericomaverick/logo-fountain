@@ -96,7 +96,7 @@ function EntitlementProgress({
   }, [stats.ratio]);
 
   return (
-    <article className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+    <article className="portal-subcard">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-sm font-semibold text-neutral-900">{label}</h3>
         <p className="text-xs text-neutral-500">{stats.remaining} left</p>
@@ -118,7 +118,7 @@ function EntitlementProgress({
 
 function AreaCard({ title, href, hasNew, subtitle }: { title: string; href: string; hasNew?: boolean; subtitle?: string }) {
   return (
-    <Link href={href} className="rounded-xl border border-neutral-200 bg-neutral-50 p-4 transition hover:border-neutral-300 hover:bg-white">
+    <Link href={href} className="portal-subcard transition hover:border-neutral-300 hover:bg-white">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <h3 className="text-sm font-semibold text-neutral-900">{title}</h3>
@@ -142,7 +142,7 @@ function ActivityPanel({ projectId, snapshot, pendingFeedbackCount }: { projectI
           <h2 className="text-lg font-semibold text-neutral-900">Mission control</h2>
           <p className="mt-1 text-sm text-neutral-600">What needs attention now, plus a clean activity timeline.</p>
         </div>
-        <Link href={nextAction.href} className="inline-flex rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white">
+        <Link href={nextAction.href} className="portal-btn-primary">
           {nextAction.label}
         </Link>
       </div>
@@ -237,7 +237,7 @@ function UpsellPanel({
         {upgradeTarget ? (
           <button
             type="button"
-            className="rounded-lg border border-violet-400 bg-white px-3 py-2 text-sm font-medium text-violet-900 disabled:opacity-60"
+            className="portal-btn-secondary border-violet-400 text-violet-900"
             onClick={() => void startPurchase({ kind: "upgrade", toPackage: upgradeTarget }, "upgrade")}
             disabled={submitting !== null}
           >
@@ -340,7 +340,7 @@ export default function ProjectPage() {
     <PageShell>
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
-        <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6">
+        <section className="mt-3 portal-card">
           <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
             <div>
               <ProjectStatusBadge status={snapshot?.status ?? "UNKNOWN"} />
@@ -360,10 +360,10 @@ export default function ProjectPage() {
               </div>
             </div>
 
-            <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+            <div className="portal-subcard">
               <p className="text-xs uppercase tracking-wide text-neutral-500">Next action</p>
               <p className="mt-1 text-sm text-neutral-700">Do this first to keep your project moving.</p>
-              <Link href={nextAction.href} className="mt-3 inline-flex rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white">
+              <Link href={nextAction.href} className="mt-3 portal-btn-primary">
                 {nextAction.label}
               </Link>
               <div className={`mt-3 rounded-lg border px-3 py-2 text-xs ${pendingFeedbackCount > 0 ? "border-amber-200 bg-amber-50 text-amber-900" : "border-emerald-200 bg-emerald-50 text-emerald-900"}`}>
@@ -386,7 +386,7 @@ export default function ProjectPage() {
             <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
               <div className="flex items-center justify-between">
                 <p className="text-xs uppercase tracking-wide text-neutral-500">Latest concept</p>
-                <Link className="text-xs font-medium text-neutral-700 underline" href={`/project/${projectId}/concepts`}>View all</Link>
+                <Link className="text-xs font-medium text-neutral-700 portal-link no-underline" href={`/project/${projectId}/concepts`}>View all</Link>
               </div>
               {latestConcept?.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -414,7 +414,7 @@ export default function ProjectPage() {
           <section id="final-files" className="mt-10 rounded border border-neutral-200 p-4">
             <h2 className="text-lg font-medium">Final files</h2>
             <p className="mt-3 text-sm">
-              <a className="underline" href={snapshot.finalZip.url} target="_blank" rel="noreferrer">
+              <a className="portal-link no-underline" href={snapshot.finalZip.url} target="_blank" rel="noreferrer">
                 Download final ZIP
               </a>
             </p>

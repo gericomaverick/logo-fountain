@@ -53,16 +53,17 @@ export function HeaderNav() {
   }
 
   return (
-    <header className="border-b border-neutral-200 bg-white">
+    <header className="border-b border-neutral-200/90 bg-white/95 backdrop-blur-sm">
       <nav className="mx-auto flex w-full max-w-[1160px] items-center justify-between gap-3 px-6 py-3 text-sm md:px-10">
         <div className="flex items-center gap-4">
-          <Link href="/" className="flex flex-row items-center gap-2 font-semibold">
-          <img src="/img/logo.svg" alt="Logo Fountain" className="h-5 w-auto" />
-          Logo Fountain</Link>
-          <Link className="no-underline" href="/dashboard">Dashboard</Link>
-          {session.authenticated ? <Link className="no-underline" href="/settings">Settings</Link> : null}
+          <Link href="/" className="flex flex-row items-center gap-2 font-semibold text-neutral-900 transition-opacity hover:opacity-80">
+            <img src="/img/logo.svg" alt="Logo Fountain" className="h-5 w-auto" />
+            Logo Fountain
+          </Link>
+          <Link className="portal-link no-underline" href="/dashboard">Dashboard</Link>
+          {session.authenticated ? <Link className="portal-link no-underline" href="/settings">Settings</Link> : null}
 
-          {!session.authenticated ? <Link className="no-underline" href="/pricing">Pricing</Link> : null}
+          {!session.authenticated ? <Link className="portal-link no-underline" href="/pricing">Pricing</Link> : null}
         </div>
 
         <div className="flex items-center gap-3">
@@ -71,7 +72,7 @@ export function HeaderNav() {
               <span className="text-neutral-600">{session.email ?? "Signed in"}</span>
               <button
                 type="button"
-                className="rounded border border-neutral-300 px-2 py-1"
+                className="portal-btn-secondary px-2 py-1"
                 disabled={loggingOut}
                 onClick={() => {
                   void logout();

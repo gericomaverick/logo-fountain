@@ -92,12 +92,12 @@ export default function SettingsPage() {
         {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
 
         {!loading && !error ? (
-          <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
+          <section className="mt-3 portal-card">
             <form className="space-y-4" onSubmit={(e) => void onSave(e)}>
               <label className="block text-sm">
               <span className="mb-1 block font-medium">Email</span>
               <input
-                className="w-full rounded border border-neutral-300 bg-neutral-100 px-3 py-2"
+                className="portal-field bg-neutral-100"
                 type="email"
                 value={email ?? ""}
                 disabled
@@ -107,7 +107,7 @@ export default function SettingsPage() {
             <label className="block text-sm">
               <span className="mb-1 block font-medium">First name</span>
               <input
-                className="w-full rounded border border-neutral-300 px-3 py-2"
+                className="portal-field"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 maxLength={80}
@@ -117,7 +117,7 @@ export default function SettingsPage() {
             <label className="block text-sm">
               <span className="mb-1 block font-medium">Last name</span>
               <input
-                className="w-full rounded border border-neutral-300 px-3 py-2"
+                className="portal-field"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 maxLength={80}
@@ -129,7 +129,7 @@ export default function SettingsPage() {
             <button
               type="submit"
               disabled={saving}
-              className="rounded border border-neutral-300 px-3 py-2 text-sm"
+              className="portal-btn-secondary"
             >
               {saving ? "Saving…" : "Save changes"}
             </button>

@@ -5,9 +5,9 @@ export function PageShell({ children }: { children: ReactNode }) {
 }
 
 export function Card({ children, className = "", ...props }: { children: ReactNode; className?: string } & ComponentPropsWithoutRef<"section">) {
-  return <section className={`mt-3 rounded-2xl border border-neutral-200 bg-white p-6  ${className}`} {...props}>{children}</section>;
+  return <section className={`portal-card mt-3 ${className}`} {...props}>{children}</section>;
 }
 
 export function SubCard({ children, className = "", ...props }: { children: ReactNode; className?: string } & ComponentPropsWithoutRef<"section">) {
-  return <section className={`rounded-xl border border-neutral-200 bg-neutral-50 p-4 ${className}`} {...props}>{children}</section>;
+  return <section className={`portal-subcard ${className}`} {...props}>{children}</section>;
 }

@@ -154,8 +154,8 @@ export default function AdminProjectConceptsPage() {
             <p className="mt-1 text-sm text-neutral-600">Pending feedback items: {totalPending}</p>
           </div>
           <div className="flex gap-4 text-sm">
-            <Link className="underline" href={`/admin/projects/${projectId}`}>Overview</Link>
-            <Link className="underline" href={`/admin/projects/${projectId}/messages`}>Project thread</Link>
+            <Link className="portal-link no-underline" href={`/admin/projects/${projectId}`}>Overview</Link>
+            <Link className="portal-link no-underline" href={`/admin/projects/${projectId}/messages`}>Project thread</Link>
           </div>
         </div>
 
@@ -184,15 +184,15 @@ export default function AdminProjectConceptsPage() {
                   <div className="flex flex-col items-start gap-2 text-sm sm:items-end">
                     {request.concept ? (
                       <>
-                        <Link className="underline" href={`/project/${projectId}/concept/${request.concept.id}?from=admin`}>
+                        <Link className="portal-link no-underline" href={`/project/${projectId}/concept/${request.concept.id}?from=admin`}>
                           Open concept thread
                         </Link>
-                        <Link className="underline" href={`/admin/projects/${projectId}/concepts/${request.concept.id}/revision`}>
+                        <Link className="portal-link no-underline" href={`/admin/projects/${projectId}/concepts/${request.concept.id}/revision`}>
                           Upload revision
                         </Link>
                       </>
                     ) : null}
-                    <Link className="underline" href={`/admin/projects/${projectId}/messages`}>
+                    <Link className="portal-link no-underline" href={`/admin/projects/${projectId}/messages`}>
                       Open project thread
                     </Link>
                     <button
@@ -230,9 +230,9 @@ export default function AdminProjectConceptsPage() {
             <input className="mt-1 block" type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
 
             <label className="mt-4 block text-sm font-medium">Notes</label>
-            <textarea className="mt-1 w-full rounded border border-neutral-300 px-2 py-1" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
+            <textarea className="mt-1 portal-field px-2 py-1" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
 
-            <button className="mt-4 rounded border border-neutral-300 px-3 py-1 text-sm" type="submit" disabled={busy || !file}>
+            <button className="mt-4 portal-btn-secondary" type="submit" disabled={busy || !file}>
               {busy ? "Uploading…" : "Upload concept"}
             </button>
           </form>
@@ -277,10 +277,10 @@ export default function AdminProjectConceptsPage() {
                   </Link>
 
                   <div className="flex items-center justify-between gap-2 border-t border-neutral-200 p-3 text-xs">
-                    <Link className="underline" href={`/project/${projectId}/concept/${concept.id}?from=admin`}>
+                    <Link className="portal-link no-underline" href={`/project/${projectId}/concept/${concept.id}?from=admin`}>
                       Open concept thread
                     </Link>
-                    <Link className="underline" href={`/admin/projects/${projectId}/concepts/${concept.id}/revision`}>
+                    <Link className="portal-link no-underline" href={`/admin/projects/${projectId}/concepts/${concept.id}/revision`}>
                       Upload revision
                     </Link>
                   </div>

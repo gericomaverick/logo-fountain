@@ -92,7 +92,7 @@ function ProjectCard({ project }: { project: DashboardProject }) {
   const statusNote = getStatusNote(project.status);
 
   return (
-    <article className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
+    <article className="mt-3 portal-card">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
@@ -106,14 +106,14 @@ function ProjectCard({ project }: { project: DashboardProject }) {
         </div>
 
         <div className="flex flex-col gap-2 sm:items-end">
-          <Link className="inline-flex rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white" href={cta.href}>
+          <Link className="portal-btn-primary" href={cta.href}>
             {cta.label}
           </Link>
           <div className="flex gap-3">
-            <Link className="text-sm text-neutral-700 underline" href={`/project/${project.id}/brief`}>
+            <Link className="portal-link no-underline" href={`/project/${project.id}/brief`}>
               Brief
             </Link>
-            <Link className="text-sm text-neutral-700 underline" href={`/project/${project.id}/messages`}>
+            <Link className="portal-link no-underline" href={`/project/${project.id}/messages`}>
               Messages
             </Link>
           </div>
@@ -161,7 +161,7 @@ export default async function DashboardPage() {
         <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
           <h1 className="text-2xl font-semibold">Dashboard</h1>
           <p className="mt-2 text-sm text-neutral-600">
-            You need to <Link className="underline" href="/login">sign in</Link> to view your projects.
+            You need to <Link className="portal-link no-underline" href="/login">sign in</Link> to view your projects.
           </p>
         </main>
       </PageShell>
@@ -263,7 +263,7 @@ export default async function DashboardPage() {
     <PageShell>
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
-        <h1 className="text-3xl font-semibold text-neutral-900">{greeting}</h1>
+        <h1 className="portal-page-title">{greeting}</h1>
 
         {projects.length === 0 ? (
           <p className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 text-sm text-neutral-600">No projects yet.</p>

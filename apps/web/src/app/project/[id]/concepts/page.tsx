@@ -91,8 +91,8 @@ export default function ProjectConceptsPage() {
             <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
           </div>
           <div className="flex gap-4 text-sm">
-            <Link className="underline" href={`/project/${projectId}`}>Overview</Link>
-            <Link className="underline" href={`/project/${projectId}/messages`}>Messages</Link>
+            <Link className="portal-link no-underline" href={`/project/${projectId}`}>Overview</Link>
+            <Link className="portal-link no-underline" href={`/project/${projectId}/messages`}>Messages</Link>
           </div>
         </div>
 

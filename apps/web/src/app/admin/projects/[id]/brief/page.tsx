@@ -75,8 +75,8 @@ export default function AdminProjectBriefPage() {
             <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
           </div>
           <div className="flex gap-4 text-sm">
-            <Link className="underline" href={`/admin/projects/${projectId}`}>Back to overview</Link>
-            <Link className="underline" href={`/admin/projects/${projectId}/messages`}>Messages</Link>
+            <Link className="portal-link no-underline" href={`/admin/projects/${projectId}`}>Back to overview</Link>
+            <Link className="portal-link no-underline" href={`/admin/projects/${projectId}/messages`}>Messages</Link>
           </div>
         </div>
 
@@ -84,14 +84,14 @@ export default function AdminProjectBriefPage() {
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
         {!loading && !brief ? (
-          <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+          <div className="portal-subcard">
             <p className="text-sm text-neutral-700">No brief submitted yet.</p>
             <p className="mt-1 text-sm text-neutral-600">Ask the client to submit their brief from their dashboard.</p>
           </div>
         ) : null}
 
         {brief ? (
-          <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+          <section className="portal-cardshadow-sm">
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-semibold text-neutral-900">Version {brief.version}</p>
               <p className="text-xs text-neutral-500">Submitted {new Date(brief.createdAt).toLocaleString()}</p>
@@ -99,7 +99,7 @@ export default function AdminProjectBriefPage() {
 
             <dl className="mt-6 grid gap-4 sm:grid-cols-2">
               {Object.entries(brief.answers ?? {}).map(([key, value]) => (
-                <div key={key} className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+                <div key={key} className="portal-subcard">
                   <dt className="text-xs font-semibold uppercase tracking-wide text-neutral-500">{key}</dt>
                   <dd className="mt-2 whitespace-pre-wrap text-sm text-neutral-900">{formatValue(value)}</dd>
                 </div>

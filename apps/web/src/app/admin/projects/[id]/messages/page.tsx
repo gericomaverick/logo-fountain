@@ -131,9 +131,9 @@ export default function AdminProjectMessagesPage() {
             <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
           </div>
           <div className="flex gap-4 text-sm">
-            <Link className="underline" href={`/admin/projects/${projectId}`}>Overview</Link>
-            <Link className="underline" href={`/admin/projects/${projectId}/concepts#pending-feedback`}>Pending feedback inbox</Link>
-            <Link className="underline" href={`/admin/projects/${projectId}/upload`}>Upload concepts</Link>
+            <Link className="portal-link no-underline" href={`/admin/projects/${projectId}`}>Overview</Link>
+            <Link className="portal-link no-underline" href={`/admin/projects/${projectId}/concepts#pending-feedback`}>Pending feedback inbox</Link>
+            <Link className="portal-link no-underline" href={`/admin/projects/${projectId}/upload`}>Upload concepts</Link>
           </div>
         </div>
 
@@ -191,8 +191,8 @@ export default function AdminProjectMessagesPage() {
 
           <form className="mt-4" onSubmit={sendMessage}>
             <label className="text-sm font-medium" htmlFor="message-body">Write a project update</label>
-            <textarea id="message-body" className="mt-1 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm" rows={3} maxLength={2000} value={body} onChange={(e) => setBody(e.target.value)} placeholder="Type your message..." />
-            <button className="mt-2 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm" type="submit" disabled={busy || !body.trim()}>
+            <textarea id="message-body" className="mt-1 portal-field" rows={3} maxLength={2000} value={body} onChange={(e) => setBody(e.target.value)} placeholder="Type your message..." />
+            <button className="mt-2 portal-btn-secondary" type="submit" disabled={busy || !body.trim()}>
               {busy ? "Sending…" : "Send"}
             </button>
           </form>

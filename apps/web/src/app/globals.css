@@ -34,3 +34,37 @@ body {
 .text-muted {
   color: var(--muted);
 }
+
+@layer components {
+  .portal-page-title {
+    @apply text-3xl font-semibold tracking-tight text-neutral-900;
+  }
+
+  .portal-card {
+    @apply rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm shadow-neutral-200/50 transition-all duration-200;
+  }
+
+  .portal-subcard {
+    @apply rounded-xl border border-neutral-200 bg-neutral-50 p-4;
+  }
+
+  .portal-badge {
+    @apply inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold uppercase tracking-wide;
+  }
+
+  .portal-link {
+    @apply text-sm font-medium text-neutral-700 underline decoration-neutral-300 underline-offset-4 transition-colors hover:text-neutral-900 hover:decoration-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-300 focus-visible:ring-offset-2;
+  }
+
+  .portal-btn-primary {
+    @apply inline-flex items-center justify-center rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .portal-btn-secondary {
+    @apply inline-flex items-center justify-center rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm font-medium text-neutral-800 transition-all duration-150 hover:border-neutral-400 hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-300 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .portal-field {
+    @apply w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition-colors placeholder:text-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-300 focus-visible:ring-offset-1;
+  }
+}

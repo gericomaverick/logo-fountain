@@ -147,11 +147,11 @@ function AdminSection({
 
                   <div className="flex flex-col gap-2 sm:items-end">
                     {needsFeedback ? (
-                      <Link className="inline-flex rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white" href={`/admin/projects/${project.id}/concepts#pending-feedback`}>
+                      <Link className="portal-btn-primary" href={`/admin/projects/${project.id}/concepts#pending-feedback`}>
                         Resolve pending feedback
                       </Link>
                     ) : (
-                      <Link className="inline-flex rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white" href={`/admin/projects/${project.id}`}>
+                      <Link className="portal-btn-primary" href={`/admin/projects/${project.id}`}>
                         Open project
                       </Link>
                     )}
@@ -161,10 +161,10 @@ function AdminSection({
                       {project.hasNewConcepts ? <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-900">New concepts</span> : null}
                     </div>
                     <div className="flex flex-wrap gap-3 text-sm text-neutral-700">
-                      <Link className="underline" href={`/admin/projects/${project.id}/messages`}>
+                      <Link className="portal-link no-underline" href={`/admin/projects/${project.id}/messages`}>
                         Project thread
                       </Link>
-                      <Link className="underline" href={`/admin/projects/${project.id}/concepts`}>
+                      <Link className="portal-link no-underline" href={`/admin/projects/${project.id}/concepts`}>
                         Concept thread(s)
                       </Link>
                     </div>
@@ -315,8 +315,8 @@ export default async function AdminHomePage() {
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-3xl font-semibold text-neutral-900">Admin dashboard</h1>
-          <Link className="text-sm underline" href="/admin/health">Health checks</Link>
+          <h1 className="portal-page-title">Admin dashboard</h1>
+          <Link className="portal-link no-underline" href="/admin/health">Health checks</Link>
         </div>
 
         <AdminSection {...getSectionMeta("needs-action")} projects={sectioned["needs-action"]} />

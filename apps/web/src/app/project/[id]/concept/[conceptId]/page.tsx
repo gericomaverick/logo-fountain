@@ -266,8 +266,8 @@ export default function ConceptDetailPage() {
             <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
           </div>
           <div className="flex gap-4 text-sm">
-            <Link className="underline" href={backHref}>{fromAdmin ? "Back to admin overview" : "Back to project overview"}</Link>
-            <Link className="underline" href={`/project/${projectId}/messages`}>Messages</Link>
+            <Link className="portal-link no-underline" href={backHref}>{fromAdmin ? "Back to admin overview" : "Back to project overview"}</Link>
+            <Link className="portal-link no-underline" href={`/project/${projectId}/messages`}>Messages</Link>
           </div>
         </div>
 
@@ -277,7 +277,7 @@ export default function ConceptDetailPage() {
         {!loading && !concept ? <p className="text-sm text-neutral-700">Concept not found.</p> : null}
 
         {concept ? (
-          <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
+          <section className="mt-3 portal-card">
             <p className="text-sm font-medium">Concept #{concept.number} · v{concept.revisionVersion}</p>
             {conceptExplainer ? (
               <div className="mt-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
@@ -325,7 +325,7 @@ export default function ConceptDetailPage() {
             {isAdminView ? (
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <Link
-                  className="rounded border border-neutral-300 bg-neutral-50 px-3 py-1 text-sm"
+                  className="portal-btn-secondary bg-neutral-50"
                   href={`/admin/projects/${projectId}/concepts/${conceptId}/revision`}
                 >
                   Upload revision
@@ -334,7 +334,7 @@ export default function ConceptDetailPage() {
             ) : null}
 
             {!isAdminView && snapshot?.status === "CONCEPTS_READY" && concept.status === "published" ? (
-              <button className="mt-3 rounded border border-neutral-300 px-3 py-1 text-sm" disabled={busy} onClick={() => void approveConcept()}>
+              <button className="mt-3 portal-btn-secondary" disabled={busy} onClick={() => void approveConcept()}>
                 Approve concept
               </button>
             ) : null}
@@ -342,7 +342,7 @@ export default function ConceptDetailPage() {
         ) : null}
 
         {concept ? (
-          <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
+          <section className="mt-3 portal-card">
             <h2 className="text-lg font-medium">Feedback & revisions</h2>
             <p className="mt-1 text-sm text-neutral-600">Revisions remaining: {snapshot?.entitlements.revisions ?? 0}</p>
             {actionError ? <p className="mt-2 text-sm text-red-600">{actionError}</p> : null}
@@ -389,7 +389,7 @@ export default function ConceptDetailPage() {
                 <label className="block text-sm font-semibold text-neutral-900">Post a designer reply</label>
                 <p className="mt-1 text-sm text-neutral-600">Your reply will appear in the same concept thread.</p>
                 <textarea
-                  className="mt-2 w-full rounded border border-neutral-300 px-2 py-1"
+                  className="mt-2 portal-field px-2 py-1"
                   rows={4}
                   maxLength={2000}
                   value={designerReply}
@@ -397,7 +397,7 @@ export default function ConceptDetailPage() {
                   placeholder="Write a quick concept-specific update…"
                 />
                 <button
-                  className="mt-2 rounded border border-neutral-300 px-3 py-1 text-sm"
+                  className="mt-2 portal-btn-secondary"
                   type="submit"
                   disabled={busy || !designerReply.trim()}
                 >
@@ -409,14 +409,14 @@ export default function ConceptDetailPage() {
                 <label className="block text-sm font-semibold text-neutral-900">Request a revision for this concept</label>
                 <p className="mt-1 text-sm text-neutral-600">Once submitted, your designer will review your notes and work on the next revision.</p>
                 <textarea
-                  className="mt-2 w-full rounded border border-neutral-300 px-2 py-1"
+                  className="mt-2 portal-field px-2 py-1"
                   rows={4}
                   maxLength={5000}
                   value={revisionBody}
                   onChange={(e) => setRevisionBody(e.target.value)}
                 />
                 <button
-                  className="mt-2 rounded border border-neutral-300 px-3 py-1 text-sm"
+                  className="mt-2 portal-btn-secondary"
                   type="submit"
                   disabled={busy || !revisionBody.trim() || (snapshot?.entitlements.revisions ?? 0) <= 0}
                 >

@@ -30,7 +30,7 @@ function dateLabel(value: string): string {
 
 function ReadOnlySection({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-4">
+    <div className="portal-subcard bg-white">
       <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">{label}</dt>
       <dd className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-neutral-900">{value}</dd>
     </div>
@@ -90,10 +90,10 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
         <p className="mt-2">We saved this as v{submittedVersion}. Earlier versions remain available in brief history.</p>
 
         <div className="mt-4 flex flex-wrap gap-3">
-          <Link className="rounded bg-black px-4 py-2 text-white" href={`/project/${projectId}`}>
+          <Link className="portal-btn-primary px-4 py-2" href={`/project/${projectId}`}>
             Back to project hub
           </Link>
-          <Link className="rounded border border-green-300 bg-white px-4 py-2" href={`/project/${projectId}/messages`}>
+          <Link className="portal-btn-secondary border-green-300" href={`/project/${projectId}/messages`}>
             Open project messages
           </Link>
         </div>
@@ -113,7 +113,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
             <button
               type="button"
               onClick={() => setIsEditing((current) => !current)}
-              className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm"
+              className="portal-btn-secondary"
             >
               {isEditing ? "Close editor" : "Edit & resubmit"}
             </button>
@@ -127,7 +127,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
               <ReadOnlySection label="Style notes" value={selectedBrief?.answers.styleNotes ?? "—"} />
             </dl>
 
-            <aside className="rounded-xl border border-neutral-200 bg-white p-4">
+            <aside className="portal-subcard bg-white">
               <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">Version history</p>
               <ul className="mt-3 space-y-2">
                 {briefVersions.map((brief) => (
@@ -149,7 +149,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
       ) : null}
 
       {isEditing ? (
-        <form className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-5" onSubmit={onSubmit}>
+        <form className="portal-card space-y-4 p-5" onSubmit={onSubmit}>
           <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
             Editing and submitting this form creates a new brief version. Previous versions stay visible in history.
           </div>
@@ -160,7 +160,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
               required
               value={brandName}
               onChange={(event) => setBrandName(event.target.value)}
-              className="w-full rounded border border-neutral-300 px-3 py-2"
+              className="portal-field"
             />
           </div>
 
@@ -171,7 +171,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
               required
               value={industry}
               onChange={(event) => setIndustry(event.target.value)}
-              className="w-full rounded border border-neutral-300 px-3 py-2"
+              className="portal-field"
             />
           </div>
 
@@ -182,7 +182,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
               required
               value={description}
               onChange={(event) => setDescription(event.target.value)}
-              className="min-h-28 w-full rounded border border-neutral-300 px-3 py-2"
+              className="portal-field min-h-28"
             />
           </div>
 
@@ -193,14 +193,14 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
               required
               value={styleNotes}
               onChange={(event) => setStyleNotes(event.target.value)}
-              className="min-h-24 w-full rounded border border-neutral-300 px-3 py-2"
+              className="portal-field min-h-24"
             />
           </div>
 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="rounded bg-black px-4 py-2 text-white disabled:opacity-60"
+            className="portal-btn-primary px-4 py-2"
           >
             {isSubmitting ? "Submitting..." : latestBrief ? "Create new brief version" : "Submit brief"}
           </button>

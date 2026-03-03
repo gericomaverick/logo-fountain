@@ -115,12 +115,12 @@ export default function ProjectMessagesPage() {
             <h1 className="text-2xl font-semibold">Project messages</h1>
             <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
           </div>
-          <Link className="text-sm underline" href={`/project/${projectId}`}>
+          <Link className="portal-link no-underline" href={`/project/${projectId}`}>
             Back to project
           </Link>
         </div>
 
-        <section className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+        <section className="portal-subcard">
           <div ref={scrollRef} className="h-[28rem] overflow-y-auto rounded-lg border border-neutral-200 bg-white p-4">
             {loading ? <p className="text-sm text-neutral-600">Loading…</p> : null}
             {!loading && sorted.length === 0 ? <p className="text-sm text-neutral-600">No messages yet.</p> : null}
@@ -166,7 +166,7 @@ export default function ProjectMessagesPage() {
             <label className="text-sm font-medium" htmlFor="message-body">Write a message</label>
             <textarea
               id="message-body"
-              className="mt-1 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm"
+              className="mt-1 portal-field"
               rows={3}
               maxLength={2000}
               value={body}
@@ -174,7 +174,7 @@ export default function ProjectMessagesPage() {
               placeholder="Type your message..."
             />
             <button
-              className="mt-2 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm"
+              className="mt-2 portal-btn-secondary"
               type="submit"
               disabled={busy || !body.trim()}
             >

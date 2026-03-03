@@ -25,9 +25,14 @@ Step 3 notes:
 - Admin comms/navigation now reinforces thread choice (project thread vs concept thread) across `/admin/projects/[id]`, concepts manager, upload flow, and messages view; styling aligned with `PageShell` + `Card`/`SubCard` surfaces.
 
 ### Step 1 — Premium polish (visual refinement)
-- [ ] Typography rhythm + spacing consistency across all portal pages.
-- [ ] Card surface hierarchy (white vs subtle nested greys) tightened.
-- [ ] Micro-interactions (hover/active/focus) and status badge consistency.
+- [x] Typography rhythm + spacing consistency across all portal pages.
+- [x] Card surface hierarchy (white vs subtle nested greys) tightened.
+- [x] Micro-interactions (hover/active/focus) and status badge consistency.
+
+Step 1 notes:
+- Added shared portal UI tokens in `apps/web/src/app/globals.css` (`portal-page-title`, `portal-card`, `portal-subcard`, `portal-btn-*`, `portal-link`, `portal-field`, `portal-badge`) and applied them across dashboard/client/admin surfaces.
+- Standardized off-white shell + white card + subtle grey nested surfaces via `PageShell`, `Card`, and `SubCard`, then aligned key page sections on `/dashboard`, project overview/concepts/detail/messages/brief, `/settings`, and admin dashboard/project/concepts/messages/brief/revision screens.
+- Unified interaction polish with consistent focus rings, hover transitions, and button/link styles; updated status badge baseline and action affordances for a more premium, coherent feel.
 
 ### Step 4 — Upsell conversion
 - [ ] Upsell panel rules: show upgrade vs add-on at the right moments.
