@@ -5,11 +5,13 @@ import Stripe from "stripe";
 import {
   PACKAGE_TO_PRICE_ID,
   STRIPE_PLACEHOLDER_PRICE_IDS,
+  UPSELL_PRICE_TO_ACTION,
   type PackageCode,
+  type UpsellAction,
 } from "@/lib/stripe-price-allowlist";
 
-export { PACKAGE_TO_PRICE_ID, STRIPE_PLACEHOLDER_PRICE_IDS };
-export type { PackageCode };
+export { PACKAGE_TO_PRICE_ID, STRIPE_PLACEHOLDER_PRICE_IDS, UPSELL_PRICE_TO_ACTION };
+export type { PackageCode, UpsellAction };
 
 export const PRICE_ID_TO_PACKAGE: Record<string, PackageCode> = Object.fromEntries(
   Object.entries(PACKAGE_TO_PRICE_ID).map(([packageCode, priceId]) => [priceId, packageCode as PackageCode])

@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => {
   const tx = {
     client: { create: vi.fn() },
-    project: { create: vi.fn() },
-    projectEntitlement: { createMany: vi.fn() },
+    project: { create: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
+    projectEntitlement: { createMany: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn(), upsert: vi.fn(), updateMany: vi.fn() },
     projectOrder: { create: vi.fn() },
   };
 
@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => {
     listLineItems: vi.fn(),
     logAudit: vi.fn(),
     prisma: {
-      projectOrder: { findUnique: vi.fn() },
+      projectOrder: { findUnique: vi.fn(), findFirst: vi.fn() },
       $transaction: vi.fn(async (fn: (trx: typeof tx) => unknown) => fn(tx)),
     },
     tx,
@@ -60,8 +60,17 @@ describe("fulfillCheckoutSession", () => {
 
     mocks.tx.client.create.mockResolvedValue({ id: "client-1" });
     mocks.tx.project.create.mockResolvedValue({ id: "project-1" });
+    mocks.tx.project.findUnique.mockResolvedValue({ id: "project-1", clientId: "client-1", packageCode: "essential" });
+    mocks.tx.project.update.mockResolvedValue({ id: "project-1" });
     mocks.tx.projectEntitlement.createMany.mockResolvedValue({ count: 2 });
+    mocks.tx.projectEntitlement.findUnique.mockResolvedValue({ id: "ent-rev", limitInt: 2 });
+    mocks.tx.projectEntitlement.create.mockResolvedValue({ id: "ent-rev" });
+    mocks.tx.projectEntitlement.update.mockResolvedValue({ id: "ent-rev" });
+    mocks.tx.projectEntitlement.upsert.mockResolvedValue({ id: "ent-any" });
+    mocks.tx.projectEntitlement.updateMany.mockResolvedValue({ count: 1 });
     mocks.tx.projectOrder.create.mockResolvedValue({ id: "order-1" });
+    mocks.prisma.projectOrder.findUnique.mockResolvedValue(null);
+    mocks.prisma.projectOrder.findFirst.mockResolvedValue(null);
   });
 
   it("returns deduped result immediately when order already exists", async () => {
@@ -101,5 +110,48 @@ describe("fulfillCheckoutSession", () => {
     expect(mocks.tx.project.create).toHaveBeenCalledTimes(1);
     expect(mocks.tx.projectOrder.create).toHaveBeenCalledTimes(1);
     expect(mocks.tx.projectEntitlement.createMany).toHaveBeenCalledTimes(1);
+  });
+
+  it("applies extra revision add-on and dedupes by checkout session/payment intent", async () => {
+    const addonSession = {
+      ...session,
+      metadata: { kind: "addon", projectId: "project-1", addonKey: "extra_revision", fromPackage: "essential" },
+    };
+
+    mocks.prisma.projectOrder.findFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ id: "order-addon", projectId: "project-1", clientId: "client-1" });
+    mocks.tx.projectOrder.create.mockResolvedValueOnce({ id: "order-addon" });
+
+    const first = await fulfillCheckoutSession(addonSession as never);
+    const second = await fulfillCheckoutSession(addonSession as never);
+
+    expect(first.deduped).toBe(false);
+    expect(second.deduped).toBe(true);
+    expect(mocks.tx.projectEntitlement.update).toHaveBeenCalledWith({
+      where: { id: "ent-rev" },
+      data: { limitInt: 3 },
+    });
+  });
+
+  it("upgrades tier and raises limits without reducing consumed/reserved", async () => {
+    const upgradeSession = {
+      ...session,
+      metadata: {
+        kind: "upgrade",
+        projectId: "project-1",
+        fromPackage: "essential",
+        toPackage: "professional",
+      },
+    };
+
+    await fulfillCheckoutSession(upgradeSession as never);
+
+    expect(mocks.tx.projectEntitlement.upsert).toHaveBeenCalledTimes(2);
+    expect(mocks.tx.projectEntitlement.updateMany).toHaveBeenCalledWith({
+      where: { projectId: "project-1", key: "concepts", limitInt: { lt: 3 } },
+      data: { limitInt: 3 },
+    });
+    expect(mocks.tx.project.update).toHaveBeenCalledWith({ where: { id: "project-1" }, data: { packageCode: "professional" } });
   });
 });

@@ -168,6 +168,83 @@ function ActivityPanel({ projectId, snapshot, pendingFeedbackCount }: { projectI
   );
 }
 
+function UpsellPanel({
+  projectId,
+  packageCode,
+  revisionUsage,
+}: {
+  projectId: string;
+  packageCode: string | undefined;
+  revisionUsage: ReturnType<typeof resolveUsage>;
+}) {
+  const [submitting, setSubmitting] = useState<"addon" | "upgrade" | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const isLow = revisionUsage.remaining <= 1 || revisionUsage.reserved >= Math.max(revisionUsage.limit - 1, 1);
+  const upgradeTarget = packageCode === "essential" ? "professional" : packageCode === "professional" ? "complete" : null;
+
+  if (!isLow && !upgradeTarget) return null;
+
+  async function startPurchase(body: Record<string, unknown>, mode: "addon" | "upgrade") {
+    setSubmitting(mode);
+    setError(null);
+
+    try {
+      const res = await fetch(`/api/projects/${projectId}/checkout/session`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const payload = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(readError(payload, "Unable to start checkout"));
+      }
+
+      if (!payload?.url) throw new Error("Checkout URL missing");
+      window.location.assign(payload.url as string);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unable to start checkout");
+      setSubmitting(null);
+    }
+  }
+
+  return (
+    <section className="mt-6 rounded-2xl border border-violet-200 bg-violet-50 p-5">
+      <h2 className="text-lg font-semibold text-violet-950">Need more flexibility?</h2>
+      <p className="mt-1 text-sm text-violet-900">
+        You’re running low on revision capacity. Buy an extra revision for £49, or upgrade your package.
+      </p>
+      <div className="mt-4 flex flex-wrap gap-3">
+        {isLow ? (
+          <button
+            type="button"
+            className="rounded-lg bg-violet-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
+            onClick={() => void startPurchase({ kind: "addon", addonKey: "extra_revision" }, "addon")}
+            disabled={submitting !== null}
+          >
+            {submitting === "addon" ? "Redirecting…" : "Buy extra revision (£49)"}
+          </button>
+        ) : null}
+
+        {upgradeTarget ? (
+          <button
+            type="button"
+            className="rounded-lg border border-violet-400 bg-white px-3 py-2 text-sm font-medium text-violet-900 disabled:opacity-60"
+            onClick={() => void startPurchase({ kind: "upgrade", toPackage: upgradeTarget }, "upgrade")}
+            disabled={submitting !== null}
+          >
+            {submitting === "upgrade"
+              ? "Redirecting…"
+              : `Upgrade to ${upgradeTarget === "professional" ? "Professional" : "Complete"} (${upgradeTarget === "professional" ? "£180" : "£225"})`}
+          </button>
+        ) : null}
+      </div>
+      {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
+    </section>
+  );
+}
+
 export default function ProjectPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
@@ -296,6 +373,8 @@ export default function ProjectPage() {
           <p className="mt-2 text-xs text-neutral-500">
             {conceptUsage.remaining} concepts left · {revisionUsage.remaining} revisions left
           </p>
+
+          <UpsellPanel projectId={projectId} packageCode={snapshot?.packageCode} revisionUsage={revisionUsage} />
         </section>
 
         {loading ? <p className="mt-4 text-sm text-neutral-600">Loading…</p> : null}
