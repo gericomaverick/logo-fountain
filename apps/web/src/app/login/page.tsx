@@ -3,6 +3,7 @@
 import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { AuthShell } from "@/components/auth-shell";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
@@ -88,10 +89,8 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="mx-auto max-w-md p-8">
-      <h1 className="text-2xl font-semibold">Sign in</h1>
-
-      <form className="mt-6 space-y-4" onSubmit={onPasswordSignIn}>
+    <AuthShell title="Sign in" subtitle="Sign in with your password, or request a magic link.">
+      <form className="space-y-4" onSubmit={onPasswordSignIn}>
         <div>
           <label className="mb-1 block text-sm" htmlFor="email">
             Email
@@ -145,6 +144,6 @@ export default function LoginPage() {
       </div>
 
       {status ? <p className="mt-4 text-sm text-neutral-700">{status}</p> : null}
-    </main>
+    </AuthShell>
   );
 }

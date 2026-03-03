@@ -3,6 +3,7 @@
 import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { AuthShell } from "@/components/auth-shell";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 function safeNextPath(): string {
@@ -57,13 +58,8 @@ export default function SetPasswordPage() {
   }
 
   return (
-    <main className="mx-auto max-w-md p-8">
-      <h1 className="text-2xl font-semibold">Set your password</h1>
-      <p className="mt-2 text-sm text-neutral-600">
-        For security, you’ll sign in with this password next time.
-      </p>
-
-      <form className="mt-6 space-y-4" onSubmit={onSubmit}>
+    <AuthShell title="Set your password" subtitle="For security, you’ll sign in with this password next time.">
+      <form className="space-y-4" onSubmit={onSubmit}>
         <div>
           <label className="mb-1 block text-sm" htmlFor="password">
             New password
@@ -104,6 +100,6 @@ export default function SetPasswordPage() {
       </form>
 
       {status ? <p className="mt-4 text-sm text-neutral-700">{status}</p> : null}
-    </main>
+    </AuthShell>
   );
 }

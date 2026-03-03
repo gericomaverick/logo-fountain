@@ -4,6 +4,7 @@ import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+import { AuthShell } from "@/components/auth-shell";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export default function ResetPasswordPage() {
@@ -47,11 +48,8 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <main className="mx-auto max-w-md p-8">
-      <h1 className="text-2xl font-semibold">Choose a new password</h1>
-      <p className="mt-2 text-sm text-neutral-600">Set a new password for your account.</p>
-
-      <form className="mt-6 space-y-4" onSubmit={onSubmit}>
+    <AuthShell title="Choose a new password" subtitle="Set a new password for your account.">
+      <form className="space-y-4" onSubmit={onSubmit}>
         <div>
           <label className="mb-1 block text-sm" htmlFor="password">New password</label>
           <input
@@ -88,6 +86,6 @@ export default function ResetPasswordPage() {
       <p className="mt-6 text-sm text-neutral-600">
         <Link className="underline" href="/login">Back to sign in</Link>
       </p>
-    </main>
+    </AuthShell>
   );
 }

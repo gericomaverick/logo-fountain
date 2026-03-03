@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { AuthShell } from "@/components/auth-shell";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 function safeNextPath(raw: string | null): string {
@@ -72,9 +73,8 @@ export default function AuthCallbackPage() {
   }, [router, supabase]);
 
   return (
-    <main className="mx-auto max-w-md p-8">
-      <h1 className="text-2xl font-semibold">Signing in</h1>
-      <p className="mt-2 text-sm text-neutral-600">{status}</p>
-    </main>
+    <AuthShell title="Signing in" subtitle={status}>
+      <div className="text-sm text-neutral-600">Please wait…</div>
+    </AuthShell>
   );
 }

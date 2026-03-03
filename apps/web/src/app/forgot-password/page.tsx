@@ -3,6 +3,7 @@
 import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
 
+import { AuthShell } from "@/components/auth-shell";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export default function ForgotPasswordPage() {
@@ -37,11 +38,8 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <main className="mx-auto max-w-md p-8">
-      <h1 className="text-2xl font-semibold">Reset your password</h1>
-      <p className="mt-2 text-sm text-neutral-600">We’ll email you a link to set a new password.</p>
-
-      <form className="mt-6 space-y-4" onSubmit={onSubmit}>
+    <AuthShell title="Reset your password" subtitle="We’ll email you a link to set a new password.">
+      <form className="space-y-4" onSubmit={onSubmit}>
         <div>
           <label className="mb-1 block text-sm" htmlFor="email">Email</label>
           <input
@@ -65,6 +63,6 @@ export default function ForgotPasswordPage() {
       <p className="mt-6 text-sm text-neutral-600">
         <Link className="underline" href="/login">Back to sign in</Link>
       </p>
-    </main>
+    </AuthShell>
   );
 }
