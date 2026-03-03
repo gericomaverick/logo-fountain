@@ -14,8 +14,9 @@ export async function POST(req: Request) {
     const user = await requireUser();
     await requireAdmin(user);
 
-    const body = await req.json().catch(() => null) as { session_id?: string } | null;
-    const sessionId = body?.session_id?.trim();
+    const body = (await req.json().catch(() => null)) as { session_id?: unknown } | null;
+    const rawSessionId = body?.session_id;
+    const sessionId = typeof rawSessionId === "string" ? rawSessionId.trim() : "";
     if (!sessionId) {
       return Response.json({ error: { message: "Missing session_id" } }, { status: 400 });
     }

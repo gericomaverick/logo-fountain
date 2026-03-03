@@ -79,6 +79,17 @@ export async function POST(req: Request) {
 
   try {
     const session = event.data.object as Stripe.Checkout.Session;
+    if (!session || typeof session.id !== "string" || session.id.trim().length === 0) {
+      return Response.json(
+        {
+          received: true,
+          fulfilled: false,
+          error: "Malformed Stripe event payload: missing checkout session id",
+        },
+        { status: 400 },
+      );
+    }
+
     const fulfillment = await fulfillCheckoutSession(session);
 
     let provisionedUserId: string | null = null;
