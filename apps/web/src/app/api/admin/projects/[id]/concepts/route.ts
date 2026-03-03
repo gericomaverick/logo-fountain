@@ -102,6 +102,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       if (shouldConsumeEntitlement) {
         // Increment concepts entitlement usage when a concept is first published for a given concept number.
         // (Re-uploads/replacements should not consume another entitlement.)
+        const before = await tx.projectEntitlement.findFirst({
+          where: { projectId, key: "concepts" },
+          select: { id: true, limitInt: true, consumedInt: true },
+        });
+
         await tx.$executeRaw`
           UPDATE "ProjectEntitlement"
           SET "consumedInt" = COALESCE("consumedInt", 0) + 1,
@@ -109,6 +114,25 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
           WHERE "projectId" = ${projectId}::uuid
             AND "key" = 'concepts'
         `;
+
+        const after = await tx.projectEntitlement.findFirst({
+          where: { projectId, key: "concepts" },
+          select: { id: true, limitInt: true, consumedInt: true },
+        });
+
+        await logAudit(tx, {
+          projectId,
+          actorId: user.id,
+          type: "entitlement_consumed",
+          payload: {
+            key: "concepts",
+            before,
+            after,
+            reason: "admin_concept_publish",
+            conceptId: concept.id,
+            conceptNumber: concept.number,
+          },
+        });
       }
 
       await tx.fileAsset.create({
