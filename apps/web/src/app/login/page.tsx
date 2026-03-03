@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -34,35 +34,7 @@ export default function LoginPage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    // Handle Supabase implicit magic-link redirects that include tokens in the URL hash.
-    // If present, establish a session then continue to `next`.
-    const hash = typeof window !== "undefined" ? window.location.hash : "";
-    if (!hash || hash.length < 2) return;
-
-    const params = new URLSearchParams(hash.slice(1));
-    const accessToken = params.get("access_token");
-    const refreshToken = params.get("refresh_token");
-
-    if (!accessToken || !refreshToken) return;
-
-    void (async () => {
-      try {
-        await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
-
-        // Clear hash from the URL so refresh doesn't re-run session set.
-        window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
-
-        router.replace(nextPath);
-        router.refresh();
-      } catch (error) {
-        console.error("Failed to set auth session from magic link", error);
-      }
-    })();
-  }, [router, supabase, nextPath]);
+  // Note: magic-link callbacks are handled at /auth/callback.
 
 
   async function onPasswordSignIn(event: FormEvent<HTMLFormElement>) {
