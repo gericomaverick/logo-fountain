@@ -224,7 +224,8 @@ export default function AdminProjectPage() {
                 className="rounded border border-neutral-300 bg-white px-3 py-1"
                 type="button"
                 disabled={busy}
-                onClick={() =>
+                onClick={() => {
+                  if (!window.confirm("Reset concepts used to 0? This is for testing only.")) return;
                   void runAction(
                     () =>
                       fetch(`/api/admin/projects/${projectId}/entitlements/reset`, {
@@ -233,8 +234,8 @@ export default function AdminProjectPage() {
                         body: JSON.stringify({ key: "concepts" }),
                       }),
                     "Failed to reset concepts usage",
-                  )
-                }
+                  );
+                }}
               >
                 Reset concepts used → 0
               </button>
