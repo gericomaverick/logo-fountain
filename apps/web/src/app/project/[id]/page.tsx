@@ -253,11 +253,13 @@ export default function ProjectPage() {
   const [session, setSession] = useState<SessionPayload>({ authenticated: false });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [firstName, setFirstName] = useState<string | null>(null);
 
   async function refresh(id: string) {
-    const [response, sessionRes] = await Promise.all([
+    const [response, sessionRes, profileRes] = await Promise.all([
       fetch(`/api/projects/${id}`, { cache: "no-store" }),
       fetch("/api/auth/session", { cache: "no-store" }),
+      fetch("/api/profile", { cache: "no-store" }),
     ]);
 
     const payload = await response.json().catch(() => null);
@@ -266,6 +268,11 @@ export default function ProjectPage() {
     const sessionPayload = (await sessionRes.json().catch(() => null)) as SessionPayload | null;
     setSession(sessionPayload ?? { authenticated: false });
     setSnapshot(payload?.snapshot ?? null);
+
+    if (profileRes.ok) {
+      const profilePayload = (await profileRes.json().catch(() => null)) as { profile?: { firstName?: string | null } } | null;
+      setFirstName(profilePayload?.profile?.firstName ?? null);
+    }
   }
 
   useEffect(() => {
@@ -326,8 +333,8 @@ export default function ProjectPage() {
           <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
             <div>
               <ProjectStatusBadge status={snapshot?.status ?? "UNKNOWN"} />
-              <h1 className="mt-3 text-2xl font-semibold text-neutral-900">Project overview</h1>
-              <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
+              <h1 className="mt-3 text-2xl font-semibold text-neutral-900">Hey{firstName ? `, ${firstName}` : ""}</h1>
+              <p className="mt-1 text-sm text-neutral-600">Project overview · {projectId}</p>
               <p className="text-sm text-neutral-600">Package: {snapshot?.packageCode ?? "—"}</p>
             </div>
 
