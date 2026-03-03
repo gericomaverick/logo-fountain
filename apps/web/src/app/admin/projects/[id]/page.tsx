@@ -71,6 +71,8 @@ export default function AdminProjectPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reprocessSessionId, setReprocessSessionId] = useState("");
+  const [conceptLimit, setConceptLimit] = useState("");
+  const [revisionLimit, setRevisionLimit] = useState("");
 
   async function refresh(id: string) {
     const [snapshotResponse, auditResponse] = await Promise.all([
@@ -84,8 +86,14 @@ export default function AdminProjectPage() {
     if (!snapshotResponse.ok) throw new Error(readError(snapshotPayload, "Failed to load"));
     if (!auditResponse.ok) throw new Error(readError(auditPayload, "Failed to load audit log"));
 
-    setSnapshot(snapshotPayload?.snapshot ?? null);
+    const nextSnapshot = snapshotPayload?.snapshot ?? null;
+    setSnapshot(nextSnapshot);
     setAuditEvents(auditPayload?.events ?? []);
+
+    if (nextSnapshot) {
+      setConceptLimit(String(nextSnapshot.entitlementUsage?.concepts?.limit ?? ""));
+      setRevisionLimit(String(nextSnapshot.entitlementUsage?.revisions?.limit ?? ""));
+    }
   }
 
   useEffect(() => {
@@ -106,6 +114,27 @@ export default function AdminProjectPage() {
     if (!res.ok) setError(readError(payload, fallback));
     else if (projectId) await refresh(projectId);
     setBusy(false);
+  }
+
+  async function saveEntitlementOverrides() {
+    if (!projectId) return;
+    const concepts = conceptLimit.trim() === "" ? null : Number.parseInt(conceptLimit, 10);
+    const revisions = revisionLimit.trim() === "" ? null : Number.parseInt(revisionLimit, 10);
+
+    if ((conceptLimit.trim() !== "" && !Number.isInteger(concepts)) || (revisionLimit.trim() !== "" && !Number.isInteger(revisions))) {
+      setError("Entitlement limits must be integers (or blank for null).");
+      return;
+    }
+
+    await runAction(
+      () =>
+        fetch(`/api/admin/projects/${projectId}/entitlements`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ concepts, revisions }),
+        }),
+      "Failed to update entitlements",
+    );
   }
 
   return (
@@ -141,6 +170,23 @@ export default function AdminProjectPage() {
               <p className="text-xs uppercase tracking-wide text-neutral-500">Revisions remaining</p>
               <p className="mt-1 font-semibold text-neutral-900">{snapshot?.entitlementUsage?.revisions?.remaining ?? snapshot?.entitlements.revisions ?? 0}</p>
             </div>
+          </div>
+
+          <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm">
+            <p className="text-xs uppercase tracking-wide text-neutral-500">Admin entitlement override</p>
+            <div className="mt-2 grid gap-3 sm:grid-cols-2">
+              <label className="flex flex-col gap-1">
+                <span className="text-xs text-neutral-600">Concept limitInt</span>
+                <input className="rounded border border-neutral-300 bg-white px-2 py-1" value={conceptLimit} onChange={(e) => setConceptLimit(e.target.value)} placeholder="e.g. 3" inputMode="numeric" />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-xs text-neutral-600">Revision limitInt</span>
+                <input className="rounded border border-neutral-300 bg-white px-2 py-1" value={revisionLimit} onChange={(e) => setRevisionLimit(e.target.value)} placeholder="e.g. 2" inputMode="numeric" />
+              </label>
+            </div>
+            <button className="mt-3 rounded border border-neutral-300 bg-white px-3 py-1" type="button" disabled={busy} onClick={() => void saveEntitlementOverrides()}>
+              Save entitlement override
+            </button>
           </div>
 
           {snapshot?.stuck ? (

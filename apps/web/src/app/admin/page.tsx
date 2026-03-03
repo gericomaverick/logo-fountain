@@ -4,6 +4,7 @@ import { HeaderNav } from "@/components/header-nav";
 import { ProjectStatusBadge } from "@/components/project-status-badge";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
 
 type AdminSectionKey = "needs-action" | "in-progress" | "delivered";
 

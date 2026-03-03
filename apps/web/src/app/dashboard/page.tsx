@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { HeaderNav } from "@/components/header-nav";
+import { isAdminUser } from "@/lib/auth/admin";
 import { ProjectStatusBadge } from "@/components/project-status-badge";
 import { type ProjectState } from "@/lib/project-state-machine";
 import { prisma } from "@/lib/prisma";
@@ -173,6 +175,10 @@ export default async function DashboardPage() {
         </main>
       </>
     );
+  }
+
+  if (await isAdminUser(user)) {
+    redirect("/admin");
   }
 
   const profile = await prisma.profile.findUnique({

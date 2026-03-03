@@ -1,6 +1,7 @@
 import { buildTimeline, type ProjectState, PROJECT_STATES, PROJECT_STATE_LABELS, PRIMARY_CTA_BY_STATE } from "@/lib/project-state-machine";
 import { prisma } from "@/lib/prisma";
 import { createSignedConceptAssetUrl, createSignedFinalDeliverableUrl } from "@/lib/supabase/storage";
+import { computeEntitlementUsage } from "@/lib/entitlements";
 
 const PUBLISHED_OR_APPROVED = ["published", "approved"];
 
@@ -90,35 +91,7 @@ export async function getProjectSnapshot({ projectId }: SnapshotArgs) {
 
   if (!project) return null;
 
-  const entitlementUsage = {
-    concepts: { limit: 0, consumed: 0, remaining: 0 },
-    revisions: { limit: 0, consumed: 0, remaining: 0 },
-  };
-
-  for (const entitlement of project.entitlements) {
-    const limit = Math.max(entitlement.limitInt ?? 0, 0);
-    const consumed = Math.max(entitlement.consumedInt ?? 0, 0);
-    const remaining = Math.max(limit - consumed, 0);
-
-    if (entitlement.key === "concepts") entitlementUsage.concepts = { limit, consumed, remaining };
-    if (entitlement.key === "revisions") entitlementUsage.revisions = { limit, consumed, remaining };
-  }
-
-  // Fallback for legacy projects where entitlement rows may be missing.
-  // (If both limits are 0, we assume missing rows rather than a fully-consumed package.)
-  const PACKAGE_DEFAULTS: Record<string, { concepts: number; revisions: number }> = {
-    essential: { concepts: 2, revisions: 2 },
-    professional: { concepts: 3, revisions: 2 },
-    complete: { concepts: 3, revisions: 5 },
-  };
-
-  if (entitlementUsage.concepts.limit === 0 && entitlementUsage.revisions.limit === 0) {
-    const defaults = PACKAGE_DEFAULTS[project.packageCode] ?? null;
-    if (defaults) {
-      entitlementUsage.concepts = { limit: defaults.concepts, consumed: 0, remaining: defaults.concepts };
-      entitlementUsage.revisions = { limit: defaults.revisions, consumed: 0, remaining: defaults.revisions };
-    }
-  }
+  const entitlementUsage = computeEntitlementUsage(project.entitlements, project.packageCode);
 
   const entitlements = {
     concepts: entitlementUsage.concepts.remaining,

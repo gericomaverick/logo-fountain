@@ -36,6 +36,8 @@ export default function AdminProjectMessagesPage() {
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
 
+  const sessionRoleLabel = session.isAdmin ? "Admin" : "Client";
+
   const sorted = useMemo(
     () => messages.slice().sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()),
     [messages],
@@ -124,11 +126,12 @@ export default function AdminProjectMessagesPage() {
             <ul className="space-y-3">
               {sorted.map((message) => {
                 const isMine = session.userId && message.sender.id === session.userId;
+                const senderRole = isMine ? sessionRoleLabel : session.isAdmin ? "Client" : "Admin";
                 return (
                   <li key={message.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
                     <article className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm shadow-sm ${isMine ? "bg-neutral-900 text-white" : "bg-neutral-100 text-neutral-900"}`}>
                       <p className={`text-xs ${isMine ? "text-neutral-300" : "text-neutral-500"}`}>
-                        {message.sender.fullName ?? message.sender.email} {session.isAdmin ? "(admin view)" : ""}
+                        {senderRole} · {message.sender.fullName ?? message.sender.email}
                       </p>
                       <p className="mt-1 whitespace-pre-wrap">{message.body}</p>
                       <p className={`mt-2 text-right text-[11px] ${isMine ? "text-neutral-300" : "text-neutral-500"}`}>{new Date(message.createdAt).toLocaleString()}</p>

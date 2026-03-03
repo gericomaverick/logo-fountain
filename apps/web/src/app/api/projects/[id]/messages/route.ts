@@ -57,6 +57,18 @@ export async function POST(req: Request, { params }: RouteParams) {
     const body = parseMessageBody(payload);
     if (!body) return jsonError("Message body is required (1-2000 chars)", 400, { nextStep: "Provide a non-empty message." }, "INVALID_MESSAGE_BODY");
 
+    await prisma.profile.upsert({
+      where: { id: auth.user.id },
+      create: {
+        id: auth.user.id,
+        email: auth.user.email ?? "",
+        fullName: auth.user.user_metadata?.full_name ?? null,
+      },
+      update: {
+        ...(auth.user.email ? { email: auth.user.email } : {}),
+      },
+    });
+
     const message = await prisma.$transaction(async (tx) => {
       const thread = await tx.messageThread.upsert({ where: { projectId: auth.projectId }, update: {}, create: { projectId: auth.projectId }, select: { id: true } });
       const created = await tx.message.create({
