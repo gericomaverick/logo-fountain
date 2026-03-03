@@ -261,6 +261,26 @@ export default function AdminProjectPage() {
               >
                 Reset revisions used → 0
               </button>
+              <button
+                className="rounded border border-rose-300 bg-rose-50 px-3 py-1 font-medium text-rose-700"
+                type="button"
+                disabled={busy}
+                onClick={() => {
+                  if (!window.confirm("Full project reset? This deletes concepts, revisions, concept comments, and all non-system messages. This is irreversible.")) return;
+                  if (!window.confirm("Final confirmation: reset this project to a clean-slate baseline?")) return;
+                  void runAction(
+                    () =>
+                      fetch(`/api/admin/projects/${projectId}/reset`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ confirm: true, mode: "clean-slate" }),
+                      }),
+                    "Failed to reset project",
+                  );
+                }}
+              >
+                Reset project (clean slate)
+              </button>
             </div>
           </div>
 

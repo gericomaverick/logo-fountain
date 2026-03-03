@@ -112,3 +112,30 @@ export async function createSignedFinalDeliverableUrl(path: string, expiresInSec
 
   return data.signedUrl;
 }
+
+export async function deleteStoredFiles(files: Array<{ bucket: string; path: string }>) {
+  const admin = createSupabaseAdminClient();
+  const grouped = new Map<string, string[]>();
+
+  for (const file of files) {
+    if (!file?.bucket || !file?.path) continue;
+    const next = grouped.get(file.bucket) ?? [];
+    next.push(file.path);
+    grouped.set(file.bucket, next);
+  }
+
+  let deleted = 0;
+  const failures: Array<{ bucket: string; message: string }> = [];
+
+  for (const [bucket, paths] of grouped.entries()) {
+    if (paths.length === 0) continue;
+    const { data, error } = await admin.storage.from(bucket).remove(paths);
+    if (error) {
+      failures.push({ bucket, message: error.message });
+      continue;
+    }
+    deleted += data?.length ?? paths.length;
+  }
+
+  return { attempted: files.length, deleted, failures };
+}
