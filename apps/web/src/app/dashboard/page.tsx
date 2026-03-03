@@ -232,7 +232,10 @@ export default async function DashboardPage() {
     }),
   );
 
-  const greeting = profile?.firstName ? `Hey, ${profile.firstName}` : "Hey there";
+  const normalizedFirstName = profile?.firstName?.trim()
+    ? `${profile.firstName.trim().slice(0, 1).toUpperCase()}${profile.firstName.trim().slice(1)}`
+    : null;
+  const greeting = normalizedFirstName ? `Hey, ${normalizedFirstName}` : "Hey there";
 
   const projects = projectsRaw.map((p) => {
     const rs = readStateByProject.get(p.id);

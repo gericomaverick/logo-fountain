@@ -333,7 +333,7 @@ export default function ProjectPage() {
           <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
             <div>
               <ProjectStatusBadge status={snapshot?.status ?? "UNKNOWN"} />
-              <h1 className="mt-3 text-2xl font-semibold text-neutral-900">Hey{firstName ? `, ${firstName}` : ""}</h1>
+              <h1 className="mt-3 text-2xl font-semibold text-neutral-900">Hey{firstName ? `, ${firstName.trim().slice(0, 1).toUpperCase()}${firstName.trim().slice(1)}` : ""}</h1>
               <p className="mt-1 text-sm text-neutral-600">Project overview · {projectId}</p>
               <p className="text-sm text-neutral-600">Package: {snapshot?.packageCode ?? "—"}</p>
             </div>
