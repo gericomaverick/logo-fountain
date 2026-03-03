@@ -2,7 +2,7 @@ import { jsonError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
 import { applyTransition } from "@/lib/project-state-machine";
 import { logAudit } from "@/lib/audit";
-import { requireProjectMembership, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
+import { RouteAuthError, requireAdmin, requireProjectMembership, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 
 export const runtime = "nodejs";
 const PROJECT_STATUS_BRIEF_SUBMITTED = "BRIEF_SUBMITTED";
@@ -43,6 +43,40 @@ async function getSystemSenderId(fallbackUserId: string): Promise<string> {
   }
 
   return fallbackUserId;
+}
+
+async function authorizeProjectAccess(projectId: string) {
+  const user = await requireUser();
+
+  try {
+    await requireAdmin(user);
+    return { user, projectId };
+  } catch (error) {
+    if (!(error instanceof RouteAuthError) || error.status !== 403) throw error;
+    const project = await requireProjectMembership(user.id, projectId);
+    return { user, projectId: project.id };
+  }
+}
+
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+    const auth = await authorizeProjectAccess(id);
+
+    const brief = await prisma.projectBrief.findFirst({
+      where: { projectId: auth.projectId },
+      orderBy: { version: "desc" },
+      select: { id: true, version: true, answers: true, createdAt: true, createdBy: true },
+    });
+
+    if (!brief) {
+      return Response.json({ brief: null });
+    }
+
+    return Response.json({ brief });
+  } catch (error) {
+    return toRouteErrorResponse(error);
+  }
 }
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {

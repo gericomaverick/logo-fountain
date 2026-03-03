@@ -190,6 +190,9 @@ export default function AdminProjectPage() {
               <Link className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm" href={`/admin/projects/${projectId}/messages`}>
                 Open messages
               </Link>
+              <Link className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm" href={`/admin/projects/${projectId}/brief`}>
+                View brief
+              </Link>
               <Link className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm" href={`/admin/projects/${projectId}/concepts`}>
                 Concepts manager
               </Link>
