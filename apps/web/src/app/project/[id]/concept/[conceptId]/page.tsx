@@ -237,6 +237,18 @@ export default function ConceptDetailPage() {
   }, [assets, selectedAssetPath]);
 
   const selectedAssetUrl = selectedAsset?.url ?? concept?.imageUrl ?? null;
+  const conceptExplainer = concept?.notes?.trim() ?? "";
+  const selectedAssetNote = selectedAsset?.notes?.trim() ?? "";
+  const selectedAssetNoteMatchesConcept = selectedAssetNote.length > 0
+    && conceptExplainer.length > 0
+    && selectedAssetNote.localeCompare(conceptExplainer, undefined, { sensitivity: "base" }) === 0;
+  const showSelectedAssetNote = selectedAssetNote.length > 0
+    && !selectedAssetNoteMatchesConcept
+    && (selectedAsset?.version ?? 0) > 1;
+  const showSelectedV1DesignerNote = selectedAssetNote.length > 0
+    && !selectedAssetNoteMatchesConcept
+    && (selectedAsset?.version ?? 0) === 1
+    && !conceptExplainer;
 
   useEffect(() => {
     if (selectedAssetPath) return;
@@ -267,11 +279,22 @@ export default function ConceptDetailPage() {
         {concept ? (
           <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 ">
             <p className="text-sm font-medium">Concept #{concept.number} · v{concept.revisionVersion}</p>
-            {concept.notes ? <p className="mt-1 whitespace-pre-wrap text-sm text-neutral-700">{concept.notes}</p> : null}
-            {selectedAsset?.notes ? (
+            {conceptExplainer ? (
+              <div className="mt-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-blue-900">Designer explainer</p>
+                <p className="mt-1 whitespace-pre-wrap text-sm text-blue-950">{conceptExplainer}</p>
+              </div>
+            ) : null}
+            {showSelectedV1DesignerNote ? (
               <div className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2">
-                <p className="text-xs font-semibold text-neutral-700">Revision note (v{selectedAsset.version})</p>
-                <p className="mt-1 whitespace-pre-wrap text-sm text-neutral-800">{selectedAsset.notes}</p>
+                <p className="text-xs font-semibold text-neutral-700">Designer note</p>
+                <p className="mt-1 whitespace-pre-wrap text-sm text-neutral-800">{selectedAssetNote}</p>
+              </div>
+            ) : null}
+            {showSelectedAssetNote ? (
+              <div className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2">
+                <p className="text-xs font-semibold text-neutral-700">Revision note (v{selectedAsset?.version})</p>
+                <p className="mt-1 whitespace-pre-wrap text-sm text-neutral-800">{selectedAssetNote}</p>
               </div>
             ) : null}
             {selectedAssetUrl ? (

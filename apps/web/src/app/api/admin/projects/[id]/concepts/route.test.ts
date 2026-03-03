@@ -66,6 +66,7 @@ describe("POST /api/admin/projects/[id]/concepts", () => {
     const formData = new FormData();
     formData.set("file", new File([new Uint8Array([1, 2, 3])], "concept.png", { type: "image/png" }));
     formData.set("conceptNumber", "1");
+    formData.set("notes", "Primary concept explainer");
 
     const res = await POST(new Request("http://localhost", { method: "POST", body: formData }), {
       params: Promise.resolve({ id: "p1" }),
@@ -76,6 +77,11 @@ describe("POST /api/admin/projects/[id]/concepts", () => {
     expect(payload.ok).toBe(true);
     expect(payload.projectStatus).toBe("CONCEPTS_READY");
     expect(mocks.tx.project.update).toHaveBeenCalledWith({ where: { id: "p1" }, data: { status: "CONCEPTS_READY" } });
+    expect(mocks.tx.fileAsset.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ notes: null }),
+      }),
+    );
     expect(mocks.createProjectSystemMessage).toHaveBeenCalledWith(
       mocks.tx,
       expect.objectContaining({ projectId: "p1", fallbackUserId: "admin-1", body: "Concept 1 is ready for review." }),
