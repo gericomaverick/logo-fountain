@@ -39,7 +39,7 @@ export default function AdminConceptRevisionUploadPage() {
     data.set("file", file);
     data.set("conceptId", conceptId);
     data.set("uploadMode", "revision");
-    data.set("notes", notes);
+    data.set("assetNotes", notes);
 
     const response = await fetch(`/api/admin/projects/${projectId}/concepts`, {
       method: "POST",

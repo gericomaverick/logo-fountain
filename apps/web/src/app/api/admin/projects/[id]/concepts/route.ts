@@ -151,7 +151,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const conceptIdRaw = formData.get("conceptId");
     const conceptId = typeof conceptIdRaw === "string" && conceptIdRaw.trim() ? conceptIdRaw : null;
     const notes = parseNotes(formData.get("notes"));
+    const assetNotesRaw = parseNotes(formData.get("assetNotes"));
     const uploadMode = parseUploadMode(formData.get("uploadMode"));
+    const assetNotes = assetNotesRaw ?? (uploadMode === "concept" ? notes : null);
 
     if (!(fileEntry instanceof File) || fileEntry.size <= 0) return jsonError("Image file is required", 400, { nextStep: "Upload an image file." }, "FILE_REQUIRED");
     if (!fileEntry.type.startsWith("image/")) return jsonError("Only image uploads are supported", 400, { nextStep: "Upload a PNG/JPEG/WebP image." }, "INVALID_FILE_TYPE");
@@ -297,7 +299,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
           path: upload.path,
           mime: upload.mime,
           size: upload.size,
-          notes: uploadMode === "revision" ? notes : null,
+          notes: assetNotes,
           uploadedBy: user.id,
         },
       });
