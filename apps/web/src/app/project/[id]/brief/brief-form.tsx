@@ -1,26 +1,25 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 type BriefFormProps = {
   projectId: string;
 };
 
 export function BriefForm({ projectId }: BriefFormProps) {
-  const router = useRouter();
-
   const [brandName, setBrandName] = useState("");
   const [industry, setIndustry] = useState("");
   const [description, setDescription] = useState("");
   const [styleNotes, setStyleNotes] = useState("");
-  const [status, setStatus] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submittedVersion, setSubmittedVersion] = useState<number | null>(null);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSubmitting(true);
-    setStatus(null);
+    setError(null);
 
     const response = await fetch(`/api/projects/${projectId}/brief`, {
       method: "POST",
@@ -38,13 +37,35 @@ export function BriefForm({ projectId }: BriefFormProps) {
     setIsSubmitting(false);
 
     if (!response.ok) {
-      setStatus(payload?.error || "Failed to submit brief.");
+      setError(payload?.error || "Failed to submit brief.");
       return;
     }
 
-    setStatus(`Brief submitted (version ${payload?.version ?? "?"}).`);
-    router.push(`/project/${projectId}`);
-    router.refresh();
+    setSubmittedVersion(payload?.version ?? null);
+  }
+
+  if (submittedVersion !== null) {
+    return (
+      <section className="mt-6 rounded-xl border border-green-200 bg-green-50 p-5 text-sm text-green-900">
+        <h2 className="text-base font-semibold">Brief received — you’ll hear back from your designer soon.</h2>
+        <p className="mt-2">
+          Thanks for sharing your details. We’ve saved your brief (v{submittedVersion}) and posted a confirmation in your
+          project messages.
+        </p>
+        <p className="mt-1 text-green-800">
+          What happens next: your designer reviews your brief, starts concept work, and replies in messages with updates.
+        </p>
+
+        <div className="mt-4 flex flex-wrap gap-3">
+          <Link className="rounded bg-black px-4 py-2 text-white" href={`/project/${projectId}/messages`}>
+            Open project messages
+          </Link>
+          <Link className="rounded border border-green-300 bg-white px-4 py-2" href={`/project/${projectId}`}>
+            Back to project
+          </Link>
+        </div>
+      </section>
+    );
   }
 
   return (
@@ -101,7 +122,7 @@ export function BriefForm({ projectId }: BriefFormProps) {
         {isSubmitting ? "Submitting..." : "Submit brief"}
       </button>
 
-      {status ? <p className="text-sm text-neutral-700">{status}</p> : null}
+      {error ? <p className="text-sm text-red-700">{error}</p> : null}
     </form>
   );
 }
