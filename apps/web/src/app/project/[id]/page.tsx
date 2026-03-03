@@ -12,6 +12,7 @@ import { buildActivityGroups, getMissionControlPrimaryCta, getPendingFeedbackCou
 type EntitlementUsage = {
   limit: number;
   consumed: number;
+  reserved?: number;
   remaining: number;
 };
 
@@ -66,11 +67,12 @@ function formatDateTime(value?: string): string {
 function resolveUsage(usage: EntitlementUsage | undefined) {
   const limit = Math.max(usage?.limit ?? 0, 0);
   const consumed = Math.max(usage?.consumed ?? 0, 0);
-  const used = Math.min(consumed, limit);
-  const remaining = Math.max(limit - consumed, 0);
-  const ratio = limit > 0 ? Math.min((used / limit) * 100, 100) : 0;
+  const reserved = Math.max(usage?.reserved ?? 0, 0);
+  const allocated = Math.min(consumed + reserved, limit);
+  const remaining = Math.max(limit - consumed - reserved, 0);
+  const ratio = limit > 0 ? Math.min((allocated / limit) * 100, 100) : 0;
 
-  return { limit, used, remaining, ratio };
+  return { limit, consumed, reserved, allocated, remaining, ratio };
 }
 
 function EntitlementProgress({
@@ -83,6 +85,14 @@ function EntitlementProgress({
   fillClassName: string;
 }) {
   const stats = resolveUsage(usage);
+  const [animatedRatio, setAnimatedRatio] = useState(0);
+
+  useEffect(() => {
+    const next = stats.ratio;
+    setAnimatedRatio(0);
+    const raf = requestAnimationFrame(() => setAnimatedRatio(next));
+    return () => cancelAnimationFrame(raf);
+  }, [stats.ratio]);
 
   return (
     <article className="rounded-xl border border-neutral-200 bg-white p-4">
@@ -91,10 +101,15 @@ function EntitlementProgress({
         <p className="text-xs text-neutral-500">{stats.remaining} left</p>
       </div>
       <p className="mt-1 text-sm text-neutral-700">
-        {stats.used} of {stats.limit} used
+        {stats.allocated} of {stats.limit} allocated
       </p>
+      {stats.reserved > 0 ? (
+        <p className="mt-0.5 text-xs text-neutral-500">
+          {stats.consumed} delivered · {stats.reserved} pending
+        </p>
+      ) : null}
       <div className="mt-3 h-2 rounded-full bg-neutral-200">
-        <div className={`h-2 rounded-full transition-all ${fillClassName}`} style={{ width: `${stats.ratio}%` }} />
+        <div className={`h-2 rounded-full transition-all duration-700 ease-out ${fillClassName}`} style={{ width: `${animatedRatio}%` }} />
       </div>
     </article>
   );

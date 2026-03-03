@@ -300,6 +300,18 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
           data: { status: "delivered" },
         });
         deliveredCount = delivered.count;
+
+        if (deliveredCount > 0) {
+          // Reserve-on-request, consume-on-delivery: convert reservations into consumed revisions.
+          await tx.$executeRaw`
+            UPDATE "ProjectEntitlement"
+            SET "reservedInt" = GREATEST(COALESCE("reservedInt", 0) - ${deliveredCount}, 0),
+                "consumedInt" = COALESCE("consumedInt", 0) + ${deliveredCount},
+                "updatedAt" = NOW()
+            WHERE "projectId" = ${projectId}::uuid
+              AND "key" = 'revisions'
+          `;
+        }
       }
 
       await logAudit(tx, {

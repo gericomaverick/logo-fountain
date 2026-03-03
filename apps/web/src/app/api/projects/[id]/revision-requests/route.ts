@@ -45,12 +45,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const revisionRequest = await prisma.$transaction(async (tx) => {
       const updated = await tx.$queryRaw<Array<{ id: string }>>`
         UPDATE "ProjectEntitlement"
-        SET "consumedInt" = "consumedInt" + 1,
+        SET "reservedInt" = COALESCE("reservedInt", 0) + 1,
             "updatedAt" = NOW()
         WHERE "projectId" = ${project.id}::uuid
           AND "key" = 'revisions'
           AND "limitInt" IS NOT NULL
-          AND "consumedInt" < "limitInt"
+          AND (COALESCE("consumedInt", 0) + COALESCE("reservedInt", 0)) < "limitInt"
         RETURNING "id"
       `;
       if (updated.length === 0) throw new Error("NO_REVISIONS_REMAINING");

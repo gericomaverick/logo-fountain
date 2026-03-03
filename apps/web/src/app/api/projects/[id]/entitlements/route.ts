@@ -18,13 +18,13 @@ export async function GET(
         projectId: project.id,
         key: { in: ["concepts", "revisions"] },
       },
-      select: { key: true, limitInt: true, consumedInt: true },
+      select: { key: true, limitInt: true, consumedInt: true, reservedInt: true },
     });
 
     const summary = { concepts: 0, revisions: 0 };
 
     for (const entitlement of entitlements) {
-      const remaining = Math.max((entitlement.limitInt ?? 0) - entitlement.consumedInt, 0);
+      const remaining = Math.max((entitlement.limitInt ?? 0) - entitlement.consumedInt - (entitlement.reservedInt ?? 0), 0);
       if (entitlement.key === "concepts") summary.concepts = remaining;
       if (entitlement.key === "revisions") summary.revisions = remaining;
     }

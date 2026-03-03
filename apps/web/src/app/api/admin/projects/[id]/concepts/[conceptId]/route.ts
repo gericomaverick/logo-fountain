@@ -54,10 +54,14 @@ export async function DELETE(
       }
 
       if (deletedRevisionRequests.count > 0) {
-        // If we deleted revision requests due to concept deletion, also refund the consumed revisions.
+        const requestedCount = revisionRequestsToDelete.filter((r) => r.status !== "delivered").length;
+        const deliveredCount = revisionRequestsToDelete.filter((r) => r.status === "delivered").length;
+
+        // Refund any reserved (requested) revisions, and any consumed (delivered) revisions.
         await tx.$executeRaw`
           UPDATE "ProjectEntitlement"
-          SET "consumedInt" = GREATEST(COALESCE("consumedInt", 0) - ${deletedRevisionRequests.count}, 0),
+          SET "reservedInt" = GREATEST(COALESCE("reservedInt", 0) - ${requestedCount}, 0),
+              "consumedInt" = GREATEST(COALESCE("consumedInt", 0) - ${deliveredCount}, 0),
               "updatedAt" = NOW()
           WHERE "projectId" = ${projectId}::uuid
             AND "key" = 'revisions'

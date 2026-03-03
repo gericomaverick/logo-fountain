@@ -67,7 +67,7 @@ export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
       updatedAt: true,
       entitlements: {
         where: { key: { in: ["concepts", "revisions"] } },
-        select: { key: true, limitInt: true, consumedInt: true },
+        select: { key: true, limitInt: true, consumedInt: true, reservedInt: true },
       },
       concepts: {
         where: { status: { in: PUBLISHED_OR_APPROVED } },
