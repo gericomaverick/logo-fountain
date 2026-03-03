@@ -24,6 +24,7 @@ model Profile {
   uploadedFiles     FileAsset[]
   sentMessages      Message[]
   revisionRequests  RevisionRequest[]
+  conceptComments   ConceptComment[]
   auditEvents       AuditEvent[]
   projectReadStates ProjectReadState[]
 }
@@ -73,6 +74,7 @@ model Project {
   messageThread MessageThread?
   messages          Message[]
   revisionRequests  RevisionRequest[]
+  conceptComments   ConceptComment[]
   auditEvents       AuditEvent[]
   readStates        ProjectReadState[]
 
@@ -142,6 +144,7 @@ model Concept {
 
   project          Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
   revisionRequests RevisionRequest[]
+  comments         ConceptComment[]
 
   @@unique([projectId, number])
   @@index([projectId])
@@ -213,6 +216,23 @@ model RevisionRequest {
   @@index([conceptId])
   @@index([requestedBy])
   @@index([status])
+}
+
+model ConceptComment {
+  id        String   @id @default(uuid()) @db.Uuid
+  projectId String   @db.Uuid
+  conceptId String   @db.Uuid
+  authorId  String   @db.Uuid
+  body      String
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  concept Concept @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+  author  Profile @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([projectId, createdAt])
+  @@index([conceptId, createdAt])
+  @@index([authorId])
 }
 
 model AuditEvent {

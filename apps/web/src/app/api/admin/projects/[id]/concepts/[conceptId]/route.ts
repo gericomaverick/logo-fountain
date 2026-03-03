@@ -32,6 +32,13 @@ export async function DELETE(
         data: { status: "deleted" },
       });
 
+      // If there are outstanding revision requests tied to this concept, resolve them so they don’t
+      // keep showing as needing attention for a concept that no longer exists.
+      const resolved = await tx.revisionRequest.updateMany({
+        where: { projectId, conceptId: concept.id, status: { not: "delivered" } },
+        data: { status: "delivered" },
+      });
+
       if (wasPublished) {
         await tx.$executeRaw`
           UPDATE "ProjectEntitlement"
@@ -46,7 +53,12 @@ export async function DELETE(
         projectId,
         actorId: user.id,
         type: "concept_deleted",
-        payload: { conceptId: concept.id, conceptNumber: concept.number, previousStatus: concept.status },
+        payload: {
+          conceptId: concept.id,
+          conceptNumber: concept.number,
+          previousStatus: concept.status,
+          resolvedRevisionRequests: resolved.count,
+        },
       });
     });
 

@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useParams, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { HeaderNav } from "@/components/header-nav";
 
@@ -14,6 +14,7 @@ type Snapshot = {
 };
 
 type SessionPayload = { authenticated: boolean; isAdmin?: boolean; email?: string; fullName?: string | null };
+type ConceptComment = { id: string; body: string; createdAt: string; author: { id: string; email: string; fullName: string | null; isAdmin: boolean } };
 
 function readError(payload: { error?: { message?: string; details?: { nextStep?: string } } | string } | null, fallback: string): string {
   const err = payload?.error;
@@ -39,6 +40,7 @@ function formatDateTime(value?: string): string {
 
 export default function ConceptDetailPage() {
   const params = useParams<{ id: string; conceptId: string }>();
+  const searchParams = useSearchParams();
   const projectId = params.id;
   const conceptId = params.conceptId;
 
@@ -48,6 +50,7 @@ export default function ConceptDetailPage() {
   const [busy, setBusy] = useState(false);
   const [revisionBody, setRevisionBody] = useState("");
   const [designerReply, setDesignerReply] = useState("");
+  const [comments, setComments] = useState<ConceptComment[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
@@ -57,19 +60,24 @@ export default function ConceptDetailPage() {
     [snapshot?.concepts, conceptId],
   );
 
-  async function refresh(id: string) {
-    const [res, sessionRes] = await Promise.all([
+  const refresh = useCallback(async (id: string) => {
+    const [res, sessionRes, commentRes] = await Promise.all([
       fetch(`/api/projects/${id}`, { cache: "no-store" }),
       fetch("/api/auth/session", { cache: "no-store" }),
+      fetch(`/api/projects/${id}/concepts/${conceptId}/comments`, { cache: "no-store" }),
     ]);
 
     const payload = await res.json().catch(() => null);
     if (!res.ok) throw new Error(readError(payload, "Failed to load concept"));
 
+    const commentPayload = await commentRes.json().catch(() => null);
+    if (!commentRes.ok) throw new Error(readError(commentPayload, "Failed to load discussion"));
+
     const sessionPayload = (await sessionRes.json().catch(() => null)) as SessionPayload | null;
     setSession(sessionPayload ?? { authenticated: false });
     setSnapshot(payload?.snapshot ?? null);
-  }
+    setComments((commentPayload?.comments ?? []) as ConceptComment[]);
+  }, [conceptId]);
 
   useEffect(() => {
     if (!projectId) return;
@@ -94,7 +102,7 @@ export default function ConceptDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, [projectId]);
+  }, [projectId, refresh]);
 
   async function submitRevision(e: React.FormEvent) {
     e.preventDefault();
@@ -130,12 +138,10 @@ export default function ConceptDetailPage() {
     setActionError(null);
     setActionSuccess(null);
 
-    const prefix = concept ? `Concept #${concept.number}: ` : "";
-
-    const res = await fetch(`/api/projects/${projectId}/messages`, {
+    const res = await fetch(`/api/projects/${projectId}/concepts/${conceptId}/comments`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ body: `${prefix}${designerReply.trim()}` }),
+      body: JSON.stringify({ body: designerReply.trim() }),
     });
 
     const payload = await res.json().catch(() => null);
@@ -143,7 +149,8 @@ export default function ConceptDetailPage() {
       setActionError(readError(payload, "Failed to send message"));
     } else {
       setDesignerReply("");
-      setActionSuccess("Reply sent to client.");
+      setActionSuccess("Reply posted in concept discussion.");
+      await refresh(projectId);
     }
 
     setBusy(false);
@@ -168,6 +175,9 @@ export default function ConceptDetailPage() {
     setBusy(false);
   }
 
+  const fromAdmin = searchParams.get("from") === "admin";
+  const backHref = fromAdmin ? `/admin/projects/${projectId}` : `/project/${projectId}`;
+
   return (
     <>
       <HeaderNav />
@@ -178,7 +188,7 @@ export default function ConceptDetailPage() {
             <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
           </div>
           <div className="flex gap-4 text-sm">
-            <Link className="underline" href={`/project/${projectId}/concepts`}>Back to concepts</Link>
+            <Link className="underline" href={backHref}>{fromAdmin ? "Back to admin overview" : "Back to project overview"}</Link>
             <Link className="underline" href={`/project/${projectId}/messages`}>Messages</Link>
           </div>
         </div>
@@ -237,23 +247,41 @@ export default function ConceptDetailPage() {
               </ul>
             </div>
 
+            <div className="mt-6">
+              <h3 className="text-sm font-semibold text-neutral-900">Concept discussion (separate from project messages)</h3>
+              <ul className="mt-2 space-y-2">
+                {comments.map((comment) => (
+                  <li key={comment.id} className="rounded-xl border border-neutral-200 bg-white p-3 text-sm">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-xs font-semibold text-neutral-700">{comment.author.fullName ?? comment.author.email}{comment.author.isAdmin ? " (Designer)" : ""}</p>
+                      <p className="text-xs text-neutral-500">{formatDateTime(comment.createdAt)}</p>
+                    </div>
+                    <div className="mt-2 rounded-2xl bg-blue-50 px-3 py-2 text-neutral-900">
+                      <p className="whitespace-pre-wrap">{comment.body}</p>
+                    </div>
+                  </li>
+                ))}
+                {comments.length === 0 ? <li className="text-sm text-neutral-600">No discussion replies yet.</li> : null}
+              </ul>
+            </div>
+
             {session.isAdmin ? (
               <form className="mt-6" onSubmit={submitDesignerMessage}>
-                <label className="block text-sm font-semibold text-neutral-900">Reply to client about this concept</label>
+                <label className="block text-sm font-semibold text-neutral-900">Post designer reply in concept discussion</label>
                 <textarea
                   className="mt-2 w-full rounded border border-neutral-300 px-2 py-1"
                   rows={4}
                   maxLength={2000}
                   value={designerReply}
                   onChange={(e) => setDesignerReply(e.target.value)}
-                  placeholder="Write a quick update (this does not create a revision request)…"
+                  placeholder="Write a quick concept-specific update…"
                 />
                 <button
                   className="mt-2 rounded border border-neutral-300 px-3 py-1 text-sm"
                   type="submit"
                   disabled={busy || !designerReply.trim()}
                 >
-                  Reply to client
+                  Post reply
                 </button>
               </form>
             ) : (

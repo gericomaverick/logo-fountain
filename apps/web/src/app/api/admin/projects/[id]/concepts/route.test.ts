@@ -4,6 +4,8 @@ const mocks = vi.hoisted(() => {
   const tx = {
     fileAsset: { create: vi.fn() },
     project: { update: vi.fn() },
+    projectEntitlement: { findFirst: vi.fn() },
+    $executeRaw: vi.fn(),
   };
 
   return {
@@ -14,7 +16,7 @@ const mocks = vi.hoisted(() => {
     logAudit: vi.fn(),
     prisma: {
       project: { findUnique: vi.fn() },
-      concept: { upsert: vi.fn(), count: vi.fn() },
+      concept: { findUnique: vi.fn(), upsert: vi.fn(), count: vi.fn() },
       $transaction: vi.fn(async (fn: (trx: typeof tx) => Promise<unknown>) => fn(tx)),
     },
     tx,
@@ -42,9 +44,12 @@ describe("POST /api/admin/projects/[id]/concepts", () => {
     );
 
     mocks.prisma.project.findUnique.mockResolvedValue({ id: "p1", status: "BRIEF_SUBMITTED" });
+    mocks.prisma.concept.findUnique.mockResolvedValue(null);
     mocks.prisma.concept.upsert.mockResolvedValue({ id: "c1", number: 1, status: "published", notes: null });
     mocks.prisma.concept.count.mockResolvedValue(0);
     mocks.uploadConceptAsset.mockResolvedValue({ bucket: "b", path: "p", mime: "image/png", size: 123 });
+    mocks.tx.projectEntitlement.findFirst.mockResolvedValue({ id: "ent1", key: "concepts", limitInt: 2, consumedInt: 0 });
+    mocks.tx.$executeRaw.mockResolvedValue(1);
     mocks.tx.fileAsset.create.mockResolvedValue(undefined);
     mocks.tx.project.update.mockResolvedValue({ status: "CONCEPTS_READY" });
     mocks.logAudit.mockResolvedValue(undefined);

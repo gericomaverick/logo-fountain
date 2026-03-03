@@ -47,7 +47,14 @@ export default function AdminProjectConceptsPage() {
 
     const load = async () => {
       try {
-        await refresh(projectId);
+        await Promise.all([
+          refresh(projectId),
+          fetch(`/api/projects/${projectId}/read-state`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ area: "concepts" }),
+          }),
+        ]);
         setError(null);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to load concepts");
@@ -150,7 +157,7 @@ export default function AdminProjectConceptsPage() {
           <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {concepts.map((concept) => (
               <article key={concept.id} className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
-                <Link href={`/project/${projectId}/concept/${concept.id}`} className="block transition hover:border-neutral-300">
+                <Link href={`/project/${projectId}/concept/${concept.id}?from=admin`} className="block transition hover:border-neutral-300">
                   {concept.imageUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={concept.imageUrl} alt={`Concept ${concept.number}`} className="h-56 w-full object-cover" />

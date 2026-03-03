@@ -322,6 +322,7 @@ export default function AdminProjectPage() {
                   {hasPendingRevision ? (
                     <p className="mt-2 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">Revision requested</p>
                   ) : null}
+                  <p className="mt-2"><Link className="text-xs underline" href={`/project/${projectId}/concept/${concept.id}?from=admin`}>Open discussion</Link></p>
                 </li>
               );
             })}

@@ -6,6 +6,9 @@ const mocks = vi.hoisted(() => ({
   requireProjectMembership: vi.fn(),
   toRouteErrorResponse: vi.fn(),
   prisma: {
+    message: { aggregate: vi.fn() },
+    concept: { aggregate: vi.fn() },
+    conceptComment: { aggregate: vi.fn() },
     projectReadState: { upsert: vi.fn() },
   },
 }));
@@ -33,6 +36,9 @@ describe("POST /api/projects/[id]/read-state", () => {
     mocks.requireUser.mockResolvedValue({ id: "u1" });
     mocks.requireAdmin.mockResolvedValue(undefined);
     mocks.requireProjectMembership.mockResolvedValue({ id: "p1", clientId: "c1" });
+    mocks.prisma.message.aggregate.mockResolvedValue({ _max: { createdAt: new Date("2026-03-03T10:00:00.000Z") } });
+    mocks.prisma.concept.aggregate.mockResolvedValue({ _max: { createdAt: new Date("2026-03-03T10:00:00.000Z"), updatedAt: new Date("2026-03-03T10:00:00.000Z") } });
+    mocks.prisma.conceptComment.aggregate.mockResolvedValue({ _max: { createdAt: null } });
     mocks.prisma.projectReadState.upsert.mockResolvedValue({});
     mocks.toRouteErrorResponse.mockImplementation((err: Error) =>
       Response.json({ error: { message: err.message, code: "ERR" } }, { status: 500 }),

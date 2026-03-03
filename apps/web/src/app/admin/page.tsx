@@ -5,10 +5,10 @@ import { ProjectStatusBadge } from "@/components/project-status-badge";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth/require";
+import { deriveProjectBadgeState, type AdminSectionKey } from "@/lib/admin-dashboard";
+import { computeLatestConceptActivityAt } from "@/lib/concept-activity";
 
 export const dynamic = "force-dynamic";
-
-type AdminSectionKey = "needs-action" | "in-progress" | "delivered";
 
 type AdminProjectRow = {
   id: string;
@@ -18,19 +18,12 @@ type AdminProjectRow = {
   updatedAt: Date;
   client: { name: string };
   orders: Array<{ status: string; stripeCheckoutSessionId: string | null }>;
-  revisionRequests: Array<{ id: string }>;
+  pendingFeedbackCount: number;
   latestMessageAt: Date | null;
   hasNewMessages: boolean;
+  latestConceptAt: Date | null;
+  hasNewConcepts: boolean;
 };
-
-const NEEDS_ACTION_STATUSES = ["BRIEF_SUBMITTED", "CONCEPTS_READY", "ON_HOLD"] as const;
-const DELIVERED_STATUSES = ["DELIVERED", "CANCELLED", "REFUNDED"] as const;
-
-function getSectionKey(status: string): AdminSectionKey {
-  if (NEEDS_ACTION_STATUSES.includes(status as (typeof NEEDS_ACTION_STATUSES)[number])) return "needs-action";
-  if (DELIVERED_STATUSES.includes(status as (typeof DELIVERED_STATUSES)[number])) return "delivered";
-  return "in-progress";
-}
 
 function getSectionMeta(section: AdminSectionKey) {
   if (section === "needs-action") {
@@ -98,11 +91,16 @@ function AdminSection({
                     <Link className="inline-flex rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white" href={`/admin/projects/${project.id}`}>
                       Open project
                     </Link>
+                    <div className="flex flex-wrap gap-2 sm:justify-end">
+                      {project.hasNewMessages ? <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">New messages</span> : null}
+                      {project.pendingFeedbackCount > 0 ? <span className="inline-flex rounded-full bg-rose-100 px-2 py-0.5 text-xs font-semibold text-rose-900">Pending feedback ({project.pendingFeedbackCount})</span> : null}
+                      {project.hasNewConcepts ? <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-900">New concepts</span> : null}
+                    </div>
                     <Link className="text-sm text-neutral-700 underline" href={`/admin/projects/${project.id}/messages`}>
-                      Messages{project.hasNewMessages ? <span className="ml-2 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">New</span> : null}
+                      Messages
                     </Link>
-                    <Link className="text-sm text-neutral-700 underline" href={`/admin/projects/${project.id}/upload`}>
-                      Upload concepts
+                    <Link className="text-sm text-neutral-700 underline" href={`/admin/projects/${project.id}/concepts`}>
+                      Concepts manager
                     </Link>
                   </div>
                 </div>
@@ -151,35 +149,62 @@ export default async function AdminHomePage() {
         select: { status: true, stripeCheckoutSessionId: true },
       },
       revisionRequests: {
-        where: { status: "requested" },
-        take: 1,
+        where: { status: { not: "delivered" } },
         select: { id: true },
       },
     },
     orderBy: { createdAt: "desc" },
   });
 
-  const latestMessages = await prisma.message.groupBy({
-    by: ["projectId"],
-    _max: { createdAt: true },
-  });
+  const [latestMessages, latestConcepts, latestConceptComments] = await Promise.all([
+    prisma.message.groupBy({ by: ["projectId"], _max: { createdAt: true } }),
+    prisma.concept.groupBy({
+      by: ["projectId"],
+      where: { status: { in: ["published", "approved"] } },
+      _max: { createdAt: true, updatedAt: true },
+    }),
+    prisma.conceptComment.groupBy({ by: ["projectId"], _max: { createdAt: true } }),
+  ]);
+
   const latestMessageByProject = new Map(latestMessages.map((row) => [row.projectId, row._max.createdAt ?? null]));
+  const latestConceptByProject = new Map(
+    latestConcepts.map((row) => [
+      row.projectId,
+      computeLatestConceptActivityAt({
+        conceptCreatedAt: row._max.createdAt ?? null,
+        conceptUpdatedAt: row._max.updatedAt ?? null,
+      }),
+    ]),
+  );
+  const latestConceptCommentByProject = new Map(latestConceptComments.map((row) => [row.projectId, row._max.createdAt ?? null]));
 
   const readStates = await prisma.projectReadState.findMany({
     where: { userId: user.id },
-    select: { projectId: true, lastSeenMessagesAt: true },
+    select: { projectId: true, lastSeenMessagesAt: true, lastSeenConceptsAt: true },
   });
-  const lastSeenByProject = new Map(readStates.map((r) => [r.projectId, r.lastSeenMessagesAt ?? null]));
+  const lastSeenMessagesByProject = new Map(readStates.map((r) => [r.projectId, r.lastSeenMessagesAt ?? null]));
+  const lastSeenConceptsByProject = new Map(readStates.map((r) => [r.projectId, r.lastSeenConceptsAt ?? null]));
 
   const enriched: AdminProjectRow[] = projects.map((p) => {
     const latestMessageAt = latestMessageByProject.get(p.id) ?? null;
-    const lastSeenMessagesAt = lastSeenByProject.get(p.id) ?? null;
+    const lastSeenMessagesAt = lastSeenMessagesByProject.get(p.id) ?? null;
     const hasNewMessages = Boolean(latestMessageAt && (!lastSeenMessagesAt || latestMessageAt > lastSeenMessagesAt));
+
+    const latestConceptAt = computeLatestConceptActivityAt({
+      conceptCreatedAt: latestConceptByProject.get(p.id) ?? null,
+      conceptUpdatedAt: null,
+      latestCommentAt: latestConceptCommentByProject.get(p.id) ?? null,
+    });
+    const lastSeenConceptsAt = lastSeenConceptsByProject.get(p.id) ?? null;
+    const hasNewConcepts = Boolean(latestConceptAt && (!lastSeenConceptsAt || latestConceptAt > lastSeenConceptsAt));
 
     return {
       ...p,
+      pendingFeedbackCount: p.revisionRequests.length,
       latestMessageAt,
       hasNewMessages,
+      latestConceptAt,
+      hasNewConcepts,
     };
   });
 
@@ -190,13 +215,14 @@ export default async function AdminHomePage() {
   };
 
   for (const project of enriched) {
-    // If there is pending client feedback or unread messages, treat as needs-action regardless of status.
-    if (project.revisionRequests.length > 0 || project.hasNewMessages) {
-      sectioned["needs-action"].push(project);
-      continue;
-    }
+    const badgeState = deriveProjectBadgeState({
+      status: project.status,
+      pendingFeedbackCount: project.pendingFeedbackCount,
+      hasNewMessages: project.hasNewMessages,
+      hasNewConcepts: project.hasNewConcepts,
+    });
 
-    sectioned[getSectionKey(project.status)].push(project);
+    sectioned[badgeState.section].push(project);
   }
 
   return (

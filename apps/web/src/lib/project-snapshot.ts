@@ -2,6 +2,7 @@ import { buildTimeline, type ProjectState, PROJECT_STATES, PROJECT_STATE_LABELS,
 import { prisma } from "@/lib/prisma";
 import { createSignedConceptAssetUrl, createSignedFinalDeliverableUrl } from "@/lib/supabase/storage";
 import { computeEntitlementUsage } from "@/lib/entitlements";
+import { computeLatestConceptActivityAt, maxDate } from "@/lib/concept-activity";
 
 const PUBLISHED_OR_APPROVED = ["published", "approved"];
 
@@ -12,12 +13,6 @@ type SnapshotArgs = {
 
 function asIso(value: Date | null | undefined): string | undefined {
   return value ? value.toISOString() : undefined;
-}
-
-function maxDate(a: Date | null, b: Date | null): Date | null {
-  if (!a) return b;
-  if (!b) return a;
-  return a > b ? a : b;
 }
 
 async function fetchAuditStateTimestamps(projectId: string): Promise<Partial<Record<ProjectState, string>>> {
@@ -98,7 +93,7 @@ export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
 
   if (!project) return null;
 
-  const [readState, latestMessageAgg] = await Promise.all([
+  const [readState, latestMessageAgg, latestConceptCommentAgg] = await Promise.all([
     userId
       ? prisma.projectReadState.findUnique({
           where: { userId_projectId: { userId, projectId: project.id } },
@@ -106,11 +101,20 @@ export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
         })
       : Promise.resolve(null),
     prisma.message.aggregate({ where: { projectId: project.id }, _max: { createdAt: true } }),
+    prisma.conceptComment.aggregate({ where: { projectId: project.id }, _max: { createdAt: true } }),
   ]);
 
   let latestConceptAt: Date | null = null;
+  const latestCommentAt = latestConceptCommentAgg._max.createdAt ?? null;
   for (const concept of project.concepts) {
-    latestConceptAt = maxDate(latestConceptAt, maxDate(concept.createdAt, concept.updatedAt));
+    latestConceptAt = maxDate(
+      latestConceptAt,
+      computeLatestConceptActivityAt({
+        conceptCreatedAt: concept.createdAt,
+        conceptUpdatedAt: concept.updatedAt,
+        latestCommentAt,
+      }),
+    );
   }
 
   const latestMessageAt = latestMessageAgg._max.createdAt ?? null;

@@ -1,6 +1,7 @@
 import { jsonError } from "@/lib/api-error";
 import { RouteAuthError, requireAdmin, requireProjectMembership, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { prisma } from "@/lib/prisma";
+import { computeLatestConceptActivityAt } from "@/lib/concept-activity";
 
 export const runtime = "nodejs";
 
@@ -46,13 +47,19 @@ export async function POST(req: Request, { params }: RouteParams) {
     }
 
     if (area === "concepts") {
-      const agg = await prisma.concept.aggregate({
-        where: { projectId: auth.projectId, status: { in: ["published", "approved"] } },
-        _max: { createdAt: true, updatedAt: true },
-      });
-      stamp = (agg._max.updatedAt && agg._max.createdAt)
-        ? (agg._max.updatedAt > agg._max.createdAt ? agg._max.updatedAt : agg._max.createdAt)
-        : (agg._max.updatedAt ?? agg._max.createdAt ?? stamp);
+      const [conceptAgg, commentAgg] = await Promise.all([
+        prisma.concept.aggregate({
+          where: { projectId: auth.projectId, status: { in: ["published", "approved"] } },
+          _max: { createdAt: true, updatedAt: true },
+        }),
+        prisma.conceptComment.aggregate({ where: { projectId: auth.projectId }, _max: { createdAt: true } }),
+      ]);
+
+      stamp = computeLatestConceptActivityAt({
+        conceptCreatedAt: conceptAgg._max.createdAt,
+        conceptUpdatedAt: conceptAgg._max.updatedAt,
+        latestCommentAt: commentAgg._max.createdAt,
+      }) ?? stamp;
     }
 
     await prisma.projectReadState.upsert({
