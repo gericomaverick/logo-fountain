@@ -61,12 +61,19 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (!fileEntry.type.startsWith("image/")) return jsonError("Only image uploads are supported", 400, { nextStep: "Upload a PNG/JPEG/WebP image." }, "INVALID_FILE_TYPE");
     if (!conceptNumber) return jsonError("Valid conceptNumber is required", 400, { nextStep: "Set conceptNumber to a positive integer." }, "INVALID_CONCEPT_NUMBER");
 
+    const existingConcept = await prisma.concept.findUnique({
+      where: { projectId_number: { projectId, number: conceptNumber } },
+      select: { id: true, status: true },
+    });
+
     const concept = await prisma.concept.upsert({
       where: { projectId_number: { projectId, number: conceptNumber } },
       update: { notes, status: CONCEPT_STATUS_PUBLISHED },
       create: { projectId, number: conceptNumber, status: CONCEPT_STATUS_PUBLISHED, notes },
       select: { id: true, number: true, status: true, notes: true },
     });
+
+    const shouldConsumeEntitlement = !existingConcept || existingConcept.status !== CONCEPT_STATUS_PUBLISHED;
 
     const upload = await uploadConceptAsset({ projectId, conceptId: concept.id, file: fileEntry });
 
@@ -92,6 +99,18 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     }
 
     const result = await prisma.$transaction(async (tx) => {
+      if (shouldConsumeEntitlement) {
+        // Increment concepts entitlement usage when a concept is first published for a given concept number.
+        // (Re-uploads/replacements should not consume another entitlement.)
+        await tx.$executeRaw`
+          UPDATE "ProjectEntitlement"
+          SET "consumedInt" = COALESCE("consumedInt", 0) + 1,
+              "updatedAt" = NOW()
+          WHERE "projectId" = ${projectId}::uuid
+            AND "key" = 'concepts'
+        `;
+      }
+
       await tx.fileAsset.create({
         data: { projectId, kind: "concept", bucket: upload.bucket, path: upload.path, mime: upload.mime, size: upload.size, uploadedBy: user.id },
       });
