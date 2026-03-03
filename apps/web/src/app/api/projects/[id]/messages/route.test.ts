@@ -5,6 +5,11 @@ const mocks = vi.hoisted(() => ({
   requireAdmin: vi.fn(),
   requireProjectMembership: vi.fn(),
   toRouteErrorResponse: vi.fn(),
+  logAudit: vi.fn(),
+  tx: {
+    messageThread: { upsert: vi.fn() },
+    message: { create: vi.fn() },
+  },
   prisma: {
     profile: { upsert: vi.fn() },
     $transaction: vi.fn(),
@@ -24,7 +29,7 @@ vi.mock("@/lib/auth/require", () => ({
 }));
 
 vi.mock("@/lib/prisma", () => ({ prisma: mocks.prisma }));
-vi.mock("@/lib/audit", () => ({ logAudit: vi.fn() }));
+vi.mock("@/lib/audit", () => ({ logAudit: mocks.logAudit }));
 
 import { POST } from "./route";
 
@@ -36,6 +41,16 @@ describe("POST /api/projects/[id]/messages", () => {
     mocks.toRouteErrorResponse.mockImplementation((err: Error) =>
       Response.json({ error: { message: err.message, code: "ERR" } }, { status: 500 }),
     );
+
+    mocks.tx.messageThread.upsert.mockResolvedValue({ id: "t1" });
+    mocks.tx.message.create.mockResolvedValue({
+      id: "m1",
+      body: "Hello",
+      createdAt: new Date().toISOString(),
+      sender: { id: "u1", email: "x@example.com", isAdmin: true },
+    });
+    mocks.prisma.$transaction.mockImplementation(async (fn: (tx: typeof mocks.tx) => Promise<unknown>) => fn(mocks.tx));
+    mocks.logAudit.mockResolvedValue(undefined);
   });
 
   it("returns jsonError shape for invalid body", async () => {
@@ -50,5 +65,18 @@ describe("POST /api/projects/[id]/messages", () => {
         message: "Message body is required (1-2000 chars)",
       },
     });
+  });
+
+  it("upserts profile with isAdmin=true for admin sender", async () => {
+    const req = new Request("http://localhost", { method: "POST", body: JSON.stringify({ body: "Hello" }) });
+    const res = await POST(req, { params: Promise.resolve({ id: "p1" }) });
+
+    expect(res.status).toBe(201);
+    expect(mocks.prisma.profile.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: expect.objectContaining({ isAdmin: true }),
+        update: expect.objectContaining({ isAdmin: true }),
+      }),
+    );
   });
 });

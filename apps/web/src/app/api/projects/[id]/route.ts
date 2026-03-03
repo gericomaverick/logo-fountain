@@ -11,7 +11,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
     const project = await requireProjectMembership(user.id, id);
 
-    const snapshot = await getProjectSnapshot({ projectId: project.id });
+    const snapshot = await getProjectSnapshot({ projectId: project.id, userId: user.id });
     if (!snapshot) return jsonError("Project not found", 404, { nextStep: "Check the project link." }, "PROJECT_NOT_FOUND");
 
     return Response.json({ snapshot });

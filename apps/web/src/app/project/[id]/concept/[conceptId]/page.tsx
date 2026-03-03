@@ -143,7 +143,7 @@ export default function ConceptDetailPage() {
             <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
           </div>
           <div className="flex gap-4 text-sm">
-            <Link className="underline" href={`/project/${projectId}`}>Back to concepts</Link>
+            <Link className="underline" href={`/project/${projectId}/concepts`}>Back to concepts</Link>
             <Link className="underline" href={`/project/${projectId}/messages`}>Messages</Link>
           </div>
         </div>

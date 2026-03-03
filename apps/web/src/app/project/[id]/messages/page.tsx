@@ -44,6 +44,11 @@ export default function ProjectMessagesPage() {
     const [messagesRes, sessionRes] = await Promise.all([
       fetch(`/api/projects/${id}/messages`, { cache: "no-store" }),
       fetch("/api/auth/session", { cache: "no-store" }),
+      fetch(`/api/projects/${id}/read-state`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ area: "messages" }),
+      }),
     ]);
 
     const messagesPayload = await messagesRes.json().catch(() => null);

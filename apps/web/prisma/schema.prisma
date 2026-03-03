@@ -19,12 +19,13 @@ model Profile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  memberships  ClientMembership[]
-  createdBriefs ProjectBrief[]
-  uploadedFiles FileAsset[]
+  memberships       ClientMembership[]
+  createdBriefs     ProjectBrief[]
+  uploadedFiles     FileAsset[]
   sentMessages      Message[]
   revisionRequests  RevisionRequest[]
   auditEvents       AuditEvent[]
+  projectReadStates ProjectReadState[]
 }
 
 model Client {
@@ -70,9 +71,10 @@ model Project {
   concepts      Concept[]
   fileAssets    FileAsset[]
   messageThread MessageThread?
-  messages         Message[]
-  revisionRequests RevisionRequest[]
-  auditEvents      AuditEvent[]
+  messages          Message[]
+  revisionRequests  RevisionRequest[]
+  auditEvents       AuditEvent[]
+  readStates        ProjectReadState[]
 
   @@index([clientId])
   @@index([status])
@@ -227,6 +229,22 @@ model AuditEvent {
   @@index([projectId, createdAt])
   @@index([type, createdAt])
   @@index([actorId])
+}
+
+model ProjectReadState {
+  id                 String    @id @default(uuid()) @db.Uuid
+  userId             String    @db.Uuid
+  projectId          String    @db.Uuid
+  lastSeenMessagesAt DateTime?
+  lastSeenConceptsAt DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  user    Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId])
+  @@index([projectId])
 }
 
 model StripeEvent {

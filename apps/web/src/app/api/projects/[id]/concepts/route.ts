@@ -1,23 +1,35 @@
 import { prisma } from "@/lib/prisma";
 import { createSignedConceptAssetUrl } from "@/lib/supabase/storage";
-import { requireProjectMembership, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
+import { RouteAuthError, requireAdmin, requireProjectMembership, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 
 export const runtime = "nodejs";
 
 const CONCEPT_STATUS_PUBLISHED = "published";
 const CONCEPT_STATUS_APPROVED = "approved";
 
+async function authorizeProjectAccess(projectId: string) {
+  const user = await requireUser();
+
+  try {
+    await requireAdmin(user);
+    return { projectId };
+  } catch (error) {
+    if (!(error instanceof RouteAuthError) || error.status !== 403) throw error;
+    const membershipProject = await requireProjectMembership(user.id, projectId);
+    return { projectId: membershipProject.id };
+  }
+}
+
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const user = await requireUser();
     const { id } = await params;
-    const membershipProject = await requireProjectMembership(user.id, id);
+    const auth = await authorizeProjectAccess(id);
 
     const project = await prisma.project.findUnique({
-      where: { id: membershipProject.id },
+      where: { id: auth.projectId },
       select: {
         id: true,
         status: true,
@@ -29,6 +41,8 @@ export async function GET(
             number: true,
             status: true,
             notes: true,
+            createdAt: true,
+            updatedAt: true,
           },
         },
       },

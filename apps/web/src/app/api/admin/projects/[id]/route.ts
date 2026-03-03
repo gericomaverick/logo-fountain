@@ -10,7 +10,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     await requireAdmin(user);
 
     const { id } = await params;
-    const snapshot = await getProjectSnapshot({ projectId: id });
+    const snapshot = await getProjectSnapshot({ projectId: id, userId: user.id });
     if (!snapshot) return jsonError("Project not found", 404, { nextStep: "Check the project link." }, "PROJECT_NOT_FOUND");
 
     return Response.json({ snapshot });

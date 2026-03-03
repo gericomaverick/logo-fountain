@@ -62,6 +62,41 @@ function summarizePayload(payload: unknown): string {
     .join(", ");
 }
 
+function resolveUsage(usage: EntitlementUsage | undefined) {
+  const limit = Math.max(usage?.limit ?? 0, 0);
+  const consumed = Math.max(usage?.consumed ?? 0, 0);
+  const used = Math.min(consumed, limit);
+  const remaining = Math.max(limit - consumed, 0);
+  const ratio = limit > 0 ? Math.min((used / limit) * 100, 100) : 0;
+
+  return { limit, used, remaining, ratio };
+}
+
+function EntitlementProgress({
+  label,
+  usage,
+  fillClassName,
+}: {
+  label: string;
+  usage: EntitlementUsage | undefined;
+  fillClassName: string;
+}) {
+  const stats = resolveUsage(usage);
+
+  return (
+    <article className="rounded-xl border border-neutral-200 bg-white p-4 text-sm">
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="font-semibold text-neutral-900">{label}</h3>
+        <p className="text-xs text-neutral-500">{stats.remaining} left</p>
+      </div>
+      <p className="mt-1 text-neutral-700">{stats.used} of {stats.limit} used</p>
+      <div className="mt-2 h-2 rounded-full bg-neutral-200">
+        <div className={`h-2 rounded-full ${fillClassName}`} style={{ width: `${stats.ratio}%` }} />
+      </div>
+    </article>
+  );
+}
+
 export default function AdminProjectPage() {
   const params = useParams<{ id: string }>();
   const projectId = params.id;
@@ -155,21 +190,18 @@ export default function AdminProjectPage() {
               <Link className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm" href={`/admin/projects/${projectId}/messages`}>
                 Open messages
               </Link>
+              <Link className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm" href={`/admin/projects/${projectId}/concepts`}>
+                Concepts manager
+              </Link>
               <Link className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm" href={`/admin/projects/${projectId}/upload`}>
-                Upload concepts
+                Legacy upload
               </Link>
             </div>
           </div>
 
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm">
-              <p className="text-xs uppercase tracking-wide text-neutral-500">Concepts remaining</p>
-              <p className="mt-1 font-semibold text-neutral-900">{snapshot?.entitlementUsage?.concepts?.remaining ?? snapshot?.entitlements.concepts ?? 0}</p>
-            </div>
-            <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm">
-              <p className="text-xs uppercase tracking-wide text-neutral-500">Revisions remaining</p>
-              <p className="mt-1 font-semibold text-neutral-900">{snapshot?.entitlementUsage?.revisions?.remaining ?? snapshot?.entitlements.revisions ?? 0}</p>
-            </div>
+            <EntitlementProgress label="Concepts" usage={snapshot?.entitlementUsage?.concepts} fillClassName="bg-gradient-to-r from-indigo-600 to-sky-500" />
+            <EntitlementProgress label="Revisions" usage={snapshot?.entitlementUsage?.revisions} fillClassName="bg-gradient-to-r from-fuchsia-600 to-violet-500" />
           </div>
 
           <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm">

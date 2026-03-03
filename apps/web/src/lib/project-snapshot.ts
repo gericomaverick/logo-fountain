@@ -7,10 +7,17 @@ const PUBLISHED_OR_APPROVED = ["published", "approved"];
 
 type SnapshotArgs = {
   projectId: string;
+  userId?: string;
 };
 
 function asIso(value: Date | null | undefined): string | undefined {
   return value ? value.toISOString() : undefined;
+}
+
+function maxDate(a: Date | null, b: Date | null): Date | null {
+  if (!a) return b;
+  if (!b) return a;
+  return a > b ? a : b;
 }
 
 async function fetchAuditStateTimestamps(projectId: string): Promise<Partial<Record<ProjectState, string>>> {
@@ -33,7 +40,7 @@ async function fetchAuditStateTimestamps(projectId: string): Promise<Partial<Rec
   return map;
 }
 
-export async function getProjectSnapshot({ projectId }: SnapshotArgs) {
+export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
   const project = await prisma.project.findUnique({
     where: { id: projectId },
     select: {
@@ -91,6 +98,25 @@ export async function getProjectSnapshot({ projectId }: SnapshotArgs) {
 
   if (!project) return null;
 
+  const [readState, latestMessageAgg] = await Promise.all([
+    userId
+      ? prisma.projectReadState.findUnique({
+          where: { userId_projectId: { userId, projectId: project.id } },
+          select: { lastSeenMessagesAt: true, lastSeenConceptsAt: true },
+        })
+      : Promise.resolve(null),
+    prisma.message.aggregate({ where: { projectId: project.id }, _max: { createdAt: true } }),
+  ]);
+
+  let latestConceptAt: Date | null = null;
+  for (const concept of project.concepts) {
+    latestConceptAt = maxDate(latestConceptAt, maxDate(concept.createdAt, concept.updatedAt));
+  }
+
+  const latestMessageAt = latestMessageAgg._max.createdAt ?? null;
+  const hasNewMessages = Boolean(latestMessageAt && (!readState?.lastSeenMessagesAt || latestMessageAt > readState.lastSeenMessagesAt));
+  const hasNewConcepts = Boolean(latestConceptAt && (!readState?.lastSeenConceptsAt || latestConceptAt > readState.lastSeenConceptsAt));
+
   const entitlementUsage = computeEntitlementUsage(project.entitlements, project.packageCode);
 
   const entitlements = {
@@ -112,6 +138,7 @@ export async function getProjectSnapshot({ projectId }: SnapshotArgs) {
     status: concept.status,
     notes: concept.notes,
     createdAt: concept.createdAt,
+    updatedAt: concept.updatedAt,
     imageUrl: conceptFiles.get(concept.id)
       ? await createSignedConceptAssetUrl(conceptFiles.get(concept.id) as string)
       : null,
@@ -179,5 +206,13 @@ export async function getProjectSnapshot({ projectId }: SnapshotArgs) {
     stuck: Boolean(stuckReason),
     stuckReason,
     recentAuditEventsCount: project._count.auditEvents,
+    readState: {
+      lastSeenMessagesAt: asIso(readState?.lastSeenMessagesAt),
+      lastSeenConceptsAt: asIso(readState?.lastSeenConceptsAt),
+    },
+    latestMessageAt: asIso(latestMessageAt),
+    latestConceptAt: asIso(latestConceptAt),
+    hasNewMessages,
+    hasNewConcepts,
   };
 }
