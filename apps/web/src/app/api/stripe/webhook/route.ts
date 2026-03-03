@@ -9,7 +9,7 @@ import {
   ORDER_STATUS_FULFILLED,
   ORDER_STATUS_NEEDS_CONTACT,
 } from "@/lib/checkout-fulfillment";
-import { generateAndSendMagicLinkEmail } from "@/lib/magic-link-email";
+import { sendCheckoutContinueEmail } from "@/lib/checkout-continue-email";
 
 export const runtime = "nodejs";
 
@@ -93,10 +93,10 @@ export async function POST(req: Request) {
     if (fulfillment.purchaserEmail) {
       const appBaseUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(req.url).origin;
       try {
-        await generateAndSendMagicLinkEmail({
+        await sendCheckoutContinueEmail({
           purchaserEmail: fulfillment.purchaserEmail,
-          projectId: fulfillment.projectId,
           baseUrl: appBaseUrl,
+          sessionId: session.id,
         });
       } catch (emailError) {
         console.error("Failed to send checkout magic-link email", emailError);
