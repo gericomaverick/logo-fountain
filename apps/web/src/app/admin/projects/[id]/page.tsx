@@ -238,6 +238,25 @@ export default function AdminProjectPage() {
               >
                 Reset concepts used → 0
               </button>
+              <button
+                className="rounded border border-neutral-300 bg-white px-3 py-1 text-rose-700"
+                type="button"
+                disabled={busy}
+                onClick={() => {
+                  if (!window.confirm("Reset revisions used to 0? This is for testing only.")) return;
+                  void runAction(
+                    () =>
+                      fetch(`/api/admin/projects/${projectId}/entitlements/reset`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ key: "revisions", confirm: true }),
+                      }),
+                    "Failed to reset revisions usage",
+                  );
+                }}
+              >
+                Reset revisions used → 0
+              </button>
             </div>
           </div>
 

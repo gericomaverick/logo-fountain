@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
-type Body = { key?: unknown };
+type Body = { key?: unknown; confirm?: unknown };
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -16,9 +16,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     const payload = (await req.json().catch(() => null)) as Body | null;
     const key = typeof payload?.key === "string" ? payload.key : null;
+    const confirm = payload?.confirm === true;
 
-    if (key !== "concepts") {
-      return jsonError("Only key=concepts is supported", 400, { nextStep: "Send { key: 'concepts' }." }, "INVALID_KEY");
+    if (key !== "concepts" && key !== "revisions") {
+      return jsonError("Only key=concepts or key=revisions is supported", 400, { nextStep: "Send { key: 'concepts' } or { key: 'revisions', confirm: true }." }, "INVALID_KEY");
+    }
+
+    if (key === "revisions" && !confirm) {
+      return jsonError("Resetting revisions requires confirm=true", 400, { nextStep: "Send { key: 'revisions', confirm: true }." }, "CONFIRM_REQUIRED");
     }
 
     const before = await prisma.projectEntitlement.findFirst({
