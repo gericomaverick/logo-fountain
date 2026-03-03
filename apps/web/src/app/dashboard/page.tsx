@@ -108,9 +108,14 @@ function ProjectCard({ project }: { project: DashboardProject }) {
           <Link className="inline-flex rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white" href={cta.href}>
             {cta.label}
           </Link>
-          <Link className="text-sm text-neutral-700 underline" href={`/project/${project.id}/messages`}>
-            Messages
-          </Link>
+          <div className="flex gap-3">
+            <Link className="text-sm text-neutral-700 underline" href={`/project/${project.id}/brief`}>
+              Brief
+            </Link>
+            <Link className="text-sm text-neutral-700 underline" href={`/project/${project.id}/messages`}>
+              Messages
+            </Link>
+          </div>
         </div>
       </div>
 

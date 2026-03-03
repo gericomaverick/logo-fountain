@@ -15,6 +15,27 @@ function asIso(value: Date | null | undefined): string | undefined {
   return value ? value.toISOString() : undefined;
 }
 
+function parseBriefAnswers(value: unknown): { brandName: string; industry: string; description: string; styleNotes: string } | null {
+  if (typeof value !== "object" || value === null) return null;
+  const raw = value as Record<string, unknown>;
+
+  if (
+    typeof raw.brandName !== "string" ||
+    typeof raw.industry !== "string" ||
+    typeof raw.description !== "string" ||
+    typeof raw.styleNotes !== "string"
+  ) {
+    return null;
+  }
+
+  return {
+    brandName: raw.brandName,
+    industry: raw.industry,
+    description: raw.description,
+    styleNotes: raw.styleNotes,
+  };
+}
+
 async function fetchAuditStateTimestamps(projectId: string): Promise<Partial<Record<ProjectState, string>>> {
   const rows = await prisma.auditEvent.findMany({
     where: { projectId, type: "state_changed" },
@@ -66,10 +87,16 @@ export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
           user: { select: { id: true, email: true, fullName: true } },
         },
       },
+      briefs: {
+        orderBy: [{ version: "desc" }],
+        take: 1,
+        select: { version: true, answers: true, createdAt: true },
+      },
       messages: {
         orderBy: [{ createdAt: "asc" }, { id: "asc" }],
         select: {
           id: true,
+          kind: true,
           body: true,
           createdAt: true,
           sender: { select: { id: true, email: true, fullName: true } },
@@ -181,6 +208,16 @@ export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
   const timestamps = { ...inferredTimestamps, ...auditTimestamps };
 
   const latestOrder = project.orders[0] ?? null;
+  const latestBriefRecord = project.briefs[0] ?? null;
+  const latestBriefAnswers = parseBriefAnswers(latestBriefRecord?.answers);
+  const latestBrief = latestBriefRecord && latestBriefAnswers
+    ? {
+        version: latestBriefRecord.version,
+        createdAt: latestBriefRecord.createdAt.toISOString(),
+        answers: latestBriefAnswers,
+      }
+    : null;
+
   const stuckReason = !latestOrder
     ? "Missing order record (webhook likely never fulfilled)."
     : latestOrder.status === "NEEDS_CONTACT"
@@ -205,6 +242,7 @@ export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
     revisionRequests: project.revisionRequests,
     latestRevisionRequests: project.revisionRequests.slice(0, 5),
     messages: project.messages,
+    latestBrief,
     finalZip,
     latestOrder,
     stuck: Boolean(stuckReason),

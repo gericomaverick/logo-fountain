@@ -25,6 +25,8 @@ type Snapshot = {
     revisions?: EntitlementUsage;
   };
   concepts: Array<{ id: string; number: number; status: string; notes: string | null; imageUrl: string | null }>;
+  latestBrief?: { version: number; createdAt: string; answers: { brandName: string; industry: string; description: string; styleNotes: string } } | null;
+  messages?: Array<{ id: string; kind?: string; body: string; createdAt: string }>;
   hasNewMessages?: boolean;
   hasNewConcepts?: boolean;
   finalZip: { available: boolean; url: string | null };
@@ -35,6 +37,12 @@ type Snapshot = {
 type SessionPayload = {
   authenticated: boolean;
   isAdmin?: boolean;
+};
+
+type ActivityItem = {
+  id: string;
+  label: string;
+  at: string;
 };
 
 function readError(payload: { error?: { message?: string; details?: { nextStep?: string } } | string } | null, fallback: string): string {
@@ -69,6 +77,14 @@ function resolveUsage(usage: EntitlementUsage | undefined) {
   return { limit, used, remaining, ratio };
 }
 
+function nextActionForStatus(projectId: string, status: string) {
+  if (status === "AWAITING_BRIEF") return { label: "Submit project brief", href: `/project/${projectId}/brief` };
+  if (status === "CONCEPTS_READY") return { label: "Review latest concepts", href: `/project/${projectId}/concepts` };
+  if (status === "FINAL_FILES_READY") return { label: "Download final files", href: `#final-files` };
+  if (status === "ON_HOLD") return { label: "Check project messages", href: `/project/${projectId}/messages` };
+  return { label: "Open project messages", href: `/project/${projectId}/messages` };
+}
+
 function EntitlementProgress({
   label,
   usage,
@@ -96,17 +112,61 @@ function EntitlementProgress({
   );
 }
 
-function AreaCard({ title, href, hasNew }: { title: string; href: string; hasNew?: boolean }) {
-  const subtitle = hasNew && title === "Concepts" ? "New concepts/revisions available" : `Open ${title.toLowerCase()}`;
-
+function AreaCard({ title, href, hasNew, subtitle }: { title: string; href: string; hasNew?: boolean; subtitle?: string }) {
   return (
     <Link href={href} className="rounded-xl border border-neutral-200 bg-white p-4 transition hover:border-neutral-300">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-sm font-semibold text-neutral-900">{title}</h3>
         {hasNew ? <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">New</span> : null}
       </div>
-      <p className="mt-1 text-sm text-neutral-600">{subtitle}</p>
+      <p className="mt-1 text-sm text-neutral-600">{subtitle ?? `Open ${title.toLowerCase()}`}</p>
     </Link>
+  );
+}
+
+function ActivityPanel({ projectId, snapshot }: { projectId: string; snapshot: Snapshot | null }) {
+  const nextAction = nextActionForStatus(projectId, snapshot?.status ?? "");
+
+  const activity = useMemo<ActivityItem[]>(() => {
+    if (!snapshot) return [];
+
+    const systemMessages = (snapshot.messages ?? [])
+      .filter((message) => message.kind === "system")
+      .slice(-4)
+      .reverse()
+      .map((message) => ({ id: message.id, label: message.body, at: message.createdAt }));
+
+    const statusLine = {
+      id: "status",
+      label: `Status is now ${snapshot.status.replaceAll("_", " ").toLowerCase()}.`,
+      at: snapshot.updatedAt ?? snapshot.createdAt ?? new Date().toISOString(),
+    };
+
+    return [statusLine, ...systemMessages].slice(0, 5);
+  }, [snapshot]);
+
+  return (
+    <section className="mt-8 rounded-2xl border border-neutral-200 bg-white p-5">
+      <h2 className="text-lg font-semibold text-neutral-900">Activity + next action</h2>
+      <p className="mt-1 text-sm text-neutral-600">Mission control for this project: what happened recently, and what to do now.</p>
+
+      <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+        <p className="text-xs uppercase tracking-wide text-neutral-500">Next action</p>
+        <Link href={nextAction.href} className="mt-2 inline-flex rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white">
+          {nextAction.label}
+        </Link>
+      </div>
+
+      <ul className="mt-4 space-y-3">
+        {activity.map((item) => (
+          <li key={item.id} className="rounded-lg border border-neutral-200 p-3 text-sm">
+            <p className="text-neutral-900">{item.label}</p>
+            <p className="mt-1 text-xs text-neutral-500">{formatDateTime(item.at)}</p>
+          </li>
+        ))}
+        {activity.length === 0 ? <li className="text-sm text-neutral-600">No activity yet.</li> : null}
+      </ul>
+    </section>
   );
 }
 
@@ -203,8 +263,9 @@ export default function ProjectPage() {
             </div>
           </div>
 
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <AreaCard title="Concepts" href={`/project/${projectId}/concepts`} hasNew={snapshot?.hasNewConcepts} />
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <AreaCard title="Brief" href={`/project/${projectId}/brief`} subtitle={snapshot?.latestBrief ? `Latest: v${snapshot.latestBrief.version}` : "Submit your project brief"} />
+            <AreaCard title="Concepts" href={`/project/${projectId}/concepts`} hasNew={snapshot?.hasNewConcepts} subtitle={snapshot?.hasNewConcepts ? "New concepts/revisions available" : undefined} />
             <AreaCard title="Messages" href={`/project/${projectId}/messages`} hasNew={snapshot?.hasNewMessages} />
           </div>
 
@@ -220,6 +281,8 @@ export default function ProjectPage() {
 
         {loading ? <p className="mt-4 text-sm text-neutral-600">Loading…</p> : null}
         {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
+
+        <ActivityPanel projectId={projectId} snapshot={snapshot} />
 
         {snapshot?.timeline ? <ProjectTimeline timeline={snapshot.timeline} primaryCta={snapshot.primaryCta} /> : null}
 
@@ -239,7 +302,7 @@ export default function ProjectPage() {
         </section>
 
         {snapshot?.status === "FINAL_FILES_READY" && snapshot?.finalZip.url ? (
-          <section className="mt-10 rounded border border-neutral-200 p-4">
+          <section id="final-files" className="mt-10 rounded border border-neutral-200 p-4">
             <h2 className="text-lg font-medium">Final files</h2>
             <p className="mt-3 text-sm">
               <a className="underline" href={snapshot.finalZip.url} target="_blank" rel="noreferrer">

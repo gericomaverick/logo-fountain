@@ -10,6 +10,34 @@ type ProjectBriefPageProps = {
   params: Promise<{ id: string }>;
 };
 
+type BriefAnswers = {
+  brandName: string;
+  industry: string;
+  description: string;
+  styleNotes: string;
+};
+
+function parseBriefAnswers(value: unknown): BriefAnswers | null {
+  if (typeof value !== "object" || value === null) return null;
+  const raw = value as Record<string, unknown>;
+
+  if (
+    typeof raw.brandName !== "string" ||
+    typeof raw.industry !== "string" ||
+    typeof raw.description !== "string" ||
+    typeof raw.styleNotes !== "string"
+  ) {
+    return null;
+  }
+
+  return {
+    brandName: raw.brandName,
+    industry: raw.industry,
+    description: raw.description,
+    styleNotes: raw.styleNotes,
+  };
+}
+
 export default async function ProjectBriefPage({ params }: ProjectBriefPageProps) {
   const { id } = await params;
 
@@ -36,6 +64,11 @@ export default async function ProjectBriefPage({ params }: ProjectBriefPageProps
     select: {
       id: true,
       status: true,
+      briefs: {
+        orderBy: { version: "desc" },
+        take: 1,
+        select: { version: true, answers: true, createdAt: true },
+      },
     },
   });
 
@@ -51,17 +84,31 @@ export default async function ProjectBriefPage({ params }: ProjectBriefPageProps
     );
   }
 
+  const latestBriefRecord = project.briefs[0] ?? null;
+  const parsedAnswers = parseBriefAnswers(latestBriefRecord?.answers);
+  const latestBrief = latestBriefRecord && parsedAnswers
+    ? {
+        version: latestBriefRecord.version,
+        createdAt: latestBriefRecord.createdAt.toISOString(),
+        answers: parsedAnswers,
+      }
+    : null;
+
   return (
     <>
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
-        <h1 className="text-2xl font-semibold">Project brief</h1>
-        <p className="mt-2 text-sm text-neutral-600">
-          Tell us about your brand so we can start logo concepts.
-        </p>
-        <p className="mt-1 text-xs text-neutral-500">Current status: {project.status}</p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-semibold">Project brief</h1>
+            <p className="mt-2 text-sm text-neutral-600">
+              Review your latest brief, and edit/resubmit when details change.
+            </p>
+            <p className="mt-1 text-xs text-neutral-500">Current status: {project.status}</p>
+          </div>
+        </div>
 
-        <BriefForm projectId={project.id} />
+        <BriefForm projectId={project.id} latestBrief={latestBrief} />
       </main>
     </>
   );
