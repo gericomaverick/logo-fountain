@@ -122,6 +122,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
                 threadId: thread.id,
                 projectId: project.id,
                 senderId: systemSenderId,
+                kind: "system",
                 body: BRIEF_RECEIVED_SYSTEM_MESSAGE,
               },
             });

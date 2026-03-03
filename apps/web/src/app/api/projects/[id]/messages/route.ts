@@ -41,6 +41,7 @@ export async function GET(_req: Request, { params }: RouteParams) {
       orderBy: [{ createdAt: "asc" }, { id: "asc" }],
       select: {
         id: true,
+        kind: true,
         body: true,
         createdAt: true,
         sender: { select: { id: true, email: true, isAdmin: true, fullName: true, firstName: true, lastName: true } },
@@ -82,6 +83,7 @@ export async function POST(req: Request, { params }: RouteParams) {
         data: { threadId: thread.id, projectId: auth.projectId, senderId: auth.user.id, body },
         select: {
           id: true,
+          kind: true,
           body: true,
           createdAt: true,
           sender: { select: { id: true, email: true, isAdmin: true, fullName: true, firstName: true, lastName: true } },

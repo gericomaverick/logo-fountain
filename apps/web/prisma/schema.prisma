@@ -185,6 +185,7 @@ model Message {
   threadId  String   @db.Uuid
   projectId String   @db.Uuid
   senderId  String   @db.Uuid
+  kind      String   @default("user")
   body      String
   createdAt DateTime @default(now())
 

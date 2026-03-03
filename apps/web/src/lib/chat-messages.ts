@@ -9,6 +9,7 @@ export type ChatSender = {
 
 export type ChatMessage = {
   id: string;
+  kind?: string;
   body: string;
   createdAt: string;
   sender: ChatSender;

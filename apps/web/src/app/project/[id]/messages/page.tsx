@@ -126,6 +126,16 @@ export default function ProjectMessagesPage() {
 
             <ul className="space-y-3">
               {sorted.map((message) => {
+                if (message.kind === "system") {
+                  return (
+                    <li key={message.id} className="flex justify-center">
+                      <article className="max-w-[85%] rounded-full bg-neutral-100 px-4 py-2 text-xs font-medium text-neutral-700">
+                        {message.body}
+                      </article>
+                    </li>
+                  );
+                }
+
                 const isMine = session.userId && message.sender.id === session.userId;
 
                 return (
