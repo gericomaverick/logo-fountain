@@ -118,7 +118,7 @@ export default function ProjectMessagesPage() {
   return (
     <>
       <HeaderNav />
-      <main className="mx-auto max-w-4xl p-8">
+      <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
         <div className="mb-4 flex items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold">Project messages</h1>

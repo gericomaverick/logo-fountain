@@ -111,7 +111,7 @@ export default function AdminProjectPage() {
   return (
     <>
       <HeaderNav />
-      <main className="mx-auto max-w-5xl p-8">
+      <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
         <p className="text-sm"><Link href="/admin" className="underline">← Back to dashboard</Link></p>
 
         <section className="mt-3 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">

@@ -43,7 +43,7 @@ export default async function ProjectBriefPage({ params }: ProjectBriefPageProps
     return (
       <>
         <HeaderNav />
-        <main className="mx-auto max-w-3xl p-8">
+        <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
           <h1 className="text-2xl font-semibold">Project brief</h1>
           <p className="mt-2 text-sm text-neutral-600">Project not found.</p>
         </main>
@@ -54,7 +54,7 @@ export default async function ProjectBriefPage({ params }: ProjectBriefPageProps
   return (
     <>
       <HeaderNav />
-      <main className="mx-auto max-w-3xl p-8">
+      <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
         <h1 className="text-2xl font-semibold">Project brief</h1>
         <p className="mt-2 text-sm text-neutral-600">
           Tell us about your brand so we can start logo concepts.

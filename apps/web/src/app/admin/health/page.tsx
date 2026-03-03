@@ -64,7 +64,7 @@ export default function AdminHealthPage() {
   }, []);
 
   return (
-    <main className="mx-auto max-w-4xl p-8">
+    <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">Admin Health Checks</h1>
         <div className="flex items-center gap-3">

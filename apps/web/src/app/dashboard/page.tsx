@@ -165,7 +165,7 @@ export default async function DashboardPage() {
     return (
       <>
         <HeaderNav />
-        <main className="mx-auto max-w-3xl p-8">
+        <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
           <h1 className="text-2xl font-semibold">Dashboard</h1>
           <p className="mt-2 text-sm text-neutral-600">
             You need to <Link className="underline" href="/login">sign in</Link> to view your projects.
@@ -220,7 +220,7 @@ export default async function DashboardPage() {
   return (
     <>
       <HeaderNav />
-      <main className="mx-auto max-w-5xl px-6 py-8">
+      <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
         <h1 className="text-3xl font-semibold text-neutral-900">Dashboard</h1>
         {profile?.firstName ? <p className="mt-2 text-sm text-neutral-700">Welcome back, {profile.firstName}</p> : null}
 

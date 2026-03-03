@@ -140,7 +140,7 @@ export default async function AdminHomePage() {
   return (
     <>
       <HeaderNav />
-      <main className="mx-auto max-w-5xl px-6 py-8">
+      <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-3xl font-semibold text-neutral-900">Admin dashboard</h1>
           <Link className="text-sm underline" href="/admin/health">Health checks</Link>
