@@ -15,7 +15,7 @@ type Snapshot = {
   stuck?: boolean;
   stuckReason?: string | null;
   latestOrder?: { id: string; status: string; stripeCheckoutSessionId: string | null; createdAt: string } | null;
-  concepts: Array<{ id: string; number: number; status: string; notes: string | null }>;
+  concepts: Array<{ id: string; number: number; status: string; notes: string | null; imageUrl?: string | null }>;
   revisionRequests: Array<{ id: string; status: string; body: string; createdAt: string; concept: { id: string; number: number } | null; user: { email: string; fullName: string | null } }>;
   entitlements: { concepts: number; revisions: number };
   entitlementUsage?: {
@@ -241,28 +241,91 @@ export default function AdminProjectPage() {
           </section>
         ) : null}
 
-        <section className="mt-8 rounded border border-neutral-200 p-4">
-          <h2 className="text-lg font-medium">Revision requests</h2>
-          <ul className="mt-3 space-y-3">
-            {(snapshot?.revisionRequests ?? []).map((r) => (
-              <li key={r.id} className="rounded border border-neutral-200 p-3 text-sm">
-                <p className="text-xs text-neutral-500">{r.user.fullName ?? r.user.email} · {new Date(r.createdAt).toLocaleString()}</p>
-                <p className="mt-2 whitespace-pre-wrap text-neutral-800">{r.body}</p>
-                {r.status !== "delivered" ? <button className="mt-2 rounded border border-neutral-300 px-2 py-1" disabled={busy} onClick={() => void runAction(() => fetch(`/api/admin/projects/${projectId}/revision-requests/${r.id}/delivered`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ setConceptsReady: true }) }), "Failed to mark delivered")}>Mark delivered</button> : null}
-              </li>
-            ))}
-          </ul>
-        </section>
+        {(snapshot?.revisionRequests ?? []).some((r) => r.status !== "delivered") ? (
+          <section className="mt-8 rounded border border-neutral-200 p-4">
+            <h2 className="text-lg font-medium">Outstanding revision requests</h2>
+            <p className="mt-1 text-sm text-neutral-600">Client feedback waiting for a designer response.</p>
+            <ul className="mt-4 space-y-3">
+              {(snapshot?.revisionRequests ?? [])
+                .filter((r) => r.status !== "delivered")
+                .map((r) => {
+                  const concept = snapshot?.concepts.find((c) => c.id === r.concept?.id) ?? null;
+                  return (
+                    <li key={r.id} className="rounded-xl border border-neutral-200 bg-white p-4 text-sm">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <p className="text-xs text-neutral-500">{r.user.fullName ?? r.user.email} · {new Date(r.createdAt).toLocaleString()}</p>
+                          <p className="mt-2 whitespace-pre-wrap text-neutral-800">{r.body}</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          {concept?.imageUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img className="h-16 w-16 rounded-lg border border-neutral-200 object-cover" src={concept.imageUrl} alt={`Concept ${concept.number}`} />
+                          ) : (
+                            <div className="h-16 w-16 rounded-lg border border-neutral-200 bg-neutral-50" aria-hidden />
+                          )}
+                          <Link className="text-sm underline" href={`/admin/projects/${projectId}/concepts`}>
+                            View concept #{concept?.number ?? "—"}
+                          </Link>
+                        </div>
+                      </div>
+                      <button
+                        className="mt-3 rounded border border-neutral-300 px-2 py-1"
+                        disabled={busy}
+                        onClick={() =>
+                          void runAction(
+                            () =>
+                              fetch(`/api/admin/projects/${projectId}/revision-requests/${r.id}/delivered`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ setConceptsReady: true }),
+                              }),
+                            "Failed to mark delivered",
+                          )
+                        }
+                      >
+                        Mark delivered
+                      </button>
+                    </li>
+                  );
+                })}
+            </ul>
+          </section>
+        ) : null}
 
         <section className="mt-8 rounded border border-neutral-200 p-4">
-          <h2 className="text-lg font-medium">Concepts</h2>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-medium">Concepts</h2>
+              <p className="mt-1 text-sm text-neutral-600">Published concepts visible to the client.</p>
+            </div>
+            <Link className="text-sm underline" href={`/admin/projects/${projectId}/concepts`}>Open concepts manager</Link>
+          </div>
+
           {loading ? <p className="mt-3 text-sm text-neutral-600">Loading…</p> : null}
-          <ul className="mt-3 space-y-2">
-            {(snapshot?.concepts ?? []).map((concept) => (
-              <li key={concept.id} className="rounded border border-neutral-200 p-3 text-sm">
-                <p><span className="font-medium">#{concept.number}</span> — {concept.status}</p>
-              </li>
-            ))}
+          <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {(snapshot?.concepts ?? []).map((concept) => {
+              const hasPendingRevision = (snapshot?.revisionRequests ?? []).some((r) => r.status !== "delivered" && r.concept?.id === concept.id);
+
+              return (
+                <li key={concept.id} className="rounded-xl border border-neutral-200 bg-white p-3 text-sm">
+                  {concept.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img className="h-36 w-full rounded-lg border border-neutral-200 object-cover" src={concept.imageUrl} alt={`Concept ${concept.number}`} />
+                  ) : (
+                    <div className="h-36 w-full rounded-lg border border-neutral-200 bg-neutral-50" aria-hidden />
+                  )}
+                  <div className="mt-3 flex items-center justify-between gap-2">
+                    <p className="font-medium">#{concept.number}</p>
+                    <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-700">{concept.status}</span>
+                  </div>
+                  {hasPendingRevision ? (
+                    <p className="mt-2 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">Revision requested</p>
+                  ) : null}
+                </li>
+              );
+            })}
+            {!loading && (snapshot?.concepts?.length ?? 0) === 0 ? <li className="text-sm text-neutral-600">No concepts yet.</li> : null}
           </ul>
         </section>
 

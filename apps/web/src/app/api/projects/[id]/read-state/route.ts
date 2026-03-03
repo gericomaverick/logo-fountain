@@ -37,16 +37,32 @@ export async function POST(req: Request, { params }: RouteParams) {
       return jsonError("area is required ('messages' | 'concepts')", 400, { nextStep: "Send area=messages or area=concepts." }, "INVALID_AREA");
     }
 
-    const now = new Date();
+    // Use authoritative DB timestamps rather than server clock to avoid skew.
+    let stamp = new Date();
+
+    if (area === "messages") {
+      const agg = await prisma.message.aggregate({ where: { projectId: auth.projectId }, _max: { createdAt: true } });
+      stamp = agg._max.createdAt ?? stamp;
+    }
+
+    if (area === "concepts") {
+      const agg = await prisma.concept.aggregate({
+        where: { projectId: auth.projectId, status: { in: ["published", "approved"] } },
+        _max: { createdAt: true, updatedAt: true },
+      });
+      stamp = (agg._max.updatedAt && agg._max.createdAt)
+        ? (agg._max.updatedAt > agg._max.createdAt ? agg._max.updatedAt : agg._max.createdAt)
+        : (agg._max.updatedAt ?? agg._max.createdAt ?? stamp);
+    }
 
     await prisma.projectReadState.upsert({
       where: { userId_projectId: { userId: auth.user.id, projectId: auth.projectId } },
       create: {
         userId: auth.user.id,
         projectId: auth.projectId,
-        ...(area === "messages" ? { lastSeenMessagesAt: now } : { lastSeenConceptsAt: now }),
+        ...(area === "messages" ? { lastSeenMessagesAt: stamp } : { lastSeenConceptsAt: stamp }),
       },
-      update: area === "messages" ? { lastSeenMessagesAt: now } : { lastSeenConceptsAt: now },
+      update: area === "messages" ? { lastSeenMessagesAt: stamp } : { lastSeenConceptsAt: stamp },
     });
 
     return Response.json({ ok: true });
