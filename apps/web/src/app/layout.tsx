@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
+import { SafePerformanceMeasure } from "@/components/safe-performance-measure";
 import "./globals.css";
 import "../styles/logo-fountain-theme.css";
 
@@ -43,7 +44,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${reckless.variable} ${sfizia.variable}`}>
-      <body className="lf-theme antialiased">{children}</body>
+      <body className="lf-theme antialiased">
+        <SafePerformanceMeasure />
+        {children}
+      </body>
     </html>
   );
 }
