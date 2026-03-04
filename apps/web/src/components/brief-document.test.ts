@@ -14,8 +14,8 @@ describe("brief document primitives", () => {
       ),
     );
 
-    expect(html).toContain("bg-amber-50/40");
-    expect(html).toContain("border-amber-100");
+    expect(html).toContain("bg-amber-50");
+    expect(html).toContain("border-amber-200");
     expect(html).toContain("Brand context");
   });
 
