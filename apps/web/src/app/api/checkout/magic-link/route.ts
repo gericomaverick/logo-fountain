@@ -2,6 +2,7 @@ import { jsonError } from "@/lib/api-error";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { prisma } from "@/lib/prisma";
 import { getRequestOrigin } from "@/lib/request-origin";
+import { applyMagicLinkRedirectOverride } from "@/lib/supabase/action-link";
 
 export const runtime = "nodejs";
 
@@ -64,5 +65,10 @@ export async function POST(req: Request) {
   const actionLink = result.data?.properties?.action_link;
   if (!actionLink) return jsonError("Magic link missing", 500, undefined, "MAGIC_LINK_MISSING");
 
-  return Response.json({ url: actionLink });
+  const finalActionLink = applyMagicLinkRedirectOverride(actionLink, redirectTo);
+  if (result.data?.properties) {
+    result.data.properties.redirect_to = redirectTo;
+  }
+
+  return Response.json({ url: finalActionLink });
 }
