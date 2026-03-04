@@ -4,13 +4,7 @@ import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
 
 import { BriefDocument, BriefField, BriefFieldGrid } from "@/components/brief-document";
-
-type BriefAnswers = {
-  brandName: string;
-  industry: string;
-  description: string;
-  styleNotes: string;
-};
+import { briefSections, type BriefAnswers } from "@/lib/brief";
 
 type BriefVersion = {
   id: string;
@@ -30,13 +24,27 @@ function dateLabel(value: string): string {
   return parsed.toLocaleString();
 }
 
-
 export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
   const latestBrief = briefVersions[0] ?? null;
-  const [brandName, setBrandName] = useState(latestBrief?.answers.brandName ?? "");
-  const [industry, setIndustry] = useState(latestBrief?.answers.industry ?? "");
-  const [description, setDescription] = useState(latestBrief?.answers.description ?? "");
-  const [styleNotes, setStyleNotes] = useState(latestBrief?.answers.styleNotes ?? "");
+  const [form, setForm] = useState<BriefAnswers>(latestBrief?.answers ?? {
+    brandName: "",
+    tagline: "",
+    industry: "",
+    offerSummary: "",
+    audiencePrimary: "",
+    audienceSecondary: "",
+    businessGoals: "",
+    brandPersonality: "",
+    styleDirection: "",
+    colorPreferences: "",
+    mustInclude: "",
+    avoidanceNotes: "",
+    usageContexts: "",
+    deliverablesContext: "",
+    deadlineOrLaunch: "",
+    competitors: "",
+    additionalNotes: "",
+  });
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedVersion, setSubmittedVersion] = useState<number | null>(null);
@@ -56,12 +64,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
     const response = await fetch(`/api/projects/${projectId}/brief`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        brandName,
-        industry,
-        description,
-        styleNotes,
-      }),
+      body: JSON.stringify(form),
     });
 
     const payload = (await response.json().catch(() => null)) as { error?: string; version?: number } | null;
@@ -114,10 +117,17 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
         >
           <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px]">
             <BriefFieldGrid>
-              <BriefField label="Brand name" value={selectedBrief?.answers.brandName ?? "—"} />
-              <BriefField label="Industry" value={selectedBrief?.answers.industry ?? "—"} />
-              <BriefField label="Brand description" value={selectedBrief?.answers.description ?? "—"} />
-              <BriefField label="Style notes" value={selectedBrief?.answers.styleNotes ?? "—"} />
+              {briefSections.map((section) => (
+                <section key={section.id} className="rounded-xl border border-neutral-200 bg-neutral-50/70 p-4">
+                  <h3 className="text-sm font-semibold text-neutral-900">{section.title}</h3>
+                  <p className="mt-1 text-xs text-neutral-600">{section.description}</p>
+                  <div className="mt-3 grid gap-3">
+                    {section.fields.map((field) => (
+                      <BriefField key={field.key} label={field.label} value={selectedBrief?.answers[field.key] ?? "—"} compact />
+                    ))}
+                  </div>
+                </section>
+              ))}
             </BriefFieldGrid>
 
             <aside className="rounded-xl border border-neutral-200 bg-neutral-50/70 p-4">
@@ -142,53 +152,49 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
       ) : null}
 
       {isEditing ? (
-        <form className="portal-card space-y-4 p-5" onSubmit={onSubmit}>
+        <form className="portal-card space-y-5 p-5" onSubmit={onSubmit}>
           <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
             Editing and submitting this form creates a new brief version. Previous versions stay visible in history.
           </div>
-          <div>
-            <label className="mb-1 block text-sm" htmlFor="brandName">Brand name</label>
-            <input
-              id="brandName"
-              required
-              value={brandName}
-              onChange={(event) => setBrandName(event.target.value)}
-              className="portal-field"
-            />
-          </div>
 
-          <div>
-            <label className="mb-1 block text-sm" htmlFor="industry">Industry</label>
-            <input
-              id="industry"
-              required
-              value={industry}
-              onChange={(event) => setIndustry(event.target.value)}
-              className="portal-field"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm" htmlFor="description">Description</label>
-            <textarea
-              id="description"
-              required
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              className="portal-field min-h-28"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm" htmlFor="styleNotes">Style notes</label>
-            <textarea
-              id="styleNotes"
-              required
-              value={styleNotes}
-              onChange={(event) => setStyleNotes(event.target.value)}
-              className="portal-field min-h-24"
-            />
-          </div>
+          {briefSections.map((section) => (
+            <section key={section.id} className="rounded-xl border border-neutral-200 bg-white p-4">
+              <h3 className="text-sm font-semibold text-neutral-900">{section.title}</h3>
+              <p className="mt-1 text-xs text-neutral-600">{section.description}</p>
+              <div className="mt-4 grid gap-4">
+                {section.fields.map((field) => (
+                  <div key={field.key}>
+                    <label className="mb-1 block text-sm" htmlFor={field.key}>
+                      {field.label} {field.required ? <span className="text-red-700">*</span> : null}
+                    </label>
+                    {field.kind === "textarea" ? (
+                      <textarea
+                        id={field.key}
+                        required={field.required}
+                        value={form[field.key]}
+                        maxLength={field.maxLength}
+                        placeholder={field.placeholder}
+                        onChange={(event) => setForm((current) => ({ ...current, [field.key]: event.target.value }))}
+                        className="portal-field"
+                        rows={field.rows ?? 3}
+                      />
+                    ) : (
+                      <input
+                        id={field.key}
+                        required={field.required}
+                        value={form[field.key]}
+                        maxLength={field.maxLength}
+                        placeholder={field.placeholder}
+                        onChange={(event) => setForm((current) => ({ ...current, [field.key]: event.target.value }))}
+                        className="portal-field"
+                      />
+                    )}
+                    {field.helperText ? <p className="mt-1 text-xs text-neutral-500">{field.helperText}</p> : null}
+                  </div>
+                ))}
+              </div>
+            </section>
+          ))}
 
           <button
             type="submit"
@@ -198,7 +204,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
             {isSubmitting ? "Submitting..." : latestBrief ? "Create new brief version" : "Submit brief"}
           </button>
 
-          {error ? <p className="text-sm text-red-700">{error}</p> : null}
+          {error ? <p className="text-sm text-red-700" role="alert">{error}</p> : null}
         </form>
       ) : null}
     </section>

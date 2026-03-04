@@ -4,6 +4,7 @@ import { applyTransition } from "@/lib/project-state-machine";
 import { logAudit } from "@/lib/audit";
 import { RouteAuthError, requireAdmin, requireProjectMembership, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { createProjectSystemMessage } from "@/lib/system-messages";
+import { validateBriefSubmission } from "@/lib/brief";
 
 export const runtime = "nodejs";
 const PROJECT_STATUS_BRIEF_SUBMITTED = "BRIEF_SUBMITTED";
@@ -20,16 +21,6 @@ const RESUBMIT_ALLOWED_STATUSES = new Set([
 
 function isUniqueViolation(error: unknown): boolean {
   return typeof error === "object" && error !== null && "code" in error && (error as { code?: string }).code === "P2002";
-}
-
-function parseAnswers(body: unknown) {
-  if (typeof body !== "object" || body === null) return null;
-  const raw = body as Record<string, unknown>;
-  const brandName = typeof raw.brandName === "string" ? raw.brandName.trim() : "";
-  const industry = typeof raw.industry === "string" ? raw.industry.trim() : "";
-  const description = typeof raw.description === "string" ? raw.description.trim() : "";
-  const styleNotes = typeof raw.styleNotes === "string" ? raw.styleNotes.trim() : "";
-  return brandName && industry && description && styleNotes ? { brandName, industry, description, styleNotes } : null;
 }
 
 async function authorizeProjectAccess(projectId: string) {
@@ -71,8 +62,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const user = await requireUser();
     const { id } = await params;
     const body = await req.json().catch(() => null);
-    const answers = parseAnswers(body);
-    if (!answers) return jsonError("Invalid brief payload", 400, { nextStep: "Fill all required brief fields." }, "INVALID_BRIEF_PAYLOAD");
+    const parsed = validateBriefSubmission(body);
+    if (!parsed.ok) {
+      return jsonError(
+        "Invalid brief payload",
+        400,
+        { nextStep: `Fill all required brief fields (${parsed.missing.join(", ")}).` },
+        "INVALID_BRIEF_PAYLOAD",
+      );
+    }
+    const answers = parsed.answers;
 
     const projectRef = await requireProjectMembership(user.id, id);
     const project = await prisma.project.findUnique({ where: { id: projectRef.id }, select: { id: true, status: true } });

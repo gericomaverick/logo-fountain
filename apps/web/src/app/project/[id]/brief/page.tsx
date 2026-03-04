@@ -5,18 +5,12 @@ import { HeaderNav } from "@/components/header-nav";
 import { PageShell } from "@/components/page-shell";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { parseBriefAnswers, type BriefAnswers } from "@/lib/brief";
 
 import { BriefForm } from "./brief-form";
 
 type ProjectBriefPageProps = {
   params: Promise<{ id: string }>;
-};
-
-type BriefAnswers = {
-  brandName: string;
-  industry: string;
-  description: string;
-  styleNotes: string;
 };
 
 type ParsedBrief = {
@@ -25,27 +19,6 @@ type ParsedBrief = {
   createdAt: string;
   answers: BriefAnswers;
 };
-
-function parseBriefAnswers(value: unknown): BriefAnswers | null {
-  if (typeof value !== "object" || value === null) return null;
-  const raw = value as Record<string, unknown>;
-
-  if (
-    typeof raw.brandName !== "string" ||
-    typeof raw.industry !== "string" ||
-    typeof raw.description !== "string" ||
-    typeof raw.styleNotes !== "string"
-  ) {
-    return null;
-  }
-
-  return {
-    brandName: raw.brandName,
-    industry: raw.industry,
-    description: raw.description,
-    styleNotes: raw.styleNotes,
-  };
-}
 
 export default async function ProjectBriefPage({ params }: ProjectBriefPageProps) {
   const { id } = await params;

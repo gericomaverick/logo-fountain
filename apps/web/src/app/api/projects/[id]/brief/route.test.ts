@@ -33,6 +33,17 @@ vi.mock("@/lib/audit", () => ({ logAudit: mocks.logAudit }));
 
 import { POST } from "./route";
 
+const validPayload = {
+  brandName: "Acme",
+  industry: "SaaS",
+  offerSummary: "B2B tools",
+  audiencePrimary: "Founders of early-stage SaaS companies",
+  businessGoals: "Increase trust with enterprise buyers",
+  brandPersonality: "Confident, modern, clear",
+  styleDirection: "Minimal geometric mark with clean typography",
+  usageContexts: "Website, product UI, social avatars",
+};
+
 describe("POST /api/projects/[id]/brief", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -57,12 +68,7 @@ describe("POST /api/projects/[id]/brief", () => {
 
     const req = new Request("http://localhost", {
       method: "POST",
-      body: JSON.stringify({
-        brandName: "Acme",
-        industry: "SaaS",
-        description: "B2B tools",
-        styleNotes: "Minimal",
-      }),
+      body: JSON.stringify(validPayload),
     });
 
     const res = await POST(req, { params: Promise.resolve({ id: "p1" }) });
@@ -87,12 +93,7 @@ describe("POST /api/projects/[id]/brief", () => {
 
     const req = new Request("http://localhost", {
       method: "POST",
-      body: JSON.stringify({
-        brandName: "Acme",
-        industry: "SaaS",
-        description: "B2B tools",
-        styleNotes: "Minimal",
-      }),
+      body: JSON.stringify(validPayload),
     });
 
     const res = await POST(req, { params: Promise.resolve({ id: "p1" }) });
@@ -106,5 +107,18 @@ describe("POST /api/projects/[id]/brief", () => {
 
     const stateChangedCalls = mocks.logAudit.mock.calls.filter((call) => call[1]?.type === "state_changed");
     expect(stateChangedCalls).toHaveLength(0);
+  });
+
+  it("rejects payloads missing required fields", async () => {
+    const req = new Request("http://localhost", {
+      method: "POST",
+      body: JSON.stringify({ brandName: "Acme", industry: "SaaS" }),
+    });
+
+    const res = await POST(req, { params: Promise.resolve({ id: "p1" }) });
+    expect(res.status).toBe(400);
+
+    const payload = await res.json();
+    expect(JSON.stringify(payload)).toContain("Invalid brief payload");
   });
 });

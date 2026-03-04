@@ -5,40 +5,13 @@ import { BriefDocument, BriefField, BriefFieldGrid } from "@/components/brief-do
 import { HeaderNav } from "@/components/header-nav";
 import { PageShell } from "@/components/page-shell";
 import { requireAdmin } from "@/lib/auth/require";
+import { parseBriefAnswers, briefSections } from "@/lib/brief";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type AdminProjectBriefPageProps = {
   params: Promise<{ id: string }>;
 };
-
-type BriefAnswers = {
-  brandName: string;
-  industry: string;
-  description: string;
-  styleNotes: string;
-};
-
-function parseBriefAnswers(value: unknown): BriefAnswers | null {
-  if (typeof value !== "object" || value === null) return null;
-  const raw = value as Record<string, unknown>;
-
-  if (
-    typeof raw.brandName !== "string" ||
-    typeof raw.industry !== "string" ||
-    typeof raw.description !== "string" ||
-    typeof raw.styleNotes !== "string"
-  ) {
-    return null;
-  }
-
-  return {
-    brandName: raw.brandName,
-    industry: raw.industry,
-    description: raw.description,
-    styleNotes: raw.styleNotes,
-  };
-}
 
 function dateLabel(value: Date): string {
   return value.toLocaleString();
@@ -90,10 +63,17 @@ export default async function AdminProjectBriefPage({ params }: AdminProjectBrie
             meta={<span>Submitted {dateLabel(brief.createdAt)}</span>}
           >
             <BriefFieldGrid>
-              <BriefField label="Brand name" value={parsedAnswers.brandName} />
-              <BriefField label="Industry" value={parsedAnswers.industry} />
-              <BriefField label="Brand description" value={parsedAnswers.description} />
-              <BriefField label="Style notes" value={parsedAnswers.styleNotes} />
+              {briefSections.map((section) => (
+                <section key={section.id} className="rounded-xl border border-neutral-200 bg-neutral-50/70 p-4">
+                  <h3 className="text-sm font-semibold text-neutral-900">{section.title}</h3>
+                  <p className="mt-1 text-xs text-neutral-600">{section.description}</p>
+                  <div className="mt-3 grid gap-3">
+                    {section.fields.map((field) => (
+                      <BriefField key={field.key} label={field.label} value={parsedAnswers[field.key]} compact />
+                    ))}
+                  </div>
+                </section>
+              ))}
             </BriefFieldGrid>
           </BriefDocument>
         )}

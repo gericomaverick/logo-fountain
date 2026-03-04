@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { createSignedConceptAssetUrl, createSignedFinalDeliverableUrl } from "@/lib/supabase/storage";
 import { computeEntitlementUsage } from "@/lib/entitlements";
 import { computeLatestConceptActivityAt, maxDate } from "@/lib/concept-activity";
+import { parseBriefAnswers } from "@/lib/brief";
 
 const PUBLISHED_OR_APPROVED = ["published", "approved"];
 
@@ -23,27 +24,6 @@ type ClientMembershipContact = {
 
 function asIso(value: Date | null | undefined): string | undefined {
   return value ? value.toISOString() : undefined;
-}
-
-function parseBriefAnswers(value: unknown): { brandName: string; industry: string; description: string; styleNotes: string } | null {
-  if (typeof value !== "object" || value === null) return null;
-  const raw = value as Record<string, unknown>;
-
-  if (
-    typeof raw.brandName !== "string" ||
-    typeof raw.industry !== "string" ||
-    typeof raw.description !== "string" ||
-    typeof raw.styleNotes !== "string"
-  ) {
-    return null;
-  }
-
-  return {
-    brandName: raw.brandName,
-    industry: raw.industry,
-    description: raw.description,
-    styleNotes: raw.styleNotes,
-  };
 }
 
 function getPrimaryClientContact(memberships: ClientMembershipContact[]) {

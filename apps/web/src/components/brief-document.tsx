@@ -12,6 +12,7 @@ type BriefDocumentProps = {
 type BriefFieldProps = {
   label: string;
   value: string;
+  compact?: boolean;
 };
 
 export function BriefDocument({ title, subtitle, meta, actions, children, className = "" }: BriefDocumentProps) {
@@ -33,11 +34,11 @@ export function BriefDocument({ title, subtitle, meta, actions, children, classN
   );
 }
 
-export function BriefField({ label, value }: BriefFieldProps) {
+export function BriefField({ label, value, compact = false }: BriefFieldProps) {
   return (
-    <section className="rounded-xl border border-neutral-200 bg-neutral-50/70 p-4">
+    <section className={`rounded-xl border border-neutral-200 bg-neutral-50/70 ${compact ? "p-3" : "p-4"}`}>
       <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">{label}</h3>
-      <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-neutral-900">{value || "—"}</p>
+      <p className={`mt-2 whitespace-pre-wrap text-sm text-neutral-900 ${compact ? "leading-6" : "leading-7"}`}>{value || "—"}</p>
     </section>
   );
 }
