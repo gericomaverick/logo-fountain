@@ -161,9 +161,10 @@ export default function AdminProjectPage() {
 
         <section className="mt-3 portal-card">
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,360px)]">
-            <div>
+            <div className="rounded-2xl border border-neutral-200 bg-neutral-50/60 p-4">
               <ProjectStatusBadge status={snapshot?.status ?? "UNKNOWN"} />
               <h1 className="mt-3 text-2xl font-semibold">Admin project</h1>
+              <p className="mt-1 text-sm text-neutral-600">Operational overview and high-confidence controls for this project.</p>
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm">
                   <p className="text-xs uppercase tracking-wide text-neutral-500">Project id</p>
@@ -180,26 +181,31 @@ export default function AdminProjectPage() {
                 </div>
               </div>
             </div>
-            <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-              <p className="text-xs uppercase tracking-wide text-neutral-500">Quick actions</p>
-              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1">
-                <Link className="portal-btn-secondary justify-center" href={`/admin/projects/${projectId}/messages`}>
+            <aside className="relative overflow-hidden rounded-2xl border border-violet-200 bg-gradient-to-br from-violet-100 via-indigo-50 to-emerald-50 p-4 shadow-sm shadow-violet-200/60">
+              <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-gradient-to-br from-violet-300/55 via-cyan-300/35 to-emerald-300/25 blur-2xl" />
+              <div aria-hidden className="pointer-events-none absolute -bottom-20 left-8 h-40 w-40 rounded-full bg-gradient-to-tr from-emerald-300/30 via-teal-300/25 to-violet-300/35 blur-2xl" />
+              <div className="relative">
+                <p className="text-xs font-semibold uppercase tracking-wide text-violet-900">Quick actions</p>
+                <p className="mt-1 text-sm text-violet-950">Move fast on the most common admin workflows.</p>
+              </div>
+              <div className="relative mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1">
+                <Link className="portal-btn-secondary justify-center border-violet-300/80 bg-white/90 text-violet-900 hover:border-violet-400" href={`/admin/projects/${projectId}/messages`}>
                   Open messages
                 </Link>
-                <Link className="portal-btn-secondary justify-center" href={`/admin/projects/${projectId}/brief`}>
+                <Link className="portal-btn-secondary justify-center border-violet-300/80 bg-white/90 text-violet-900 hover:border-violet-400" href={`/admin/projects/${projectId}/brief`}>
                   View brief
                 </Link>
-                <Link className="portal-btn-secondary justify-center" href={`/admin/projects/${projectId}/concepts`}>
+                <Link className="portal-btn-secondary justify-center border-violet-300/80 bg-white/90 text-violet-900 hover:border-violet-400" href={`/admin/projects/${projectId}/concepts`}>
                   Concepts manager
                 </Link>
-                <Link className="portal-btn-secondary justify-center" href={`/admin/projects/${projectId}/audit`}>
+                <Link className="portal-btn-secondary justify-center border-violet-300/80 bg-white/90 text-violet-900 hover:border-violet-400" href={`/admin/projects/${projectId}/audit`}>
                   Audit trail
                 </Link>
-                <Link className="portal-btn-secondary justify-center" href={`/admin/projects/${projectId}/upload`}>
+                <Link className="portal-btn-secondary justify-center border-violet-300/80 bg-white/90 text-violet-900 hover:border-violet-400" href={`/admin/projects/${projectId}/upload`}>
                   Legacy upload
                 </Link>
               </div>
-            </div>
+            </aside>
           </div>
 
           <div className={`mt-4 rounded-xl border px-4 py-3 text-sm ${pendingFeedbackCount > 0 ? "border-amber-200 bg-amber-50 text-amber-900" : "border-emerald-200 bg-emerald-50 text-emerald-900"}`}>
@@ -222,11 +228,11 @@ export default function AdminProjectPage() {
             <p className="text-xs uppercase tracking-wide text-neutral-500">Admin entitlement override</p>
             <div className="mt-2 grid gap-3 sm:grid-cols-2">
               <label className="flex flex-col gap-1">
-                <span className="text-xs text-neutral-600">Concept limitInt</span>
+                <span className="text-xs text-neutral-600">Concept limit</span>
                 <input className="rounded border border-neutral-300 bg-white px-2 py-1" value={conceptLimit} onChange={(e) => setConceptLimit(e.target.value)} placeholder="e.g. 3" inputMode="numeric" />
               </label>
               <label className="flex flex-col gap-1">
-                <span className="text-xs text-neutral-600">Revision limitInt</span>
+                <span className="text-xs text-neutral-600">Revision limit</span>
                 <input className="rounded border border-neutral-300 bg-white px-2 py-1" value={revisionLimit} onChange={(e) => setRevisionLimit(e.target.value)} placeholder="e.g. 2" inputMode="numeric" />
               </label>
             </div>
@@ -300,8 +306,6 @@ export default function AdminProjectPage() {
           ) : null}
           {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
         </section>
-
-        {snapshot?.timeline ? <ProjectTimeline timeline={snapshot.timeline} primaryCta={snapshot.primaryCta} /> : null}
 
         {snapshot?.stuck ? (
           <section className="mt-6 rounded border border-red-200 bg-red-50 p-4">
@@ -406,6 +410,8 @@ export default function AdminProjectPage() {
             {!loading && (snapshot?.concepts?.length ?? 0) === 0 ? <li className="text-sm text-neutral-600">No concepts yet.</li> : null}
           </ul>
         </section>
+
+        {snapshot?.timeline ? <ProjectTimeline timeline={snapshot.timeline} primaryCta={snapshot.primaryCta} /> : null}
 
       </main>
     </PageShell>

@@ -489,15 +489,15 @@ export default function ProjectPage() {
                   <p className="mt-1 text-sm text-neutral-600">Project overview · {projectId}</p>
 
                   <div className="mt-4 grid gap-2 text-sm text-neutral-700 sm:grid-cols-3">
-                    <div className="rounded-lg border border-neutral-200 bg-white/80 px-3 py-2">
+                    <div className="capitalize">
                       <p className="text-[11px] uppercase tracking-wide text-neutral-500">Package</p>
                       <p className="mt-1 font-medium text-neutral-900">{snapshot?.packageCode ?? "—"}</p>
                     </div>
-                    <div className="rounded-lg border border-neutral-200 bg-white/80 px-3 py-2">
+                    <div className="capitalize">
                       <p className="text-[11px] uppercase tracking-wide text-neutral-500">Created</p>
                       <p className="mt-1 font-medium text-neutral-900">{formatDateTime(snapshot?.createdAt)}</p>
                     </div>
-                    <div className="rounded-lg border border-neutral-200 bg-white/80 px-3 py-2">
+                    <div className="capitalize">
                       <p className="text-[11px] uppercase tracking-wide text-neutral-500">Last updated</p>
                       <p className="mt-1 font-medium text-neutral-900">{formatDateTime(snapshot?.updatedAt)}</p>
                     </div>
