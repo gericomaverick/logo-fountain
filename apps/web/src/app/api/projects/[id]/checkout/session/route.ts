@@ -2,7 +2,7 @@ import { jsonError } from "@/lib/api-error";
 import { getRequestOrigin } from "@/lib/request-origin";
 import { requireProjectMembership, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { prisma } from "@/lib/prisma";
-import { stripe, UPSELL_PRICE_TO_ACTION, type PackageCode } from "@/lib/stripe";
+import { stripe, UPSELL_PRICE_TO_ACTION, type PackageCode, type UpsellAction } from "@/lib/stripe";
 
 export const runtime = "nodejs";
 
@@ -12,10 +12,15 @@ type Body = {
   toPackage?: unknown;
 };
 
+function isUpgradeAction(action: UpsellAction): action is Extract<UpsellAction, { kind: "upgrade" }> {
+  return action.kind === "upgrade";
+}
+
 const UPGRADE_PRICE_BY_PATH: Record<string, string> = Object.fromEntries(
-  Object.entries(UPSELL_PRICE_TO_ACTION)
-    .filter(([, action]) => action.kind === "upgrade")
-    .map(([priceId, action]) => [`${action.fromPackage}->${action.toPackage}`, priceId]),
+  Object.entries(UPSELL_PRICE_TO_ACTION).flatMap(([priceId, action]) => {
+    if (!isUpgradeAction(action)) return [];
+    return [[`${action.fromPackage}->${action.toPackage}`, priceId]];
+  }),
 );
 
 const EXTRA_REVISION_PRICE_ID = Object.entries(UPSELL_PRICE_TO_ACTION).find(

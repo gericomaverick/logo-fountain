@@ -59,17 +59,32 @@ export default async function AdminProjectBriefPage({ params }: AdminProjectBrie
         ) : (
           <BriefDocument
             title={`Latest submitted brief (v${brief.version})`}
-            subtitle="Read the same structured brief document view the client sees, while keeping admin controls separate."
+            subtitle="Structured for quick admin scanning: clear sections, stronger question/answer hierarchy, and easier long-form reading."
             meta={<span>Submitted {dateLabel(brief.createdAt)}</span>}
           >
-            <BriefFieldGrid>
+            <div className="mb-2 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">At a glance</p>
+              <p className="mt-1 text-sm text-neutral-700">{briefSections.length} sections · {briefSections.reduce((total, section) => total + section.fields.length, 0)} answers</p>
+            </div>
+
+            <BriefFieldGrid className="gap-5">
               {briefSections.map((section) => (
-                <section key={section.id} className="rounded-xl border border-neutral-200 bg-neutral-50/70 p-4">
-                  <h3 className="text-sm font-semibold text-neutral-900">{section.title}</h3>
-                  <p className="mt-1 text-xs text-neutral-600">{section.description}</p>
-                  <div className="mt-3 grid gap-3">
+                <section key={section.id} className="rounded-2xl border border-neutral-200 bg-neutral-50/80 p-5">
+                  <div className="border-b border-neutral-200 pb-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">Section</p>
+                    <h3 className="mt-1 text-base font-semibold text-neutral-900">{section.title}</h3>
+                    <p className="mt-1 max-w-3xl text-sm leading-relaxed text-neutral-600">{section.description}</p>
+                  </div>
+                  <div className="mt-4 grid gap-3 md:grid-cols-2">
                     {section.fields.map((field) => (
-                      <BriefField key={field.key} label={field.label} value={parsedAnswers[field.key]} compact />
+                      <BriefField
+                        key={field.key}
+                        label={field.label}
+                        value={parsedAnswers[field.key]}
+                        compact
+                        className="bg-white"
+                        valueClassName="max-w-[72ch] text-[15px] leading-7"
+                      />
                     ))}
                   </div>
                 </section>

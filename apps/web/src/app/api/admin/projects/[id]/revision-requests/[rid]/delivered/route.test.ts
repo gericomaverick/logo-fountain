@@ -3,7 +3,8 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 const mocks = vi.hoisted(() => {
   const revisionRequest = { findFirst: vi.fn(), update: vi.fn() };
   const project = { findUnique: vi.fn(), update: vi.fn() };
-  const tx = { revisionRequest, project };
+  type Tx = { revisionRequest: typeof revisionRequest; project: typeof project };
+  const tx: Tx = { revisionRequest, project };
 
   return {
     requireUser: vi.fn(),
@@ -13,7 +14,7 @@ const mocks = vi.hoisted(() => {
     prisma: {
       revisionRequest,
       project,
-      $transaction: vi.fn(async (fn: (tx: typeof tx) => Promise<unknown>) => fn(tx)),
+      $transaction: vi.fn(async (fn: (tx: Tx) => Promise<unknown>) => fn(tx)),
     },
   };
 });

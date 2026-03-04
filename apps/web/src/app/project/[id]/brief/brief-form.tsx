@@ -1,11 +1,12 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 
 import { BriefDocument, BriefField, BriefFieldGrid } from "@/components/brief-document";
 import { briefSections, EMPTY_BRIEF_ANSWERS, missingRequiredFields, requiredFieldLabels, type BriefAnswers } from "@/lib/brief";
 import { nextStepIndex, previousStepIndex } from "@/lib/brief-wizard";
+import { scrollAndFocusEditor } from "./editor-focus";
 
 type BriefVersion = {
   id: string;
@@ -34,6 +35,8 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
   const [isEditing, setIsEditing] = useState(latestBrief === null);
   const [selectedVersion, setSelectedVersion] = useState<number>(latestBrief?.version ?? 0);
   const [activeStep, setActiveStep] = useState(0);
+  const editorRef = useRef<HTMLFormElement | null>(null);
+  const editorHeadingRef = useRef<HTMLHeadingElement | null>(null);
 
   const reviewStep = briefSections.length;
   const selectedBrief = useMemo(
@@ -83,11 +86,22 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
     setActiveStep((current) => previousStepIndex(current));
   }
 
+  function focusEditorSection() {
+    scrollAndFocusEditor(editorRef.current, editorHeadingRef.current, (cb) => {
+      window.requestAnimationFrame(cb);
+    });
+  }
+
   function openEditor() {
     setIsEditing(true);
     setActiveStep(0);
     setError(null);
   }
+
+  useEffect(() => {
+    if (!isEditing) return;
+    focusEditorSection();
+  }, [isEditing]);
 
   if (submittedVersion !== null) {
     return (
@@ -117,12 +131,16 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
           actions={(
             <button
               type="button"
-              onClick={() => setIsEditing((current) => {
-                if (current) return false;
+              onClick={() => {
+                if (isEditing) {
+                  setIsEditing(false);
+                  return;
+                }
                 openEditor();
-                return true;
-              })}
+              }}
               className="portal-btn-secondary"
+              aria-controls="brief-editor-form"
+              aria-expanded={isEditing}
             >
               {isEditing ? "Close editor" : "Edit & resubmit"}
             </button>
@@ -165,7 +183,15 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
       ) : null}
 
       {isEditing ? (
-        <form className="portal-card space-y-5 p-4 sm:p-5" onSubmit={onSubmit}>
+        <form id="brief-editor-form" ref={editorRef} className="portal-card scroll-mt-24 space-y-5 p-4 sm:p-5" onSubmit={onSubmit}>
+          <h3
+            ref={editorHeadingRef}
+            tabIndex={-1}
+            className="sr-only focus:not-sr-only focus:mb-2 focus:rounded-md focus:bg-neutral-100 focus:px-2 focus:py-1 focus:text-sm focus:font-semibold"
+          >
+            Brief editor
+          </h3>
+
           <div className="relative overflow-hidden rounded-2xl border border-violet-200/70 bg-gradient-to-br from-violet-50 via-indigo-50 to-teal-50 px-4 py-3 shadow-sm shadow-violet-200/30">
             <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-gradient-to-br from-violet-200/30 via-sky-200/20 to-teal-200/15 blur-2xl" />
             <div aria-hidden className="pointer-events-none absolute -bottom-16 left-10 h-32 w-32 rounded-full bg-gradient-to-tr from-teal-200/20 via-cyan-200/15 to-violet-200/20 blur-2xl" />

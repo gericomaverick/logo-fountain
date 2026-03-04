@@ -13,6 +13,8 @@ type BriefFieldProps = {
   label: string;
   value: string;
   compact?: boolean;
+  className?: string;
+  valueClassName?: string;
 };
 
 export function BriefDocument({ title, subtitle, meta, actions, children, className = "" }: BriefDocumentProps) {
@@ -34,15 +36,15 @@ export function BriefDocument({ title, subtitle, meta, actions, children, classN
   );
 }
 
-export function BriefField({ label, value, compact = false }: BriefFieldProps) {
+export function BriefField({ label, value, compact = false, className = "", valueClassName = "" }: BriefFieldProps) {
   return (
-    <section className={`rounded-xl border border-neutral-200 bg-white ${compact ? "p-3" : "p-4"}`}>
+    <section className={`rounded-xl border border-neutral-200 bg-white ${compact ? "p-3" : "p-4"} ${className}`.trim()}>
       <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">{label}</h3>
-      <p className={`mt-2 whitespace-pre-wrap text-sm text-neutral-900 ${compact ? "leading-6" : "leading-7"}`}>{value || "—"}</p>
+      <p className={`mt-2 whitespace-pre-wrap text-sm text-neutral-900 ${compact ? "leading-6" : "leading-7"} ${valueClassName}`.trim()}>{value || "—"}</p>
     </section>
   );
 }
 
-export function BriefFieldGrid({ children }: { children: ReactNode }) {
-  return <div className="grid gap-3">{children}</div>;
+export function BriefFieldGrid({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return <div className={`grid gap-3 ${className}`.trim()}>{children}</div>;
 }
