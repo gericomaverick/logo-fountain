@@ -48,6 +48,8 @@ export async function POST(
     }
   }
 
+  const previousStatus = project.status;
+
   const result = await prisma.$transaction(async (tx) => {
     const updatedRevisionRequest = await tx.revisionRequest.update({
       where: { id: revisionRequest.id },
@@ -70,7 +72,7 @@ export async function POST(
       body: `Revision update delivered (${updatedRevisionRequest.id.slice(0, 8)}).`,
     });
 
-    if (setConceptsReady) {
+    if (setConceptsReady && previousStatus !== PROJECT_STATUS_CONCEPTS_READY) {
       project = await tx.project.update({
         where: { id: projectId },
         data: { status: PROJECT_STATUS_CONCEPTS_READY },
@@ -81,7 +83,7 @@ export async function POST(
         projectId,
         actorId: user.id,
         type: "state_changed",
-        payload: { previousStatus: project.status, nextStatus: PROJECT_STATUS_CONCEPTS_READY },
+        payload: { previousStatus, nextStatus: PROJECT_STATUS_CONCEPTS_READY },
       });
     }
 
