@@ -504,14 +504,18 @@ export default function ProjectPage() {
                   </div>
                 </div>
 
-                <div className="w-full rounded-lg border border-violet-200 bg-violet-50 px-4 py-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-violet-800">Next action</p>
-                  <p className="mt-1 text-sm text-violet-950">Do this first to keep your project moving.</p>
-                  <Link href={nextAction.href} className="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-violet-700 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300 focus-visible:ring-offset-2">
-                    {nextAction.label}
-                  </Link>
-                  <div className={`mt-3 rounded-lg border px-3 py-2 text-xs ${pendingFeedbackCount > 0 ? "border-amber-200 bg-amber-50 text-amber-900" : "border-emerald-200 bg-emerald-50 text-emerald-900"}`}>
-                    Pending feedback: <span className="font-semibold">{pendingFeedbackCount}</span>
+                <div className="relative w-full overflow-hidden rounded-2xl border border-violet-200/70 bg-gradient-to-br from-violet-50 via-indigo-50 to-teal-50 px-4 py-3 shadow-sm shadow-violet-200/30">
+                  <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-gradient-to-br from-violet-200/30 via-sky-200/20 to-teal-200/15 blur-2xl" />
+                  <div aria-hidden className="pointer-events-none absolute -bottom-20 left-8 h-40 w-40 rounded-full bg-gradient-to-tr from-teal-200/20 via-cyan-200/15 to-violet-200/20 blur-2xl" />
+                  <div className="relative">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-violet-800">Next action</p>
+                    <p className="mt-1 text-sm text-violet-950">Do this first to keep your project moving.</p>
+                    <Link href={nextAction.href} className="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-violet-700 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300 focus-visible:ring-offset-2">
+                      {nextAction.label}
+                    </Link>
+                    <div className={`mt-3 rounded-lg border px-3 py-2 text-xs ${pendingFeedbackCount > 0 ? "border-amber-200 bg-amber-50 text-amber-900" : "border-emerald-200 bg-emerald-50 text-emerald-900"}`}>
+                      Pending feedback: <span className="font-semibold">{pendingFeedbackCount}</span>
+                    </div>
                   </div>
                 </div>
               </div>

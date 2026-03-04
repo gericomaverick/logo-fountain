@@ -14,6 +14,8 @@ type EntitlementUsage = { limit: number; consumed: number; reserved?: number; re
 
 type Snapshot = {
   status: string;
+  createdAt?: string;
+  updatedAt?: string;
   stuck?: boolean;
   stuckReason?: string | null;
   latestOrder?: { id: string; status: string; stripeCheckoutSessionId: string | null; createdAt: string } | null;
@@ -38,6 +40,21 @@ function readError(payload: { error?: { message?: string; details?: { nextStep?:
   const message = typeof err === "string" ? err : err?.message ?? fallback;
   const nextStep = typeof err === "string" ? undefined : err?.details?.nextStep;
   return nextStep ? `${message} — ${nextStep}` : message;
+}
+
+const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+function formatDateTime(value?: string): string {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return DATE_TIME_FORMATTER.format(date);
 }
 
 function resolveUsage(usage: EntitlementUsage | undefined) {
@@ -186,6 +203,16 @@ export default function AdminProjectPage() {
                     </Link>
                   </div>
                   <p className="mt-2 text-xs text-neutral-500">Project ID: <span className="font-mono">{projectId}</span></p>
+                </div>
+              </div>
+              <div className="mt-3 grid gap-2 border-t border-neutral-200/80 pt-3 text-sm text-neutral-700 sm:grid-cols-2">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs uppercase tracking-wide text-neutral-500">Created at</p>
+                  <p className="font-medium text-neutral-900">{formatDateTime(snapshot?.createdAt)}</p>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs uppercase tracking-wide text-neutral-500">Last updated</p>
+                  <p className="font-medium text-neutral-900">{formatDateTime(snapshot?.updatedAt)}</p>
                 </div>
               </div>
             </div>
