@@ -62,7 +62,7 @@ export async function GET() {
         STRIPE_PLACEHOLDER_PRICE_IDS.length === 0
           ? "All package codes map to real Stripe price IDs"
           : `Placeholder price IDs detected: ${STRIPE_PLACEHOLDER_PRICE_IDS
-              .map(({ packageCode, priceId }) => `${packageCode}=${priceId || "<empty>"}`)
+              .map(({ scope, key, priceId }) => `${scope}:${key}=${priceId || "<empty>"}`)
               .join(", ")}`,
       nextStep:
         STRIPE_PLACEHOLDER_PRICE_IDS.length === 0
