@@ -8,6 +8,7 @@ import { ProjectTimeline } from "@/app/project-timeline";
 import { HeaderNav } from "@/components/header-nav";
 import { PageShell } from "@/components/page-shell";
 import { ProjectStatusBadge } from "@/components/project-status-badge";
+import { formatClientFirstName, getAreaCardSubtitle } from "@/lib/project-overview";
 import { buildActivityGroups, getMissionControlPrimaryCta, getPendingFeedbackCountForLatestConcept } from "@/lib/project-hub";
 
 type EntitlementUsage = {
@@ -117,15 +118,19 @@ function EntitlementProgress({
 
 function AreaCard({ title, href, hasNew, subtitle }: { title: string; href: string; hasNew?: boolean; subtitle?: string }) {
   return (
-    <Link href={href} className="portal-subcard transition hover:border-neutral-300 hover:bg-white">
+    <Link
+      href={href}
+      aria-label={`Open ${title}`}
+      className="group rounded-xl border border-neutral-200 bg-white p-4 shadow-sm shadow-neutral-200/70 transition-all hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300 focus-visible:ring-offset-2"
+    >
       <div className="flex items-center justify-between gap-3">
+        <h3 className="text-sm font-semibold text-neutral-900">{title}</h3>
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-semibold text-neutral-900">{title}</h3>
-          <span aria-hidden className="text-sm text-neutral-400">→</span>
+          {hasNew ? <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">New</span> : null}
+          <span className="rounded-md border border-neutral-300 px-2 py-0.5 text-xs font-medium text-neutral-700 transition-colors group-hover:border-violet-300 group-hover:text-violet-700">Open</span>
         </div>
-        {hasNew ? <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">New</span> : null}
       </div>
-      <p className="mt-1 text-sm text-neutral-600">{subtitle ?? `Open ${title.toLowerCase()}`}</p>
+      <p className="mt-1 text-sm text-neutral-600">{getAreaCardSubtitle(title, subtitle)}</p>
     </Link>
   );
 }
@@ -449,42 +454,51 @@ export default function ProjectPage() {
     const raw = searchParams.get("kind");
     return raw === "addon" || raw === "upgrade" ? raw : null;
   }, [searchParams]);
+  const welcomeName = formatClientFirstName(firstName);
 
   return (
     <PageShell>
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
         <section className="mt-3 portal-card">
-          <div className="grid gap-3 lg:grid-cols-12">
-            <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-4 lg:col-span-6">
-              <ProjectStatusBadge status={snapshot?.status ?? "UNKNOWN"} />
-              <h1 className="mt-3 text-2xl font-semibold text-neutral-900">Hey{firstName ? `, ${firstName.trim().slice(0, 1).toUpperCase()}${firstName.trim().slice(1)}` : ""}</h1>
-              <p className="mt-1 text-sm text-neutral-600">Project overview · {projectId}</p>
-              <p className="text-sm text-neutral-600">Package: {snapshot?.packageCode ?? "—"}</p>
-            </div>
+          <div className="grid gap-4 lg:grid-cols-12">
+            <div className="lg:col-span-12 rounded-xl border border-neutral-200 bg-neutral-50/60 p-4">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                  <ProjectStatusBadge status={snapshot?.status ?? "UNKNOWN"} />
+                  <h1 className="mt-3 text-2xl font-semibold text-neutral-900">Hey{welcomeName ? `, ${welcomeName}` : ""}</h1>
+                  <p className="mt-1 text-sm text-neutral-600">Project overview · {projectId}</p>
+                </div>
 
-            <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-4 lg:col-span-3">
-              <p className="text-xs uppercase tracking-wide text-neutral-500">Created</p>
-              <p className="mt-1 text-sm font-medium text-neutral-900">{formatDateTime(snapshot?.createdAt)}</p>
-            </div>
+                <div className="w-full rounded-lg border border-violet-200 bg-violet-50 px-4 py-3 lg:w-[360px]">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-violet-800">Next action</p>
+                  <p className="mt-1 text-sm text-violet-950">Do this first to keep your project moving.</p>
+                  <Link href={nextAction.href} className="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-violet-700 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300 focus-visible:ring-offset-2">
+                    {nextAction.label}
+                  </Link>
+                  <div className={`mt-3 rounded-lg border px-3 py-2 text-xs ${pendingFeedbackCount > 0 ? "border-amber-200 bg-amber-50 text-amber-900" : "border-emerald-200 bg-emerald-50 text-emerald-900"}`}>
+                    Pending feedback: <span className="font-semibold">{pendingFeedbackCount}</span>
+                  </div>
+                </div>
+              </div>
 
-            <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-4 lg:col-span-3">
-              <p className="text-xs uppercase tracking-wide text-neutral-500">Last updated</p>
-              <p className="mt-1 text-sm font-medium text-neutral-900">{formatDateTime(snapshot?.updatedAt)}</p>
-            </div>
-
-            <div className="portal-subcard lg:col-span-4">
-              <p className="text-xs uppercase tracking-wide text-neutral-500">Next action</p>
-              <p className="mt-1 text-sm text-neutral-700">Do this first to keep your project moving.</p>
-              <Link href={nextAction.href} className="mt-3 portal-btn-primary">
-                {nextAction.label}
-              </Link>
-              <div className={`mt-3 rounded-lg border px-3 py-2 text-xs ${pendingFeedbackCount > 0 ? "border-amber-200 bg-amber-50 text-amber-900" : "border-emerald-200 bg-emerald-50 text-emerald-900"}`}>
-                Pending feedback: <span className="font-semibold">{pendingFeedbackCount}</span>
+              <div className="mt-4 grid gap-3 text-sm text-neutral-700 sm:grid-cols-3">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-neutral-500">Package</p>
+                  <p className="mt-1 font-medium text-neutral-900">{snapshot?.packageCode ?? "—"}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-neutral-500">Created</p>
+                  <p className="mt-1 font-medium text-neutral-900">{formatDateTime(snapshot?.createdAt)}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-neutral-500">Last updated</p>
+                  <p className="mt-1 font-medium text-neutral-900">{formatDateTime(snapshot?.updatedAt)}</p>
+                </div>
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-3 lg:col-span-8">
+            <div className="grid gap-3 sm:grid-cols-3 lg:col-span-12">
               <AreaCard title="Brief" href={`/project/${projectId}/brief`} subtitle={snapshot?.latestBrief ? `Latest: v${snapshot.latestBrief.version}` : "Submit your project brief"} />
               <AreaCard title="Concepts" href={`/project/${projectId}/concepts`} hasNew={snapshot?.hasNewConcepts} subtitle={snapshot?.hasNewConcepts ? "New concepts/revisions available" : undefined} />
               <AreaCard title="Messages" href={`/project/${projectId}/messages`} hasNew={snapshot?.hasNewMessages} subtitle={snapshot?.hasNewMessages ? "Unread updates waiting" : undefined} />

@@ -110,8 +110,6 @@ export default async function ProjectBriefPage({ params }: ProjectBriefPageProps
     <PageShell>
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
-        <p className="text-sm"><Link href={`/project/${project.id}`} className="portal-link no-underline">← Back to project overview</Link></p>
-
         <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 className="text-2xl font-semibold">Project brief</h1>
@@ -120,6 +118,7 @@ export default async function ProjectBriefPage({ params }: ProjectBriefPageProps
             </p>
             <p className="mt-1 text-xs text-neutral-500">Current status: {project.status}</p>
           </div>
+          <Link href={`/project/${project.id}`} className="portal-link no-underline">← Back to project overview</Link>
         </div>
 
         <BriefForm projectId={project.id} briefVersions={briefVersions} />
