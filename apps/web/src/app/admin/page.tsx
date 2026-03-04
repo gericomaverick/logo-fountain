@@ -18,7 +18,7 @@ type AdminProjectRow = {
   createdAt: Date;
   updatedAt: Date;
   client: {
-    name: string;
+    name: string | null;
     memberships: Array<{
       role: string;
       user: {
@@ -27,7 +27,7 @@ type AdminProjectRow = {
         email: string;
       };
     }>;
-  };
+  } | null;
   orders: Array<{ status: string; stripeCheckoutSessionId: string | null }>;
   pendingFeedbackCount: number;
   latestMessageAt: Date | null;
@@ -65,11 +65,12 @@ function getStuckReason(order: { status: string; stripeCheckoutSessionId: string
 }
 
 function getPrimaryClientContact(
-  memberships: Array<{
+  memberships?: Array<{
     role: string;
     user: { firstName: string | null; lastName: string | null; email: string };
-  }>,
+  }> | null,
 ) {
+  if (!memberships || memberships.length === 0) return null;
   const owner = memberships.find((membership) => membership.role.toLowerCase() === "owner");
   const primary = owner ?? memberships[0];
 
@@ -127,7 +128,9 @@ function AdminSection({
           {projects.map((project) => {
             const latestOrder = project.orders[0] ?? null;
             const stuckReason = getStuckReason(latestOrder);
-            const primaryClientContact = getPrimaryClientContact(project.client.memberships);
+            const primaryClientContact = project.client ? getPrimaryClientContact(project.client.memberships) : null;
+            const clientName = project.client?.name ?? "Unknown client";
+            const clientRecordMissing = !project.client;
             const needsFeedback = project.pendingFeedbackCount > 0;
 
             return (
@@ -136,7 +139,13 @@ function AdminSection({
                   <div>
                     <ProjectStatusBadge status={project.status} />
                     <h3 className="mt-3 text-base font-semibold text-neutral-900">Project {project.id.slice(0, 8)}</h3>
-                    <p className="mt-1 text-sm text-neutral-600">Client: {project.client.name}</p>
+                    <p className="mt-1 text-sm text-neutral-600">
+                      Client: {clientName}
+                      {clientRecordMissing ? <span className="text-amber-700"> (record missing)</span> : null}
+                    </p>
+                    {clientRecordMissing ? (
+                      <p className="text-sm text-amber-700">Client row was deleted after this project was created.</p>
+                    ) : null}
                     {primaryClientContact ? (
                       <p className="text-sm text-neutral-600">
                         Contact: {primaryClientContact.name} <span className="text-neutral-500">({primaryClientContact.email})</span>
