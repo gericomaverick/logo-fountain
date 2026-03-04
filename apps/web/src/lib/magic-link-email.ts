@@ -1,7 +1,6 @@
 import "server-only";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { applyMagicLinkRedirectOverride } from "@/lib/supabase/action-link";
 import { buildAuthCallbackRedirect } from "@/lib/supabase/password-redirects";
 
 const POSTMARK_API_URL = "https://api.postmarkapp.com/email";
@@ -37,12 +36,7 @@ async function generateMagicLink({
   const actionLink = result.data?.properties?.action_link;
   if (!actionLink) throw new Error("Supabase did not return action_link for magic link");
 
-  const finalActionLink = applyMagicLinkRedirectOverride(actionLink, redirectTo);
-  if (result.data?.properties) {
-    result.data.properties.redirect_to = redirectTo;
-  }
-
-  return finalActionLink;
+  return actionLink;
 }
 
 async function sendPostmarkEmail({
