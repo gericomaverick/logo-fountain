@@ -8,7 +8,7 @@ import { ProjectTimeline } from "@/app/project-timeline";
 import { HeaderNav } from "@/components/header-nav";
 import { PageShell } from "@/components/page-shell";
 import { ProjectStatusBadge } from "@/components/project-status-badge";
-import { formatClientFirstName, getAreaCardSubtitle, getRemainingLabel } from "@/lib/project-overview";
+import { formatClientFirstName, getAreaCardSubtitle } from "@/lib/project-overview";
 import { buildActivityGroups, getMissionControlPrimaryCta, getPendingFeedbackCountForLatestConcept } from "@/lib/project-hub";
 
 type EntitlementUsage = {
@@ -111,6 +111,25 @@ function EntitlementProgress({
       ) : null}
       <div className="mt-3 h-2 rounded-full bg-neutral-200">
         <div className={`h-2 rounded-full transition-all duration-700 ease-out ${fillClassName}`} style={{ width: `${animatedRatio}%` }} />
+      </div>
+    </article>
+  );
+}
+
+function UsageOverviewCard({
+  conceptUsage,
+  revisionUsage,
+}: {
+  conceptUsage: EntitlementUsage | undefined;
+  revisionUsage: EntitlementUsage | undefined;
+}) {
+  return (
+    <article className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm shadow-neutral-200/70">
+      <h3 className="text-sm font-semibold text-neutral-900">Progress & usage</h3>
+      <p className="mt-1 text-xs text-neutral-500">Track concept and revision allocation in one place.</p>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <EntitlementProgress label="Concepts" usage={conceptUsage} fillClassName="bg-gradient-to-r from-indigo-600 to-sky-500" />
+        <EntitlementProgress label="Revisions" usage={revisionUsage} fillClassName="bg-gradient-to-r from-fuchsia-600 to-violet-500" />
       </div>
     </article>
   );
@@ -504,9 +523,11 @@ export default function ProjectPage() {
               <AreaCard title="Messages" href={`/project/${projectId}/messages`} hasNew={snapshot?.hasNewMessages} subtitle={snapshot?.hasNewMessages ? "Unread updates waiting" : undefined} />
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 lg:col-span-8">
-              <EntitlementProgress label="Concepts" usage={snapshot?.entitlementUsage?.concepts} fillClassName="bg-gradient-to-r from-indigo-600 to-sky-500" />
-              <EntitlementProgress label="Revisions" usage={snapshot?.entitlementUsage?.revisions} fillClassName="bg-gradient-to-r from-fuchsia-600 to-violet-500" />
+            <div className="lg:col-span-8">
+              <UsageOverviewCard
+                conceptUsage={snapshot?.entitlementUsage?.concepts}
+                revisionUsage={snapshot?.entitlementUsage?.revisions}
+              />
             </div>
 
             <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3 lg:col-span-4">
@@ -515,30 +536,15 @@ export default function ProjectPage() {
                 <Link className="text-xs font-medium text-neutral-700 portal-link no-underline" href={`/project/${projectId}/concepts`}>View all</Link>
               </div>
 
-              <div className="mt-2 grid gap-2 sm:grid-cols-[minmax(0,1fr)_164px]">
-                {latestConcept?.imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={latestConcept.imageUrl} alt={`Latest concept #${latestConcept.number}`} className="h-36 w-full rounded-lg border border-neutral-200 object-cover" />
-                ) : (
-                  <div className="flex h-36 items-center justify-center rounded-lg border border-dashed border-neutral-300 text-xs text-neutral-500">
-                    No concept preview yet
-                  </div>
-                )}
-
-                <div className="rounded-lg border border-neutral-200 bg-white px-3 py-2">
-                  <p className="text-[11px] uppercase tracking-wide text-neutral-500">Usage status</p>
-                  <div className="mt-2 space-y-2 text-sm text-neutral-900">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-neutral-600">Concepts</span>
-                      <span className="font-semibold">{getRemainingLabel(conceptUsage.remaining, "concept")}</span>
-                    </div>
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-neutral-600">Revisions</span>
-                      <span className="font-semibold">{getRemainingLabel(revisionUsage.remaining, "revision")}</span>
-                    </div>
-                  </div>
+              {latestConcept?.imageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={latestConcept.imageUrl} alt={`Latest concept #${latestConcept.number}`} className="mt-2 h-36 w-full rounded-lg border border-neutral-200 object-cover" />
+              ) : (
+                <div className="mt-2 flex h-36 items-center justify-center rounded-lg border border-dashed border-neutral-300 text-xs text-neutral-500">
+                  No concept preview yet
                 </div>
-              </div>
+              )}
+              <p className="mt-2 text-xs text-neutral-600">{conceptUsage.remaining} concepts left · {revisionUsage.remaining} revisions left</p>
             </div>
           </div>
 

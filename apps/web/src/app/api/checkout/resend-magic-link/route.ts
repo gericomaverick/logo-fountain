@@ -1,6 +1,7 @@
 import { jsonError } from "@/lib/api-error";
 import { generateAndSendMagicLinkEmail } from "@/lib/magic-link-email";
 import { prisma } from "@/lib/prisma";
+import { getRequestOrigin } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
 
@@ -62,7 +63,7 @@ export async function POST(req: Request) {
     return jsonError("No purchaser email found for this checkout session.", 409, undefined, "MISSING_EMAIL");
   }
 
-  const appBaseUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(req.url).origin;
+  const appBaseUrl = getRequestOrigin(req);
 
   try {
     const result = await generateAndSendMagicLinkEmail({

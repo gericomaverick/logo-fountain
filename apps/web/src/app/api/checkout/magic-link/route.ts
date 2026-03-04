@@ -1,6 +1,7 @@
 import { jsonError } from "@/lib/api-error";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { prisma } from "@/lib/prisma";
+import { getRequestOrigin } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
 
@@ -46,7 +47,7 @@ export async function POST(req: Request) {
   const purchaserEmail = order.client.billingEmail?.trim().toLowerCase();
   if (!purchaserEmail) return jsonError("No purchaser email found.", 409, undefined, "MISSING_EMAIL");
 
-  const appBaseUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(req.url).origin;
+  const appBaseUrl = getRequestOrigin(req);
   const redirectTo = buildSetPasswordRedirect(appBaseUrl, order.projectId);
 
   const supabaseAdmin = createSupabaseAdminClient();
