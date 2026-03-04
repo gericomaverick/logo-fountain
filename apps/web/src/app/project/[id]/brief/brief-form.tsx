@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { BriefDocument, BriefField, BriefFieldGrid } from "@/components/brief-document";
 import { briefSections, EMPTY_BRIEF_ANSWERS, missingRequiredFields, requiredFieldLabels, type BriefAnswers } from "@/lib/brief";
+import { briefDraftStorageKey, mergeWithBriefDefaults, parseBriefDraft } from "@/lib/brief-draft";
 import { nextStepIndex, previousStepIndex } from "@/lib/brief-wizard";
 import { scrollAndFocusEditor } from "./editor-focus";
 
@@ -28,7 +29,15 @@ function dateLabel(value: string): string {
 
 export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
   const latestBrief = briefVersions[0] ?? null;
-  const [form, setForm] = useState<BriefAnswers>(latestBrief?.answers ?? EMPTY_BRIEF_ANSWERS);
+  const draftStorageKey = briefDraftStorageKey(projectId, latestBrief?.version ?? null);
+  const [form, setForm] = useState<BriefAnswers>(() => {
+    if (typeof window !== "undefined") {
+      const draft = parseBriefDraft(window.sessionStorage.getItem(draftStorageKey));
+      if (draft) return mergeWithBriefDefaults(draft);
+    }
+
+    return latestBrief?.answers ?? EMPTY_BRIEF_ANSWERS;
+  });
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedVersion, setSubmittedVersion] = useState<number | null>(null);
@@ -70,6 +79,9 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
 
     setSubmittedVersion(payload?.version ?? null);
     setIsEditing(false);
+    if (typeof window !== "undefined") {
+      window.sessionStorage.removeItem(draftStorageKey);
+    }
   }
 
   function goNext() {
@@ -102,6 +114,11 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
     if (!isEditing) return;
     focusEditorSection();
   }, [isEditing]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || submittedVersion !== null) return;
+    window.sessionStorage.setItem(draftStorageKey, JSON.stringify(form));
+  }, [draftStorageKey, form, submittedVersion]);
 
   if (submittedVersion !== null) {
     return (

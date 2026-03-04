@@ -215,22 +215,7 @@ function cleanText(value: unknown, maxLength = 800): string {
   return value.trim().slice(0, maxLength);
 }
 
-export function missingRequiredFields(answers: BriefAnswers, section?: BriefSectionDefinition): Array<keyof BriefAnswers> {
-  const required = section
-    ? section.fields.filter((field) => field.required).map((field) => field.key)
-    : REQUIRED_FIELDS;
-
-  return required.filter((key) => !answers[key]);
-}
-
-export function requiredFieldLabels(keys: Array<keyof BriefAnswers>, section?: BriefSectionDefinition): string[] {
-  if (!section) return keys;
-
-  const labelsByKey = new Map(section.fields.map((field) => [field.key, field.label]));
-  return keys.map((key) => labelsByKey.get(key) ?? key);
-}
-
-export function parseBriefAnswers(value: unknown): BriefAnswers | null {
+export function normalizeBriefAnswers(value: unknown): BriefAnswers | null {
   if (typeof value !== "object" || value === null) return null;
   const raw = value as Record<string, unknown>;
 
@@ -258,7 +243,29 @@ export function parseBriefAnswers(value: unknown): BriefAnswers | null {
   if (!next.offerSummary) next.offerSummary = cleanText(raw.description, 700);
   if (!next.styleDirection) next.styleDirection = cleanText(raw.styleNotes, 700);
 
-  if (!next.brandName || !next.industry || (!next.offerSummary && !cleanText(raw.description, 700))) {
+  return next;
+}
+
+export function missingRequiredFields(answers: BriefAnswers, section?: BriefSectionDefinition): Array<keyof BriefAnswers> {
+  const required = section
+    ? section.fields.filter((field) => field.required).map((field) => field.key)
+    : REQUIRED_FIELDS;
+
+  return required.filter((key) => !answers[key]);
+}
+
+export function requiredFieldLabels(keys: Array<keyof BriefAnswers>, section?: BriefSectionDefinition): string[] {
+  if (!section) return keys;
+
+  const labelsByKey = new Map(section.fields.map((field) => [field.key, field.label]));
+  return keys.map((key) => labelsByKey.get(key) ?? key);
+}
+
+export function parseBriefAnswers(value: unknown): BriefAnswers | null {
+  const next = normalizeBriefAnswers(value);
+  if (!next) return null;
+
+  if (!next.brandName || !next.industry || !next.offerSummary) {
     return null;
   }
 
