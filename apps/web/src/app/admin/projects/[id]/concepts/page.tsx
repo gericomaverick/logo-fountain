@@ -15,7 +15,7 @@ type Concept = {
   notes: string | null;
   imageUrl: string | null;
   pendingRevisionCount: number;
-  commentCount: number;
+  unresolvedFeedbackCount: number;
 };
 
 type PendingRevisionRequest = {
@@ -139,7 +139,7 @@ export default function AdminProjectConceptsPage() {
   }
 
   const totalPending = useMemo(
-    () => concepts.reduce((acc, concept) => acc + concept.pendingRevisionCount + concept.commentCount, 0) + unassignedPendingRevisionCount,
+    () => concepts.reduce((acc, concept) => acc + concept.unresolvedFeedbackCount, 0) + unassignedPendingRevisionCount,
     [concepts, unassignedPendingRevisionCount],
   );
 
@@ -243,7 +243,7 @@ export default function AdminProjectConceptsPage() {
           {loading ? <p className="mt-3 text-sm text-neutral-600">Loading…</p> : null}
           <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {concepts.map((concept) => {
-              const pendingFeedbackCount = concept.pendingRevisionCount + concept.commentCount;
+              const pendingFeedbackCount = concept.unresolvedFeedbackCount;
 
               return (
                 <article id={`concept-${concept.id}`} key={concept.id} className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
@@ -267,9 +267,6 @@ export default function AdminProjectConceptsPage() {
                         )}
                         {concept.pendingRevisionCount > 0 ? (
                           <span className="rounded-full bg-fuchsia-100 px-2 py-0.5 text-xs font-medium text-fuchsia-800">{concept.pendingRevisionCount} revisions</span>
-                        ) : null}
-                        {concept.commentCount > 0 ? (
-                          <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-800">{concept.commentCount} comments</span>
                         ) : null}
                       </div>
                       {concept.notes ? <p className="line-clamp-2 text-xs text-neutral-500">{concept.notes}</p> : null}

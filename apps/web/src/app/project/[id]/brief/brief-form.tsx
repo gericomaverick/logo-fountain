@@ -3,6 +3,8 @@
 import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
 
+import { BriefDocument, BriefField, BriefFieldGrid } from "@/components/brief-document";
+
 type BriefAnswers = {
   brandName: string;
   industry: string;
@@ -28,14 +30,6 @@ function dateLabel(value: string): string {
   return parsed.toLocaleString();
 }
 
-function ReadOnlySection({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="portal-subcard bg-white">
-      <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">{label}</dt>
-      <dd className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-neutral-900">{value}</dd>
-    </div>
-  );
-}
 
 export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
   const latestBrief = briefVersions[0] ?? null;
@@ -104,12 +98,11 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
   return (
     <section className="mt-6 space-y-4">
       {latestBrief ? (
-        <article className="rounded-2xl border border-neutral-200 bg-gradient-to-b from-white to-neutral-50 p-6 shadow-sm">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-semibold text-neutral-900">Latest submitted brief (v{latestBrief.version})</h2>
-              <p className="mt-1 text-xs text-neutral-500">Submitted {dateLabel(latestBrief.createdAt)}</p>
-            </div>
+        <BriefDocument
+          title={`Latest submitted brief (v${latestBrief.version})`}
+          subtitle="Review your current brief and earlier submissions in one document-style history view."
+          meta={<span>Submitted {dateLabel(latestBrief.createdAt)}</span>}
+          actions={(
             <button
               type="button"
               onClick={() => setIsEditing((current) => !current)}
@@ -117,17 +110,17 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
             >
               {isEditing ? "Close editor" : "Edit & resubmit"}
             </button>
-          </div>
+          )}
+        >
+          <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px]">
+            <BriefFieldGrid>
+              <BriefField label="Brand name" value={selectedBrief?.answers.brandName ?? "—"} />
+              <BriefField label="Industry" value={selectedBrief?.answers.industry ?? "—"} />
+              <BriefField label="Brand description" value={selectedBrief?.answers.description ?? "—"} />
+              <BriefField label="Style notes" value={selectedBrief?.answers.styleNotes ?? "—"} />
+            </BriefFieldGrid>
 
-          <div className="mt-4 grid gap-4 md:grid-cols-[1fr_220px]">
-            <dl className="grid gap-3">
-              <ReadOnlySection label="Brand name" value={selectedBrief?.answers.brandName ?? "—"} />
-              <ReadOnlySection label="Industry" value={selectedBrief?.answers.industry ?? "—"} />
-              <ReadOnlySection label="Brand description" value={selectedBrief?.answers.description ?? "—"} />
-              <ReadOnlySection label="Style notes" value={selectedBrief?.answers.styleNotes ?? "—"} />
-            </dl>
-
-            <aside className="portal-subcard bg-white">
+            <aside className="rounded-xl border border-neutral-200 bg-neutral-50/70 p-4">
               <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">Version history</p>
               <ul className="mt-3 space-y-2">
                 {briefVersions.map((brief) => (
@@ -145,7 +138,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
               </ul>
             </aside>
           </div>
-        </article>
+        </BriefDocument>
       ) : null}
 
       {isEditing ? (

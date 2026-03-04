@@ -21,7 +21,6 @@ const mocks = vi.hoisted(() => {
       project: { findUnique: vi.fn() },
       concept: { findUnique: vi.fn(), findMany: vi.fn(), upsert: vi.fn(), count: vi.fn() },
       revisionRequest: { groupBy: vi.fn(), findMany: vi.fn() },
-      conceptComment: { groupBy: vi.fn() },
       fileAsset: { findMany: vi.fn() },
       $transaction: vi.fn(async (fn: (trx: typeof tx) => Promise<unknown>) => fn(tx)),
     },
@@ -61,7 +60,6 @@ describe("/api/admin/projects/[id]/concepts", () => {
     mocks.prisma.concept.count.mockResolvedValue(0);
     mocks.prisma.revisionRequest.groupBy.mockResolvedValue([]);
     mocks.prisma.revisionRequest.findMany.mockResolvedValue([]);
-    mocks.prisma.conceptComment.groupBy.mockResolvedValue([]);
     mocks.prisma.fileAsset.findMany.mockResolvedValue([]);
     mocks.uploadConceptAsset.mockResolvedValue({ bucket: "b", path: "p", mime: "image/png", size: 123 });
     mocks.createSignedConceptAssetUrl.mockResolvedValue("https://example.com/image.png");
@@ -74,7 +72,7 @@ describe("/api/admin/projects/[id]/concepts", () => {
     mocks.createProjectSystemMessage.mockResolvedValue(undefined);
   });
 
-  it("GET keeps concept-specific pending counts intact and reports unassigned pending revisions separately", async () => {
+  it("GET keeps unresolved feedback tied to revision-request status and reports unassigned pending revisions", async () => {
     mocks.prisma.project.findUnique.mockResolvedValue({ status: "CONCEPTS_READY" });
     mocks.prisma.concept.findMany.mockResolvedValue([
       { id: "c1", number: 1, status: "published", notes: null, createdAt: new Date("2026-03-01T10:00:00Z") },
@@ -84,10 +82,6 @@ describe("/api/admin/projects/[id]/concepts", () => {
       { conceptId: "c1", _count: { _all: 1 } },
       { conceptId: null, _count: { _all: 1 } },
     ]);
-    mocks.prisma.conceptComment.groupBy.mockResolvedValue([
-      { conceptId: "c2", _count: { _all: 1 } },
-    ]);
-
     const res = await GET(new Request("http://localhost", { method: "GET" }), {
       params: Promise.resolve({ id: "p1" }),
     });
@@ -96,8 +90,8 @@ describe("/api/admin/projects/[id]/concepts", () => {
     const payload = await res.json();
     expect(payload.concepts).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ id: "c1", pendingRevisionCount: 1, commentCount: 0 }),
-        expect.objectContaining({ id: "c2", pendingRevisionCount: 0, commentCount: 1 }),
+        expect.objectContaining({ id: "c1", pendingRevisionCount: 1, unresolvedFeedbackCount: 1 }),
+        expect.objectContaining({ id: "c2", pendingRevisionCount: 0, unresolvedFeedbackCount: 0 }),
       ]),
     );
     expect(payload.conceptlessPendingRevisionCount).toBe(1);

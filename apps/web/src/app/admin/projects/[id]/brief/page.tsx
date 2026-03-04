@@ -1,72 +1,70 @@
-"use client";
-
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { redirect } from "next/navigation";
 
+import { BriefDocument, BriefField, BriefFieldGrid } from "@/components/brief-document";
 import { HeaderNav } from "@/components/header-nav";
+import { PageShell } from "@/components/page-shell";
+import { requireAdmin } from "@/lib/auth/require";
+import { prisma } from "@/lib/prisma";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-type Brief = {
-  id: string;
-  version: number;
-  answers: Record<string, unknown>;
-  createdAt: string;
-  createdBy: string;
+type AdminProjectBriefPageProps = {
+  params: Promise<{ id: string }>;
 };
 
-function formatValue(value: unknown): string {
-  if (typeof value === "string") return value;
-  if (value == null) return "—";
-  return JSON.stringify(value, null, 2);
+type BriefAnswers = {
+  brandName: string;
+  industry: string;
+  description: string;
+  styleNotes: string;
+};
+
+function parseBriefAnswers(value: unknown): BriefAnswers | null {
+  if (typeof value !== "object" || value === null) return null;
+  const raw = value as Record<string, unknown>;
+
+  if (
+    typeof raw.brandName !== "string" ||
+    typeof raw.industry !== "string" ||
+    typeof raw.description !== "string" ||
+    typeof raw.styleNotes !== "string"
+  ) {
+    return null;
+  }
+
+  return {
+    brandName: raw.brandName,
+    industry: raw.industry,
+    description: raw.description,
+    styleNotes: raw.styleNotes,
+  };
 }
 
-export default function AdminProjectBriefPage() {
-  const params = useParams<{ id: string }>();
-  const projectId = params.id;
+function dateLabel(value: Date): string {
+  return value.toLocaleString();
+}
 
-  const [brief, setBrief] = useState<Brief | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default async function AdminProjectBriefPage({ params }: AdminProjectBriefPageProps) {
+  const { id: projectId } = await params;
 
-  useEffect(() => {
-    if (!projectId) return;
-    let cancelled = false;
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-    const load = async () => {
-      try {
-        const res = await fetch(`/api/projects/${projectId}/brief`, { cache: "no-store" });
-        const payload = (await res.json().catch(() => null)) as { brief?: Brief | null; error?: unknown } | null;
-        if (!res.ok) {
-          const err = payload && typeof payload === "object" && "error" in payload ? (payload as { error?: unknown }).error : null;
-          const message =
-            typeof err === "string"
-              ? err
-              : err && typeof err === "object" && "message" in err && typeof (err as { message?: unknown }).message === "string"
-                ? (err as { message: string }).message
-                : "Failed to load brief";
-          throw new Error(message);
-        }
+  if (!user) redirect("/login");
+  await requireAdmin(user);
 
-        if (!cancelled) {
-          setBrief(payload?.brief ?? null);
-          setError(null);
-        }
-      } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load brief");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
+  const brief = await prisma.projectBrief.findFirst({
+    where: { projectId },
+    orderBy: { version: "desc" },
+    select: { id: true, version: true, answers: true, createdAt: true },
+  });
 
-    void load();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [projectId]);
+  const parsedAnswers = parseBriefAnswers(brief?.answers);
 
   return (
-    <>
+    <PageShell>
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -80,34 +78,26 @@ export default function AdminProjectBriefPage() {
           </div>
         </div>
 
-        {loading ? <p className="text-sm text-neutral-600">Loading…</p> : null}
-        {error ? <p className="text-sm text-red-600">{error}</p> : null}
-
-        {!loading && !brief ? (
-          <div className="portal-subcard">
+        {!brief || !parsedAnswers ? (
+          <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
             <p className="text-sm text-neutral-700">No brief submitted yet.</p>
             <p className="mt-1 text-sm text-neutral-600">Ask the client to submit their brief from their dashboard.</p>
           </div>
-        ) : null}
-
-        {brief ? (
-          <section className="portal-cardshadow-sm">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-semibold text-neutral-900">Version {brief.version}</p>
-              <p className="text-xs text-neutral-500">Submitted {new Date(brief.createdAt).toLocaleString()}</p>
-            </div>
-
-            <dl className="mt-6 grid gap-4 sm:grid-cols-2">
-              {Object.entries(brief.answers ?? {}).map(([key, value]) => (
-                <div key={key} className="portal-subcard">
-                  <dt className="text-xs font-semibold uppercase tracking-wide text-neutral-500">{key}</dt>
-                  <dd className="mt-2 whitespace-pre-wrap text-sm text-neutral-900">{formatValue(value)}</dd>
-                </div>
-              ))}
-            </dl>
-          </section>
-        ) : null}
+        ) : (
+          <BriefDocument
+            title={`Latest submitted brief (v${brief.version})`}
+            subtitle="Read the same structured brief document view the client sees, while keeping admin controls separate."
+            meta={<span>Submitted {dateLabel(brief.createdAt)}</span>}
+          >
+            <BriefFieldGrid>
+              <BriefField label="Brand name" value={parsedAnswers.brandName} />
+              <BriefField label="Industry" value={parsedAnswers.industry} />
+              <BriefField label="Brand description" value={parsedAnswers.description} />
+              <BriefField label="Style notes" value={parsedAnswers.styleNotes} />
+            </BriefFieldGrid>
+          </BriefDocument>
+        )}
       </main>
-    </>
+    </PageShell>
   );
 }

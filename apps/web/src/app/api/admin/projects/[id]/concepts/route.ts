@@ -36,7 +36,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     await requireAdmin(user);
 
     const { id: projectId } = await params;
-    const [project, concepts, pendingRevisionCounts, pendingRevisionRequests, commentsCounts] = await Promise.all([
+    const [project, concepts, pendingRevisionCounts, pendingRevisionRequests] = await Promise.all([
       prisma.project.findUnique({ where: { id: projectId }, select: { status: true } }),
       prisma.concept.findMany({
         where: { projectId },
@@ -59,11 +59,6 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
           concept: { select: { id: true, number: true } },
           user: { select: { email: true, firstName: true, lastName: true } },
         },
-      }),
-      prisma.conceptComment.groupBy({
-        by: ["conceptId"],
-        where: { projectId },
-        _count: { _all: true },
       }),
     ]);
 
@@ -115,23 +110,19 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       .filter((entry) => !entry.conceptId)
       .reduce((sum, entry) => sum + entry._count._all, 0);
 
-    const commentsByConceptId = new Map(
-      commentsCounts
-        .filter((entry) => Boolean(entry.conceptId))
-        .map((entry) => [entry.conceptId as string, entry._count._all]),
-    );
-
     const conceptsWithMeta = await Promise.all(
       concepts.map(async (concept) => {
-        const { createdAt: _createdAt, ...rest } = concept;
         const file = fileByConceptId.get(concept.id);
         const version = versionByConceptId.get(concept.id) ?? 0;
         return {
-          ...rest,
+          id: concept.id,
+          number: concept.number,
+          status: concept.status,
+          notes: concept.notes,
           revisionVersion: Math.max(version, 1),
           imageUrl: file ? await createSignedConceptAssetUrl(file.path) : null,
           pendingRevisionCount: pendingByConceptId.get(concept.id) ?? 0,
-          commentCount: commentsByConceptId.get(concept.id) ?? 0,
+          unresolvedFeedbackCount: pendingByConceptId.get(concept.id) ?? 0,
         };
       }),
     );

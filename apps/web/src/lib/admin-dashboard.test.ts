@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { deriveProjectBadgeState } from "@/lib/admin-dashboard";
 
 describe("deriveProjectBadgeState", () => {
-  it("keeps pending feedback in needs-action", () => {
+  it("keeps pending feedback in needs-action even when concept updates are already read", () => {
     const result = deriveProjectBadgeState({
       status: "DELIVERED",
       pendingFeedbackCount: 1,
