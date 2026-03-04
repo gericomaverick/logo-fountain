@@ -29,39 +29,11 @@ type Snapshot = {
   recentAuditEventsCount?: number;
 };
 
-type AuditEvent = {
-  id: string;
-  type: string;
-  payload: unknown;
-  createdAt: string;
-  actor: { email: string; fullName: string | null } | null;
-};
-
 function readError(payload: { error?: { message?: string; details?: { nextStep?: string } } | string } | null, fallback: string): string {
   const err = payload?.error;
   const message = typeof err === "string" ? err : err?.message ?? fallback;
   const nextStep = typeof err === "string" ? undefined : err?.details?.nextStep;
   return nextStep ? `${message} — ${nextStep}` : message;
-}
-
-function summarizePayload(payload: unknown): string {
-  if (payload == null) return "—";
-  if (typeof payload === "string" || typeof payload === "number" || typeof payload === "boolean") return String(payload);
-  if (Array.isArray(payload)) return `${payload.length} item${payload.length === 1 ? "" : "s"}`;
-  if (typeof payload !== "object") return "—";
-
-  const entries = Object.entries(payload as Record<string, unknown>).slice(0, 3);
-  if (entries.length === 0) return "{}";
-
-  return entries
-    .map(([key, value]) => {
-      if (value == null) return `${key}=null`;
-      if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") return `${key}=${String(value)}`;
-      if (Array.isArray(value)) return `${key}=[${value.length}]`;
-      if (typeof value === "object") return `${key}={…}`;
-      return `${key}=…`;
-    })
-    .join(", ");
 }
 
 function resolveUsage(usage: EntitlementUsage | undefined) {
@@ -85,11 +57,10 @@ function EntitlementProgress({
   fillClassName: string;
 }) {
   const stats = resolveUsage(usage);
-  const [animatedRatio, setAnimatedRatio] = useState(0);
+  const [animatedRatio, setAnimatedRatio] = useState(stats.ratio);
 
   useEffect(() => {
     const next = stats.ratio;
-    setAnimatedRatio(0);
     const raf = requestAnimationFrame(() => setAnimatedRatio(next));
     return () => cancelAnimationFrame(raf);
   }, [stats.ratio]);
@@ -113,7 +84,6 @@ export default function AdminProjectPage() {
   const params = useParams<{ id: string }>();
   const projectId = params.id;
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
-  const [auditEvents, setAuditEvents] = useState<AuditEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -122,20 +92,14 @@ export default function AdminProjectPage() {
   const [revisionLimit, setRevisionLimit] = useState("");
 
   async function refresh(id: string) {
-    const [snapshotResponse, auditResponse] = await Promise.all([
-      fetch(`/api/admin/projects/${id}`, { cache: "no-store" }),
-      fetch(`/api/admin/projects/${id}/audit`, { cache: "no-store" }),
-    ]);
+    const snapshotResponse = await fetch(`/api/admin/projects/${id}`, { cache: "no-store" });
 
     const snapshotPayload = await snapshotResponse.json().catch(() => null);
-    const auditPayload = await auditResponse.json().catch(() => null);
 
     if (!snapshotResponse.ok) throw new Error(readError(snapshotPayload, "Failed to load"));
-    if (!auditResponse.ok) throw new Error(readError(auditPayload, "Failed to load audit log"));
 
     const nextSnapshot = snapshotPayload?.snapshot ?? null;
     setSnapshot(nextSnapshot);
-    setAuditEvents(auditPayload?.events ?? []);
 
     if (nextSnapshot) {
       setConceptLimit(String(nextSnapshot.entitlementUsage?.concepts?.limit ?? ""));
@@ -207,7 +171,12 @@ export default function AdminProjectPage() {
                 </div>
                 <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm">
                   <p className="text-xs uppercase tracking-wide text-neutral-500">Recent audit events</p>
-                  <p className="mt-1 font-medium text-neutral-900">{snapshot?.recentAuditEventsCount ?? 0}</p>
+                  <div className="mt-1 flex items-center justify-between gap-2">
+                    <p className="font-medium text-neutral-900">{snapshot?.recentAuditEventsCount ?? 0}</p>
+                    <Link className="portal-link no-underline text-xs" href={`/admin/projects/${projectId}/audit`}>
+                      View trail
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
@@ -222,6 +191,9 @@ export default function AdminProjectPage() {
                 </Link>
                 <Link className="portal-btn-secondary justify-center" href={`/admin/projects/${projectId}/concepts`}>
                   Concepts manager
+                </Link>
+                <Link className="portal-btn-secondary justify-center" href={`/admin/projects/${projectId}/audit`}>
+                  Audit trail
                 </Link>
                 <Link className="portal-btn-secondary justify-center" href={`/admin/projects/${projectId}/upload`}>
                   Legacy upload
@@ -435,19 +407,6 @@ export default function AdminProjectPage() {
           </ul>
         </section>
 
-        <section className="mt-3 portal-card">
-          <h2 className="text-lg font-medium">Audit log</h2>
-          <ul className="mt-3 space-y-3">
-            {auditEvents.map((event) => (
-              <li key={event.id} className="rounded border border-neutral-200 p-3 text-sm">
-                <p className="text-xs text-neutral-500">{new Date(event.createdAt).toLocaleString()} · {event.actor?.email ?? "System"}</p>
-                <p className="mt-1"><span className="font-medium">{event.type}</span></p>
-                <p className="mt-1 text-neutral-700">{summarizePayload(event.payload)}</p>
-              </li>
-            ))}
-            {auditEvents.length === 0 ? <li className="text-sm text-neutral-500">No audit events yet.</li> : null}
-          </ul>
-        </section>
       </main>
     </PageShell>
   );

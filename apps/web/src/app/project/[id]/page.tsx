@@ -86,11 +86,10 @@ function EntitlementProgress({
   fillClassName: string;
 }) {
   const stats = resolveUsage(usage);
-  const [animatedRatio, setAnimatedRatio] = useState(0);
+  const [animatedRatio, setAnimatedRatio] = useState(stats.ratio);
 
   useEffect(() => {
     const next = stats.ratio;
-    setAnimatedRatio(0);
     const raf = requestAnimationFrame(() => setAnimatedRatio(next));
     return () => cancelAnimationFrame(raf);
   }, [stats.ratio]);
@@ -314,7 +313,7 @@ function UpsellPurchaseStatus({
     }
 
     let cancelled = false;
-    let timer: ReturnType<typeof setTimeout> | null = null;
+    let timer: number | null = null;
 
     const poll = async (slow = false) => {
       if (cancelled) return;
@@ -456,26 +455,25 @@ export default function ProjectPage() {
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
         <section className="mt-3 portal-card">
-          <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
-            <div>
+          <div className="grid gap-3 lg:grid-cols-12">
+            <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-4 lg:col-span-6">
               <ProjectStatusBadge status={snapshot?.status ?? "UNKNOWN"} />
               <h1 className="mt-3 text-2xl font-semibold text-neutral-900">Hey{firstName ? `, ${firstName.trim().slice(0, 1).toUpperCase()}${firstName.trim().slice(1)}` : ""}</h1>
               <p className="mt-1 text-sm text-neutral-600">Project overview · {projectId}</p>
               <p className="text-sm text-neutral-600">Package: {snapshot?.packageCode ?? "—"}</p>
-
-              <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-                <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3">
-                  <p className="text-xs uppercase tracking-wide text-neutral-500">Created</p>
-                  <p className="mt-1 font-medium text-neutral-900">{formatDateTime(snapshot?.createdAt)}</p>
-                </div>
-                <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3">
-                  <p className="text-xs uppercase tracking-wide text-neutral-500">Last updated</p>
-                  <p className="mt-1 font-medium text-neutral-900">{formatDateTime(snapshot?.updatedAt)}</p>
-                </div>
-              </div>
             </div>
 
-            <div className="portal-subcard">
+            <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-4 lg:col-span-3">
+              <p className="text-xs uppercase tracking-wide text-neutral-500">Created</p>
+              <p className="mt-1 text-sm font-medium text-neutral-900">{formatDateTime(snapshot?.createdAt)}</p>
+            </div>
+
+            <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-4 lg:col-span-3">
+              <p className="text-xs uppercase tracking-wide text-neutral-500">Last updated</p>
+              <p className="mt-1 text-sm font-medium text-neutral-900">{formatDateTime(snapshot?.updatedAt)}</p>
+            </div>
+
+            <div className="portal-subcard lg:col-span-4">
               <p className="text-xs uppercase tracking-wide text-neutral-500">Next action</p>
               <p className="mt-1 text-sm text-neutral-700">Do this first to keep your project moving.</p>
               <Link href={nextAction.href} className="mt-3 portal-btn-primary">
@@ -485,20 +483,19 @@ export default function ProjectPage() {
                 Pending feedback: <span className="font-semibold">{pendingFeedbackCount}</span>
               </div>
             </div>
-          </div>
 
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <AreaCard title="Brief" href={`/project/${projectId}/brief`} subtitle={snapshot?.latestBrief ? `Latest: v${snapshot.latestBrief.version}` : "Submit your project brief"} />
-            <AreaCard title="Concepts" href={`/project/${projectId}/concepts`} hasNew={snapshot?.hasNewConcepts} subtitle={snapshot?.hasNewConcepts ? "New concepts/revisions available" : undefined} />
-            <AreaCard title="Messages" href={`/project/${projectId}/messages`} hasNew={snapshot?.hasNewMessages} subtitle={snapshot?.hasNewMessages ? "Unread updates waiting" : undefined} />
-          </div>
+            <div className="grid gap-3 sm:grid-cols-3 lg:col-span-8">
+              <AreaCard title="Brief" href={`/project/${projectId}/brief`} subtitle={snapshot?.latestBrief ? `Latest: v${snapshot.latestBrief.version}` : "Submit your project brief"} />
+              <AreaCard title="Concepts" href={`/project/${projectId}/concepts`} hasNew={snapshot?.hasNewConcepts} subtitle={snapshot?.hasNewConcepts ? "New concepts/revisions available" : undefined} />
+              <AreaCard title="Messages" href={`/project/${projectId}/messages`} hasNew={snapshot?.hasNewMessages} subtitle={snapshot?.hasNewMessages ? "Unread updates waiting" : undefined} />
+            </div>
 
-          <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_320px]">
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2 lg:col-span-8">
               <EntitlementProgress label="Concepts" usage={snapshot?.entitlementUsage?.concepts} fillClassName="bg-gradient-to-r from-indigo-600 to-sky-500" />
               <EntitlementProgress label="Revisions" usage={snapshot?.entitlementUsage?.revisions} fillClassName="bg-gradient-to-r from-fuchsia-600 to-violet-500" />
             </div>
-            <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+
+            <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3 lg:col-span-4">
               <div className="flex items-center justify-between">
                 <p className="text-xs uppercase tracking-wide text-neutral-500">Latest concept</p>
                 <Link className="text-xs font-medium text-neutral-700 portal-link no-underline" href={`/project/${projectId}/concepts`}>View all</Link>
