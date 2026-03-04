@@ -58,6 +58,8 @@ Step 4 notes:
 
 ## Next steps (post-dashboard)
 - [x] Marketing: add pricing cards to homepage (HYROS style) and ensure pricing routes/CTAs connect to Stripe checkout correctly.
-- [ ] Brief UX: make brief read-only view feel more document-like (typography, section framing, paper feel, version navigation clarity).
-- [ ] QA sweep: mobile review for all portal pages + check any remaining inconsistent surfaces.
+- [x] Brief UX: make brief read-only view feel more document-like (typography, section framing, paper feel, version navigation clarity).
+- [ ] Brief UX hardening: add explicit “draft saved” indicator and optional unsaved-changes leave guard for extra data-loss confidence.
+- [ ] QA sweep: end-to-end mobile + desktop regression on brief wizard (navigation resilience, validation clarity, submit/review behavior) and admin/client overview parity.
+- [ ] Admin overview polish: verify final visual consistency of gradient, metadata rows, and hierarchy across breakpoints.
 - [ ] Ops: document WSL2 LAN testing + Stripe/Supabase redirect configuration for local testers.
