@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { BriefDocument, BriefField, BriefFieldGrid } from "@/components/brief-document";
+import { BriefDocument, BriefField, BriefFieldGrid, BriefSection } from "@/components/brief-document";
 import { HeaderNav } from "@/components/header-nav";
 import { PageShell } from "@/components/page-shell";
 import { requireAdmin } from "@/lib/auth/require";
@@ -69,13 +69,8 @@ export default async function AdminProjectBriefPage({ params }: AdminProjectBrie
 
             <BriefFieldGrid className="gap-5">
               {briefSections.map((section) => (
-                <section key={section.id} className="rounded-2xl border border-neutral-200 bg-neutral-50/80 p-5">
-                  <div className="border-b border-neutral-200 pb-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">Section</p>
-                    <h3 className="mt-1 text-base font-semibold text-neutral-900">{section.title}</h3>
-                    <p className="mt-1 max-w-3xl text-sm leading-relaxed text-neutral-600">{section.description}</p>
-                  </div>
-                  <div className="mt-4 grid gap-3 md:grid-cols-2">
+                <BriefSection key={section.id} title={section.title} description={section.description} tone="paper">
+                  <div className="grid gap-3 md:grid-cols-2">
                     {section.fields.map((field) => (
                       <BriefField
                         key={field.key}
@@ -83,11 +78,11 @@ export default async function AdminProjectBriefPage({ params }: AdminProjectBrie
                         value={parsedAnswers[field.key]}
                         compact
                         className="bg-white"
-                        valueClassName="max-w-[72ch] text-[15px] leading-7"
+                        valueClassName="text-[15px] leading-7"
                       />
                     ))}
                   </div>
-                </section>
+                </BriefSection>
               ))}
             </BriefFieldGrid>
           </BriefDocument>

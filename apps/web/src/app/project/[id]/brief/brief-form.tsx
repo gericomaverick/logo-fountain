@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 
-import { BriefDocument, BriefField, BriefFieldGrid } from "@/components/brief-document";
+import { BriefDocument, BriefField, BriefFieldGrid, BriefSection } from "@/components/brief-document";
 import { briefSections, EMPTY_BRIEF_ANSWERS, missingRequiredFields, requiredFieldLabels, type BriefAnswers } from "@/lib/brief";
 import { briefDraftStorageKey, mergeWithBriefDefaults, parseBriefDraft } from "@/lib/brief-draft";
 import { nextStepIndex, previousStepIndex } from "@/lib/brief-wizard";
@@ -163,37 +163,41 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
             </button>
           )}
         >
-          <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_220px]">
+          <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_240px]">
             <BriefFieldGrid>
               {briefSections.map((section) => (
-                <section key={section.id} className="rounded-xl border border-neutral-200 bg-neutral-50/70 p-4">
-                  <h3 className="text-sm font-semibold text-neutral-900">{section.title}</h3>
-                  <p className="mt-1 text-xs text-neutral-600">{section.description}</p>
-                  <div className="mt-3 grid gap-3">
+                <BriefSection key={section.id} title={section.title} description={section.description} tone="paper">
+                  <div className="grid gap-3 md:grid-cols-2">
                     {section.fields.map((field) => (
-                      <BriefField key={field.key} label={field.label} value={selectedBrief?.answers[field.key] ?? "—"} compact />
+                      <BriefField key={field.key} label={field.label} value={selectedBrief?.answers[field.key] ?? "—"} compact valueClassName="text-[15px] leading-7" />
                     ))}
                   </div>
-                </section>
+                </BriefSection>
               ))}
             </BriefFieldGrid>
 
-            <aside className="rounded-xl border border-neutral-200 bg-neutral-50/70 p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">Version history</p>
-              <ul className="mt-3 space-y-2">
-                {briefVersions.map((brief) => (
-                  <li key={brief.id}>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedVersion(brief.version)}
-                      className={`w-full rounded-lg border px-3 py-2 text-left text-xs ${selectedVersion === brief.version ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-200 bg-white text-neutral-700"}`}
-                    >
-                      <p className="font-semibold">v{brief.version}</p>
-                      <p className="mt-1 opacity-80">{dateLabel(brief.createdAt)}</p>
-                    </button>
-                  </li>
-                ))}
-              </ul>
+            <aside className="space-y-3 rounded-xl border border-neutral-200 bg-neutral-50/70 p-4">
+              <div className="rounded-lg border border-neutral-200 bg-white px-3 py-2">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">At a glance</p>
+                <p className="mt-1 text-xs text-neutral-700">{briefSections.length} sections · {briefSections.reduce((total, section) => total + section.fields.length, 0)} answers</p>
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">Version history</p>
+                <ul className="mt-3 space-y-2">
+                  {briefVersions.map((brief) => (
+                    <li key={brief.id}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedVersion(brief.version)}
+                        className={`w-full rounded-lg border px-3 py-2 text-left text-xs ${selectedVersion === brief.version ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-200 bg-white text-neutral-700"}`}
+                      >
+                        <p className="font-semibold">v{brief.version}</p>
+                        <p className="mt-1 opacity-80">{dateLabel(brief.createdAt)}</p>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </aside>
           </div>
         </BriefDocument>
