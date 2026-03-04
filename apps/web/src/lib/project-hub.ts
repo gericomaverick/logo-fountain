@@ -69,7 +69,7 @@ export function buildActivityGroups(snapshot: {
 
   const statusLine: ActivityItem = {
     id: "status",
-    label: `Status changed to ${snapshot.status.replaceAll("_", " ").toLowerCase()}.`,
+    label: `Current status: ${snapshot.status.replaceAll("_", " ").toLowerCase()}.`,
     at: snapshot.updatedAt ?? snapshot.createdAt ?? new Date().toISOString(),
     tone: /awaiting|hold/i.test(snapshot.status) ? "attention" : "default",
   };

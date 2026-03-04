@@ -37,4 +37,15 @@ describe("buildActivityGroups", () => {
     expect(groups.length).toBeGreaterThan(0);
     expect(groups[0]?.items[0]?.id).toBe("status");
   });
+
+  it("does not imply a state transition event for the status line", () => {
+    const groups = buildActivityGroups({
+      status: "BRIEF_SUBMITTED",
+      updatedAt: "2026-03-03T10:00:00.000Z",
+      messages: [],
+    });
+
+    expect(groups[0]?.items[0]?.label).toBe("Current status: brief submitted.");
+    expect(groups[0]?.items[0]?.label.toLowerCase()).not.toContain("status changed");
+  });
 });
