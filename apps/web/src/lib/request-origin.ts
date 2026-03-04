@@ -5,18 +5,18 @@ export function getRequestOrigin(req: Request): string {
   const forwardedHost = req.headers.get("x-forwarded-host");
   const host = (forwardedHost ? forwardedHost.split(",")[0].trim() : null) ?? req.headers.get("host");
 
-  const envOverride = process.env.PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_SITE_URL;
+  const hostIsBound = host && host !== "0.0.0.0" && !host.startsWith("0.0.0.0:");
+  if (hostIsBound) {
+    return `${proto}://${host}`;
+  }
 
+  const envOverride = process.env.PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_SITE_URL;
   if (envOverride) {
     try {
       return new URL(envOverride).origin;
     } catch {
-      // ignore
+      // ignore invalid overrides and continue to the final fallback
     }
-  }
-
-  if (host && host !== "0.0.0.0" && !host.startsWith("0.0.0.0:")) {
-    return `${proto}://${host}`;
   }
 
   return new URL(req.url).origin;
