@@ -19,7 +19,7 @@ const mocks = vi.hoisted(() => {
     createProjectSystemMessage: vi.fn(),
     prisma: {
       project: { findUnique: vi.fn() },
-      concept: { findUnique: vi.fn(), findMany: vi.fn(), upsert: vi.fn(), count: vi.fn() },
+      concept: { findUnique: vi.fn(), findFirst: vi.fn(), findMany: vi.fn(), upsert: vi.fn(), update: vi.fn(), count: vi.fn() },
       revisionRequest: { groupBy: vi.fn(), findMany: vi.fn() },
       fileAsset: { findMany: vi.fn() },
       $transaction: vi.fn(async (fn: (trx: typeof tx) => Promise<unknown>) => fn(tx)),
@@ -55,8 +55,10 @@ describe("/api/admin/projects/[id]/concepts", () => {
 
     mocks.prisma.project.findUnique.mockResolvedValue({ id: "p1", status: "BRIEF_SUBMITTED" });
     mocks.prisma.concept.findUnique.mockResolvedValue(null);
+    mocks.prisma.concept.findFirst.mockResolvedValue({ id: "c1", number: 1, status: "published", notes: null });
     mocks.prisma.concept.findMany.mockResolvedValue([]);
     mocks.prisma.concept.upsert.mockResolvedValue({ id: "c1", number: 1, status: "published", notes: null });
+    mocks.prisma.concept.update.mockResolvedValue({ id: "c1", number: 1, status: "published", notes: null });
     mocks.prisma.concept.count.mockResolvedValue(0);
     mocks.prisma.revisionRequest.groupBy.mockResolvedValue([]);
     mocks.prisma.revisionRequest.findMany.mockResolvedValue([]);
@@ -117,6 +119,7 @@ describe("/api/admin/projects/[id]/concepts", () => {
         data: expect.objectContaining({ notes: null }),
       }),
     );
+    expect(mocks.tx.revisionRequest.updateMany).not.toHaveBeenCalled();
     expect(mocks.createProjectSystemMessage).toHaveBeenCalledWith(
       mocks.tx,
       expect.objectContaining({ projectId: "p1", fallbackUserId: "admin-1", body: "Concept 1 is ready for review." }),
@@ -124,6 +127,35 @@ describe("/api/admin/projects/[id]/concepts", () => {
     expect(mocks.logAudit).toHaveBeenCalledWith(
       mocks.tx,
       expect.objectContaining({ type: "state_changed", payload: { previousStatus: "BRIEF_SUBMITTED", nextStatus: "CONCEPTS_READY" } }),
+    );
+  });
+
+  it("POST revision upload clears pending feedback only via delivery transition", async () => {
+    mocks.prisma.project.findUnique.mockResolvedValue({ id: "p1", status: "CONCEPTS_READY" });
+    mocks.prisma.fileAsset.findMany.mockResolvedValue([{ path: "p1/c1/v2.png" }]);
+    mocks.tx.revisionRequest.updateMany.mockResolvedValue({ count: 2 });
+
+    const formData = new FormData();
+    formData.set("file", new File([new Uint8Array([1, 2, 3])], "revision.png", { type: "image/png" }));
+    formData.set("uploadMode", "revision");
+    formData.set("conceptId", "c1");
+
+    const res = await POST(new Request("http://localhost", { method: "POST", body: formData }), {
+      params: Promise.resolve({ id: "p1" }),
+    });
+    const payload = await res.json().catch(() => null);
+
+    expect(res.status, JSON.stringify(payload)).toBe(200);
+    expect(mocks.tx.revisionRequest.updateMany).toHaveBeenCalledWith({
+      where: { projectId: "p1", conceptId: "c1", status: { not: "delivered" } },
+      data: { status: "delivered" },
+    });
+    expect(mocks.logAudit).toHaveBeenCalledWith(
+      mocks.tx,
+      expect.objectContaining({
+        type: "concept_revision_uploaded",
+        payload: expect.objectContaining({ deliveredRevisionRequests: 2 }),
+      }),
     );
   });
 });

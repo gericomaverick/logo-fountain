@@ -67,14 +67,7 @@ export default function AdminProjectConceptsPage() {
 
     const load = async () => {
       try {
-        await Promise.all([
-          refresh(projectId),
-          fetch(`/api/projects/${projectId}/read-state`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ area: "concepts" }),
-          }),
-        ]);
+        await refresh(projectId);
         setError(null);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to load concepts");
