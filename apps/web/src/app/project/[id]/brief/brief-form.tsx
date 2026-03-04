@@ -5,7 +5,7 @@ import Link from "next/link";
 
 import { BriefDocument, BriefField, BriefFieldGrid, BriefSection } from "@/components/brief-document";
 import { briefSections, EMPTY_BRIEF_ANSWERS, missingRequiredFields, requiredFieldLabels, type BriefAnswers } from "@/lib/brief";
-import { briefDraftStorageKey, mergeWithBriefDefaults, parseBriefDraft } from "@/lib/brief-draft";
+import { briefDraftStorageKey, hasBriefAnswerChanges, mergeWithBriefDefaults, parseBriefDraft } from "@/lib/brief-draft";
 import { nextStepIndex, previousStepIndex } from "@/lib/brief-wizard";
 import { scrollAndFocusEditor } from "./editor-focus";
 
@@ -30,20 +30,23 @@ function dateLabel(value: string): string {
 export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
   const latestBrief = briefVersions[0] ?? null;
   const draftStorageKey = briefDraftStorageKey(projectId, latestBrief?.version ?? null);
-  const [form, setForm] = useState<BriefAnswers>(() => {
+  const initialFormState = useMemo(() => {
     if (typeof window !== "undefined") {
       const draft = parseBriefDraft(window.sessionStorage.getItem(draftStorageKey));
       if (draft) return mergeWithBriefDefaults(draft);
     }
 
     return latestBrief?.answers ?? EMPTY_BRIEF_ANSWERS;
-  });
+  }, [draftStorageKey, latestBrief?.answers]);
+
+  const [form, setForm] = useState<BriefAnswers>(initialFormState);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedVersion, setSubmittedVersion] = useState<number | null>(null);
   const [isEditing, setIsEditing] = useState(latestBrief === null);
   const [selectedVersion, setSelectedVersion] = useState<number>(latestBrief?.version ?? 0);
   const [activeStep, setActiveStep] = useState(0);
+  const [draftSavedAt, setDraftSavedAt] = useState<Date | null>(null);
   const editorRef = useRef<HTMLFormElement | null>(null);
   const editorHeadingRef = useRef<HTMLHeadingElement | null>(null);
 
@@ -56,6 +59,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
   const currentSection = briefSections[activeStep] ?? null;
   const missingOnStep = currentSection ? missingRequiredFields(form, currentSection) : [];
   const progressPercent = Math.round(((activeStep + 1) / (briefSections.length + 1)) * 100);
+  const hasUnsavedChanges = isEditing && hasBriefAnswerChanges(form, latestBrief?.answers ?? EMPTY_BRIEF_ANSWERS);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -79,6 +83,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
 
     setSubmittedVersion(payload?.version ?? null);
     setIsEditing(false);
+    setDraftSavedAt(null);
     if (typeof window !== "undefined") {
       window.sessionStorage.removeItem(draftStorageKey);
     }
@@ -116,9 +121,27 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
   }, [isEditing]);
 
   useEffect(() => {
-    if (typeof window === "undefined" || submittedVersion !== null) return;
-    window.sessionStorage.setItem(draftStorageKey, JSON.stringify(form));
-  }, [draftStorageKey, form, submittedVersion]);
+    if (typeof window === "undefined" || submittedVersion !== null || !isEditing) return;
+
+    const timeout = window.setTimeout(() => {
+      window.sessionStorage.setItem(draftStorageKey, JSON.stringify(form));
+      setDraftSavedAt(new Date());
+    }, 250);
+
+    return () => window.clearTimeout(timeout);
+  }, [draftStorageKey, form, isEditing, submittedVersion]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !hasUnsavedChanges || isSubmitting) return;
+
+    const onBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [hasUnsavedChanges, isSubmitting]);
 
   if (submittedVersion !== null) {
     return (
@@ -128,7 +151,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
 
         <div className="mt-4 flex flex-wrap gap-3">
           <Link className="portal-btn-primary px-4 py-2" href={`/project/${projectId}`}>
-            Back to project hub
+            Back to project overview
           </Link>
           <Link className="portal-btn-secondary border-green-300" href={`/project/${projectId}/messages`}>
             Open project messages
@@ -150,6 +173,10 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
               type="button"
               onClick={() => {
                 if (isEditing) {
+                  if (hasUnsavedChanges && typeof window !== "undefined") {
+                    const leave = window.confirm("You have unsaved changes in this draft. Close the editor anyway?");
+                    if (!leave) return;
+                  }
                   setIsEditing(false);
                   return;
                 }
@@ -226,7 +253,12 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
           <div className="space-y-3 rounded-xl border border-neutral-200 bg-neutral-50/80 p-3 sm:p-4">
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-neutral-600">
               <p className="font-medium text-neutral-800">Step {Math.min(activeStep + 1, reviewStep + 1)} of {reviewStep + 1}</p>
-              <p>{progressPercent}% complete</p>
+              <div className="flex items-center gap-3">
+                <p>{progressPercent}% complete</p>
+                <p className="rounded-full border border-neutral-300 bg-white px-2 py-0.5 text-[11px] text-neutral-700" aria-live="polite">
+                  {draftSavedAt ? `Draft saved ${draftSavedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : "Draft autosaves in this tab"}
+                </p>
+              </div>
             </div>
             <div className="h-2 w-full overflow-hidden rounded-full bg-neutral-200">
               <div className="h-full rounded-full bg-neutral-900 transition-all" style={{ width: `${progressPercent}%` }} />
@@ -315,6 +347,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
             )}
           </div>
 
+          {hasUnsavedChanges ? <p className="text-xs text-amber-700">You have unsaved changes in this version. Submit when ready.</p> : null}
           {error ? <p className="text-sm text-red-700" role="alert">{error}</p> : null}
         </form>
       ) : null}

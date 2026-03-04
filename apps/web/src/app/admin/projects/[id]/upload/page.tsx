@@ -96,10 +96,10 @@ export default function AdminProjectUploadPage() {
             <h1 className="text-2xl font-semibold">Upload concepts</h1>
             <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
           </div>
-          <div className="flex gap-4 text-sm">
-            <Link className="underline" href={`/admin/projects/${projectId}`}>Overview</Link>
-            <Link className="underline" href={`/admin/projects/${projectId}/concepts`}>Concepts manager</Link>
-            <Link className="underline" href={`/admin/projects/${projectId}/messages`}>Project thread</Link>
+          <div className="flex flex-wrap gap-4 text-sm">
+            <Link className="portal-link no-underline" href={`/admin/projects/${projectId}`}>Project overview</Link>
+            <Link className="portal-link no-underline" href={`/admin/projects/${projectId}/concepts`}>Concepts manager</Link>
+            <Link className="portal-link no-underline" href={`/admin/projects/${projectId}/messages`}>Project messages</Link>
           </div>
         </div>
 

@@ -162,10 +162,10 @@ function AdminSection({
                     </div>
                     <div className="flex flex-wrap gap-3 text-sm text-neutral-700">
                       <Link className="portal-link no-underline" href={`/admin/projects/${project.id}/messages`}>
-                        Project thread
+                        Project messages
                       </Link>
                       <Link className="portal-link no-underline" href={`/admin/projects/${project.id}/concepts`}>
-                        Concept thread(s)
+                        Concept threads
                       </Link>
                     </div>
                   </div>

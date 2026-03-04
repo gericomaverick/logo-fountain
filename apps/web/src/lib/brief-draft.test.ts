@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { EMPTY_BRIEF_ANSWERS } from "./brief";
-import { briefDraftStorageKey, mergeWithBriefDefaults, parseBriefDraft } from "./brief-draft";
+import { briefDraftStorageKey, hasBriefAnswerChanges, mergeWithBriefDefaults, parseBriefDraft } from "./brief-draft";
 
 describe("brief draft helpers", () => {
   it("creates project + version scoped draft keys", () => {
@@ -33,5 +33,14 @@ describe("brief draft helpers", () => {
     const merged = mergeWithBriefDefaults({ ...EMPTY_BRIEF_ANSWERS, brandName: "Acme", offerSummary: "X" });
     expect(merged.tagline).toBe(EMPTY_BRIEF_ANSWERS.tagline);
     expect(merged.brandName).toBe("Acme");
+  });
+
+  it("detects when answers differ from baseline", () => {
+    const baseline = { ...EMPTY_BRIEF_ANSWERS, brandName: "Acme" };
+    const unchanged = { ...baseline };
+    const changed = { ...baseline, industry: "SaaS" };
+
+    expect(hasBriefAnswerChanges(unchanged, baseline)).toBe(false);
+    expect(hasBriefAnswerChanges(changed, baseline)).toBe(true);
   });
 });

@@ -90,9 +90,9 @@ export default function ProjectConceptsPage() {
             <h1 className="text-2xl font-semibold">Concepts gallery</h1>
             <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
           </div>
-          <div className="flex gap-4 text-sm">
-            <Link className="portal-link no-underline" href={`/project/${projectId}`}>Overview</Link>
-            <Link className="portal-link no-underline" href={`/project/${projectId}/messages`}>Messages</Link>
+          <div className="flex flex-wrap gap-4 text-sm">
+            <Link className="portal-link no-underline" href={`/project/${projectId}`}>Project overview</Link>
+            <Link className="portal-link no-underline" href={`/project/${projectId}/messages`}>Project messages</Link>
           </div>
         </div>
 

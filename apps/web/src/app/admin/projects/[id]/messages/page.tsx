@@ -130,8 +130,8 @@ export default function AdminProjectMessagesPage() {
             <h1 className="text-2xl font-semibold">Admin messages</h1>
             <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
           </div>
-          <div className="flex gap-4 text-sm">
-            <Link className="portal-link no-underline" href={`/admin/projects/${projectId}`}>Overview</Link>
+          <div className="flex flex-wrap gap-4 text-sm">
+            <Link className="portal-link no-underline" href={`/admin/projects/${projectId}`}>Project overview</Link>
             <Link className="portal-link no-underline" href={`/admin/projects/${projectId}/concepts#pending-feedback`}>Pending feedback inbox</Link>
             <Link className="portal-link no-underline" href={`/admin/projects/${projectId}/upload`}>Upload concepts</Link>
           </div>

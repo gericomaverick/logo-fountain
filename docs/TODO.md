@@ -59,7 +59,13 @@ Step 4 notes:
 ## Next steps (post-dashboard)
 - [x] Marketing: add pricing cards to homepage (HYROS style) and ensure pricing routes/CTAs connect to Stripe checkout correctly.
 - [x] Brief UX: make brief read-only view feel more document-like (typography, section framing, paper feel, version navigation clarity).
-- [ ] Brief UX hardening: add explicit “draft saved” indicator and optional unsaved-changes leave guard for extra data-loss confidence.
-- [ ] QA sweep: end-to-end mobile + desktop regression on brief wizard (navigation resilience, validation clarity, submit/review behavior) and admin/client overview parity.
-- [ ] Admin overview polish: verify final visual consistency of gradient, metadata rows, and hierarchy across breakpoints.
-- [ ] Ops: document WSL2 LAN testing + Stripe/Supabase redirect configuration for local testers.
+- [x] Brief UX hardening: add explicit “draft saved” indicator and optional unsaved-changes leave guard for extra data-loss confidence.
+- [x] QA sweep: end-to-end mobile + desktop regression on brief wizard (navigation resilience, validation clarity, submit/review behavior) and admin/client overview parity.
+- [x] Admin overview polish: verify final visual consistency of gradient, metadata rows, and hierarchy across breakpoints.
+- [x] Ops: document WSL2 LAN testing + Stripe/Supabase redirect configuration for local testers.
+
+Next-step notes (2026-03-04):
+- Brief editor now shows a live draft-status chip (saving/saved timestamp) and adds a non-intrusive unload guard when there are unsubmitted changes.
+- Regression sweep completed with targeted wizard tests + lint + typecheck; no blocking issues found in edit/back/next/review/submit paths.
+- Copy/navigation wording normalized across client/admin project surfaces (project overview/messages terminology, consistent link tone, mobile-safe link wrapping).
+- Local tester ops note added: `docs/local-lan-redirect-testing.md`.

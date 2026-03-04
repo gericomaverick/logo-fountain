@@ -153,9 +153,9 @@ export default function AdminProjectConceptsPage() {
             <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
             <p className="mt-1 text-sm text-neutral-600">Pending feedback items: {totalPending}</p>
           </div>
-          <div className="flex gap-4 text-sm">
-            <Link className="portal-link no-underline" href={`/admin/projects/${projectId}`}>Overview</Link>
-            <Link className="portal-link no-underline" href={`/admin/projects/${projectId}/messages`}>Project thread</Link>
+          <div className="flex flex-wrap gap-4 text-sm">
+            <Link className="portal-link no-underline" href={`/admin/projects/${projectId}`}>Project overview</Link>
+            <Link className="portal-link no-underline" href={`/admin/projects/${projectId}/messages`}>Project messages</Link>
           </div>
         </div>
 

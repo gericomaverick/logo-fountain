@@ -116,7 +116,7 @@ export default function ProjectMessagesPage() {
             <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
           </div>
           <Link className="portal-link no-underline" href={`/project/${projectId}`}>
-            Back to project
+            Back to project overview
           </Link>
         </div>
 

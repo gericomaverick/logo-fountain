@@ -206,11 +206,11 @@ export default function AdminProjectPage() {
                 </div>
               </div>
               <div className="mt-3 grid gap-2 border-t border-neutral-200/80 pt-3 text-sm text-neutral-700 sm:grid-cols-2">
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
                   <p className="text-xs uppercase tracking-wide text-neutral-500">Created at</p>
                   <p className="font-medium text-neutral-900">{formatDateTime(snapshot?.createdAt)}</p>
                 </div>
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
                   <p className="text-xs uppercase tracking-wide text-neutral-500">Last updated</p>
                   <p className="font-medium text-neutral-900">{formatDateTime(snapshot?.updatedAt)}</p>
                 </div>

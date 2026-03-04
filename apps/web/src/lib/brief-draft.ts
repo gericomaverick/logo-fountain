@@ -21,3 +21,12 @@ export function mergeWithBriefDefaults(value: BriefAnswers | null): BriefAnswers
   if (!value) return EMPTY_BRIEF_ANSWERS;
   return { ...EMPTY_BRIEF_ANSWERS, ...value };
 }
+
+export function hasBriefAnswerChanges(current: BriefAnswers, baseline: BriefAnswers): boolean {
+  const currentNormalized = mergeWithBriefDefaults(current);
+  const baselineNormalized = mergeWithBriefDefaults(baseline);
+
+  return (Object.keys(currentNormalized) as Array<keyof BriefAnswers>).some(
+    (key) => currentNormalized[key] !== baselineNormalized[key],
+  );
+}
