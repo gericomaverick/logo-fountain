@@ -9,7 +9,7 @@ import { HeaderNav } from "@/components/header-nav";
 import { PageShell } from "@/components/page-shell";
 import { ProjectStatusBadge } from "@/components/project-status-badge";
 import { formatClientFirstName, getAreaCardSubtitle } from "@/lib/project-overview";
-import { buildActivityGroups, getMissionControlPrimaryCta, getPendingFeedbackCountForLatestConcept } from "@/lib/project-hub";
+import { buildActivityGroups, getClientOverviewNextAction, getMissionControlPrimaryCta, getPendingFeedbackCountForLatestConcept } from "@/lib/project-hub";
 
 type EntitlementUsage = {
   limit: number;
@@ -465,8 +465,8 @@ export default function ProjectPage() {
     [snapshot?.concepts, snapshot?.revisionRequests],
   );
   const nextAction = useMemo(
-    () => getMissionControlPrimaryCta(projectId, snapshot?.status ?? "", { pendingFeedbackCount }),
-    [pendingFeedbackCount, projectId, snapshot?.status],
+    () => getClientOverviewNextAction(projectId, snapshot, { pendingFeedbackCount }),
+    [pendingFeedbackCount, projectId, snapshot],
   );
   const upsellSessionId = searchParams.get("upsell") === "1" ? searchParams.get("session_id")?.trim() ?? null : null;
   const upsellKind = useMemo(() => {
@@ -488,18 +488,10 @@ export default function ProjectPage() {
                   <h1 className="mt-3 text-2xl font-semibold text-neutral-900">Hey{welcomeName ? `, ${welcomeName}` : ""}</h1>
                   <p className="mt-1 text-sm text-neutral-600">Project overview · {projectId}</p>
 
-                  <div className="mt-4 grid gap-2 text-sm text-neutral-700 sm:grid-cols-3">
+                  <div className="mt-4 grid gap-2 text-sm text-neutral-700 sm:grid-cols-1">
                     <div className="capitalize">
                       <p className="text-[11px] uppercase tracking-wide text-neutral-500">Package</p>
                       <p className="mt-1 font-medium text-neutral-900">{snapshot?.packageCode ?? "—"}</p>
-                    </div>
-                    <div className="capitalize">
-                      <p className="text-[11px] uppercase tracking-wide text-neutral-500">Created</p>
-                      <p className="mt-1 font-medium text-neutral-900">{formatDateTime(snapshot?.createdAt)}</p>
-                    </div>
-                    <div className="capitalize">
-                      <p className="text-[11px] uppercase tracking-wide text-neutral-500">Last updated</p>
-                      <p className="mt-1 font-medium text-neutral-900">{formatDateTime(snapshot?.updatedAt)}</p>
                     </div>
                   </div>
                 </div>
@@ -509,10 +501,16 @@ export default function ProjectPage() {
                   <div aria-hidden className="pointer-events-none absolute -bottom-20 left-8 h-40 w-40 rounded-full bg-gradient-to-tr from-teal-200/20 via-cyan-200/15 to-violet-200/20 blur-2xl" />
                   <div className="relative">
                     <p className="text-xs font-semibold uppercase tracking-wide text-violet-800">Next action</p>
-                    <p className="mt-1 text-sm text-violet-950">Do this first to keep your project moving.</p>
-                    <Link href={nextAction.href} className="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-violet-700 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300 focus-visible:ring-offset-2">
-                      {nextAction.label}
-                    </Link>
+                    {nextAction ? (
+                      <>
+                        <p className="mt-1 text-sm text-violet-950">Do this first to keep your project moving.</p>
+                        <Link href={nextAction.href} className="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-violet-700 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300 focus-visible:ring-offset-2">
+                          {nextAction.label}
+                        </Link>
+                      </>
+                    ) : (
+                      <p className="mt-1 text-sm font-medium text-emerald-900">You’re all caught up! We’ll surface the next step here when something needs your attention.</p>
+                    )}
                     <div className={`mt-3 rounded-lg border px-3 py-2 text-xs ${pendingFeedbackCount > 0 ? "border-amber-200 bg-amber-50 text-amber-900" : "border-emerald-200 bg-emerald-50 text-emerald-900"}`}>
                       Pending feedback: <span className="font-semibold">{pendingFeedbackCount}</span>
                     </div>

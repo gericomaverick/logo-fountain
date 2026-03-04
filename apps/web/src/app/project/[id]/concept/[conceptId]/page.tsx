@@ -60,6 +60,7 @@ export default function ConceptDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+  const [approvalSuccess, setApprovalSuccess] = useState<{ conceptNumber?: number } | null>(null);
 
   const concept = useMemo(
     () => snapshot?.concepts.find((item) => item.id === conceptId) ?? null,
@@ -182,6 +183,7 @@ export default function ConceptDetailPage() {
 
     setBusy(true);
     setActionError(null);
+    setActionSuccess(null);
 
     const res = await fetch(`/api/projects/${projectId}/approve`, {
       method: "POST",
@@ -190,8 +192,31 @@ export default function ConceptDetailPage() {
     });
 
     const payload = await res.json().catch(() => null);
-    if (!res.ok) setActionError(readError(payload, "Failed to approve concept"));
-    else await refresh(projectId);
+    if (!res.ok) {
+      setActionError(readError(payload, "Failed to approve concept"));
+    } else {
+      const approvedConceptId = typeof payload?.concept?.id === "string" ? payload.concept.id : conceptId;
+      const approvedConceptStatus = typeof payload?.concept?.status === "string" ? payload.concept.status : "approved";
+      const approvedProjectStatus = typeof payload?.project?.status === "string" ? payload.project.status : "AWAITING_APPROVAL";
+      const approvedConceptNumber = typeof payload?.concept?.number === "number" ? payload.concept.number : concept?.number;
+
+      setSnapshot((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          status: approvedProjectStatus,
+          concepts: prev.concepts.map((item) => {
+            if (item.id === approvedConceptId) return { ...item, status: approvedConceptStatus };
+            if (item.status === "published" || item.status === "approved") return { ...item, status: "archived" };
+            return item;
+          }),
+        };
+      });
+
+      setApprovalSuccess({ conceptNumber: approvedConceptNumber });
+      setActionSuccess("Concept approved. We’ve updated your project status.");
+      await refresh(projectId);
+    }
 
     setBusy(false);
   }
@@ -239,6 +264,27 @@ export default function ConceptDetailPage() {
             <Link className="portal-link no-underline" href={`/project/${projectId}/messages`}>Messages</Link>
           </div>
         </div>
+
+        {approvalSuccess ? (
+          <section className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-900">
+            <h2 className="text-base font-semibold">Concept approved — thank you!</h2>
+            <p className="mt-1 text-sm">
+              {approvalSuccess.conceptNumber ? `Concept #${approvalSuccess.conceptNumber} is now approved.` : "Your selected concept is now approved."} We’ve updated your project status and your designer is moving to the next stage.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Link className="portal-btn-secondary border-emerald-300 bg-white text-emerald-900" href={`/project/${projectId}`}>
+                Back to project overview
+              </Link>
+              <button
+                type="button"
+                className="portal-btn-secondary"
+                onClick={() => setApprovalSuccess(null)}
+              >
+                Dismiss
+              </button>
+            </div>
+          </section>
+        ) : null}
 
         {loading ? <p className="text-sm text-neutral-600">Loading…</p> : null}
         {error ? <p className="text-sm text-red-600">{error}</p> : null}

@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { buildActivityGroups, getMissionControlPrimaryCta, getPendingFeedbackCountForLatestConcept } from "./project-hub";
+import {
+  buildActivityGroups,
+  getClientOverviewNextAction,
+  getMissionControlPrimaryCta,
+  getPendingFeedbackCountForLatestConcept,
+} from "./project-hub";
 
 describe("getPendingFeedbackCountForLatestConcept", () => {
   it("counts only requested feedback on latest concept", () => {
@@ -14,6 +19,30 @@ describe("getPendingFeedbackCountForLatestConcept", () => {
     );
 
     expect(count).toBe(1);
+  });
+});
+
+describe("getClientOverviewNextAction", () => {
+  it("returns null when there is no actionable item", () => {
+    expect(
+      getClientOverviewNextAction("p1", {
+        status: "AWAITING_APPROVAL",
+        hasNewMessages: false,
+        hasNewConcepts: false,
+      }),
+    ).toBeNull();
+  });
+
+  it("prioritizes unread messages over generic states", () => {
+    expect(
+      getClientOverviewNextAction("p1", {
+        status: "AWAITING_APPROVAL",
+        hasNewMessages: true,
+      }),
+    ).toEqual({
+      label: "Read unread messages",
+      href: "/project/p1/messages",
+    });
   });
 });
 

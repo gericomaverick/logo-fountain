@@ -12,6 +12,13 @@ export type ActivityGroup = {
   items: ActivityItem[];
 };
 
+export type ClientOverviewSnapshot = {
+  status: string;
+  hasNewMessages?: boolean;
+  hasNewConcepts?: boolean;
+  latestBrief?: { version: number } | null;
+};
+
 const DATE_LABEL_FORMATTER = new Intl.DateTimeFormat("en-GB", {
   weekday: "short",
   day: "numeric",
@@ -32,6 +39,36 @@ export function getPendingFeedbackCountForLatestConcept(
   if (!latestConceptId) return 0;
 
   return revisionRequests.filter((request) => request.concept?.id === latestConceptId && request.status === "requested").length;
+}
+
+export function getClientOverviewNextAction(
+  projectId: string,
+  snapshot: ClientOverviewSnapshot | null,
+  options?: { pendingFeedbackCount?: number },
+): { label: string; href: string } | null {
+  if (!snapshot) return null;
+
+  if (snapshot.status === "AWAITING_BRIEF") {
+    return { label: "Submit project brief", href: `/project/${projectId}/brief` };
+  }
+
+  if ((options?.pendingFeedbackCount ?? 0) > 0) {
+    return { label: "Review pending revision notes", href: `/project/${projectId}/concepts` };
+  }
+
+  if (snapshot.hasNewConcepts) {
+    return { label: "Review new concepts", href: `/project/${projectId}/concepts` };
+  }
+
+  if (snapshot.hasNewMessages) {
+    return { label: "Read unread messages", href: `/project/${projectId}/messages` };
+  }
+
+  if (snapshot.status === "CONCEPTS_READY" || snapshot.status === "REVISIONS_IN_PROGRESS") {
+    return { label: "Review concepts", href: `/project/${projectId}/concepts` };
+  }
+
+  return null;
 }
 
 export function getMissionControlPrimaryCta(projectId: string, status: string, options?: { pendingFeedbackCount?: number }) {
