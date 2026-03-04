@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 import { AuthShell } from "@/components/auth-shell";
+import { hasValidationErrors, toErrorList, validatePasswordReset, ValidationErrors } from "@/lib/auth/validation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+
+type PasswordErrors = ValidationErrors<"password" | "confirm">;
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -13,6 +16,7 @@ export default function ResetPasswordPage() {
 
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<PasswordErrors>({});
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -20,13 +24,11 @@ export default function ResetPasswordPage() {
     event.preventDefault();
     setStatus(null);
 
-    if (password.length < 8) {
-      setStatus("Password must be at least 8 characters.");
-      return;
-    }
+    const errors = validatePasswordReset(password, confirm);
+    setFieldErrors(errors);
 
-    if (password !== confirm) {
-      setStatus("Passwords do not match.");
+    if (hasValidationErrors(errors)) {
+      setStatus("Fix the highlighted fields and try again.");
       return;
     }
 
@@ -35,7 +37,7 @@ export default function ResetPasswordPage() {
     try {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) {
-        setStatus(error.message);
+        setStatus(`We couldn’t update your password. ${error.message}`);
         return;
       }
 
@@ -47,9 +49,22 @@ export default function ResetPasswordPage() {
     }
   }
 
+  const summaryErrors = toErrorList(fieldErrors);
+
   return (
     <AuthShell title="Choose a new password" subtitle="Set a new password for your account.">
-      <form className="space-y-4" onSubmit={onSubmit}>
+      {summaryErrors.length > 0 ? (
+        <div className="mb-4 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800" role="alert" aria-live="assertive">
+          <p className="font-medium">⚠ Please fix the highlighted fields:</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5">
+            {summaryErrors.map((message) => (
+              <li key={message}>{message}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      <form className="space-y-4" onSubmit={onSubmit} noValidate>
         <div>
           <label className="mb-1 block text-sm" htmlFor="password">New password</label>
           <input
@@ -59,8 +74,15 @@ export default function ResetPasswordPage() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded border border-neutral-300 px-3 py-2"
+            aria-invalid={Boolean(fieldErrors.password)}
+            aria-describedby={fieldErrors.password ? "password-error" : undefined}
+            className={`w-full rounded border px-3 py-2 transition focus:outline-none focus:ring-2 ${
+              fieldErrors.password
+                ? "border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-200"
+                : "border-neutral-300 focus:border-neutral-400 focus:ring-black/10"
+            }`}
           />
+          {fieldErrors.password ? <p id="password-error" className="mt-2 text-sm font-medium text-red-700" role="alert">{fieldErrors.password}</p> : null}
         </div>
 
         <div>
@@ -72,8 +94,15 @@ export default function ResetPasswordPage() {
             required
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
-            className="w-full rounded border border-neutral-300 px-3 py-2"
+            aria-invalid={Boolean(fieldErrors.confirm)}
+            aria-describedby={fieldErrors.confirm ? "confirm-error" : undefined}
+            className={`w-full rounded border px-3 py-2 transition focus:outline-none focus:ring-2 ${
+              fieldErrors.confirm
+                ? "border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-200"
+                : "border-neutral-300 focus:border-neutral-400 focus:ring-black/10"
+            }`}
           />
+          {fieldErrors.confirm ? <p id="confirm-error" className="mt-2 text-sm font-medium text-red-700" role="alert">{fieldErrors.confirm}</p> : null}
         </div>
 
         <button type="submit" disabled={busy} className="w-full rounded bg-black px-4 py-2 text-white disabled:opacity-60">
@@ -81,7 +110,11 @@ export default function ResetPasswordPage() {
         </button>
       </form>
 
-      {status ? <p className="mt-4 text-sm text-neutral-700">{status}</p> : null}
+      {status ? (
+        <p className={`mt-4 text-sm ${status.startsWith("Password updated") ? "text-green-700" : "text-red-700"}`} role="status" aria-live="polite">
+          {status}
+        </p>
+      ) : null}
 
       <p className="mt-6 text-sm text-neutral-600">
         <Link className="underline" href="/login">Back to sign in</Link>
