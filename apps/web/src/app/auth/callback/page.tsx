@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import type { VerifyOtpParams } from "@supabase/supabase-js";
 
 import { AuthShell } from "@/components/auth-shell";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -25,8 +26,25 @@ export default function AuthCallbackPage() {
         const search = new URLSearchParams(window.location.search);
         const next = safeNextPath(search.get("next"));
         const code = search.get("code");
+        const tokenHash = search.get("token_hash") ?? search.get("token");
+        const otpType = search.get("type");
+        const email = search.get("email");
 
-        // 1) PKCE flow (code in query string)
+        // 1) Magic-link OTP (token hash + email in query string)
+        if (tokenHash && otpType && email) {
+          const { error } = await supabase.auth.verifyOtp({
+            type: otpType as VerifyOtpParams["type"],
+            token_hash: tokenHash,
+            email,
+          });
+          if (error) throw error;
+          if (cancelled) return;
+          router.replace(next);
+          router.refresh();
+          return;
+        }
+
+        // 2) PKCE flow (code in query string)
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
           if (error) throw error;
@@ -36,7 +54,7 @@ export default function AuthCallbackPage() {
           return;
         }
 
-        // 2) Implicit flow (tokens in URL hash)
+        // 3) Implicit flow (tokens in URL hash)
         const hash = window.location.hash;
         if (hash && hash.length > 1) {
           const params = new URLSearchParams(hash.slice(1));

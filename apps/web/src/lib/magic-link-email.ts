@@ -21,7 +21,7 @@ async function generateMagicLink({
   projectId?: string | null;
 }) {
   const supabaseAdmin = createSupabaseAdminClient();
-  const redirectTo = buildAuthCallbackRedirect(baseUrl, projectId);
+  const redirectTo = buildAuthCallbackRedirect(baseUrl, { projectId, email });
 
   const result = await supabaseAdmin.auth.admin.generateLink({
     type: "magiclink",

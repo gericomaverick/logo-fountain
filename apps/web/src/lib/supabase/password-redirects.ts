@@ -5,11 +5,17 @@ export function buildSetPasswordRedirect(baseUrl: string, projectId?: string | n
   return redirect.toString();
 }
 
-export function buildAuthCallbackRedirect(baseUrl: string, projectId?: string | null): string {
-  const setPasswordUrl = new URL(buildSetPasswordRedirect(baseUrl, projectId));
+export function buildAuthCallbackRedirect(
+  baseUrl: string,
+  options?: { projectId?: string | null; email?: string | null },
+): string {
+  const setPasswordUrl = new URL(buildSetPasswordRedirect(baseUrl, options?.projectId));
   const next = `${setPasswordUrl.pathname}${setPasswordUrl.search}`;
 
   const callback = new URL("/auth/callback", baseUrl);
   callback.searchParams.set("next", next);
+  if (options?.email) {
+    callback.searchParams.set("email", options.email);
+  }
   return callback.toString();
 }

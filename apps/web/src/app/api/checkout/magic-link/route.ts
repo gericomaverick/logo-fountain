@@ -43,7 +43,7 @@ export async function POST(req: Request) {
   if (!purchaserEmail) return jsonError("No purchaser email found.", 409, undefined, "MISSING_EMAIL");
 
   const appBaseUrl = getRequestOrigin(req);
-  const redirectTo = buildAuthCallbackRedirect(appBaseUrl, order.projectId);
+  const redirectTo = buildAuthCallbackRedirect(appBaseUrl, { projectId: order.projectId, email: purchaserEmail });
 
   const supabaseAdmin = createSupabaseAdminClient();
   const result = await supabaseAdmin.auth.admin.generateLink({

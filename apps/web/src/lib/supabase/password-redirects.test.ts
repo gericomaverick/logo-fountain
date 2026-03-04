@@ -11,10 +11,10 @@ describe("password redirect helpers", () => {
       .toBe("http://example.com/set-password?next=%2Fdashboard&projectId=project-123");
   });
 
-  it("wraps set-password URL in auth callback", () => {
-    const url = buildAuthCallbackRedirect("http://example.com", "proj-1");
+  it("wraps set-password URL in auth callback and carries email", () => {
+    const url = buildAuthCallbackRedirect("http://example.com", { projectId: "proj-1", email: "user@example.com" });
     expect(url).toBe(
-      "http://example.com/auth/callback?next=%2Fset-password%3Fnext%3D%252Fdashboard%26projectId%3Dproj-1",
+      "http://example.com/auth/callback?next=%2Fset-password%3Fnext%3D%252Fdashboard%26projectId%3Dproj-1&email=user%40example.com",
     );
   });
 });
