@@ -4,7 +4,7 @@ import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
 
 import { BriefDocument, BriefField, BriefFieldGrid } from "@/components/brief-document";
-import { briefSections, EMPTY_BRIEF_ANSWERS, missingRequiredFields, type BriefAnswers } from "@/lib/brief";
+import { briefSections, EMPTY_BRIEF_ANSWERS, missingRequiredFields, requiredFieldLabels, type BriefAnswers } from "@/lib/brief";
 import { nextStepIndex, previousStepIndex } from "@/lib/brief-wizard";
 
 type BriefVersion = {
@@ -71,7 +71,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
 
   function goNext() {
     if (currentSection && missingOnStep.length > 0) {
-      setError(`Please complete: ${missingOnStep.join(", ")}.`);
+      setError(`Please complete: ${requiredFieldLabels(missingOnStep, currentSection).join(", ")}.`);
       return;
     }
     setError(null);
@@ -166,8 +166,14 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
 
       {isEditing ? (
         <form className="portal-card space-y-5 p-4 sm:p-5" onSubmit={onSubmit}>
-          <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
-            You can move back at any time. Submitting this form creates a new brief version and keeps the full history intact.
+          <div className="relative overflow-hidden rounded-2xl border border-violet-200/70 bg-gradient-to-br from-violet-50 via-indigo-50 to-teal-50 px-4 py-3 shadow-sm shadow-violet-200/30">
+            <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-gradient-to-br from-violet-200/30 via-sky-200/20 to-teal-200/15 blur-2xl" />
+            <div aria-hidden className="pointer-events-none absolute -bottom-16 left-10 h-32 w-32 rounded-full bg-gradient-to-tr from-teal-200/20 via-cyan-200/15 to-violet-200/20 blur-2xl" />
+            <div className="relative">
+              <p className="text-xs font-semibold uppercase tracking-wide text-violet-800">From the Logo Fountain team</p>
+              <p className="mt-1 text-sm leading-relaxed text-violet-950">The more specific your brief, the stronger your logo concepts will be. A few extra details now helps us design faster and with much better precision.</p>
+              <p className="mt-2 text-xs text-violet-900/90">You can move back at any time, and each submission is saved as a new version.</p>
+            </div>
           </div>
 
           <div className="space-y-3 rounded-xl border border-neutral-200 bg-neutral-50/80 p-3 sm:p-4">
@@ -178,13 +184,13 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
             <div className="h-2 w-full overflow-hidden rounded-full bg-neutral-200">
               <div className="h-full rounded-full bg-neutral-900 transition-all" style={{ width: `${progressPercent}%` }} />
             </div>
-            <ol className="grid gap-2 text-[11px] sm:grid-cols-5">
+            <ol className="flex gap-2 overflow-x-auto pb-1 text-[11px] [scrollbar-width:thin]">
               {briefSections.map((section, index) => (
-                <li key={section.id} className={`rounded-md border px-2 py-1 ${index === activeStep ? "border-neutral-900 bg-white text-neutral-900" : "border-neutral-200 text-neutral-500"}`}>
+                <li key={section.id} className={`shrink-0 rounded-md border px-2 py-1 ${index === activeStep ? "border-neutral-900 bg-white text-neutral-900" : "border-neutral-200 text-neutral-500"}`}>
                   {section.title}
                 </li>
               ))}
-              <li className={`rounded-md border px-2 py-1 ${activeStep === reviewStep ? "border-neutral-900 bg-white text-neutral-900" : "border-neutral-200 text-neutral-500"}`}>Review & submit</li>
+              <li className={`shrink-0 rounded-md border px-2 py-1 ${activeStep === reviewStep ? "border-neutral-900 bg-white text-neutral-900" : "border-neutral-200 text-neutral-500"}`}>Review & submit</li>
             </ol>
           </div>
 
@@ -192,6 +198,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
             <section className="rounded-xl border border-neutral-200 bg-white p-4">
               <h3 className="text-sm font-semibold text-neutral-900">{currentSection.title}</h3>
               <p className="mt-1 text-xs text-neutral-600">{currentSection.description}</p>
+              <p className="mt-2 text-[11px] text-neutral-500"><span className="text-red-700">*</span> Required fields · Optional fields are clearly marked.</p>
               <div className="mt-4 grid gap-4">
                 {currentSection.fields.map((field) => (
                   <div key={field.key}>

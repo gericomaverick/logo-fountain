@@ -223,6 +223,13 @@ export function missingRequiredFields(answers: BriefAnswers, section?: BriefSect
   return required.filter((key) => !answers[key]);
 }
 
+export function requiredFieldLabels(keys: Array<keyof BriefAnswers>, section?: BriefSectionDefinition): string[] {
+  if (!section) return keys;
+
+  const labelsByKey = new Map(section.fields.map((field) => [field.key, field.label]));
+  return keys.map((key) => labelsByKey.get(key) ?? key);
+}
+
 export function parseBriefAnswers(value: unknown): BriefAnswers | null {
   if (typeof value !== "object" || value === null) return null;
   const raw = value as Record<string, unknown>;

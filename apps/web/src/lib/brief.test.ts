@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { parseBriefAnswers, validateBriefSubmission } from "./brief";
+import { briefSections, missingRequiredFields, parseBriefAnswers, requiredFieldLabels, validateBriefSubmission } from "./brief";
 
 describe("brief parsing", () => {
   it("parses legacy v1 brief answers safely", () => {
@@ -30,5 +30,29 @@ describe("brief parsing", () => {
       expect(result.missing).toContain("audiencePrimary");
       expect(result.missing).toContain("usageContexts");
     }
+  });
+
+  it("maps missing required field keys to section labels", () => {
+    const section = briefSections[0];
+    const missingKeys = missingRequiredFields({
+      brandName: "Acme",
+      industry: "",
+      offerSummary: "",
+      audiencePrimary: "",
+      audienceSecondary: "",
+      businessGoals: "",
+      brandPersonality: "",
+      styleDirection: "",
+      colorPreferences: "",
+      mustInclude: "",
+      avoidanceNotes: "",
+      usageContexts: "",
+      deliverablesContext: "",
+      competitors: "",
+      additionalNotes: "",
+      tagline: "",
+    }, section);
+
+    expect(requiredFieldLabels(missingKeys, section)).toEqual(["Industry", "What do you sell or offer?"]);
   });
 });
