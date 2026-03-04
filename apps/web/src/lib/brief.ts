@@ -13,7 +13,6 @@ export type BriefAnswers = {
   avoidanceNotes: string;
   usageContexts: string;
   deliverablesContext: string;
-  deadlineOrLaunch: string;
   competitors: string;
   additionalNotes: string;
 };
@@ -36,7 +35,7 @@ export type BriefSectionDefinition = {
   fields: BriefFieldDefinition[];
 };
 
-const EMPTY_ANSWERS: BriefAnswers = {
+export const EMPTY_BRIEF_ANSWERS: BriefAnswers = {
   brandName: "",
   tagline: "",
   industry: "",
@@ -51,7 +50,6 @@ const EMPTY_ANSWERS: BriefAnswers = {
   avoidanceNotes: "",
   usageContexts: "",
   deliverablesContext: "",
-  deadlineOrLaunch: "",
   competitors: "",
   additionalNotes: "",
 };
@@ -72,7 +70,7 @@ export const briefSections: BriefSectionDefinition[] = [
         kind: "textarea",
         rows: 4,
         maxLength: 700,
-        helperText: "Be specific so the designer can understand your business model.",
+        helperText: "A clear one-paragraph summary helps us design with the right commercial context.",
         placeholder: "We provide subscription accounting software for UK freelancers and sole traders.",
       },
     ],
@@ -182,13 +180,6 @@ export const briefSections: BriefSectionDefinition[] = [
         placeholder: "Anything the team should optimise for now: print-first, icon-first, motion-ready, etc.",
       },
       {
-        key: "deadlineOrLaunch",
-        label: "Deadline or launch date",
-        kind: "input",
-        maxLength: 120,
-        placeholder: "Optional — e.g. Product launch on 14 Sept, expo in Q4",
-      },
-      {
         key: "competitors",
         label: "Competitors or references",
         kind: "textarea",
@@ -224,12 +215,20 @@ function cleanText(value: unknown, maxLength = 800): string {
   return value.trim().slice(0, maxLength);
 }
 
+export function missingRequiredFields(answers: BriefAnswers, section?: BriefSectionDefinition): Array<keyof BriefAnswers> {
+  const required = section
+    ? section.fields.filter((field) => field.required).map((field) => field.key)
+    : REQUIRED_FIELDS;
+
+  return required.filter((key) => !answers[key]);
+}
+
 export function parseBriefAnswers(value: unknown): BriefAnswers | null {
   if (typeof value !== "object" || value === null) return null;
   const raw = value as Record<string, unknown>;
 
   const next: BriefAnswers = {
-    ...EMPTY_ANSWERS,
+    ...EMPTY_BRIEF_ANSWERS,
     brandName: cleanText(raw.brandName, 120),
     tagline: cleanText(raw.tagline, 140),
     industry: cleanText(raw.industry, 120),
@@ -244,7 +243,6 @@ export function parseBriefAnswers(value: unknown): BriefAnswers | null {
     avoidanceNotes: cleanText(raw.avoidanceNotes, 450),
     usageContexts: cleanText(raw.usageContexts, 500),
     deliverablesContext: cleanText(raw.deliverablesContext, 400),
-    deadlineOrLaunch: cleanText(raw.deadlineOrLaunch, 120),
     competitors: cleanText(raw.competitors, 500),
     additionalNotes: cleanText(raw.additionalNotes, 500),
   };
@@ -264,7 +262,7 @@ export function validateBriefSubmission(value: unknown): { ok: true; answers: Br
   const parsed = parseBriefAnswers(value);
   if (!parsed) return { ok: false, missing: ["brandName", "industry", "offerSummary"] };
 
-  const missing = REQUIRED_FIELDS.filter((key) => !parsed[key]);
+  const missing = missingRequiredFields(parsed);
   if (missing.length > 0) return { ok: false, missing };
 
   return { ok: true, answers: parsed };

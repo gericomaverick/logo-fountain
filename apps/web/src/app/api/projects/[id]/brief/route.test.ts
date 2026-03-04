@@ -121,4 +121,19 @@ describe("POST /api/projects/[id]/brief", () => {
     const payload = await res.json();
     expect(JSON.stringify(payload)).toContain("Invalid brief payload");
   });
+
+  it("drops legacy deadline field from persisted payload", async () => {
+    mocks.prisma.project.findUnique.mockResolvedValue({ id: "p1", status: "AWAITING_BRIEF" });
+
+    const req = new Request("http://localhost", {
+      method: "POST",
+      body: JSON.stringify({ ...validPayload, deadlineOrLaunch: "2026-10-10" }),
+    });
+
+    const res = await POST(req, { params: Promise.resolve({ id: "p1" }) });
+    expect(res.status).toBe(200);
+
+    const createArg = mocks.tx.projectBrief.create.mock.calls[0]?.[0];
+    expect(createArg.data.answers).not.toHaveProperty("deadlineOrLaunch");
+  });
 });

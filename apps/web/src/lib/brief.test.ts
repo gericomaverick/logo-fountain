@@ -9,11 +9,13 @@ describe("brief parsing", () => {
       industry: "SaaS",
       description: "Accounting automation",
       styleNotes: "Minimal",
+      deadlineOrLaunch: "2026-01-01",
     });
 
     expect(parsed).not.toBeNull();
     expect(parsed?.offerSummary).toBe("Accounting automation");
     expect(parsed?.styleDirection).toBe("Minimal");
+    expect(parsed).not.toHaveProperty("deadlineOrLaunch");
   });
 
   it("validates required fields for new submissions", () => {
