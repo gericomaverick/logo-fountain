@@ -7,9 +7,43 @@ import type { VerifyOtpParams } from "@supabase/supabase-js";
 import { AuthShell } from "@/components/auth-shell";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
-function safeNextPath(raw: string | null): string {
+type TokenHashParams = Extract<VerifyOtpParams, { token_hash: string }>;
+
+export function safeNextPath(raw: string | null): string {
   if (!raw) return "/dashboard";
   return raw.startsWith("/") ? raw : "/dashboard";
+}
+
+export function buildVerifyOtpParams(search: URLSearchParams): TokenHashParams | null {
+  const tokenHash = search.get("token_hash") ?? search.get("token");
+  const otpType = search.get("type");
+
+  if (tokenHash && otpType) {
+    return {
+      token_hash: tokenHash,
+      type: otpType as TokenHashParams["type"],
+    };
+  }
+
+  return null;
+}
+
+function clearAuthParams(params: string[]) {
+  const search = new URLSearchParams(window.location.search);
+  let changed = false;
+
+  params.forEach((param) => {
+    if (search.has(param)) {
+      search.delete(param);
+      changed = true;
+    }
+  });
+
+  if (!changed) return;
+
+  const nextSearch = search.toString();
+  const nextUrl = nextSearch ? `${window.location.pathname}?${nextSearch}` : window.location.pathname;
+  window.history.replaceState({}, document.title, nextUrl);
 }
 
 export default function AuthCallbackPage() {
@@ -26,18 +60,13 @@ export default function AuthCallbackPage() {
         const search = new URLSearchParams(window.location.search);
         const next = safeNextPath(search.get("next"));
         const code = search.get("code");
-        const tokenHash = search.get("token_hash") ?? search.get("token");
-        const otpType = search.get("type");
-        const email = search.get("email");
+        const otpParams = buildVerifyOtpParams(search);
 
-        // 1) Magic-link OTP (token hash + email in query string)
-        if (tokenHash && otpType && email) {
-          const { error } = await supabase.auth.verifyOtp({
-            type: otpType as VerifyOtpParams["type"],
-            token_hash: tokenHash,
-            email,
-          });
+        // 1) Magic-link OTP (token hash + type in query string)
+        if (otpParams) {
+          const { error } = await supabase.auth.verifyOtp(otpParams);
           if (error) throw error;
+          clearAuthParams(["token_hash", "token", "type", "email"]);
           if (cancelled) return;
           router.replace(next);
           router.refresh();
