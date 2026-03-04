@@ -1,12 +1,20 @@
-export function applyMagicLinkRedirectOverride(actionLink: string, redirectTo: string): string {
-  if (!actionLink) return actionLink;
+export function applyMagicLinkRedirectOverride(actionLink: string, callbackUrl: string): string {
+  if (!actionLink || !callbackUrl) return actionLink;
 
   try {
-    const url = new URL(actionLink);
-    if (redirectTo) {
-      url.searchParams.set("redirect_to", redirectTo);
+    const supabaseUrl = new URL(actionLink);
+    const tokenHash = supabaseUrl.searchParams.get("token_hash") ?? supabaseUrl.searchParams.get("token");
+    const otpType = supabaseUrl.searchParams.get("type");
+
+    if (tokenHash && otpType) {
+      const callback = new URL(callbackUrl);
+      callback.searchParams.set("token", tokenHash);
+      callback.searchParams.set("type", otpType);
+      return callback.toString();
     }
-    return url.toString();
+
+    supabaseUrl.searchParams.set("redirect_to", callbackUrl);
+    return supabaseUrl.toString();
   } catch {
     return actionLink;
   }
