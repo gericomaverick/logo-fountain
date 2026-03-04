@@ -8,6 +8,7 @@ type ConceptAssetItem = { path: string; version: number; createdAt: string; url:
 
 import { HeaderNav } from "@/components/header-nav";
 import { PageShell } from "@/components/page-shell";
+import { buildUnifiedConceptThread } from "@/lib/concept-thread";
 
 type Snapshot = {
   status: string;
@@ -18,15 +19,6 @@ type Snapshot = {
 
 type SessionPayload = { authenticated: boolean; isAdmin?: boolean; email?: string; fullName?: string | null };
 type ConceptComment = { id: string; body: string; createdAt: string; author: { id: string; email: string; fullName: string | null; isAdmin: boolean } };
-type UnifiedThreadItem = {
-  id: string;
-  kind: "revision" | "comment";
-  body: string;
-  createdAt: string;
-  authorLabel: string;
-  status?: string;
-  isDesignerReply: boolean;
-};
 
 function readError(payload: { error?: { message?: string; details?: { nextStep?: string } } | string } | null, fallback: string): string {
   const err = payload?.error;
@@ -48,11 +40,6 @@ function formatDateTime(value?: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "—";
   return DATE_TIME_FORMATTER.format(date);
-}
-
-function toTimestamp(value: string): number {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
 }
 
 export default function ConceptDetailPage() {
@@ -84,28 +71,10 @@ export default function ConceptDetailPage() {
     [snapshot?.revisionRequests, conceptId],
   );
 
-  const unifiedThread = useMemo<UnifiedThreadItem[]>(() => {
-    const revisionItems = conceptRevisionRequests.map((r) => ({
-      id: `revision-${r.id}`,
-      kind: "revision" as const,
-      body: r.body,
-      createdAt: r.createdAt,
-      authorLabel: r.user?.fullName ?? r.user?.email ?? "Client",
-      status: r.status,
-      isDesignerReply: false,
-    }));
-
-    const commentItems = comments.map((comment) => ({
-      id: `comment-${comment.id}`,
-      kind: "comment" as const,
-      body: comment.body,
-      createdAt: comment.createdAt,
-      authorLabel: `${comment.author.fullName ?? comment.author.email}${comment.author.isAdmin ? " (Designer)" : ""}`,
-      isDesignerReply: comment.author.isAdmin,
-    }));
-
-    return [...revisionItems, ...commentItems].sort((a, b) => toTimestamp(a.createdAt) - toTimestamp(b.createdAt));
-  }, [comments, conceptRevisionRequests]);
+  const unifiedThread = useMemo(
+    () => buildUnifiedConceptThread(conceptRevisionRequests, comments),
+    [comments, conceptRevisionRequests],
+  );
 
   const refresh = useCallback(async (id: string) => {
     const [res, sessionRes, commentRes, assetsRes] = await Promise.all([
@@ -279,24 +248,6 @@ export default function ConceptDetailPage() {
         {concept ? (
           <section className="mt-3 portal-card">
             <p className="text-sm font-medium">Concept #{concept.number} · v{concept.revisionVersion}</p>
-            {conceptExplainer ? (
-              <div className="mt-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-blue-900">Designer explainer</p>
-                <p className="mt-1 whitespace-pre-wrap text-sm text-blue-950">{conceptExplainer}</p>
-              </div>
-            ) : null}
-            {showSelectedV1DesignerNote ? (
-              <div className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2">
-                <p className="text-xs font-semibold text-neutral-700">Designer note</p>
-                <p className="mt-1 whitespace-pre-wrap text-sm text-neutral-800">{selectedAssetNote}</p>
-              </div>
-            ) : null}
-            {showSelectedAssetNote ? (
-              <div className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2">
-                <p className="text-xs font-semibold text-neutral-700">Revision note (v{selectedAsset?.version})</p>
-                <p className="mt-1 whitespace-pre-wrap text-sm text-neutral-800">{selectedAssetNote}</p>
-              </div>
-            ) : null}
             {selectedAssetUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img className="mt-3 w-full rounded border border-neutral-200" src={selectedAssetUrl} alt={`Concept ${concept.number}`} />
@@ -310,7 +261,7 @@ export default function ConceptDetailPage() {
                     <button
                       key={asset.path}
                       type="button"
-                      className={`overflow-hidden rounded border ${selectedAssetPath === asset.path ? "border-neutral-900" : "border-neutral-200"}`}
+                      className={`overflow-hidden rounded border transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900 ${selectedAssetPath === asset.path ? "border-neutral-900" : "border-neutral-200 hover:border-neutral-400"}`}
                       onClick={() => setSelectedAssetPath(asset.path)}
                       aria-label={`View v${asset.version}`}
                     >
@@ -319,6 +270,30 @@ export default function ConceptDetailPage() {
                     </button>
                   ))}
                 </div>
+              </div>
+            ) : null}
+
+            {(conceptExplainer || showSelectedV1DesignerNote || showSelectedAssetNote) ? (
+              <div className="mt-4 rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-900">Designer notes for displayed concept</p>
+                {conceptExplainer ? (
+                  <div className="mt-2 rounded-xl border border-blue-100 bg-white/70 px-4 py-3">
+                    <p className="text-xs font-semibold text-blue-900">Concept rationale</p>
+                    <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-blue-950">{conceptExplainer}</p>
+                  </div>
+                ) : null}
+                {showSelectedV1DesignerNote ? (
+                  <div className="mt-2 rounded-xl border border-blue-100 bg-white/70 px-4 py-3">
+                    <p className="text-xs font-semibold text-blue-900">Designer note</p>
+                    <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-blue-950">{selectedAssetNote}</p>
+                  </div>
+                ) : null}
+                {showSelectedAssetNote ? (
+                  <div className="mt-2 rounded-xl border border-blue-100 bg-white/70 px-4 py-3">
+                    <p className="text-xs font-semibold text-blue-900">Revision note · v{selectedAsset?.version}</p>
+                    <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-blue-950">{selectedAssetNote}</p>
+                  </div>
+                ) : null}
               </div>
             ) : null}
 
@@ -355,27 +330,47 @@ export default function ConceptDetailPage() {
               <ul className="mt-4 space-y-3">
                 {unifiedThread.map((item) => (
                   <li key={item.id} className={`flex ${item.isDesignerReply ? "justify-start" : "justify-end"}`}>
-                    <div className="max-w-[90%]">
-                      <div className="mb-1 flex items-center gap-2 text-xs text-neutral-500">
-                        <p className="font-semibold text-neutral-700">{item.authorLabel}</p>
-                        <span>•</span>
-                        <p>{formatDateTime(item.createdAt)}</p>
+                    <article
+                      className={`max-w-[92%] rounded-2xl border px-4 py-3 text-sm shadow-sm md:max-w-[85%] ${
+                        item.isDesignerReply
+                          ? "border-blue-200 bg-blue-50 text-blue-950"
+                          : "border-neutral-200 bg-white text-neutral-900"
+                      }`}
+                    >
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
+                        <span className={`font-semibold ${item.isDesignerReply ? "text-blue-900" : "text-neutral-800"}`}>{item.authorLabel}</span>
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${
+                            item.isDesignerReply ? "bg-blue-100 text-blue-900" : "bg-neutral-100 text-neutral-700"
+                          }`}
+                        >
+                          {item.roleLabel}
+                        </span>
+                        <span className={item.isDesignerReply ? "text-blue-700" : "text-neutral-500"}>•</span>
+                        <time className={item.isDesignerReply ? "text-blue-800" : "text-neutral-500"} dateTime={item.createdAt}>{formatDateTime(item.createdAt)}</time>
                       </div>
 
-                      <div
-                        className={`rounded-2xl px-3 py-2 text-sm text-neutral-900 ${
-                          item.isDesignerReply ? "border border-blue-200 bg-blue-50" : "border border-neutral-200 bg-white"
-                        }`}
-                      >
-                        <p className="whitespace-pre-wrap">{item.body}</p>
-                      </div>
+                      <p className="mt-2 whitespace-pre-wrap leading-6">{item.body}</p>
 
-                      {item.kind === "revision" && item.status ? (
-                        <p className="mt-1 inline-flex rounded-full bg-neutral-200 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-neutral-700">
-                          {item.status}
-                        </p>
-                      ) : null}
-                    </div>
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide ${
+                            item.kind === "revision"
+                              ? "bg-amber-100 text-amber-800"
+                              : item.isDesignerReply
+                                ? "bg-blue-100 text-blue-900"
+                                : "bg-neutral-100 text-neutral-700"
+                          }`}
+                        >
+                          {item.kind === "revision" ? "Revision request" : "Reply"}
+                        </span>
+                        {item.kind === "revision" && item.status ? (
+                          <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-neutral-700">
+                            {item.status}
+                          </span>
+                        ) : null}
+                      </div>
+                    </article>
                   </li>
                 ))}
                 {unifiedThread.length === 0 ? (
