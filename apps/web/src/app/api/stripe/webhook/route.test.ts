@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => ({
   fulfillCheckoutSession: vi.fn(),
   ensureAccessProvisioning: vi.fn(),
   sendCheckoutContinueEmail: vi.fn(),
-  getRequestOrigin: vi.fn(),
+  getPublicSiteOrigin: vi.fn(),
   prisma: {
     stripeEvent: {
       upsert: vi.fn(),
@@ -24,7 +24,7 @@ vi.mock("@/lib/stripe", () => ({
 
 vi.mock("@/lib/prisma", () => ({ prisma: mocks.prisma }));
 vi.mock("@/lib/checkout-continue-email", () => ({ sendCheckoutContinueEmail: mocks.sendCheckoutContinueEmail }));
-vi.mock("@/lib/request-origin", () => ({ getRequestOrigin: mocks.getRequestOrigin }));
+vi.mock("@/lib/request-origin", () => ({ getPublicSiteOrigin: mocks.getPublicSiteOrigin }));
 vi.mock("@/lib/checkout-fulfillment", () => ({
   ORDER_STATUS_FULFILLED: "FULFILLED",
   ORDER_STATUS_NEEDS_CONTACT: "NEEDS_CONTACT",
@@ -61,7 +61,7 @@ describe("POST /api/stripe/webhook", () => {
     mocks.sendCheckoutContinueEmail.mockResolvedValue(undefined);
     mocks.ensureAccessProvisioning.mockResolvedValue({ userId: "user-1" });
     mocks.prisma.stripeEvent.create.mockResolvedValue(undefined);
-    mocks.getRequestOrigin.mockReturnValue("https://app.example.com");
+    mocks.getPublicSiteOrigin.mockReturnValue("https://app.example.com");
     mocks.prisma.stripeEvent.update.mockResolvedValue(undefined);
   });
 

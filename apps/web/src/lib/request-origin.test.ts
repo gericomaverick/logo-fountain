@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 
-import { getRequestOrigin } from "./request-origin";
+import { getPublicSiteOrigin, getRequestOrigin } from "./request-origin";
 
 const ORIGINAL_ENV = {
   PUBLIC_SITE_URL: process.env.PUBLIC_SITE_URL,
@@ -61,5 +61,34 @@ describe("getRequestOrigin", () => {
     const req = new Request("http://example.test:3100/api/checkout/session");
 
     expect(getRequestOrigin(req)).toBe("http://example.test:3100");
+  });
+});
+
+describe("getPublicSiteOrigin", () => {
+  it("returns the env override when it is valid", () => {
+    process.env.PUBLIC_SITE_URL = "https://lan.example.test:3000/app";
+
+    const req = new Request("http://localhost:3000/api/checkout/session", {
+      headers: {
+        "x-forwarded-proto": "https",
+        "x-forwarded-host": "192.168.1.18:3000",
+      },
+    });
+
+    expect(getPublicSiteOrigin(req)).toBe("https://lan.example.test:3000");
+  });
+
+  it("falls back to getRequestOrigin when no env override is set", () => {
+    delete process.env.PUBLIC_SITE_URL;
+    delete process.env.NEXT_PUBLIC_SITE_URL;
+
+    const req = new Request("http://localhost:3000/api/checkout/session", {
+      headers: {
+        "x-forwarded-proto": "https",
+        "x-forwarded-host": "192.168.1.18:3000",
+      },
+    });
+
+    expect(getPublicSiteOrigin(req)).toBe("https://192.168.1.18:3000");
   });
 });

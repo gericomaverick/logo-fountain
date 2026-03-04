@@ -1,3 +1,14 @@
+function getEnvOrigin(): string | null {
+  const envOverride = process.env.PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_SITE_URL;
+  if (!envOverride) return null;
+
+  try {
+    return new URL(envOverride).origin;
+  } catch {
+    return null;
+  }
+}
+
 export function getRequestOrigin(req: Request): string {
   const forwardedProto = req.headers.get("x-forwarded-proto");
   const proto = forwardedProto ? forwardedProto.split(",")[0].trim() : "http";
@@ -10,14 +21,14 @@ export function getRequestOrigin(req: Request): string {
     return `${proto}://${host}`;
   }
 
-  const envOverride = process.env.PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_SITE_URL;
-  if (envOverride) {
-    try {
-      return new URL(envOverride).origin;
-    } catch {
-      // ignore invalid overrides and continue to the final fallback
-    }
+  const envOrigin = getEnvOrigin();
+  if (envOrigin) {
+    return envOrigin;
   }
 
   return new URL(req.url).origin;
+}
+
+export function getPublicSiteOrigin(req: Request): string {
+  return getEnvOrigin() ?? getRequestOrigin(req);
 }

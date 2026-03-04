@@ -11,7 +11,7 @@ import {
 } from "@/lib/checkout-fulfillment";
 import { sendCheckoutContinueEmail } from "@/lib/checkout-continue-email";
 import { classifyWebhookError } from "@/lib/webhook-error-classification";
-import { getRequestOrigin } from "@/lib/request-origin";
+import { getPublicSiteOrigin } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
 
@@ -104,7 +104,7 @@ export async function POST(req: Request) {
     }
 
     if (fulfillment.purchaserEmail) {
-      const appBaseUrl = getRequestOrigin(req);
+      const appBaseUrl = getPublicSiteOrigin(req);
       try {
         await sendCheckoutContinueEmail({
           purchaserEmail: fulfillment.purchaserEmail,
