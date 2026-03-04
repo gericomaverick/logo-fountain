@@ -8,7 +8,7 @@ import { ProjectTimeline } from "@/app/project-timeline";
 import { HeaderNav } from "@/components/header-nav";
 import { PageShell } from "@/components/page-shell";
 import { ProjectStatusBadge } from "@/components/project-status-badge";
-import { formatClientFirstName, getAreaCardSubtitle } from "@/lib/project-overview";
+import { formatClientFirstName, getAreaCardSubtitle, getRemainingLabel } from "@/lib/project-overview";
 import { buildActivityGroups, getMissionControlPrimaryCta, getPendingFeedbackCountForLatestConcept } from "@/lib/project-hub";
 
 type EntitlementUsage = {
@@ -463,14 +463,29 @@ export default function ProjectPage() {
         <section className="mt-3 portal-card">
           <div className="grid gap-4 lg:grid-cols-12">
             <div className="lg:col-span-12 rounded-xl border border-neutral-200 bg-neutral-50/60 p-4">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
                 <div>
                   <ProjectStatusBadge status={snapshot?.status ?? "UNKNOWN"} />
                   <h1 className="mt-3 text-2xl font-semibold text-neutral-900">Hey{welcomeName ? `, ${welcomeName}` : ""}</h1>
                   <p className="mt-1 text-sm text-neutral-600">Project overview · {projectId}</p>
+
+                  <div className="mt-4 grid gap-2 text-sm text-neutral-700 sm:grid-cols-3">
+                    <div className="rounded-lg border border-neutral-200 bg-white/80 px-3 py-2">
+                      <p className="text-[11px] uppercase tracking-wide text-neutral-500">Package</p>
+                      <p className="mt-1 font-medium text-neutral-900">{snapshot?.packageCode ?? "—"}</p>
+                    </div>
+                    <div className="rounded-lg border border-neutral-200 bg-white/80 px-3 py-2">
+                      <p className="text-[11px] uppercase tracking-wide text-neutral-500">Created</p>
+                      <p className="mt-1 font-medium text-neutral-900">{formatDateTime(snapshot?.createdAt)}</p>
+                    </div>
+                    <div className="rounded-lg border border-neutral-200 bg-white/80 px-3 py-2">
+                      <p className="text-[11px] uppercase tracking-wide text-neutral-500">Last updated</p>
+                      <p className="mt-1 font-medium text-neutral-900">{formatDateTime(snapshot?.updatedAt)}</p>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="w-full rounded-lg border border-violet-200 bg-violet-50 px-4 py-3 lg:w-[360px]">
+                <div className="w-full rounded-lg border border-violet-200 bg-violet-50 px-4 py-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-violet-800">Next action</p>
                   <p className="mt-1 text-sm text-violet-950">Do this first to keep your project moving.</p>
                   <Link href={nextAction.href} className="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-violet-700 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300 focus-visible:ring-offset-2">
@@ -479,21 +494,6 @@ export default function ProjectPage() {
                   <div className={`mt-3 rounded-lg border px-3 py-2 text-xs ${pendingFeedbackCount > 0 ? "border-amber-200 bg-amber-50 text-amber-900" : "border-emerald-200 bg-emerald-50 text-emerald-900"}`}>
                     Pending feedback: <span className="font-semibold">{pendingFeedbackCount}</span>
                   </div>
-                </div>
-              </div>
-
-              <div className="mt-4 grid gap-3 text-sm text-neutral-700 sm:grid-cols-3">
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-neutral-500">Package</p>
-                  <p className="mt-1 font-medium text-neutral-900">{snapshot?.packageCode ?? "—"}</p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-neutral-500">Created</p>
-                  <p className="mt-1 font-medium text-neutral-900">{formatDateTime(snapshot?.createdAt)}</p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-neutral-500">Last updated</p>
-                  <p className="mt-1 font-medium text-neutral-900">{formatDateTime(snapshot?.updatedAt)}</p>
                 </div>
               </div>
             </div>
@@ -514,15 +514,31 @@ export default function ProjectPage() {
                 <p className="text-xs uppercase tracking-wide text-neutral-500">Latest concept</p>
                 <Link className="text-xs font-medium text-neutral-700 portal-link no-underline" href={`/project/${projectId}/concepts`}>View all</Link>
               </div>
-              {latestConcept?.imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={latestConcept.imageUrl} alt={`Latest concept #${latestConcept.number}`} className="mt-2 h-36 w-full rounded-lg border border-neutral-200 object-cover" />
-              ) : (
-                <div className="mt-2 flex h-36 items-center justify-center rounded-lg border border-dashed border-neutral-300 text-xs text-neutral-500">
-                  No concept preview yet
+
+              <div className="mt-2 grid gap-2 sm:grid-cols-[minmax(0,1fr)_164px]">
+                {latestConcept?.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={latestConcept.imageUrl} alt={`Latest concept #${latestConcept.number}`} className="h-36 w-full rounded-lg border border-neutral-200 object-cover" />
+                ) : (
+                  <div className="flex h-36 items-center justify-center rounded-lg border border-dashed border-neutral-300 text-xs text-neutral-500">
+                    No concept preview yet
+                  </div>
+                )}
+
+                <div className="rounded-lg border border-neutral-200 bg-white px-3 py-2">
+                  <p className="text-[11px] uppercase tracking-wide text-neutral-500">Usage status</p>
+                  <div className="mt-2 space-y-2 text-sm text-neutral-900">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-neutral-600">Concepts</span>
+                      <span className="font-semibold">{getRemainingLabel(conceptUsage.remaining, "concept")}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-neutral-600">Revisions</span>
+                      <span className="font-semibold">{getRemainingLabel(revisionUsage.remaining, "revision")}</span>
+                    </div>
+                  </div>
                 </div>
-              )}
-              <p className="mt-2 text-xs text-neutral-600">{conceptUsage.remaining} concepts left · {revisionUsage.remaining} revisions left</p>
+              </div>
             </div>
           </div>
 
