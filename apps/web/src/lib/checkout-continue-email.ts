@@ -1,5 +1,7 @@
 import "server-only";
 
+import { getConfiguredPublicSiteOrigin } from "@/lib/request-origin";
+
 const POSTMARK_API_URL = "https://api.postmarkapp.com/email";
 
 type SendResult = { skipped: boolean; reason?: string };
@@ -22,7 +24,10 @@ export async function sendCheckoutContinueEmail({
     return { skipped: true, reason };
   }
 
-  const continueUrl = new URL("/checkout/continue", baseUrl);
+  const configuredBaseUrl = getConfiguredPublicSiteOrigin();
+  const resolvedBaseUrl = configuredBaseUrl ?? baseUrl;
+
+  const continueUrl = new URL("/checkout/continue", resolvedBaseUrl);
   continueUrl.searchParams.set("session_id", sessionId);
 
   const subject = "Finish setting up your Logo Fountain account";

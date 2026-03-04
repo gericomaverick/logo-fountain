@@ -1,4 +1,4 @@
-function getEnvOrigin(): string | null {
+export function getConfiguredPublicSiteOrigin(): string | null {
   const envOverride = process.env.PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_SITE_URL;
   if (!envOverride) return null;
 
@@ -21,7 +21,7 @@ export function getRequestOrigin(req: Request): string {
     return `${proto}://${host}`;
   }
 
-  const envOrigin = getEnvOrigin();
+  const envOrigin = getConfiguredPublicSiteOrigin();
   if (envOrigin) {
     return envOrigin;
   }
@@ -30,5 +30,5 @@ export function getRequestOrigin(req: Request): string {
 }
 
 export function getPublicSiteOrigin(req: Request): string {
-  return getEnvOrigin() ?? getRequestOrigin(req);
+  return getConfiguredPublicSiteOrigin() ?? getRequestOrigin(req);
 }
