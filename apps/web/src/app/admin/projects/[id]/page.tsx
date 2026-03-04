@@ -27,6 +27,10 @@ type Snapshot = {
   primaryCta?: string | null;
   timeline?: Array<{ state: string; label: string; completed: boolean; current: boolean; timestamp?: string }>;
   recentAuditEventsCount?: number;
+  clientContact?: {
+    fullName: string | null;
+    email: string;
+  } | null;
 };
 
 function readError(payload: { error?: { message?: string; details?: { nextStep?: string } } | string } | null, fallback: string): string {
@@ -163,27 +167,31 @@ export default function AdminProjectPage() {
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,360px)]">
             <div className="rounded-2xl border border-neutral-200 bg-neutral-50/60 p-4">
               <ProjectStatusBadge status={snapshot?.status ?? "UNKNOWN"} />
-              <h1 className="mt-3 text-2xl font-semibold">Admin project</h1>
+              <h1 className="mt-3 text-2xl font-semibold">Project Overview</h1>
               <p className="mt-1 text-sm text-neutral-600">Operational overview and high-confidence controls for this project.</p>
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm">
-                  <p className="text-xs uppercase tracking-wide text-neutral-500">Project id</p>
-                  <p className="mt-1 font-medium text-neutral-900 break-all">{projectId}</p>
+                  <p className="text-xs uppercase tracking-wide text-neutral-500">Client</p>
+                  <p className="mt-1 font-medium text-neutral-900">{snapshot?.clientContact?.fullName ?? "Name unavailable"}</p>
+                  <p className="mt-1 break-all text-neutral-700">{snapshot?.clientContact?.email ?? "Email unavailable"}</p>
                 </div>
                 <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm">
-                  <p className="text-xs uppercase tracking-wide text-neutral-500">Recent audit events</p>
-                  <div className="mt-1 flex items-center justify-between gap-2">
-                    <p className="font-medium text-neutral-900">{snapshot?.recentAuditEventsCount ?? 0}</p>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-neutral-500">Audit trail</p>
+                      <p className="mt-1 font-medium text-neutral-900">{snapshot?.recentAuditEventsCount ?? 0} recent events</p>
+                    </div>
                     <Link className="portal-link no-underline text-xs" href={`/admin/projects/${projectId}/audit`}>
                       View trail
                     </Link>
                   </div>
+                  <p className="mt-2 text-xs text-neutral-500">Project ID: <span className="font-mono">{projectId}</span></p>
                 </div>
               </div>
             </div>
-            <aside className="relative overflow-hidden rounded-2xl border border-violet-200 bg-gradient-to-br from-violet-100 via-indigo-50 to-emerald-50 p-4 shadow-sm shadow-violet-200/60">
-              <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-gradient-to-br from-violet-300/55 via-cyan-300/35 to-emerald-300/25 blur-2xl" />
-              <div aria-hidden className="pointer-events-none absolute -bottom-20 left-8 h-40 w-40 rounded-full bg-gradient-to-tr from-emerald-300/30 via-teal-300/25 to-violet-300/35 blur-2xl" />
+            <aside className="relative overflow-hidden rounded-2xl border border-violet-200/70 bg-gradient-to-br from-violet-50 via-indigo-50 to-teal-50 p-4 shadow-sm shadow-violet-200/30">
+              <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-gradient-to-br from-violet-200/30 via-sky-200/20 to-teal-200/15 blur-2xl" />
+              <div aria-hidden className="pointer-events-none absolute -bottom-20 left-8 h-40 w-40 rounded-full bg-gradient-to-tr from-teal-200/20 via-cyan-200/15 to-violet-200/20 blur-2xl" />
               <div className="relative">
                 <p className="text-xs font-semibold uppercase tracking-wide text-violet-900">Quick actions</p>
                 <p className="mt-1 text-sm text-violet-950">Move fast on the most common admin workflows.</p>

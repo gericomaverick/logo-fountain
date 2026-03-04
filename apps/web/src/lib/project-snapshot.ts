@@ -11,6 +11,16 @@ type SnapshotArgs = {
   userId?: string;
 };
 
+type ClientMembershipContact = {
+  role: string;
+  user: {
+    firstName: string | null;
+    lastName: string | null;
+    fullName: string | null;
+    email: string;
+  };
+};
+
 function asIso(value: Date | null | undefined): string | undefined {
   return value ? value.toISOString() : undefined;
 }
@@ -33,6 +43,21 @@ function parseBriefAnswers(value: unknown): { brandName: string; industry: strin
     industry: raw.industry,
     description: raw.description,
     styleNotes: raw.styleNotes,
+  };
+}
+
+function getPrimaryClientContact(memberships: ClientMembershipContact[]) {
+  const owner = memberships.find((membership) => membership.role.toLowerCase() === "owner");
+  const primary = owner ?? memberships[0];
+
+  if (!primary) return null;
+
+  const composedName = [primary.user.firstName, primary.user.lastName].filter(Boolean).join(" ").trim();
+  const fullName = composedName || primary.user.fullName?.trim() || "";
+
+  return {
+    fullName: fullName || null,
+    email: primary.user.email,
   };
 }
 
@@ -65,6 +90,23 @@ export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
       packageCode: true,
       createdAt: true,
       updatedAt: true,
+      client: {
+        select: {
+          memberships: {
+            select: {
+              role: true,
+              user: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                  fullName: true,
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      },
       entitlements: {
         where: { key: { in: ["concepts", "revisions"] } },
         select: { key: true, limitInt: true, consumedInt: true, reservedInt: true },
@@ -120,7 +162,7 @@ export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
 
   if (!project) return null;
 
-  const [readState, latestMessageAgg, latestConceptCommentAgg, deliveredRevisionCounts] = await Promise.all([
+  const [readState, latestMessageAgg, latestConceptCommentAgg] = await Promise.all([
     userId
       ? prisma.projectReadState.findUnique({
           where: { userId_projectId: { userId, projectId: project.id } },
@@ -129,11 +171,6 @@ export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
       : Promise.resolve(null),
     prisma.message.aggregate({ where: { projectId: project.id }, _max: { createdAt: true } }),
     prisma.conceptComment.aggregate({ where: { projectId: project.id }, _max: { createdAt: true } }),
-    prisma.revisionRequest.groupBy({
-      by: ["conceptId"],
-      where: { projectId: project.id, status: "delivered", conceptId: { not: null } },
-      _count: { _all: true },
-    }),
   ]);
 
   let latestConceptAt: Date | null = null;
@@ -248,6 +285,8 @@ export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
         ? `Order status is ${latestOrder.status}.`
         : null;
 
+  const primaryClientContact = getPrimaryClientContact(project.client.memberships);
+
   return {
     projectId: project.id,
     status: project.status,
@@ -255,6 +294,7 @@ export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
     primaryCta: PRIMARY_CTA_BY_STATE[project.status as ProjectState] ?? null,
     timeline: buildTimeline(project.status, timestamps),
     packageCode: project.packageCode,
+    clientContact: primaryClientContact,
     createdAt: project.createdAt.toISOString(),
     updatedAt: project.updatedAt.toISOString(),
     entitlements,
