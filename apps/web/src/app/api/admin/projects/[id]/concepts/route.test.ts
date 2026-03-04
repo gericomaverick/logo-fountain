@@ -22,6 +22,7 @@ const mocks = vi.hoisted(() => {
       concept: { findUnique: vi.fn(), findFirst: vi.fn(), findMany: vi.fn(), upsert: vi.fn(), update: vi.fn(), count: vi.fn() },
       revisionRequest: { groupBy: vi.fn(), findMany: vi.fn() },
       fileAsset: { findMany: vi.fn() },
+      projectReadState: { findMany: vi.fn() },
       $transaction: vi.fn(async (fn: (trx: typeof tx) => Promise<unknown>) => fn(tx)),
     },
     tx,
@@ -97,6 +98,7 @@ describe("/api/admin/projects/[id]/concepts", () => {
       ]),
     );
     expect(payload.conceptlessPendingRevisionCount).toBe(1);
+    expect(mocks.prisma.projectReadState.findMany).not.toHaveBeenCalled();
   });
 
   it("POST accepts first concept upload from BRIEF_SUBMITTED and transitions to CONCEPTS_READY", async () => {

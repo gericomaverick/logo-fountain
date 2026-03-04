@@ -25,6 +25,17 @@ describe("deriveProjectBadgeState", () => {
     expect(result.section).toBe("needs-action");
   });
 
+  it("keeps pending feedback in needs-action even after reads/messages are acknowledged", () => {
+    const result = deriveProjectBadgeState({
+      status: "CONCEPTS_READY",
+      pendingFeedbackCount: 2,
+      hasNewMessages: false,
+      hasNewConcepts: false,
+    });
+
+    expect(result.section).toBe("needs-action");
+  });
+
   it("does not force new concepts into needs-action by itself", () => {
     const result = deriveProjectBadgeState({
       status: "DELIVERED",

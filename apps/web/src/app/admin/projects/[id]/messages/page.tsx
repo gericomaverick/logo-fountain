@@ -20,7 +20,7 @@ type ConceptThreadHint = {
   id: string;
   number: number;
   pendingRevisionCount: number;
-  commentCount: number;
+  unresolvedFeedbackCount: number;
 };
 
 function readError(payload: { error?: { message?: string; details?: { nextStep?: string } } | string } | null, fallback: string): string {
@@ -75,12 +75,6 @@ export default function AdminProjectMessagesPage() {
     const load = async () => {
       try {
         await refresh(projectId);
-
-        await fetch(`/api/projects/${projectId}/read-state`, {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ area: "messages" }),
-        }).catch(() => null);
 
         if (!cancelled) setError(null);
       } catch (e) {
@@ -143,7 +137,7 @@ export default function AdminProjectMessagesPage() {
           {conceptHints.length > 0 ? (
             <div className="mt-3 flex flex-wrap gap-2 text-xs">
               {conceptHints.map((concept) => {
-                const pending = concept.pendingRevisionCount + concept.commentCount;
+                const pending = concept.unresolvedFeedbackCount;
                 return (
                   <Link key={concept.id} className="rounded-full border border-neutral-300 bg-white px-2 py-1 text-neutral-700" href={`/project/${projectId}/concept/${concept.id}?from=admin`}>
                     Concept #{concept.number}{pending > 0 ? ` · ${pending} pending` : ""}
