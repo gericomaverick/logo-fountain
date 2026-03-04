@@ -1,9 +1,10 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { AuthShell } from "@/components/auth-shell";
+import { ensureBrowserSupabaseSession } from "@/lib/auth/session";
 import { hasValidationErrors, toErrorList, validatePasswordReset, ValidationErrors } from "@/lib/auth/validation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -26,6 +27,34 @@ export default function SetPasswordPage() {
   const [fieldErrors, setFieldErrors] = useState<PasswordErrors>({});
   const [status, setStatus] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [authState, setAuthState] = useState<"checking" | "ready" | "error">("checking");
+  const isSessionReady = authState === "ready";
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void (async () => {
+      const result = await ensureBrowserSupabaseSession(supabase);
+      if (cancelled) return;
+
+      if (result.status === "signed-in") {
+        setAuthState("ready");
+        setStatus(null);
+        return;
+      }
+
+      setAuthState("error");
+      if (result.status === "missing") {
+        setStatus("Your sign-in link is missing or expired. Request a new one to continue.");
+      } else {
+        setStatus(`We couldn’t sign you in automatically. ${result.message}`);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -36,6 +65,11 @@ export default function SetPasswordPage() {
 
     if (hasValidationErrors(errors)) {
       setStatus("Fix the highlighted fields and try again.");
+      return;
+    }
+
+    if (!isSessionReady) {
+      setStatus(authState === "checking" ? "Hold on while we verify your sign-in link." : "You need to sign in before setting a password.");
       return;
     }
 
@@ -72,6 +106,10 @@ export default function SetPasswordPage() {
             ))}
           </ul>
         </div>
+      ) : null}
+
+      {authState === "checking" ? (
+        <p className="mb-4 text-sm text-neutral-600" aria-live="polite">Hang tight — we’re verifying your sign-in link…</p>
       ) : null}
 
       <form className="space-y-4" onSubmit={onSubmit} noValidate>
@@ -121,7 +159,7 @@ export default function SetPasswordPage() {
 
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={!isSessionReady || isSubmitting}
           className="w-full rounded bg-black px-4 py-2 text-white disabled:opacity-60"
         >
           {isSubmitting ? "Saving..." : "Save password"}

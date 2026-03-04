@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { AuthShell } from "@/components/auth-shell";
+import { ensureBrowserSupabaseSession } from "@/lib/auth/session";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 function safeNextPath(raw: string | null): string {
@@ -24,43 +25,23 @@ export default function AuthCallbackPage() {
       try {
         const search = new URLSearchParams(window.location.search);
         const next = safeNextPath(search.get("next"));
-        const code = search.get("code");
 
-        // 1) PKCE flow (code in query string)
-        if (code) {
-          const { error } = await supabase.auth.exchangeCodeForSession(code);
-          if (error) throw error;
-          if (cancelled) return;
+        const result = await ensureBrowserSupabaseSession(supabase);
+        if (cancelled) return;
+
+        if (result.status === "signed-in") {
           router.replace(next);
           router.refresh();
           return;
         }
 
-        // 2) Implicit flow (tokens in URL hash)
-        const hash = window.location.hash;
-        if (hash && hash.length > 1) {
-          const params = new URLSearchParams(hash.slice(1));
-          const accessToken = params.get("access_token");
-          const refreshToken = params.get("refresh_token");
-
-          if (accessToken && refreshToken) {
-            const { error } = await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken,
-            });
-            if (error) throw error;
-
-            // Clear hash
-            window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
-
-            if (cancelled) return;
-            router.replace(next);
-            router.refresh();
-            return;
-          }
+        if (result.status === "missing") {
+          setStatus("Sign-in link is missing or invalid. Please request a new one.");
+          return;
         }
 
-        setStatus("Sign-in link is missing or invalid. Please request a new one.");
+        console.error("Auth callback failed", result.status === "error" ? result.message : "Unknown auth state");
+        setStatus("Sign-in failed. Please request a new link.");
       } catch (error) {
         console.error("Auth callback failed", error);
         setStatus("Sign-in failed. Please request a new link.");
