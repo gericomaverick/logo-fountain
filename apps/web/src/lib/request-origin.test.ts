@@ -54,6 +54,28 @@ describe("getRequestOrigin", () => {
     expect(getRequestOrigin(req)).toBe("https://lan.example.test:3000");
   });
 
+  it("uses the Origin header when the host only reports localhost", () => {
+    const req = new Request("http://localhost:3000/api/checkout/session", {
+      headers: {
+        host: "localhost:3000",
+        origin: "http://192.168.0.10:3000",
+      },
+    });
+
+    expect(getRequestOrigin(req)).toBe("http://192.168.0.10:3000");
+  });
+
+  it("falls back to the Referer when Origin is missing and the host is localhost", () => {
+    const req = new Request("http://localhost:3000/api/checkout/session", {
+      headers: {
+        host: "127.0.0.1:3000",
+        referer: "http://192.168.0.10:3000/checkout/continue",
+      },
+    });
+
+    expect(getRequestOrigin(req)).toBe("http://192.168.0.10:3000");
+  });
+
   it("ignores invalid env overrides and falls back to the request URL", () => {
     process.env.PUBLIC_SITE_URL = "not a url";
     delete process.env.NEXT_PUBLIC_SITE_URL;

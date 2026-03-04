@@ -3,6 +3,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { prisma } from "@/lib/prisma";
 import { getRequestOrigin } from "@/lib/request-origin";
 import { applyMagicLinkRedirectOverride } from "@/lib/supabase/action-link";
+import { buildAuthCallbackRedirect } from "@/lib/supabase/password-redirects";
 
 export const runtime = "nodejs";
 
@@ -12,13 +13,6 @@ function parseSessionId(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
   return trimmed ? trimmed : null;
-}
-
-function buildSetPasswordRedirect(baseUrl: string, projectId?: string | null): string {
-  const redirect = new URL("/set-password", baseUrl);
-  redirect.searchParams.set("next", "/dashboard");
-  if (projectId) redirect.searchParams.set("projectId", projectId);
-  return redirect.toString();
 }
 
 export async function POST(req: Request) {
@@ -49,7 +43,7 @@ export async function POST(req: Request) {
   if (!purchaserEmail) return jsonError("No purchaser email found.", 409, undefined, "MISSING_EMAIL");
 
   const appBaseUrl = getRequestOrigin(req);
-  const redirectTo = buildSetPasswordRedirect(appBaseUrl, order.projectId);
+  const redirectTo = buildAuthCallbackRedirect(appBaseUrl, order.projectId);
 
   const supabaseAdmin = createSupabaseAdminClient();
   const result = await supabaseAdmin.auth.admin.generateLink({
