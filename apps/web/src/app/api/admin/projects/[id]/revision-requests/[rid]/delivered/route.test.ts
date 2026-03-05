@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => {
     requireAdmin: vi.fn(),
     logAudit: vi.fn(),
     createProjectSystemMessage: vi.fn(),
+    notifyClientRevisionReady: vi.fn(),
     prisma: {
       revisionRequest,
       project,
@@ -33,7 +34,7 @@ vi.mock("@/lib/auth/require", () => ({
 vi.mock("@/lib/prisma", () => ({ prisma: mocks.prisma }));
 vi.mock("@/lib/audit", () => ({ logAudit: mocks.logAudit }));
 vi.mock("@/lib/system-messages", () => ({ createProjectSystemMessage: mocks.createProjectSystemMessage }));
-vi.mock("@/lib/project-lifecycle-email", () => ({ notifyClientRevisionReady: vi.fn() }));
+vi.mock("@/lib/project-lifecycle-email", () => ({ notifyClientRevisionReady: mocks.notifyClientRevisionReady }));
 
 import { POST } from "./route";
 
@@ -60,5 +61,6 @@ describe("POST /api/admin/projects/[id]/revision-requests/[rid]/delivered", () =
 
     const stateChangeCall = mocks.logAudit.mock.calls.find(([, payload]) => payload?.type === "state_changed");
     expect(stateChangeCall?.[1]?.payload).toEqual({ previousStatus: "REVISIONS_IN_PROGRESS", nextStatus: "CONCEPTS_READY" });
+    expect(mocks.notifyClientRevisionReady).toHaveBeenCalledWith("p1", "rev-1");
   });
 });

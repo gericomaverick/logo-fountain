@@ -37,7 +37,7 @@ describe("email-branding", () => {
     expect(resolveEmailLogoUrl()).toBe("https://app.example.com/img/logo.svg");
   });
 
-  it("renders text brand header when no public origin is available", () => {
+  it("falls back to embedded logo when no public origin is available", () => {
     delete process.env.EMAIL_LOGO_URL;
     delete process.env.PUBLIC_SITE_URL;
     delete process.env.NEXT_PUBLIC_SITE_URL;
@@ -49,7 +49,7 @@ describe("email-branding", () => {
       ctaUrl: "https://example.com/continue",
     });
 
-    expect(html).toContain("Logo Fountain</div>");
-    expect(html).not.toContain("<img src=");
+    expect(html).toContain("data:image/svg+xml");
+    expect(html).toContain("<img src=");
   });
 });

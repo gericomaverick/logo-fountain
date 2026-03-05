@@ -58,6 +58,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
           hostedInvoiceUrl: doc.hostedInvoiceUrl,
           receiptUrl: doc.receiptUrl,
           documentType: doc.source,
+          documentLabel: doc.source === "receipt" ? "Payment receipt (paid-safe)" : "Invoice",
           downloadUrl: doc.invoicePdfUrl ?? doc.hostedInvoiceUrl ?? doc.receiptUrl,
         };
       }),

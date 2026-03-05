@@ -59,7 +59,7 @@ describe("project lifecycle emails", () => {
         memberships: [
           {
             role: "owner",
-            user: { firstName: "Jamie", lastName: "Lopez", fullName: "Jamie Lopez" },
+            user: { email: "owner@example.com", firstName: "Jamie", lastName: "Lopez", fullName: "Jamie Lopez" },
           },
         ],
       },
@@ -96,14 +96,36 @@ describe("project lifecycle emails", () => {
     expect(mocks.fetch).toHaveBeenCalledTimes(4);
     const first = JSON.parse(mocks.fetch.mock.calls[0][1].body as string);
     expect(first.To).toBe("admin1@example.com,admin2@example.com");
-    expect(first.TextBody).toContain("Project: Acme Pizza (p1)");
     expect(first.TextBody).toContain("Client: Jamie Lopez");
+    expect(first.TextBody).toContain("Brand: Acme Pizza");
+    expect(first.TextBody).not.toContain("Project:");
 
     for (const call of mocks.fetch.mock.calls) {
       const payload = JSON.parse(call[1].body as string);
       expect(payload.TextBody).not.toContain("—");
       expect(payload.HtmlBody).not.toContain("—");
     }
+  });
+
+  it("falls back to owner email when billing email is missing", async () => {
+    mocks.findProject.mockResolvedValueOnce({
+      id: "p1",
+      client: {
+        name: "Acme Pizza",
+        billingEmail: null,
+        memberships: [
+          {
+            role: "owner",
+            user: { email: "owner@example.com", firstName: "Jamie", lastName: "Lopez", fullName: "Jamie Lopez" },
+          },
+        ],
+      },
+    });
+
+    await notifyClientConceptReady("p1", "c-owner");
+
+    const payload = JSON.parse(mocks.fetch.mock.calls[0][1].body as string);
+    expect(payload.To).toBe("owner@example.com");
   });
 
   it("sends all remaining client lifecycle notifications", async () => {

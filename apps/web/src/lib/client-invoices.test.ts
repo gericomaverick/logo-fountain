@@ -99,13 +99,13 @@ describe("resolveStripeInvoiceDocument", () => {
     });
   });
 
-  it("prefers receipt over hosted invoice pages for settled orders even when invoice is marked paid", async () => {
+  it("prefers receipt for settled orders even when an invoice PDF exists", async () => {
     mocks.stripe.checkout.sessions.retrieve.mockResolvedValueOnce({
       invoice: {
         id: "in_paid",
         status: "paid",
         amount_remaining: 0,
-        invoice_pdf: null,
+        invoice_pdf: "https://stripe.test/in_paid.pdf",
         hosted_invoice_url: "https://stripe.test/in_paid",
       },
       payment_intent: {

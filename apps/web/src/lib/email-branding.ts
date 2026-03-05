@@ -20,21 +20,38 @@ function normalizeAbsoluteUrl(value: string | undefined): string | null {
   }
 }
 
+function canUseRemoteLogo(origin: string): boolean {
+  try {
+    const url = new URL(origin);
+    const host = url.hostname.toLowerCase();
+    if (host === "localhost" || host === "127.0.0.1" || host === "::1") return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function getEmbeddedLogoDataUri(): string {
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='240' height='34' viewBox='0 0 240 34' role='img' aria-label='Logo Fountain'><rect width='240' height='34' rx='8' fill='#f4f0ff'/><text x='12' y='23' font-family='Arial,sans-serif' font-size='16' font-weight='700' fill='#1d1330'>Logo Fountain</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
 export function resolveEmailLogoUrl(): string | null {
   const explicit = normalizeAbsoluteUrl(process.env.EMAIL_LOGO_URL);
   if (explicit) return explicit;
 
   const configuredOrigin = getConfiguredPublicSiteOrigin();
-  if (!configuredOrigin) return null;
+  if (!configuredOrigin || !canUseRemoteLogo(configuredOrigin)) return null;
 
   return new URL("/img/logo.svg", configuredOrigin).toString();
 }
 
 export function renderBrandedEmail({ heading, intro, ctaLabel, ctaUrl, footer }: BrandedEmailInput): string {
   const logo = resolveEmailLogoUrl();
+  const embeddedLogo = getEmbeddedLogoDataUri();
   const brandHeader = logo
     ? `<img src="${logo}" alt="Logo Fountain" style="height:34px;display:block;"/>`
-    : '<div style="font-size:20px;font-weight:700;line-height:1.2;color:#1d1330;">Logo Fountain</div>';
+    : `<img src="${embeddedLogo}" alt="Logo Fountain" style="height:34px;display:block;"/>`;
 
   return [
     '<div style="background:#f8f7ff;padding:24px;font-family:Inter,Arial,sans-serif;color:#1d1330;">',

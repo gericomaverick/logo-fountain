@@ -18,7 +18,6 @@ function appOrigin(): string {
   return getConfiguredPublicSiteOrigin() ?? "http://localhost:3000";
 }
 
-
 type BaseProjectData = {
   id: string;
   client: {
@@ -27,6 +26,7 @@ type BaseProjectData = {
     memberships: Array<{
       role: string;
       user: {
+        email: string;
         firstName: string | null;
         lastName: string | null;
         fullName: string | null;
@@ -35,14 +35,26 @@ type BaseProjectData = {
   };
 };
 
+function resolveClientOwner(project: BaseProjectData | null) {
+  return project?.client.memberships.find((membership) => membership.role.toLowerCase() === "owner") ?? project?.client.memberships[0] ?? null;
+}
+
 function resolveClientName(project: BaseProjectData | null): string {
-  const owner = project?.client.memberships.find((membership) => membership.role.toLowerCase() === "owner") ?? project?.client.memberships[0];
+  const owner = resolveClientOwner(project);
   const first = owner?.user.firstName?.trim() ?? "";
   const last = owner?.user.lastName?.trim() ?? "";
   const full = owner?.user.fullName?.trim() ?? "";
   const merged = [first, last].filter(Boolean).join(" ").trim();
 
   return merged || full || "Client";
+}
+
+function resolveClientEmail(project: BaseProjectData | null): string | null {
+  const billingEmail = project?.client.billingEmail?.trim();
+  if (billingEmail) return billingEmail;
+
+  const ownerEmail = resolveClientOwner(project)?.user.email?.trim();
+  return ownerEmail || null;
 }
 
 async function projectData(projectId: string): Promise<BaseProjectData | null> {
@@ -57,7 +69,7 @@ async function projectData(projectId: string): Promise<BaseProjectData | null> {
           memberships: {
             select: {
               role: true,
-              user: { select: { firstName: true, lastName: true, fullName: true } },
+              user: { select: { email: true, firstName: true, lastName: true, fullName: true } },
             },
           },
         },
@@ -118,7 +130,7 @@ async function sendClientEmail(input: {
 }) {
   if (await alreadySent(input.projectId, input.dedupeType)) return;
   const project = await projectData(input.projectId);
-  const to = project?.client.billingEmail;
+  const to = resolveClientEmail(project);
   if (!to) return;
 
   const url = new URL(input.ctaPath, appOrigin()).toString();
@@ -151,18 +163,18 @@ async function sendAdminEmail(input: {
   if (recipients.length === 0) return;
 
   const project = await projectData(input.projectId);
-  const projectName = project?.client.name?.trim() || `Project ${input.projectId}`;
+  const brandName = project?.client.name?.trim() || "Unknown brand";
   const clientName = resolveClientName(project);
 
   const url = new URL(input.ctaPath, appOrigin()).toString();
-  const contextLine = `Project: ${projectName} (${input.projectId})\nClient: ${clientName}`;
+  const contextLine = `Client: ${clientName}\nBrand: ${brandName}`;
   await sendEmail({
     to: recipients.join(","),
     subject: input.subject,
     textBody: `${input.intro}\n\n${contextLine}\n\n${input.ctaLabel}: ${url}`,
     htmlBody: renderBrandedEmail({
       heading: input.subject,
-      intro: `${input.intro} Project: ${projectName} (${input.projectId}). Client: ${clientName}.`,
+      intro: `${input.intro} Client: ${clientName}. Brand: ${brandName}.`,
       ctaLabel: input.ctaLabel,
       ctaUrl: url,
       footer: "Admin notification for transactional workflow updates.",

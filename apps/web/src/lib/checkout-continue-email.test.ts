@@ -69,8 +69,8 @@ describe("sendCheckoutContinueEmail", () => {
 
     const body = JSON.parse(fetchMock.mock.calls[0][1]?.body as string);
     expect(body.TextBody).toContain("https://app.local.test:4000/checkout/continue?session_id=cs_test&flow=setup");
-    expect(body.HtmlBody).toContain("Logo Fountain</div>");
-    expect(body.HtmlBody).not.toContain("<img src=");
+    expect(body.HtmlBody).toContain("data:image/svg+xml");
+    expect(body.HtmlBody).toContain("<img src=");
   });
 
   it("uses returning-customer copy and signin flow links when flow=signin", async () => {
