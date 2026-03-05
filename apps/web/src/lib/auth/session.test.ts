@@ -84,6 +84,17 @@ describe("ensureBrowserSupabaseSession", () => {
     expect(replaceState).toHaveBeenCalledWith({}, "Test", "/set-password?next=%2Fdashboard");
   });
 
+  it("prefers exchanging callback code even if another session already exists", async () => {
+    const replaceState = mockWindow("https://example.com/project/p2?code=fresh-code&state=s1");
+    const supabase = createSupabaseMock({ session: { id: "stale-session" } });
+
+    const result = await ensureBrowserSupabaseSession(supabase as any);
+
+    expect(result).toEqual({ status: "signed-in", source: "code" });
+    expect(supabase.auth.exchangeCodeForSession).toHaveBeenCalledWith("fresh-code");
+    expect(replaceState).toHaveBeenCalledWith({}, "Test", "/project/p2");
+  });
+
   it("hydrates the session from hash tokens", async () => {
     const replaceState = mockWindow("https://example.com/set-password#access_token=abc&refresh_token=def");
     const supabase = createSupabaseMock();

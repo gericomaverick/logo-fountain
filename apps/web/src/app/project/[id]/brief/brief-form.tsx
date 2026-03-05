@@ -136,8 +136,8 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
   if (submittedVersion !== null) {
     return (
       <section className="mt-6 rounded-xl border border-green-200 bg-green-50 p-5 text-sm text-green-900">
-        <h2 className="text-base font-semibold">Brief saved — your designer has the latest version.</h2>
-        <p className="mt-2">We saved this as v{submittedVersion}. Earlier versions remain available in brief history.</p>
+        <h2 className="text-base font-semibold">Brief saved — your designer now has your submission.</h2>
+        <p className="mt-2">Your brief has been submitted and is now locked for client editing.</p>
 
         <div className="mt-4 flex flex-wrap gap-3">
           <Link className="portal-btn-primary px-4 py-2" href={`/project/${projectId}`}>
@@ -194,7 +194,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
             body={(
               <>
                 <p>The more specific your brief, the stronger your logo concepts will be. A few extra details now helps us design faster and with much better precision.</p>
-                <p className="mt-2 text-xs text-violet-900/90">You can move back at any time, and each submission is saved as a new version.</p>
+                <p className="mt-2 text-xs text-violet-900/90">You can move back at any time before submitting. Once submitted, your brief is locked.</p>
               </>
             )}
           />
@@ -291,7 +291,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
                 disabled={isSubmitting}
                 className="portal-btn-primary px-4 py-2"
               >
-                {isSubmitting ? "Submitting..." : latestBrief ? "Create new brief version" : "Submit brief"}
+                {isSubmitting ? "Submitting..." : "Submit brief"}
               </button>
             )}
           </div>

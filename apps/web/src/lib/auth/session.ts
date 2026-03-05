@@ -20,17 +20,10 @@ function stripQueryParams(url: URL, params: string[]) {
 }
 
 export async function ensureBrowserSupabaseSession(supabase: SupabaseClient): Promise<EnsureSessionResult> {
-  const { data, error } = await supabase.auth.getSession();
-  if (error) {
-    return { status: "error", message: error.message };
-  }
-
-  if (data.session) {
-    return { status: "signed-in", source: "existing" };
-  }
-
   if (typeof window === "undefined") {
-    return { status: "missing" };
+    const { data, error } = await supabase.auth.getSession();
+    if (error) return { status: "error", message: error.message };
+    return data.session ? { status: "signed-in", source: "existing" } : { status: "missing" };
   }
 
   const url = new URL(window.location.href);
@@ -66,6 +59,15 @@ export async function ensureBrowserSupabaseSession(supabase: SupabaseClient): Pr
       replaceUrl(`${url.pathname}${url.search}`);
       return { status: "signed-in", source: "hash" };
     }
+  }
+
+  const { data, error } = await supabase.auth.getSession();
+  if (error) {
+    return { status: "error", message: error.message };
+  }
+
+  if (data.session) {
+    return { status: "signed-in", source: "existing" };
   }
 
   return { status: "missing" };
