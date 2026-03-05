@@ -8,6 +8,8 @@ import { createClient } from "@supabase/supabase-js";
 dotenv.config({ path: ".env.local", override: true });
 dotenv.config({ override: false });
 
+const DEFAULT_CANONICAL_ADMIN_EMAIL = "hello@matdoidge.co.uk";
+
 function hasFlag(flag) {
   return process.argv.includes(flag);
 }
@@ -21,17 +23,11 @@ function requireEnv(name) {
   return value;
 }
 
-function parseAdminEmails() {
-  const raw = process.env.ADMIN_EMAILS ?? "";
-  return new Set(
-    raw
-      .split(",")
-      .map((email) => email.trim().toLowerCase())
-      .filter(Boolean),
-  );
+function getCanonicalAdminEmail() {
+  return (process.env.CANONICAL_ADMIN_EMAIL ?? DEFAULT_CANONICAL_ADMIN_EMAIL).trim().toLowerCase();
 }
 
-async function resetDatabase(pool, adminEmailSet) {
+async function resetDatabase(pool, canonicalAdminEmail) {
   const client = await pool.connect();
   const tables = [
     "ProjectReadState",
@@ -59,35 +55,32 @@ async function resetDatabase(pool, adminEmailSet) {
       console.log(`Removed ${result.rowCount.toString().padStart(3, " ")} rows from ${table}`);
     }
 
-    const adminEmails = Array.from(adminEmailSet);
-    let adminProfilesQuery = `SELECT "id", "email", "isAdmin" FROM "Profile" WHERE "isAdmin" = true`;
-    const adminQueryParams = [];
-    if (adminEmails.length) {
-      adminProfilesQuery += ` OR LOWER("email") = ANY($1::text[])`;
-      adminQueryParams.push(adminEmails);
+    const canonicalResult = await client.query(
+      `SELECT "id", "email" FROM "Profile" WHERE LOWER("email") = $1 LIMIT 1`,
+      [canonicalAdminEmail],
+    );
+
+    if (!canonicalResult.rowCount) {
+      throw new Error(
+        `Canonical admin profile (${canonicalAdminEmail}) not found in Profile. Aborting reset to avoid locking out admin access.`,
+      );
     }
 
-    const { rows: adminProfiles } = await client.query(adminProfilesQuery, adminQueryParams);
-    const adminIds = adminProfiles.map((row) => row.id);
+    const canonicalProfile = canonicalResult.rows[0];
 
-    const deleteConditions = ['COALESCE("isAdmin", false) = false'];
-    const deleteParams = [];
-    if (adminEmails.length) {
-      deleteParams.push(adminEmails);
-      deleteConditions.push(`NOT (LOWER("email") = ANY($${deleteParams.length}::text[]))`);
-    }
-    if (adminIds.length) {
-      deleteParams.push(adminIds);
-      deleteConditions.push(`NOT ("id" = ANY($${deleteParams.length}::uuid[]))`);
-    }
+    const demotedAdmins = await client.query(
+      `UPDATE "Profile" SET "isAdmin" = false WHERE "isAdmin" = true AND "id" <> $1::uuid`,
+      [canonicalProfile.id],
+    );
 
-    const profileDeleteSql = `DELETE FROM "Profile" WHERE ${deleteConditions.join(" AND ")}`;
-    const profileDeleteResult = await client.query(profileDeleteSql, deleteParams);
+    await client.query(`UPDATE "Profile" SET "isAdmin" = true WHERE "id" = $1::uuid`, [canonicalProfile.id]);
+
+    const profileDeleteResult = await client.query(`DELETE FROM "Profile" WHERE "id" <> $1::uuid`, [canonicalProfile.id]);
 
     await client.query("COMMIT");
 
     console.log(
-      `Profiles pruned. Preserved ${adminIds.length} admin profile(s); deleted ${profileDeleteResult.rowCount} non-admin profile(s).`,
+      `Profiles pruned. Preserved canonical admin ${canonicalProfile.email}; demoted ${demotedAdmins.rowCount} extra admin profile(s); deleted ${profileDeleteResult.rowCount} non-canonical profile(s).`,
     );
   } catch (error) {
     await client.query("ROLLBACK");
@@ -97,7 +90,7 @@ async function resetDatabase(pool, adminEmailSet) {
   }
 }
 
-async function pruneSupabaseUsers(adminEmailSet) {
+async function pruneSupabaseUsers(canonicalAdminEmail) {
   const supabaseUrl = requireEnv("NEXT_PUBLIC_SUPABASE_URL");
   const serviceRole = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
 
@@ -119,7 +112,7 @@ async function pruneSupabaseUsers(adminEmailSet) {
 
     for (const user of users) {
       const email = user.email?.toLowerCase();
-      if (email && adminEmailSet.has(email)) {
+      if (email && email === canonicalAdminEmail) {
         preservedCount += 1;
         continue;
       }
@@ -135,7 +128,7 @@ async function pruneSupabaseUsers(adminEmailSet) {
   }
 
   console.log(
-    `Supabase auth pruned. Deleted ${deletedCount} non-admin user(s); preserved ${preservedCount} admin user(s).`,
+    `Supabase auth pruned. Deleted ${deletedCount} non-canonical user(s); preserved ${preservedCount} canonical admin user(s).`,
   );
 }
 
@@ -146,18 +139,27 @@ async function main() {
   }
 
   const databaseUrl = requireEnv("DATABASE_URL");
-  const adminEmailSet = parseAdminEmails();
-  if (adminEmailSet.size === 0) {
-    console.warn("ADMIN_EMAILS is empty. Only profiles with isAdmin=true will be preserved.");
+  const canonicalAdminEmail = getCanonicalAdminEmail();
+  const adminEmailAllowlist = (process.env.ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
+
+  if (adminEmailAllowlist.length && !adminEmailAllowlist.includes(canonicalAdminEmail)) {
+    console.warn(
+      `ADMIN_EMAILS does not include canonical admin ${canonicalAdminEmail}. Consider adding it to avoid admin auth mismatch.`,
+    );
   }
+
+  console.log(`Canonical admin for reset: ${canonicalAdminEmail}`);
 
   const pool = new Pool({ connectionString: databaseUrl });
 
   console.log("Resetting Postgres tables managed by Prisma...");
-  await resetDatabase(pool, adminEmailSet);
+  await resetDatabase(pool, canonicalAdminEmail);
 
-  console.log("\nResetting Supabase auth users (non-admin)...");
-  await pruneSupabaseUsers(adminEmailSet);
+  console.log("\nResetting Supabase auth users (non-canonical)...");
+  await pruneSupabaseUsers(canonicalAdminEmail);
 
   await pool.end();
   console.log("\nDevelopment data reset complete.");
