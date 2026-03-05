@@ -7,6 +7,8 @@ type DeriveProjectStatusArgs = {
 };
 
 export function deriveDisplayProjectStatus({ persistedStatus, hasApprovedConcept, hasFinalDeliverable }: DeriveProjectStatusArgs): string {
+  if (persistedStatus === "DELIVERED") return "DELIVERED";
+
   if (hasFinalDeliverable) return "FINAL_FILES_READY";
 
   if (persistedStatus === "APPROVED") return "AWAITING_APPROVAL";

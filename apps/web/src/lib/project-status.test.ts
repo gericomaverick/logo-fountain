@@ -33,6 +33,16 @@ describe("project status derivation", () => {
     ).toBe("FINAL_FILES_READY");
   });
 
+  it("keeps delivered visible even when final deliverables still exist", () => {
+    expect(
+      deriveDisplayProjectStatus({
+        persistedStatus: "DELIVERED",
+        hasApprovedConcept: true,
+        hasFinalDeliverable: true,
+      }),
+    ).toBe("DELIVERED");
+  });
+
   it("uses approved badge status for overview cards", () => {
     expect(
       deriveOverviewBadgeStatus({

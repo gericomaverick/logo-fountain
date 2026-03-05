@@ -22,6 +22,15 @@ type BuildFinalDeliverableFilenameArgs = {
   fallbackDate?: Date;
 };
 
+/**
+ * Client-facing filename format: <brand-name>-<YYYY-MM-DD>.zip
+ *
+ * Slug fallback chain for <brand-name>:
+ * 1) companyName
+ * 2) clientName
+ * 3) clientEmail local-part
+ * 4) "logo-fountain"
+ */
 export function buildFinalDeliverableFilename({
   clientName,
   clientEmail,
@@ -32,8 +41,10 @@ export function buildFinalDeliverableFilename({
   const date = createdAt ?? fallbackDate;
   const yyyyMmDd = date.toISOString().slice(0, 10);
 
-  const client = slugPart(clientName) ?? slugPart(emailLocalPart(clientEmail)) ?? "client";
-  const company = slugPart(companyName) ?? "company";
+  const brandSlug = slugPart(companyName)
+    ?? slugPart(clientName)
+    ?? slugPart(emailLocalPart(clientEmail))
+    ?? "logo-fountain";
 
-  return `${client}-${company}-${yyyyMmDd}.zip`;
+  return `${brandSlug}-${yyyyMmDd}.zip`;
 }

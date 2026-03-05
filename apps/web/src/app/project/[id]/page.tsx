@@ -336,6 +336,7 @@ export default function ProjectPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [firstName, setFirstName] = useState<string | null>(null);
+  const [downloadingFinals, setDownloadingFinals] = useState(false);
 
   async function refresh(id: string) {
     const [response, sessionRes, profileRes] = await Promise.all([
@@ -422,6 +423,23 @@ export default function ProjectPage() {
     hasApprovedConcept,
     hasFinalDeliverable: Boolean(snapshot?.finalZip?.available),
   });
+  const canDownloadFinals = Boolean(snapshot?.finalZip?.available) && (snapshot?.status === "FINAL_FILES_READY" || snapshot?.status === "DELIVERED");
+
+  async function handleFinalDownload() {
+    if (!projectId || downloadingFinals) return;
+    setDownloadingFinals(true);
+    try {
+      const res = await fetch(`/api/projects/${projectId}/finals`, { cache: "no-store" });
+      const payload = await res.json().catch(() => null);
+      if (!res.ok || !payload?.url) throw new Error(readError(payload, "Could not prepare final download"));
+      window.open(payload.url as string, "_blank", "noopener,noreferrer");
+      await refresh(projectId);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not prepare final download");
+    } finally {
+      setDownloadingFinals(false);
+    }
+  }
 
   return (
     <PageShell>
@@ -471,29 +489,56 @@ export default function ProjectPage() {
               <AreaCard title="Messages" href={`/project/${projectId}/messages`} hasNew={snapshot?.hasNewMessages} subtitle={snapshot?.hasNewMessages ? "Unread updates waiting" : undefined} />
             </div>
 
-            <div className="lg:col-span-8">
-              <UsageOverviewCard
-                conceptUsage={snapshot?.entitlementUsage?.concepts}
-                revisionUsage={snapshot?.entitlementUsage?.revisions}
-              />
-            </div>
-
-            <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3 lg:col-span-4">
-              <div className="flex items-center justify-between">
-                <p className="text-xs uppercase tracking-wide text-neutral-500">Latest concept</p>
-                <Link className="text-xs font-medium text-neutral-700 portal-link no-underline" href={`/project/${projectId}/concepts`}>View all</Link>
+            {canDownloadFinals ? (
+              <div className="lg:col-span-12">
+                <section className="relative overflow-hidden rounded-2xl border border-violet-200/70 bg-gradient-to-br from-violet-100 via-fuchsia-50 to-indigo-100 p-6 shadow-sm shadow-violet-200/40">
+                  <div aria-hidden className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-gradient-to-br from-violet-300/35 via-fuchsia-200/25 to-indigo-200/20 blur-3xl" />
+                  <div aria-hidden className="pointer-events-none absolute -bottom-24 left-10 h-52 w-52 rounded-full bg-gradient-to-tr from-indigo-200/25 via-violet-200/20 to-fuchsia-200/25 blur-3xl" />
+                  <div className="relative max-w-3xl">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-violet-900">Final deliverables</p>
+                    <h2 className="mt-2 text-2xl font-semibold text-violet-950">Great news — your final deliverables are ready to download ✨</h2>
+                    <p className="mt-2 text-sm leading-6 text-violet-900">
+                      Everything is packed and ready for you. Huge thanks for working with us — it’s been a pleasure building your brand with you.
+                    </p>
+                    <p className="mt-1 text-sm font-medium text-violet-900">— Logo Fountain team</p>
+                    <button
+                      type="button"
+                      onClick={() => void handleFinalDownload()}
+                      disabled={downloadingFinals}
+                      className="mt-4 inline-flex items-center justify-center rounded-lg bg-violet-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-900 disabled:opacity-60"
+                    >
+                      {downloadingFinals ? "Preparing download…" : "Download final ZIP"}
+                    </button>
+                  </div>
+                </section>
               </div>
-
-              {latestConcept?.imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={latestConcept.imageUrl} alt={`Latest concept #${latestConcept.number}`} className="mt-2 h-36 w-full rounded-lg border border-neutral-200 object-cover" />
-              ) : (
-                <div className="mt-2 flex h-36 items-center justify-center rounded-lg border border-dashed border-neutral-300 text-xs text-neutral-500">
-                  No concept preview yet
+            ) : (
+              <>
+                <div className="lg:col-span-8">
+                  <UsageOverviewCard
+                    conceptUsage={snapshot?.entitlementUsage?.concepts}
+                    revisionUsage={snapshot?.entitlementUsage?.revisions}
+                  />
                 </div>
-              )}
-              <p className="mt-2 text-xs text-neutral-600">{conceptUsage.remaining} concepts left · {revisionUsage.remaining} revisions left</p>
-            </div>
+
+                <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3 lg:col-span-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs uppercase tracking-wide text-neutral-500">Latest concept</p>
+                    <Link className="text-xs font-medium text-neutral-700 portal-link no-underline" href={`/project/${projectId}/concepts`}>View all</Link>
+                  </div>
+
+                  {latestConcept?.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={latestConcept.imageUrl} alt={`Latest concept #${latestConcept.number}`} className="mt-2 h-36 w-full rounded-lg border border-neutral-200 object-cover" />
+                  ) : (
+                    <div className="mt-2 flex h-36 items-center justify-center rounded-lg border border-dashed border-neutral-300 text-xs text-neutral-500">
+                      No concept preview yet
+                    </div>
+                  )}
+                  <p className="mt-2 text-xs text-neutral-600">{conceptUsage.remaining} concepts left · {revisionUsage.remaining} revisions left</p>
+                </div>
+              </>
+            )}
           </div>
 
           <UpsellPurchaseStatus sessionId={upsellSessionId} kind={upsellKind} />
@@ -505,16 +550,6 @@ export default function ProjectPage() {
 
         {snapshot?.timeline ? <ProjectTimeline timeline={snapshot.timeline} primaryCta={snapshot.primaryCta} /> : null}
 
-        {snapshot?.status === "FINAL_FILES_READY" && snapshot?.finalZip.url ? (
-          <section id="final-files" className="mt-10 rounded border border-neutral-200 p-4">
-            <h2 className="text-lg font-medium">Final files</h2>
-            <p className="mt-3 text-sm">
-              <a className="portal-link no-underline" href={snapshot.finalZip.url} target="_blank" rel="noreferrer">
-                Download final ZIP
-              </a>
-            </p>
-          </section>
-        ) : null}
       </main>
     </PageShell>
   );
