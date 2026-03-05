@@ -103,7 +103,14 @@ export default function LoginPage() {
   const summaryErrors = toErrorList(fieldErrors);
 
   return (
-    <AuthShell title="Sign in" subtitle="Sign in with your password, or request a magic link.">
+    <AuthShell
+      title="Sign in"
+      subtitle="Sign in with your password, or request a magic link."
+      sideImageSrc="/img/auth/auth-login.svg"
+      sideImageAlt="Abstract wave artwork in warm gradient tones"
+      sideTitle="Welcome back"
+      sideDescription="Pick up where you left off and keep your project momentum going."
+    >
       {summaryErrors.length > 0 ? (
         <div className="mb-4 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800" role="alert" aria-live="assertive">
           <p className="font-medium">⚠ Please fix the highlighted fields:</p>

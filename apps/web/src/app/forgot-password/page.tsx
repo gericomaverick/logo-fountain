@@ -46,7 +46,14 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <AuthShell title="Reset your password" subtitle="We’ll email you a link to set a new password.">
+    <AuthShell
+      title="Reset your password"
+      subtitle="We’ll email you a link to set a new password."
+      sideImageSrc="/img/auth/auth-forgot-password.svg"
+      sideImageAlt="Soft geometric illustration suggesting account recovery"
+      sideTitle="Reset and continue"
+      sideDescription="We’ll send a secure link so you can get back into your account quickly."
+    >
       {emailError ? (
         <div className="mb-4 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800" role="alert" aria-live="assertive">
           <p className="font-medium">⚠ Please fix the highlighted field.</p>

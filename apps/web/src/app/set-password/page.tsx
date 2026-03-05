@@ -96,7 +96,14 @@ export default function SetPasswordPage() {
   const summaryErrors = toErrorList(fieldErrors);
 
   return (
-    <AuthShell title="Set your password" subtitle="For security, you’ll sign in with this password next time.">
+    <AuthShell
+      title="Set your password"
+      subtitle="For security, you’ll sign in with this password next time."
+      sideImageSrc="/img/auth/auth-set-password.svg"
+      sideImageAlt="Gradient illustration representing account setup"
+      sideTitle="One last step"
+      sideDescription="Set your password now and future sign-ins will be faster."
+    >
       {summaryErrors.length > 0 ? (
         <div className="mb-4 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800" role="alert" aria-live="assertive">
           <p className="font-medium">⚠ Please fix the highlighted fields:</p>

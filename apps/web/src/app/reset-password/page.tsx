@@ -52,7 +52,14 @@ export default function ResetPasswordPage() {
   const summaryErrors = toErrorList(fieldErrors);
 
   return (
-    <AuthShell title="Choose a new password" subtitle="Set a new password for your account.">
+    <AuthShell
+      title="Choose a new password"
+      subtitle="Set a new password for your account."
+      sideImageSrc="/img/auth/auth-reset-password.svg"
+      sideImageAlt="Abstract security-inspired gradient illustration"
+      sideTitle="Create a strong new password"
+      sideDescription="Use at least 8 characters and avoid reusing old passwords."
+    >
       {summaryErrors.length > 0 ? (
         <div className="mb-4 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800" role="alert" aria-live="assertive">
           <p className="font-medium">⚠ Please fix the highlighted fields:</p>

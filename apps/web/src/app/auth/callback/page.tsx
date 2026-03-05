@@ -91,7 +91,14 @@ export default function AuthCallbackPage() {
   }, [router, supabase]);
 
   return (
-    <AuthShell title="Signing in" subtitle={status}>
+    <AuthShell
+      title="Signing in"
+      subtitle={status}
+      sideImageSrc="/img/auth/auth-login.svg"
+      sideImageAlt="Abstract wave artwork in warm gradient tones"
+      sideTitle="Verifying your secure link"
+      sideDescription="This usually takes a moment while we securely sign you in."
+    >
       {recoveryHref ? (
         <div className="text-sm text-neutral-700">
           <Link className="underline" href={recoveryHref}>
