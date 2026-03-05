@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => {
     applyTransition: vi.fn(),
     logAudit: vi.fn(),
     createProjectSystemMessage: vi.fn(),
+    notifyAdminFeedbackOnConcept: vi.fn(),
     prisma: {
       project: { findUnique: vi.fn() },
       concept: { findFirst: vi.fn() },
@@ -32,6 +33,7 @@ vi.mock("@/lib/prisma", () => ({ prisma: mocks.prisma }));
 vi.mock("@/lib/project-state-machine", () => ({ applyTransition: mocks.applyTransition }));
 vi.mock("@/lib/audit", () => ({ logAudit: mocks.logAudit }));
 vi.mock("@/lib/system-messages", () => ({ createProjectSystemMessage: mocks.createProjectSystemMessage }));
+vi.mock("@/lib/project-lifecycle-email", () => ({ notifyAdminFeedbackOnConcept: mocks.notifyAdminFeedbackOnConcept }));
 
 import { POST } from "./route";
 
@@ -60,6 +62,7 @@ describe("POST /api/projects/[id]/revision-requests", () => {
     mocks.tx.project.update.mockResolvedValue({ id: "p1", status: "REVISIONS_IN_PROGRESS" });
     mocks.logAudit.mockResolvedValue(undefined);
     mocks.createProjectSystemMessage.mockResolvedValue(undefined);
+    mocks.notifyAdminFeedbackOnConcept.mockResolvedValue(undefined);
   });
 
   it("rejects requests that do not include conceptId", async () => {

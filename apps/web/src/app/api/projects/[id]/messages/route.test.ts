@@ -6,6 +6,8 @@ const mocks = vi.hoisted(() => ({
   requireProjectMembership: vi.fn(),
   toRouteErrorResponse: vi.fn(),
   logAudit: vi.fn(),
+  notifyAdminMessageFromProject: vi.fn(),
+  notifyClientNewMessage: vi.fn(),
   tx: {
     messageThread: { upsert: vi.fn() },
     message: { create: vi.fn() },
@@ -30,6 +32,10 @@ vi.mock("@/lib/auth/require", () => ({
 
 vi.mock("@/lib/prisma", () => ({ prisma: mocks.prisma }));
 vi.mock("@/lib/audit", () => ({ logAudit: mocks.logAudit }));
+vi.mock("@/lib/project-lifecycle-email", () => ({
+  notifyAdminMessageFromProject: mocks.notifyAdminMessageFromProject,
+  notifyClientNewMessage: mocks.notifyClientNewMessage,
+}));
 
 import { POST } from "./route";
 
@@ -51,6 +57,8 @@ describe("POST /api/projects/[id]/messages", () => {
     });
     mocks.prisma.$transaction.mockImplementation(async (fn: (tx: typeof mocks.tx) => Promise<unknown>) => fn(mocks.tx));
     mocks.logAudit.mockResolvedValue(undefined);
+    mocks.notifyAdminMessageFromProject.mockResolvedValue(undefined);
+    mocks.notifyClientNewMessage.mockResolvedValue(undefined);
   });
 
   it("returns jsonError shape for invalid body", async () => {
