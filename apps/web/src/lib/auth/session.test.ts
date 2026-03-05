@@ -23,11 +23,14 @@ function createSupabaseMock(options?: {
     error: options?.setSessionError ? { message: options.setSessionError } : null,
   });
 
+  const signOut = vi.fn().mockResolvedValue({ error: null });
+
   return {
     auth: {
       getSession,
       exchangeCodeForSession,
       setSession,
+      signOut,
     },
   };
 }
@@ -46,7 +49,7 @@ function mockWindow(href: string) {
     history: {
       replaceState,
     },
-  } satisfies Partial<Window> & { history: { replaceState: ReturnType<typeof vi.fn> } };
+  } as any;
 
   return replaceState;
 }
@@ -71,6 +74,7 @@ describe("ensureBrowserSupabaseSession", () => {
     expect(result).toEqual({ status: "signed-in", source: "existing" });
     expect(supabase.auth.exchangeCodeForSession).not.toHaveBeenCalled();
     expect(supabase.auth.setSession).not.toHaveBeenCalled();
+    expect(supabase.auth.signOut).not.toHaveBeenCalled();
   });
 
   it("exchanges the code in the query string and strips Supabase params", async () => {
@@ -80,6 +84,7 @@ describe("ensureBrowserSupabaseSession", () => {
     const result = await ensureBrowserSupabaseSession(supabase as any);
 
     expect(result).toEqual({ status: "signed-in", source: "code" });
+    expect(supabase.auth.signOut).toHaveBeenCalledWith({ scope: "local" });
     expect(supabase.auth.exchangeCodeForSession).toHaveBeenCalledWith("123");
     expect(replaceState).toHaveBeenCalledWith({}, "Test", "/set-password?next=%2Fdashboard");
   });
@@ -91,6 +96,7 @@ describe("ensureBrowserSupabaseSession", () => {
     const result = await ensureBrowserSupabaseSession(supabase as any);
 
     expect(result).toEqual({ status: "signed-in", source: "code" });
+    expect(supabase.auth.signOut).toHaveBeenCalledWith({ scope: "local" });
     expect(supabase.auth.exchangeCodeForSession).toHaveBeenCalledWith("fresh-code");
     expect(replaceState).toHaveBeenCalledWith({}, "Test", "/project/p2");
   });
@@ -102,6 +108,7 @@ describe("ensureBrowserSupabaseSession", () => {
     const result = await ensureBrowserSupabaseSession(supabase as any);
 
     expect(result).toEqual({ status: "signed-in", source: "hash" });
+    expect(supabase.auth.signOut).toHaveBeenCalledWith({ scope: "local" });
     expect(supabase.auth.setSession).toHaveBeenCalledWith({ access_token: "abc", refresh_token: "def" });
     expect(replaceState).toHaveBeenCalledWith({}, "Test", "/set-password");
   });

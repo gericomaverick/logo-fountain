@@ -86,7 +86,28 @@ describe("POST /api/checkout/magic-link", () => {
       type: "magiclink",
       email: "buyer@example.com",
       options: {
-        redirectTo: "https://app.example.com/project/project-returning",
+        redirectTo: "https://app.example.com/auth/callback?next=%2Fproject%2Fproject-returning",
+      },
+    });
+  });
+
+  it("uses callback handoff route for returning users without a project id", async () => {
+    mocks.prisma.projectOrder.findUnique.mockResolvedValue({
+      id: "order-returning-no-project",
+      status: "FULFILLED",
+      projectId: null,
+      createdAt: new Date("2026-03-05T08:00:00.000Z"),
+      client: { billingEmail: "buyer@example.com" },
+    });
+    mocks.prisma.projectOrder.findFirst.mockResolvedValue({ id: "order-old" });
+
+    const res = await POST(requestFor("cs_returning_2"));
+    expect(res.status).toBe(200);
+    expect(mocks.generateLink).toHaveBeenCalledWith({
+      type: "magiclink",
+      email: "buyer@example.com",
+      options: {
+        redirectTo: "https://app.example.com/auth/callback?next=%2Fdashboard",
       },
     });
   });

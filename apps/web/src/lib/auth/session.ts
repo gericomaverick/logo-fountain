@@ -19,6 +19,17 @@ function stripQueryParams(url: URL, params: string[]) {
   return `${url.pathname}${search ? `?${search}` : ""}`;
 }
 
+async function clearLocalSession(supabase: SupabaseClient) {
+  const signOut = (supabase.auth as { signOut?: (opts?: { scope?: "global" | "local" | "others" }) => Promise<unknown> }).signOut;
+  if (!signOut) return;
+
+  try {
+    await signOut({ scope: "local" });
+  } catch {
+    // Ignore stale-cookie cleanup issues; token exchange below is authoritative.
+  }
+}
+
 export async function ensureBrowserSupabaseSession(supabase: SupabaseClient): Promise<EnsureSessionResult> {
   if (typeof window === "undefined") {
     const { data, error } = await supabase.auth.getSession();
@@ -30,6 +41,7 @@ export async function ensureBrowserSupabaseSession(supabase: SupabaseClient): Pr
   const code = url.searchParams.get("code");
 
   if (code) {
+    await clearLocalSession(supabase);
     const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
     if (exchangeError) {
       return { status: "error", message: exchangeError.message };
@@ -47,6 +59,7 @@ export async function ensureBrowserSupabaseSession(supabase: SupabaseClient): Pr
     const refreshToken = params.get("refresh_token");
 
     if (accessToken && refreshToken) {
+      await clearLocalSession(supabase);
       const { error: setSessionError } = await supabase.auth.setSession({
         access_token: accessToken,
         refresh_token: refreshToken,

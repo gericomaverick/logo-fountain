@@ -22,7 +22,8 @@ function buildSetPasswordRedirect(baseUrl: string, projectId?: string | null): s
 }
 
 function buildSigninRedirect(baseUrl: string, projectId?: string | null): string {
-  const redirect = new URL(projectId ? `/project/${projectId}` : "/dashboard", baseUrl);
+  const redirect = new URL("/auth/callback", baseUrl);
+  redirect.searchParams.set("next", projectId ? `/project/${projectId}` : "/dashboard");
   return redirect.toString();
 }
 
