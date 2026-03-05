@@ -188,9 +188,14 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
           subtitle="Your brief is now locked. Review your submitted answers below."
           meta={<span>Submitted {dateLabel(latestBrief.createdAt)}</span>}
         >
-          <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900">
-            Brief submission complete — editing and re-submission are disabled for clients.
-          </div>
+          <FeatureNoticeCard
+            variant="success"
+            className="mb-4 p-4"
+            kicker="Brief status"
+            title="Brief submission complete"
+            body="Editing and re-submission are now disabled for clients."
+            contentClassName="max-w-none"
+          />
           <BriefFieldGrid>
             {briefSections.map((section) => (
               <BriefSection key={section.id} title={section.title} description={section.description} tone="paper">

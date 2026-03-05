@@ -331,9 +331,9 @@ export default function ConceptDetailPage() {
               </div>
             ) : null}
 
-            {isAdminView && (conceptExplainer || showSelectedV1DesignerNote || showSelectedAssetNote) ? (
+            {(conceptExplainer || showSelectedV1DesignerNote || showSelectedAssetNote) ? (
               <div className="mt-4 rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-900">Designer notes for displayed concept</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-900">Designer notes for this concept</p>
                 {conceptExplainer ? (
                   <div className="mt-2 rounded-xl border border-blue-100 bg-white/70 px-4 py-3">
                     <p className="text-xs font-semibold text-blue-900">Concept rationale</p>

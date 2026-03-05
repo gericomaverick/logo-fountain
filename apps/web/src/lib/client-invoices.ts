@@ -5,6 +5,7 @@ import { stripe } from "@/lib/stripe";
 export type InvoiceLikeRecord = {
   stripeCheckoutSessionId: string | null;
   stripePaymentIntentId: string | null;
+  isOrderSettled?: boolean;
 };
 
 export type StripeInvoiceDocument = {
@@ -19,15 +20,22 @@ function normalizeUrl(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value : null;
 }
 
+function isSettledInvoice(invoice: Stripe.Invoice): boolean {
+  if (invoice.status === "paid" || invoice.status === "void" || invoice.status === "uncollectible") return true;
+  return (invoice.amount_remaining ?? 0) <= 0;
+}
+
 function toInvoiceDocument(invoice: Stripe.Invoice | string | null | undefined): StripeInvoiceDocument | null {
   if (!invoice || typeof invoice === "string") return null;
+
+  const settled = isSettledInvoice(invoice);
 
   return {
     invoiceId: invoice.id,
     invoicePdfUrl: normalizeUrl(invoice.invoice_pdf),
-    hostedInvoiceUrl: normalizeUrl(invoice.hosted_invoice_url),
+    hostedInvoiceUrl: settled ? normalizeUrl(invoice.hosted_invoice_url) : null,
     receiptUrl: null,
-    source: normalizeUrl(invoice.invoice_pdf) ? "invoice" : "none",
+    source: normalizeUrl(invoice.invoice_pdf) || (settled && normalizeUrl(invoice.hosted_invoice_url)) ? "invoice" : "none",
   };
 }
 
@@ -44,10 +52,12 @@ function toReceiptDocument(receiptUrl: unknown): StripeInvoiceDocument | null {
   };
 }
 
-async function resolveInvoiceById(invoiceId: string | null | undefined): Promise<StripeInvoiceDocument | null> {
+async function resolveInvoiceById(invoiceId: string | null | undefined, preferSettled: boolean): Promise<StripeInvoiceDocument | null> {
   if (!invoiceId) return null;
 
   const invoice = await stripe.invoices.retrieve(invoiceId);
+  if (preferSettled && !isSettledInvoice(invoice)) return null;
+
   const invoiceDoc = toInvoiceDocument(invoice);
   if (!invoiceDoc) return null;
 
@@ -64,6 +74,7 @@ async function resolveInvoiceById(invoiceId: string | null | undefined): Promise
 export async function resolveStripeInvoiceDocument(order: InvoiceLikeRecord): Promise<StripeInvoiceDocument> {
   const sessionId = order.stripeCheckoutSessionId?.trim() || null;
   const paymentIntentId = order.stripePaymentIntentId?.trim() || null;
+  const preferSettled = order.isOrderSettled === true;
 
   try {
     if (sessionId) {
@@ -71,8 +82,10 @@ export async function resolveStripeInvoiceDocument(order: InvoiceLikeRecord): Pr
         expand: ["invoice", "payment_intent.latest_charge"],
       });
 
-      const sessionInvoice = toInvoiceDocument(session.invoice as Stripe.Invoice | string | null | undefined);
-      if (sessionInvoice && (sessionInvoice.invoicePdfUrl || sessionInvoice.hostedInvoiceUrl)) {
+      const sessionInvoiceRecord = session.invoice as Stripe.Invoice | string | null | undefined;
+      const sessionInvoice = toInvoiceDocument(sessionInvoiceRecord);
+      const sessionInvoiceIsSettled = !!sessionInvoiceRecord && typeof sessionInvoiceRecord !== "string" && isSettledInvoice(sessionInvoiceRecord);
+      if (sessionInvoice && (!preferSettled || sessionInvoiceIsSettled) && (sessionInvoice.invoicePdfUrl || sessionInvoice.hostedInvoiceUrl)) {
         return {
           ...sessionInvoice,
           source: "invoice",
@@ -85,7 +98,7 @@ export async function resolveStripeInvoiceDocument(order: InvoiceLikeRecord): Pr
           : null;
 
       if (typeof session.invoice === "string") {
-        const invoiceFromSessionId = await resolveInvoiceById(session.invoice);
+        const invoiceFromSessionId = await resolveInvoiceById(session.invoice, preferSettled);
         if (invoiceFromSessionId) return invoiceFromSessionId;
       }
 
@@ -97,11 +110,11 @@ export async function resolveStripeInvoiceDocument(order: InvoiceLikeRecord): Pr
       const latestChargeInvoice = (latestCharge as { invoice?: Stripe.Invoice | string | null } | null)?.invoice;
       if (latestChargeInvoice) {
         if (typeof latestChargeInvoice === "string") {
-          const invoiceFromLatestChargeId = await resolveInvoiceById(latestChargeInvoice);
+          const invoiceFromLatestChargeId = await resolveInvoiceById(latestChargeInvoice, preferSettled);
           if (invoiceFromLatestChargeId) return invoiceFromLatestChargeId;
         } else {
           const invoiceFromLatestCharge = toInvoiceDocument(latestChargeInvoice);
-          if (invoiceFromLatestCharge && (invoiceFromLatestCharge.invoicePdfUrl || invoiceFromLatestCharge.hostedInvoiceUrl)) {
+          if (invoiceFromLatestCharge && (!preferSettled || isSettledInvoice(latestChargeInvoice)) && (invoiceFromLatestCharge.invoicePdfUrl || invoiceFromLatestCharge.hostedInvoiceUrl)) {
             return {
               ...invoiceFromLatestCharge,
               source: "invoice",
@@ -123,11 +136,11 @@ export async function resolveStripeInvoiceDocument(order: InvoiceLikeRecord): Pr
         const latestChargeInvoice = (latestCharge as { invoice?: Stripe.Invoice | string | null }).invoice;
         if (latestChargeInvoice) {
           if (typeof latestChargeInvoice === "string") {
-            const invoiceFromLatestChargeId = await resolveInvoiceById(latestChargeInvoice);
+            const invoiceFromLatestChargeId = await resolveInvoiceById(latestChargeInvoice, preferSettled);
             if (invoiceFromLatestChargeId) return invoiceFromLatestChargeId;
           } else {
             const invoiceFromLatestCharge = toInvoiceDocument(latestChargeInvoice);
-            if (invoiceFromLatestCharge && (invoiceFromLatestCharge.invoicePdfUrl || invoiceFromLatestCharge.hostedInvoiceUrl)) {
+            if (invoiceFromLatestCharge && (!preferSettled || isSettledInvoice(latestChargeInvoice)) && (invoiceFromLatestCharge.invoicePdfUrl || invoiceFromLatestCharge.hostedInvoiceUrl)) {
               return {
                 ...invoiceFromLatestCharge,
                 source: "invoice",

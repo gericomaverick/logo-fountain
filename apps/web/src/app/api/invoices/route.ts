@@ -44,6 +44,7 @@ export async function GET() {
         const doc = await resolveStripeInvoiceDocument({
           stripeCheckoutSessionId: order.stripeCheckoutSessionId,
           stripePaymentIntentId: order.stripePaymentIntentId,
+          isOrderSettled: order.status === "FULFILLED",
         });
 
         const brandName = extractBrandNameFromBriefAnswers(order.project.briefs[0]?.answers);

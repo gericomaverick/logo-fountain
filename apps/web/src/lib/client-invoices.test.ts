@@ -67,4 +67,35 @@ describe("resolveStripeInvoiceDocument", () => {
       source: "receipt",
     });
   });
+
+  it("avoids unpaid hosted invoice links for settled orders and falls back to receipt", async () => {
+    mocks.stripe.checkout.sessions.retrieve.mockResolvedValueOnce({
+      invoice: {
+        id: "in_open",
+        status: "open",
+        amount_remaining: 1200,
+        invoice_pdf: null,
+        hosted_invoice_url: "https://stripe.test/in_open",
+      },
+      payment_intent: {
+        latest_charge: {
+          receipt_url: "https://stripe.test/receipt_paid",
+        },
+      },
+    });
+
+    const result = await resolveStripeInvoiceDocument({
+      stripeCheckoutSessionId: "cs_paid",
+      stripePaymentIntentId: "pi_paid",
+      isOrderSettled: true,
+    });
+
+    expect(result).toEqual({
+      invoiceId: null,
+      invoicePdfUrl: null,
+      hostedInvoiceUrl: null,
+      receiptUrl: "https://stripe.test/receipt_paid",
+      source: "receipt",
+    });
+  });
 });
