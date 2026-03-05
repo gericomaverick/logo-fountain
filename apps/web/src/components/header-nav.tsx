@@ -62,6 +62,7 @@ export function HeaderNav() {
           </Link>
           <Link className="portal-link no-underline" href="/dashboard">Dashboard</Link>
           {session.authenticated ? <Link className="portal-link no-underline" href="/settings">Settings</Link> : null}
+          {session.authenticated ? <Link className="portal-link no-underline" href="/settings/invoices">Invoices</Link> : null}
 
           {!session.authenticated ? <Link className="portal-link no-underline" href="/pricing">Pricing</Link> : null}
         </div>

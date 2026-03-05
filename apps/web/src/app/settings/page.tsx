@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { HeaderNav } from "@/components/header-nav";
@@ -125,6 +126,7 @@ export default function SettingsPage() {
             </label>
 
             <p className="text-xs text-neutral-500">Billing email and VAT number will be added here in a later update.</p>
+            <p className="text-xs text-neutral-500">Need a copy of a paid invoice? Visit <Link className="portal-link" href="/settings/invoices">Invoices</Link>.</p>
 
             <button
               type="submit"
