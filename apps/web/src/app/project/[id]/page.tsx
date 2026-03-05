@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { ProjectTimeline } from "@/app/project-timeline";
+import { FeatureNoticeCard } from "@/components/feature-notice-card";
 import { HeaderNav } from "@/components/header-nav";
 import { PageShell } from "@/components/page-shell";
 import { ProjectStatusBadge } from "@/components/project-status-badge";
@@ -491,26 +492,23 @@ export default function ProjectPage() {
 
             {canDownloadFinals ? (
               <div className="lg:col-span-12">
-                <section className="relative overflow-hidden rounded-2xl border border-violet-200/70 bg-gradient-to-br from-violet-100 via-fuchsia-50 to-indigo-100 p-6 shadow-sm shadow-violet-200/40">
-                  <div aria-hidden className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-gradient-to-br from-violet-300/35 via-fuchsia-200/25 to-indigo-200/20 blur-3xl" />
-                  <div aria-hidden className="pointer-events-none absolute -bottom-24 left-10 h-52 w-52 rounded-full bg-gradient-to-tr from-indigo-200/25 via-violet-200/20 to-fuchsia-200/25 blur-3xl" />
-                  <div className="relative max-w-3xl">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-violet-900">Final deliverables</p>
-                    <h2 className="mt-2 text-2xl font-semibold text-violet-950">Great news — your final deliverables are ready to download ✨</h2>
-                    <p className="mt-2 text-sm leading-6 text-violet-900">
-                      Everything is packed and ready for you. Huge thanks for working with us — it’s been a pleasure building your brand with you.
-                    </p>
-                    <p className="mt-1 text-sm font-medium text-violet-900">— Logo Fountain team</p>
+                <FeatureNoticeCard
+                  variant="brand"
+                  kicker="Final deliverables"
+                  title="Great news — your final deliverables are ready to download ✨"
+                  body="Everything is packed and ready for you. Huge thanks for working with us — it’s been a pleasure building your brand with you."
+                  signature="— Logo Fountain team"
+                  actions={(
                     <button
                       type="button"
                       onClick={() => void handleFinalDownload()}
                       disabled={downloadingFinals}
-                      className="mt-4 inline-flex items-center justify-center rounded-lg bg-violet-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-900 disabled:opacity-60"
+                      className="inline-flex items-center justify-center rounded-lg bg-violet-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-900 disabled:opacity-60"
                     >
                       {downloadingFinals ? "Preparing download…" : "Download final ZIP"}
                     </button>
-                  </div>
-                </section>
+                  )}
+                />
               </div>
             ) : (
               <>

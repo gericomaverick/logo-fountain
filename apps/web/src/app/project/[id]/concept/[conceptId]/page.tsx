@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 type ConceptAssetItem = { path: string; version: number; createdAt: string; url: string; notes: string | null };
 
+import { FeatureNoticeCard } from "@/components/feature-notice-card";
 import { HeaderNav } from "@/components/header-nav";
 import { PageShell } from "@/components/page-shell";
 import { buildUnifiedConceptThread } from "@/lib/concept-thread";
@@ -274,24 +275,27 @@ export default function ConceptDetailPage() {
         </div>
 
         {approvalSuccess ? (
-          <section className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-900">
-            <h2 className="text-base font-semibold">Concept approved — thank you!</h2>
-            <p className="mt-1 text-sm">
-              {approvalSuccess.conceptNumber ? `Concept #${approvalSuccess.conceptNumber} is now approved.` : "Your selected concept is now approved."} We’ve updated your project status and your designer is moving to the next stage.
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Link className="portal-btn-secondary border-emerald-300 bg-white text-emerald-900" href={`/project/${projectId}`}>
-                Back to project overview
-              </Link>
-              <button
-                type="button"
-                className="portal-btn-secondary"
-                onClick={() => setApprovalSuccess(null)}
-              >
-                Dismiss
-              </button>
-            </div>
-          </section>
+          <FeatureNoticeCard
+            variant="success"
+            className="mb-4 p-4"
+            kicker="Concept approved"
+            title="Concept approved — thank you!"
+            body={`${approvalSuccess.conceptNumber ? `Concept #${approvalSuccess.conceptNumber} is now approved.` : "Your selected concept is now approved."} We’ve updated your project status and your designer is moving to the next stage.`}
+            actions={(
+              <>
+                <Link className="portal-btn-secondary border-emerald-300 bg-white text-emerald-900" href={`/project/${projectId}`}>
+                  Back to project overview
+                </Link>
+                <button
+                  type="button"
+                  className="portal-btn-secondary"
+                  onClick={() => setApprovalSuccess(null)}
+                >
+                  Dismiss
+                </button>
+              </>
+            )}
+          />
         ) : null}
 
         {loading ? <p className="text-sm text-neutral-600">Loading…</p> : null}
@@ -352,10 +356,13 @@ export default function ConceptDetailPage() {
             ) : null}
 
             {isApprovedConcept ? (
-              <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-                <p className="font-semibold">Great choice — this concept is officially approved 🎉</p>
-                <p className="mt-1">Your designer is now polishing the final files for delivery. We’ll send you notifications as soon as your deliverables are ready to download.</p>
-              </div>
+              <FeatureNoticeCard
+                variant="success"
+                className="mt-4 p-4"
+                kicker="Concept status"
+                title="Great choice — this concept is officially approved 🎉"
+                body="Your designer is now polishing the final files for delivery. We’ll send you notifications as soon as your deliverables are ready to download."
+              />
             ) : null}
 
             {isAdminView ? (

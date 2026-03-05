@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 
 import { BriefDocument, BriefField, BriefFieldGrid, BriefSection } from "@/components/brief-document";
+import { FeatureNoticeCard } from "@/components/feature-notice-card";
 import { briefSections, EMPTY_BRIEF_ANSWERS, missingRequiredFields, requiredFieldLabels, type BriefAnswers } from "@/lib/brief";
 import { briefDraftStorageKey, hasBriefAnswerChanges, mergeWithBriefDefaults, parseBriefDraft } from "@/lib/brief-draft";
 import { nextStepIndex, previousStepIndex } from "@/lib/brief-wizard";
@@ -185,15 +186,18 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
             Brief editor
           </h3>
 
-          <div className="relative overflow-hidden rounded-2xl border border-violet-200/70 bg-gradient-to-br from-violet-50 via-indigo-50 to-teal-50 px-4 py-3 shadow-sm shadow-violet-200/30">
-            <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-gradient-to-br from-violet-200/30 via-sky-200/20 to-teal-200/15 blur-2xl" />
-            <div aria-hidden className="pointer-events-none absolute -bottom-16 left-10 h-32 w-32 rounded-full bg-gradient-to-tr from-teal-200/20 via-cyan-200/15 to-violet-200/20 blur-2xl" />
-            <div className="relative">
-              <p className="text-xs font-semibold uppercase tracking-wide text-violet-800">From the Logo Fountain team</p>
-              <p className="mt-1 text-sm leading-relaxed text-violet-950">The more specific your brief, the stronger your logo concepts will be. A few extra details now helps us design faster and with much better precision.</p>
-              <p className="mt-2 text-xs text-violet-900/90">You can move back at any time, and each submission is saved as a new version.</p>
-            </div>
-          </div>
+          <FeatureNoticeCard
+            variant="info"
+            className="p-4"
+            kicker="From the Logo Fountain team"
+            title="Set us up with a strong brief"
+            body={(
+              <>
+                <p>The more specific your brief, the stronger your logo concepts will be. A few extra details now helps us design faster and with much better precision.</p>
+                <p className="mt-2 text-xs text-violet-900/90">You can move back at any time, and each submission is saved as a new version.</p>
+              </>
+            )}
+          />
 
           <div className="space-y-3 rounded-xl border border-neutral-200 bg-neutral-50/80 p-3 sm:p-4">
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-neutral-600">
