@@ -5,6 +5,7 @@ import { applyTransition } from "@/lib/project-state-machine";
 import { uploadFinalDeliverable } from "@/lib/supabase/storage";
 import { logAudit } from "@/lib/audit";
 import { createProjectSystemMessage } from "@/lib/system-messages";
+import { notifyClientFinalDeliverablesReady } from "@/lib/project-lifecycle-email";
 
 export const runtime = "nodejs";
 
@@ -125,6 +126,10 @@ export async function POST(
 
       return { asset, project: updatedProject };
     });
+
+    if (result.project.status === PROJECT_STATUS_FINAL_FILES_READY) {
+      await notifyClientFinalDeliverablesReady(project.id);
+    }
 
     return Response.json({ ok: true, fileAsset: result.asset, project: result.project });
   } catch (error) {

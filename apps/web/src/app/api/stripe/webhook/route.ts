@@ -12,6 +12,7 @@ import {
 import { sendCheckoutContinueEmail } from "@/lib/checkout-continue-email";
 import { classifyWebhookError } from "@/lib/webhook-error-classification";
 import { getPublicSiteOrigin } from "@/lib/request-origin";
+import { notifyAdminNewProject } from "@/lib/project-lifecycle-email";
 
 export const runtime = "nodejs";
 
@@ -117,6 +118,11 @@ export async function POST(req: Request) {
       } catch (emailError) {
         console.error("Failed to send checkout magic-link email", emailError);
       }
+    }
+
+    const isNewProjectCheckout = !session.metadata?.kind;
+    if (!fulfillment.deduped && isNewProjectCheckout) {
+      await notifyAdminNewProject(fulfillment.projectId);
     }
 
     await prisma.stripeEvent.update({

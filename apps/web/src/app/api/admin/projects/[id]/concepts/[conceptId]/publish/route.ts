@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { applyTransition } from "@/lib/project-state-machine";
 import { logAudit } from "@/lib/audit";
 import { createProjectSystemMessage } from "@/lib/system-messages";
+import { notifyClientConceptReady } from "@/lib/project-lifecycle-email";
 
 export const runtime = "nodejs";
 
@@ -90,6 +91,8 @@ export async function POST(
 
     return { updatedConcept, updatedProjectStatus };
   });
+
+  await notifyClientConceptReady(projectId, result.updatedConcept.id);
 
   return Response.json({
     ok: true,

@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   fulfillCheckoutSession: vi.fn(),
   ensureAccessProvisioning: vi.fn(),
   sendCheckoutContinueEmail: vi.fn(),
+  notifyAdminNewProject: vi.fn(),
   getPublicSiteOrigin: vi.fn(),
   prisma: {
     stripeEvent: {
@@ -24,6 +25,7 @@ vi.mock("@/lib/stripe", () => ({
 
 vi.mock("@/lib/prisma", () => ({ prisma: mocks.prisma }));
 vi.mock("@/lib/checkout-continue-email", () => ({ sendCheckoutContinueEmail: mocks.sendCheckoutContinueEmail }));
+vi.mock("@/lib/project-lifecycle-email", () => ({ notifyAdminNewProject: mocks.notifyAdminNewProject }));
 vi.mock("@/lib/request-origin", () => ({ getPublicSiteOrigin: mocks.getPublicSiteOrigin }));
 vi.mock("@/lib/checkout-fulfillment", () => ({
   ORDER_STATUS_FULFILLED: "FULFILLED",
@@ -133,6 +135,29 @@ describe("POST /api/stripe/webhook", () => {
       sessionId: "cs_new",
       flow: "setup",
     });
+    expect(mocks.notifyAdminNewProject).toHaveBeenCalledWith("project-1");
+  });
+
+  it("skips new-project admin email for upsell metadata", async () => {
+    mocks.constructEvent.mockReturnValue({
+      id: "evt_upsell",
+      type: "checkout.session.completed",
+      created: 1700000000,
+      data: { object: { id: "cs_upsell", metadata: { kind: "addon" } } },
+    });
+    mocks.fulfillCheckoutSession.mockResolvedValue({
+      deduped: false,
+      projectId: "project-1",
+      orderId: "order-1",
+      clientId: "client-1",
+      purchaserEmail: "buyer@example.com",
+      firstName: "Buyer",
+      lastName: "Name",
+    });
+
+    const res = await POST(webhookRequest());
+    expect(res.status).toBe(200);
+    expect(mocks.notifyAdminNewProject).not.toHaveBeenCalled();
   });
 
   it("sends signin flow email for returning customers", async () => {

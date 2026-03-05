@@ -4,6 +4,7 @@ import { applyTransition } from "@/lib/project-state-machine";
 import { logAudit } from "@/lib/audit";
 import { requireProjectMembership, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { createProjectSystemMessage } from "@/lib/system-messages";
+import { notifyAdminFeedbackOnConcept } from "@/lib/project-lifecycle-email";
 
 export const runtime = "nodejs";
 
@@ -87,6 +88,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       }
       return { revisionRequest: created, project: updatedProject };
     });
+
+    await notifyAdminFeedbackOnConcept(project.id, revisionRequest.revisionRequest.id);
 
     return Response.json({ ok: true, revisionRequest: revisionRequest.revisionRequest, project: revisionRequest.project }, { status: 201 });
   } catch (error) {

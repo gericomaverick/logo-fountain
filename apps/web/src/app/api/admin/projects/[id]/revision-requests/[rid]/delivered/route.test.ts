@@ -1,5 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
+vi.mock("server-only", () => ({}));
+
 const mocks = vi.hoisted(() => {
   const revisionRequest = { findFirst: vi.fn(), update: vi.fn() };
   const project = { findUnique: vi.fn(), update: vi.fn() };
@@ -31,6 +33,7 @@ vi.mock("@/lib/auth/require", () => ({
 vi.mock("@/lib/prisma", () => ({ prisma: mocks.prisma }));
 vi.mock("@/lib/audit", () => ({ logAudit: mocks.logAudit }));
 vi.mock("@/lib/system-messages", () => ({ createProjectSystemMessage: mocks.createProjectSystemMessage }));
+vi.mock("@/lib/project-lifecycle-email", () => ({ notifyClientRevisionReady: vi.fn() }));
 
 import { POST } from "./route";
 

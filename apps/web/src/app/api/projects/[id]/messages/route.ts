@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
 import { jsonError } from "@/lib/api-error";
 import { RouteAuthError, requireAdmin, requireProjectMembership, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
+import { notifyAdminMessageFromProject, notifyClientNewMessage } from "@/lib/project-lifecycle-email";
 
 export const runtime = "nodejs";
 
@@ -99,6 +100,12 @@ export async function POST(req: Request, { params }: RouteParams) {
 
       return created;
     });
+
+    if (auth.admin) {
+      await notifyClientNewMessage(auth.projectId, message.id);
+    } else {
+      await notifyAdminMessageFromProject(auth.projectId, message.id);
+    }
 
     return Response.json({ ok: true, message }, { status: 201 });
   } catch (error) {
