@@ -190,24 +190,28 @@ export function buildTimeline(
     ];
   }
 
+  const approvedMilestoneReached = Boolean(options?.hasApprovedMilestone || isExplicitApprovedState || current === "FINAL_FILES_READY" || current === "DELIVERED");
+  const approvedIsCurrent = isExplicitApprovedState || (current === "AWAITING_APPROVAL" && approvedMilestoneReached);
+
   return FLOW_STEPS.map((step) => {
     if (step.state === "APPROVED") {
-      const approved = options?.hasApprovedMilestone || isExplicitApprovedState || current === "FINAL_FILES_READY" || current === "DELIVERED";
       return {
         state: step.state,
         label: step.label,
-        completed: !isExplicitApprovedState && approved,
-        current: isExplicitApprovedState,
+        completed: approvedMilestoneReached && !approvedIsCurrent,
+        current: approvedIsCurrent,
         timestamp: timestamps.AWAITING_APPROVAL,
       };
     }
 
     const stepIdx = stateOrder.indexOf(step.state);
+    const isAwaitingApprovalStep = step.state === "AWAITING_APPROVAL";
+
     return {
       state: step.state,
       label: step.label,
-      completed: stepIdx < currentIdx,
-      current: stepIdx === currentIdx,
+      completed: stepIdx < currentIdx || (isAwaitingApprovalStep && approvedIsCurrent),
+      current: stepIdx === currentIdx && !approvedIsCurrent,
       timestamp: timestamps[step.state],
     };
   });

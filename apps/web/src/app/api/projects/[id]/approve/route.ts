@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { applyTransition } from "@/lib/project-state-machine";
 import { logAudit } from "@/lib/audit";
 import { requireProjectMembership, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
-import { notifyClientConceptApproved } from "@/lib/project-lifecycle-email";
+import { notifyAdminConceptApproved, notifyClientConceptApproved } from "@/lib/project-lifecycle-email";
 
 export const runtime = "nodejs";
 
@@ -112,7 +112,10 @@ export async function POST(
       return { approved, project: updatedProject };
     });
 
-    await notifyClientConceptApproved(project.id, result.approved.id);
+    await Promise.all([
+      notifyClientConceptApproved(project.id, result.approved.id),
+      notifyAdminConceptApproved(project.id, result.approved.id),
+    ]);
 
     return Response.json({ ok: true, concept: result.approved, project: result.project });
   } catch (error) {

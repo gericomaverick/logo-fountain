@@ -21,13 +21,48 @@ function appOrigin(): string {
 
 type BaseProjectData = {
   id: string;
-  client: { name: string; billingEmail: string | null };
+  client: {
+    name: string;
+    billingEmail: string | null;
+    memberships: Array<{
+      role: string;
+      user: {
+        firstName: string | null;
+        lastName: string | null;
+        fullName: string | null;
+      };
+    }>;
+  };
 };
+
+function resolveClientName(project: BaseProjectData | null): string {
+  const owner = project?.client.memberships.find((membership) => membership.role.toLowerCase() === "owner") ?? project?.client.memberships[0];
+  const first = owner?.user.firstName?.trim() ?? "";
+  const last = owner?.user.lastName?.trim() ?? "";
+  const full = owner?.user.fullName?.trim() ?? "";
+  const merged = [first, last].filter(Boolean).join(" ").trim();
+
+  return merged || full || "Client";
+}
 
 async function projectData(projectId: string): Promise<BaseProjectData | null> {
   return prisma.project.findUnique({
     where: { id: projectId },
-    select: { id: true, client: { select: { name: true, billingEmail: true } } },
+    select: {
+      id: true,
+      client: {
+        select: {
+          name: true,
+          billingEmail: true,
+          memberships: {
+            select: {
+              role: true,
+              user: { select: { firstName: true, lastName: true, fullName: true } },
+            },
+          },
+        },
+      },
+    },
   });
 }
 
@@ -115,14 +150,19 @@ async function sendAdminEmail(input: {
   const recipients = getAdminEmails();
   if (recipients.length === 0) return;
 
+  const project = await projectData(input.projectId);
+  const projectName = project?.client.name?.trim() || `Project ${input.projectId}`;
+  const clientName = resolveClientName(project);
+
   const url = new URL(input.ctaPath, appOrigin()).toString();
+  const contextLine = `Project: ${projectName} (${input.projectId})\nClient: ${clientName}`;
   await sendEmail({
     to: recipients.join(","),
     subject: input.subject,
-    textBody: `${input.intro}\n\n${input.ctaLabel}: ${url}`,
+    textBody: `${input.intro}\n\n${contextLine}\n\n${input.ctaLabel}: ${url}`,
     htmlBody: renderBrandedEmail({
       heading: input.subject,
-      intro: input.intro,
+      intro: `${input.intro} Project: ${projectName} (${input.projectId}). Client: ${clientName}.`,
       ctaLabel: input.ctaLabel,
       ctaUrl: url,
       footer: "Admin notification for transactional workflow updates.",
@@ -169,10 +209,21 @@ export async function notifyClientConceptApproved(projectId: string, conceptId: 
   await sendClientEmail({
     projectId,
     dedupeType: `email_sent:client_concept_approved:${conceptId}`,
-    subject: "Concept approved — final files in progress",
+    subject: "Concept approved - final files in progress",
     intro: "Great choice. Your approved concept has been confirmed and final deliverables are now being prepared.",
     ctaLabel: "View project timeline",
     ctaPath: `/project/${projectId}`,
+  });
+}
+
+export async function notifyAdminConceptApproved(projectId: string, conceptId: string) {
+  await sendAdminEmail({
+    projectId,
+    dedupeType: `email_sent:admin_concept_approved:${conceptId}`,
+    subject: "Client approved a concept",
+    intro: "Nice update. A client has approved a concept and this project is ready for final deliverables.",
+    ctaLabel: "Open project",
+    ctaPath: `/admin/projects/${projectId}`,
   });
 }
 

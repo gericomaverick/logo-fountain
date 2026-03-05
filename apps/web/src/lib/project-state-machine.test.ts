@@ -52,11 +52,15 @@ describe("project state machine", () => {
     expect(approvedStep?.completed).toBe(false);
   });
 
-  it("shows approved milestone when approval is concept-driven before final upload", () => {
+  it("advances to approved as the current milestone when approval is concept-driven before final upload", () => {
     const timeline = buildTimeline("AWAITING_APPROVAL", { AWAITING_APPROVAL: "2026-01-03T12:00:00.000Z" }, { hasApprovedMilestone: true });
     const approvedStep = timeline.find((step) => step.state === "APPROVED");
+    const awaitingApprovalStep = timeline.find((step) => step.state === "AWAITING_APPROVAL");
 
-    expect(approvedStep?.completed).toBe(true);
+    expect(approvedStep?.current).toBe(true);
+    expect(approvedStep?.completed).toBe(false);
     expect(approvedStep?.timestamp).toBe("2026-01-03T12:00:00.000Z");
+    expect(awaitingApprovalStep?.current).toBe(false);
+    expect(awaitingApprovalStep?.completed).toBe(true);
   });
 });
