@@ -95,12 +95,14 @@ export async function POST(req: Request) {
     const fulfillment = await fulfillCheckoutSession(session);
 
     let provisionedUserId: string | null = null;
+    let isReturningCustomer = false;
     if (fulfillment.purchaserEmail) {
       const provisioning = await ensureAccessProvisioning(fulfillment.clientId, fulfillment.purchaserEmail, {
         firstName: fulfillment.firstName,
         lastName: fulfillment.lastName,
       });
       provisionedUserId = provisioning.userId;
+      isReturningCustomer = provisioning.existed;
     }
 
     if (fulfillment.purchaserEmail) {
@@ -110,6 +112,7 @@ export async function POST(req: Request) {
           purchaserEmail: fulfillment.purchaserEmail,
           baseUrl: appBaseUrl,
           sessionId: session.id,
+          flow: isReturningCustomer ? "signin" : "setup",
         });
       } catch (emailError) {
         console.error("Failed to send checkout magic-link email", emailError);
@@ -131,6 +134,7 @@ export async function POST(req: Request) {
       purchaserEmail: fulfillment.purchaserEmail,
       orderStatus: fulfillment.purchaserEmail ? ORDER_STATUS_FULFILLED : ORDER_STATUS_NEEDS_CONTACT,
       provisionedUserId,
+      isReturningCustomer,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Fulfillment failed";

@@ -420,7 +420,7 @@ export function isUniqueViolation(error: unknown): boolean {
   return typeof error === "object" && error !== null && "code" in error && (error as { code?: string }).code === "P2002";
 }
 
-async function resolveOrCreateAuthUserId(email: string): Promise<string> {
+async function resolveOrCreateAuthUserId(email: string): Promise<{ userId: string; existed: boolean }> {
   const supabaseAdmin = createSupabaseAdminClient();
 
   const createResult = await supabaseAdmin.auth.admin.createUser({
@@ -429,7 +429,7 @@ async function resolveOrCreateAuthUserId(email: string): Promise<string> {
   });
 
   if (createResult.data.user?.id) {
-    return createResult.data.user.id;
+    return { userId: createResult.data.user.id, existed: false };
   }
 
   const message = (createResult.error?.message || "").toLowerCase();
@@ -443,7 +443,7 @@ async function resolveOrCreateAuthUserId(email: string): Promise<string> {
     if (listed.error) throw new Error(listed.error.message || "Failed to list Supabase users");
 
     const existing = listed.data.users.find((u) => normalizeEmail(u.email) === email);
-    if (existing?.id) return existing.id;
+    if (existing?.id) return { userId: existing.id, existed: true };
 
     if (listed.data.users.length < 200) break;
     page += 1;
@@ -454,15 +454,15 @@ async function resolveOrCreateAuthUserId(email: string): Promise<string> {
     throw new Error(invited.error?.message || "Failed to invite Supabase auth user");
   }
 
-  return invited.data.user.id;
+  return { userId: invited.data.user.id, existed: false };
 }
 
 export async function ensureAccessProvisioning(
   clientId: string,
   purchaserEmail: string,
   checkoutName?: Pick<CheckoutName, "firstName" | "lastName">,
-): Promise<{ userId: string }> {
-  const userId = await resolveOrCreateAuthUserId(purchaserEmail);
+): Promise<{ userId: string; existed: boolean }> {
+  const { userId, existed } = await resolveOrCreateAuthUserId(purchaserEmail);
   const firstName = normalizeText(checkoutName?.firstName);
   const lastName = normalizeText(checkoutName?.lastName);
   const fullName = normalizeText([firstName, lastName].filter(Boolean).join(" "));
@@ -507,5 +507,5 @@ export async function ensureAccessProvisioning(
     });
   });
 
-  return { userId };
+  return { userId, existed };
 }

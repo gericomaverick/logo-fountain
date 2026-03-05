@@ -3,11 +3,13 @@
 import { useState } from "react";
 
 export default function CheckoutContinuePage() {
-  const [sessionId] = useState(() => {
-    if (typeof window === "undefined") return "";
+  const [sessionInfo] = useState(() => {
+    if (typeof window === "undefined") return { sessionId: "", flow: "setup" as "setup" | "signin" };
     const search = new URLSearchParams(window.location.search);
-    return search.get("session_id")?.trim() ?? "";
+    const flow = search.get("flow") === "signin" ? "signin" : "setup";
+    return { sessionId: search.get("session_id")?.trim() ?? "", flow };
   });
+  const sessionId = sessionInfo.sessionId;
 
   const [status, setStatus] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -49,9 +51,11 @@ export default function CheckoutContinuePage() {
 
   return (
     <main className="mx-auto max-w-md p-8">
-      <h1 className="text-2xl font-semibold">Finish account setup</h1>
+      <h1 className="text-2xl font-semibold">{sessionInfo.flow === "signin" ? "Sign in to your account" : "Finish account setup"}</h1>
       <p className="mt-2 text-sm text-neutral-600">
-        Click continue to securely sign in, then set your password.
+        {sessionInfo.flow === "signin"
+          ? "Click continue to securely sign in and open your latest project."
+          : "Click continue to securely sign in, then set your password."}
       </p>
 
       <button

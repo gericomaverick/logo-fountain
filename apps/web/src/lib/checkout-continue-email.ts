@@ -10,10 +10,12 @@ export async function sendCheckoutContinueEmail({
   purchaserEmail,
   baseUrl,
   sessionId,
+  flow = "setup",
 }: {
   purchaserEmail: string;
   baseUrl: string;
   sessionId: string;
+  flow?: "setup" | "signin";
 }): Promise<SendResult> {
   const postmarkToken = process.env.POSTMARK_SERVER_TOKEN;
   const from = process.env.POSTMARK_FROM;
@@ -29,22 +31,36 @@ export async function sendCheckoutContinueEmail({
 
   const continueUrl = new URL("/checkout/continue", resolvedBaseUrl);
   continueUrl.searchParams.set("session_id", sessionId);
+  continueUrl.searchParams.set("flow", flow);
 
-  const subject = "Finish setting up your Logo Fountain account";
-  const textBody = [
-    "Thanks for your purchase.",
-    "",
-    "Open this link to finish account setup:",
-    continueUrl.toString(),
-    "",
-    "You’ll be asked to set a password before entering your dashboard.",
-  ].join("\n");
+  const isReturning = flow === "signin";
+  const subject = isReturning ? "Your new Logo Fountain project is ready" : "Finish setting up your Logo Fountain account";
+  const textBody = isReturning
+    ? [
+        "Thanks for your purchase.",
+        "",
+        "Open this link to sign in and access your new project:",
+        continueUrl.toString(),
+      ].join("\n")
+    : [
+        "Thanks for your purchase.",
+        "",
+        "Open this link to finish account setup:",
+        continueUrl.toString(),
+        "",
+        "You’ll be asked to set a password before entering your dashboard.",
+      ].join("\n");
 
-  const htmlBody = [
-    "<p>Thanks for your purchase.</p>",
-    `<p><a href=\"${continueUrl.toString()}\">Finish account setup</a></p>`,
-    "<p>You’ll be asked to set a password before entering your dashboard.</p>",
-  ].join("");
+  const htmlBody = isReturning
+    ? [
+        "<p>Thanks for your purchase.</p>",
+        `<p><a href=\"${continueUrl.toString()}\">Sign in to access your new project</a></p>`,
+      ].join("")
+    : [
+        "<p>Thanks for your purchase.</p>",
+        `<p><a href=\"${continueUrl.toString()}\">Finish account setup</a></p>`,
+        "<p>You’ll be asked to set a password before entering your dashboard.</p>",
+      ].join("");
 
   const response = await fetch(POSTMARK_API_URL, {
     method: "POST",

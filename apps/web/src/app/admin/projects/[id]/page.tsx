@@ -282,16 +282,14 @@ export default function AdminProjectPage() {
             </aside>
           </div>
 
-          <div className={`mt-4 rounded-xl border px-4 py-3 text-sm ${pendingFeedbackCount > 0 ? "border-amber-200 bg-amber-50 text-amber-900" : "border-emerald-200 bg-emerald-50 text-emerald-900"}`}>
-            {pendingFeedbackCount > 0 ? (
+          {pendingFeedbackCount > 0 ? (
+            <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
               <p>
                 Latest concept has <span className="font-semibold">{pendingFeedbackCount}</span> pending feedback request{pendingFeedbackCount === 1 ? "" : "s"}.{" "}
                 <Link className="portal-link no-underline" href={`/admin/projects/${projectId}/concepts`}>Open concepts manager</Link>
               </p>
-            ) : (
-              <p>No pending feedback on the latest concept.</p>
-            )}
-          </div>
+            </div>
+          ) : null}
 
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <EntitlementProgress label="Concepts" usage={snapshot?.entitlementUsage?.concepts} fillClassName="bg-gradient-to-r from-indigo-600 to-sky-500" />
@@ -375,34 +373,43 @@ export default function AdminProjectPage() {
             </div>
           </div>
 
-          <div id="final-deliverables-upload" className="relative mt-4 overflow-hidden rounded-2xl border border-violet-200/70 bg-gradient-to-br from-violet-100 via-fuchsia-50 to-indigo-100 px-4 py-4 text-sm shadow-sm shadow-violet-200/30">
-            <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-gradient-to-br from-violet-300/25 via-fuchsia-200/20 to-indigo-200/20 blur-2xl" />
-            <div aria-hidden className="pointer-events-none absolute -bottom-20 left-8 h-40 w-40 rounded-full bg-gradient-to-tr from-indigo-200/20 via-violet-200/15 to-fuchsia-200/20 blur-2xl" />
-            <div className="relative">
-              <p className="text-xs font-semibold uppercase tracking-wide text-violet-900">Final deliverables upload</p>
-              <p className="mt-1 text-violet-950">Upload a ZIP when final files are ready for client delivery. Clients are notified once files are available.</p>
-            </div>
-            <form className="relative mt-3 flex flex-wrap items-center gap-3" onSubmit={uploadFinalDeliverable}>
-              <input
-                type="file"
-                accept=".zip,application/zip"
-                onChange={(event) => setFinalZipFile(event.target.files?.[0] ?? null)}
-              />
-              <button className="inline-flex items-center justify-center rounded-lg bg-violet-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-900 disabled:opacity-60" type="submit" disabled={busy || !finalZipFile}>
-                {busy ? "Uploading…" : "Upload final ZIP"}
-              </button>
+          <section id="final-deliverables-upload" className="relative mt-4 overflow-hidden rounded-2xl border border-violet-200/70 bg-gradient-to-br from-white via-violet-50 to-indigo-50 p-5 shadow-sm shadow-violet-200/30">
+            <div aria-hidden className="pointer-events-none absolute -right-12 -top-14 h-36 w-36 rounded-full bg-gradient-to-br from-violet-300/25 to-indigo-200/20 blur-2xl" />
+            <div aria-hidden className="pointer-events-none absolute -bottom-14 left-10 h-32 w-32 rounded-full bg-gradient-to-tr from-indigo-200/15 to-fuchsia-200/20 blur-2xl" />
+
+            <div className="relative flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-violet-900">Final deliverables</p>
+                <h2 className="mt-1 text-xl font-semibold text-neutral-900">Publish client-ready handoff files</h2>
+                <p className="mt-1 max-w-2xl text-sm text-neutral-700">Upload the final ZIP package to make approved assets available in the client portal.</p>
+              </div>
               {snapshot?.finalZip?.url ? (
                 <a
-                  className="inline-flex items-center justify-center rounded-lg bg-violet-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-900"
+                  className="portal-btn-secondary border-violet-300/80 bg-white/95 text-violet-900 hover:border-violet-400"
                   href={snapshot.finalZip.url}
                   target="_blank"
                   rel="noreferrer"
                 >
-                  Download current ZIP files
+                  Download current ZIP
                 </a>
               ) : null}
+            </div>
+
+            <form className="relative mt-4 grid gap-3 rounded-xl border border-violet-200/80 bg-white/90 p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center" onSubmit={uploadFinalDeliverable}>
+              <label className="flex flex-col gap-2 text-sm text-neutral-700">
+                <span className="font-medium text-neutral-900">Final ZIP file</span>
+                <input
+                  className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm"
+                  type="file"
+                  accept=".zip,application/zip"
+                  onChange={(event) => setFinalZipFile(event.target.files?.[0] ?? null)}
+                />
+              </label>
+              <button className="portal-btn-primary justify-center bg-violet-700 text-white hover:bg-violet-800 disabled:opacity-60" type="submit" disabled={busy || !finalZipFile}>
+                {busy ? "Uploading…" : "Upload and publish"}
+              </button>
             </form>
-          </div>
+          </section>
 
           {snapshot?.stuck ? (
             <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">⚠ Stuck: {snapshot.stuckReason ?? "Needs manual intervention."}</p>

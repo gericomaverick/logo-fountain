@@ -59,7 +59,7 @@ describe("POST /api/stripe/webhook", () => {
     vi.clearAllMocks();
     process.env.STRIPE_WEBHOOK_SECRET = "whsec_test";
     mocks.sendCheckoutContinueEmail.mockResolvedValue(undefined);
-    mocks.ensureAccessProvisioning.mockResolvedValue({ userId: "user-1" });
+    mocks.ensureAccessProvisioning.mockResolvedValue({ userId: "user-1", existed: false });
     mocks.prisma.stripeEvent.create.mockResolvedValue(undefined);
     mocks.getPublicSiteOrigin.mockReturnValue("https://app.example.com");
     mocks.prisma.stripeEvent.update.mockResolvedValue(undefined);
@@ -131,6 +131,38 @@ describe("POST /api/stripe/webhook", () => {
       purchaserEmail: "buyer@example.com",
       baseUrl: "https://app.example.com",
       sessionId: "cs_new",
+      flow: "setup",
+    });
+  });
+
+  it("sends signin flow email for returning customers", async () => {
+    mocks.constructEvent.mockReturnValue({
+      id: "evt_returning",
+      type: "checkout.session.completed",
+      created: 1700000000,
+      data: { object: { id: "cs_returning" } },
+    });
+    mocks.fulfillCheckoutSession.mockResolvedValue({
+      deduped: false,
+      projectId: "project-1",
+      orderId: "order-1",
+      clientId: "client-1",
+      purchaserEmail: "buyer@example.com",
+      firstName: "Buyer",
+      lastName: "Name",
+    });
+    mocks.ensureAccessProvisioning.mockResolvedValueOnce({ userId: "user-1", existed: true });
+
+    const res = await POST(webhookRequest());
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.isReturningCustomer).toBe(true);
+    expect(mocks.sendCheckoutContinueEmail).toHaveBeenCalledWith({
+      purchaserEmail: "buyer@example.com",
+      baseUrl: "https://app.example.com",
+      sessionId: "cs_returning",
+      flow: "signin",
     });
   });
 
