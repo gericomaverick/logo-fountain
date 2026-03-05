@@ -49,6 +49,9 @@ export async function POST(req: Request) {
       success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/pricing`,
       line_items: [{ price: priceId, quantity: 1 }],
+      invoice_creation: {
+        enabled: true,
+      },
       custom_fields: [
         {
           key: "first_name",

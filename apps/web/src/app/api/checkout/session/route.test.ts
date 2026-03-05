@@ -36,6 +36,26 @@ describe("POST /api/checkout/session", () => {
     expect(body.error.code).toBe("INVALID_JSON");
   });
 
+  it("enables Stripe invoice creation for one-time checkout sessions", async () => {
+    createSession.mockResolvedValueOnce({ url: "https://checkout.stripe.test/session" });
+
+    const req = new Request("http://localhost/api/checkout/session", {
+      method: "POST",
+      body: JSON.stringify({ package_code: "essential" }),
+      headers: { "content-type": "application/json" },
+    });
+
+    const res = await POST(req);
+
+    expect(res.status).toBe(200);
+    expect(createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mode: "payment",
+        invoice_creation: { enabled: true },
+      }),
+    );
+  });
+
   it("returns CHECKOUT_SESSION_FAILED when Stripe create throws", async () => {
     createSession.mockRejectedValueOnce(new Error("Stripe down"));
 

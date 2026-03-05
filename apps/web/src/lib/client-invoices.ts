@@ -44,6 +44,23 @@ function toReceiptDocument(receiptUrl: unknown): StripeInvoiceDocument | null {
   };
 }
 
+async function resolveInvoiceById(invoiceId: string | null | undefined): Promise<StripeInvoiceDocument | null> {
+  if (!invoiceId) return null;
+
+  const invoice = await stripe.invoices.retrieve(invoiceId);
+  const invoiceDoc = toInvoiceDocument(invoice);
+  if (!invoiceDoc) return null;
+
+  if (invoiceDoc.invoicePdfUrl || invoiceDoc.hostedInvoiceUrl) {
+    return {
+      ...invoiceDoc,
+      source: "invoice",
+    };
+  }
+
+  return null;
+}
+
 export async function resolveStripeInvoiceDocument(order: InvoiceLikeRecord): Promise<StripeInvoiceDocument> {
   const sessionId = order.stripeCheckoutSessionId?.trim() || null;
   const paymentIntentId = order.stripePaymentIntentId?.trim() || null;
@@ -62,15 +79,36 @@ export async function resolveStripeInvoiceDocument(order: InvoiceLikeRecord): Pr
         };
       }
 
-      const paymentIntent =
+      const expandedPaymentIntent =
         session.payment_intent && typeof session.payment_intent === "object"
           ? (session.payment_intent as Stripe.PaymentIntent)
           : null;
 
+      if (typeof session.invoice === "string") {
+        const invoiceFromSessionId = await resolveInvoiceById(session.invoice);
+        if (invoiceFromSessionId) return invoiceFromSessionId;
+      }
+
       const latestCharge =
-        paymentIntent?.latest_charge && typeof paymentIntent.latest_charge === "object"
-          ? (paymentIntent.latest_charge as Stripe.Charge)
+        expandedPaymentIntent?.latest_charge && typeof expandedPaymentIntent.latest_charge === "object"
+          ? (expandedPaymentIntent.latest_charge as Stripe.Charge)
           : null;
+
+      const latestChargeInvoice = (latestCharge as { invoice?: Stripe.Invoice | string | null } | null)?.invoice;
+      if (latestChargeInvoice) {
+        if (typeof latestChargeInvoice === "string") {
+          const invoiceFromLatestChargeId = await resolveInvoiceById(latestChargeInvoice);
+          if (invoiceFromLatestChargeId) return invoiceFromLatestChargeId;
+        } else {
+          const invoiceFromLatestCharge = toInvoiceDocument(latestChargeInvoice);
+          if (invoiceFromLatestCharge && (invoiceFromLatestCharge.invoicePdfUrl || invoiceFromLatestCharge.hostedInvoiceUrl)) {
+            return {
+              ...invoiceFromLatestCharge,
+              source: "invoice",
+            };
+          }
+        }
+      }
       const receiptDoc = toReceiptDocument(latestCharge?.receipt_url);
       if (receiptDoc) return receiptDoc;
     }
@@ -82,6 +120,22 @@ export async function resolveStripeInvoiceDocument(order: InvoiceLikeRecord): Pr
 
       const latestCharge = paymentIntent.latest_charge;
       if (latestCharge && typeof latestCharge !== "string") {
+        const latestChargeInvoice = (latestCharge as { invoice?: Stripe.Invoice | string | null }).invoice;
+        if (latestChargeInvoice) {
+          if (typeof latestChargeInvoice === "string") {
+            const invoiceFromLatestChargeId = await resolveInvoiceById(latestChargeInvoice);
+            if (invoiceFromLatestChargeId) return invoiceFromLatestChargeId;
+          } else {
+            const invoiceFromLatestCharge = toInvoiceDocument(latestChargeInvoice);
+            if (invoiceFromLatestCharge && (invoiceFromLatestCharge.invoicePdfUrl || invoiceFromLatestCharge.hostedInvoiceUrl)) {
+              return {
+                ...invoiceFromLatestCharge,
+                source: "invoice",
+              };
+            }
+          }
+        }
+
         const receiptDoc = toReceiptDocument(latestCharge.receipt_url);
         if (receiptDoc) return receiptDoc;
       }
