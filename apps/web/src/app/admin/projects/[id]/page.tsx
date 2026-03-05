@@ -12,6 +12,18 @@ import { getPendingFeedbackCountForLatestConcept } from "@/lib/project-hub";
 
 type EntitlementUsage = { limit: number; consumed: number; reserved?: number; remaining: number };
 
+type ProjectInvoice = {
+  id: string;
+  projectName: string;
+  amountCents: number;
+  currency: string;
+  status: string;
+  date: string;
+  invoicePdfUrl: string | null;
+  hostedInvoiceUrl: string | null;
+  receiptUrl: string | null;
+};
+
 type Snapshot = {
   status: string;
   overviewStatus?: string;
@@ -77,6 +89,23 @@ function getConceptStatusMeta(status: string): { label: string; className: strin
   return { label: status, className: "bg-neutral-100 text-neutral-700" };
 }
 
+function getInvoiceAction(invoice: ProjectInvoice): { href: string | null; label: "Download PDF" | "View invoice" | "View receipt"; download: boolean } {
+  if (invoice.invoicePdfUrl) {
+    return { href: invoice.invoicePdfUrl, label: "Download PDF", download: true };
+  }
+
+  if (invoice.hostedInvoiceUrl) {
+    const hostedIsPdf = invoice.hostedInvoiceUrl.toLowerCase().includes(".pdf");
+    return { href: invoice.hostedInvoiceUrl, label: hostedIsPdf ? "Download PDF" : "View invoice", download: hostedIsPdf };
+  }
+
+  if (invoice.receiptUrl) {
+    return { href: invoice.receiptUrl, label: "View receipt", download: false };
+  }
+
+  return { href: null, label: "View invoice", download: false };
+}
+
 function EntitlementProgress({
   label,
   usage,
@@ -121,16 +150,25 @@ export default function AdminProjectPage() {
   const [conceptLimit, setConceptLimit] = useState("");
   const [revisionLimit, setRevisionLimit] = useState("");
   const [finalZipFile, setFinalZipFile] = useState<File | null>(null);
+  const [invoices, setInvoices] = useState<ProjectInvoice[]>([]);
+  const [invoiceError, setInvoiceError] = useState<string | null>(null);
 
   async function refresh(id: string) {
-    const snapshotResponse = await fetch(`/api/admin/projects/${id}`, { cache: "no-store" });
+    const [snapshotResponse, invoicesResponse] = await Promise.all([
+      fetch(`/api/admin/projects/${id}`, { cache: "no-store" }),
+      fetch(`/api/admin/projects/${id}/invoices`, { cache: "no-store" }),
+    ]);
 
     const snapshotPayload = await snapshotResponse.json().catch(() => null);
 
     if (!snapshotResponse.ok) throw new Error(readError(snapshotPayload, "Failed to load"));
 
+    const invoicesPayload = await invoicesResponse.json().catch(() => null);
+
     const nextSnapshot = snapshotPayload?.snapshot ?? null;
     setSnapshot(nextSnapshot);
+    setInvoices(Array.isArray(invoicesPayload?.invoices) ? invoicesPayload.invoices : []);
+    setInvoiceError(invoicesResponse.ok ? null : readError(invoicesPayload, "Failed to load invoices"));
 
     if (nextSnapshot) {
       setConceptLimit(String(nextSnapshot.entitlementUsage?.concepts?.limit ?? ""));
@@ -295,6 +333,44 @@ export default function AdminProjectPage() {
             <EntitlementProgress label="Concepts" usage={snapshot?.entitlementUsage?.concepts} fillClassName="bg-gradient-to-r from-indigo-600 to-sky-500" />
             <EntitlementProgress label="Revisions" usage={snapshot?.entitlementUsage?.revisions} fillClassName="bg-gradient-to-r from-fuchsia-600 to-violet-500" />
           </div>
+
+          <section className="mt-4 rounded-xl border border-neutral-200 bg-white p-4 text-sm">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-base font-semibold text-neutral-900">Project billing & invoices</h2>
+                <p className="mt-1 text-xs text-neutral-500">Invoice visibility is scoped to this project’s orders.</p>
+              </div>
+            </div>
+
+            {invoiceError ? <p className="mt-3 text-sm text-red-600">{invoiceError}</p> : null}
+
+            {!loading && !invoiceError && invoices.length === 0 ? (
+              <p className="mt-3 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-3 py-2 text-neutral-600">No invoice documents available for this project yet.</p>
+            ) : null}
+
+            {!loading && invoices.length > 0 ? (
+              <ul className="mt-3 space-y-2">
+                {invoices.map((invoice) => {
+                  const action = getInvoiceAction(invoice);
+                  return (
+                    <li key={invoice.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-neutral-200 px-3 py-2">
+                      <div>
+                        <p className="font-medium text-neutral-900">{invoice.projectName}</p>
+                        <p className="text-xs text-neutral-600">{new Intl.NumberFormat("en-GB", { style: "currency", currency: invoice.currency.toUpperCase() }).format(invoice.amountCents / 100)} · {new Date(invoice.date).toLocaleDateString("en-GB")} · {invoice.status}</p>
+                      </div>
+                      {action.href ? (
+                        <a className="portal-link no-underline" href={action.href} target="_blank" rel="noreferrer" download={action.download ? "invoice.pdf" : undefined}>
+                          {action.label}
+                        </a>
+                      ) : (
+                        <span className="text-xs text-neutral-500">No document available</span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : null}
+          </section>
 
           <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm">
             <p className="text-xs uppercase tracking-wide text-neutral-500">Admin entitlement override</p>

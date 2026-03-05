@@ -4,11 +4,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-type SessionPayload = {
+export type SessionPayload = {
   authenticated: boolean;
   email?: string;
   isAdmin?: boolean;
 };
+
+export function shouldShowClientInvoicesNav(session: SessionPayload): boolean {
+  return Boolean(session.authenticated && !session.isAdmin);
+}
 
 export function HeaderNav() {
   const router = useRouter();
@@ -62,7 +66,7 @@ export function HeaderNav() {
           </Link>
           <Link className="portal-link no-underline" href="/dashboard">Dashboard</Link>
           {session.authenticated ? <Link className="portal-link no-underline" href="/settings">Settings</Link> : null}
-          {session.authenticated ? <Link className="portal-link no-underline" href="/settings/invoices">Invoices</Link> : null}
+          {shouldShowClientInvoicesNav(session) ? <Link className="portal-link no-underline" href="/settings/invoices">Invoices</Link> : null}
 
           {!session.authenticated ? <Link className="portal-link no-underline" href="/pricing">Pricing</Link> : null}
         </div>

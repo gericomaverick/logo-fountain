@@ -6,6 +6,11 @@ import { useEffect, useState } from "react";
 import { HeaderNav } from "@/components/header-nav";
 import { PageShell } from "@/components/page-shell";
 
+type SessionPayload = {
+  authenticated: boolean;
+  isAdmin?: boolean;
+};
+
 type ProfilePayload = {
   profile: {
     email: string | null;
@@ -22,6 +27,7 @@ export default function SettingsPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState<string | null>(null);
+  const [session, setSession] = useState<SessionPayload>({ authenticated: false });
 
   useEffect(() => {
     let cancelled = false;
@@ -35,11 +41,14 @@ export default function SettingsPage() {
         }
 
         const payload = (await res.json()) as ProfilePayload;
+        const sessionRes = await fetch("/api/auth/session", { cache: "no-store" });
+        const sessionPayload = (await sessionRes.json().catch(() => null)) as SessionPayload | null;
         if (cancelled) return;
 
         setEmail(payload.profile.email);
         setFirstName(payload.profile.firstName ?? "");
         setLastName(payload.profile.lastName ?? "");
+        setSession(sessionPayload ?? { authenticated: false });
       } catch {
         if (!cancelled) setError("Failed to load settings.");
       } finally {
@@ -126,7 +135,7 @@ export default function SettingsPage() {
             </label>
 
             <p className="text-xs text-neutral-500">Billing email and VAT number will be added here in a later update.</p>
-            <p className="text-xs text-neutral-500">Need a copy of a paid invoice? Visit <Link className="portal-link" href="/settings/invoices">Invoices</Link>.</p>
+            {!session.isAdmin ? <p className="text-xs text-neutral-500">Need a copy of a paid invoice? Visit <Link className="portal-link" href="/settings/invoices">Invoices</Link>.</p> : null}
 
             <button
               type="submit"
