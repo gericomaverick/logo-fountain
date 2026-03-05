@@ -24,7 +24,7 @@ describe("admin concept feedback UI regressions", () => {
     }
   });
 
-  it("does not post read-state updates from admin concept-related pages", () => {
+  it("posts read-state updates from admin concept-related pages", () => {
     const files = [
       "src/app/admin/projects/[id]/concepts/page.tsx",
       "src/app/admin/projects/[id]/messages/page.tsx",
@@ -32,7 +32,7 @@ describe("admin concept feedback UI regressions", () => {
 
     for (const file of files) {
       const source = load(file);
-      expect(source).not.toContain("/api/projects/${projectId}/read-state");
+      expect(source).toContain("/api/projects/${id}/read-state");
     }
   });
 });

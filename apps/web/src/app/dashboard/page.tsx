@@ -8,6 +8,7 @@ import { ProjectStatusBadge } from "@/components/project-status-badge";
 import { type ProjectState } from "@/lib/project-state-machine";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { deriveDisplayProjectStatus, deriveOverviewBadgeStatus } from "@/lib/project-status";
 
 type DashboardProject = {
   id: string;
@@ -16,6 +17,7 @@ type DashboardProject = {
   createdAt: Date;
   updatedAt: Date;
   concepts: Array<{ id: string; status: string; number: number }>;
+  fileAssets?: Array<{ id: string }>;
   hasNewMessages?: boolean;
   hasNewConcepts?: boolean;
 };
@@ -90,13 +92,18 @@ function formatProjectDate(project: DashboardProject) {
 function ProjectCard({ project }: { project: DashboardProject }) {
   const cta = getPrimaryCta(project);
   const statusNote = getStatusNote(project.status);
+  const overviewStatus = deriveOverviewBadgeStatus({
+    persistedStatus: project.status,
+    hasApprovedConcept: project.concepts.some((concept) => concept.status === "approved"),
+    hasFinalDeliverable: (project.fileAssets?.length ?? 0) > 0,
+  });
 
   return (
     <article className="mt-3 portal-card">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <ProjectStatusBadge status={project.status} />
+            <ProjectStatusBadge status={overviewStatus} />
             {project.hasNewConcepts ? <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800">New concepts</span> : null}
             {project.hasNewMessages ? <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">New message</span> : null}
           </div>
@@ -193,6 +200,11 @@ export default async function DashboardPage() {
                 select: { id: true, status: true, number: true },
                 orderBy: { number: "asc" },
               },
+              fileAssets: {
+                where: { kind: "final_zip" },
+                select: { id: true },
+                take: 1,
+              },
             },
             orderBy: { createdAt: "desc" },
           },
@@ -245,7 +257,13 @@ export default async function DashboardPage() {
     const hasNewMessages = Boolean(latestMessageAt && (!rs?.lastSeenMessagesAt || latestMessageAt > rs.lastSeenMessagesAt));
     const hasNewConcepts = Boolean(latestConceptAt && (!rs?.lastSeenConceptsAt || latestConceptAt > rs.lastSeenConceptsAt));
 
-    return { ...p, hasNewMessages, hasNewConcepts };
+    const effectiveStatus = deriveDisplayProjectStatus({
+      persistedStatus: p.status,
+      hasApprovedConcept: p.concepts.some((concept) => concept.status === "approved"),
+      hasFinalDeliverable: (p.fileAssets?.length ?? 0) > 0,
+    }) as ProjectState;
+
+    return { ...p, status: effectiveStatus, hasNewMessages, hasNewConcepts };
   });
 
   const sectioned: Record<DashboardSectionKey, DashboardProject[]> = {

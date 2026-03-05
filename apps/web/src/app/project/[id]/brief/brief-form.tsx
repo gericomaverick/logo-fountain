@@ -44,17 +44,12 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedVersion, setSubmittedVersion] = useState<number | null>(null);
   const [isEditing, setIsEditing] = useState(latestBrief === null);
-  const [selectedVersion, setSelectedVersion] = useState<number>(latestBrief?.version ?? 0);
   const [activeStep, setActiveStep] = useState(0);
   const [draftSavedAt, setDraftSavedAt] = useState<Date | null>(null);
   const editorRef = useRef<HTMLFormElement | null>(null);
   const editorHeadingRef = useRef<HTMLHeadingElement | null>(null);
 
   const reviewStep = briefSections.length;
-  const selectedBrief = useMemo(
-    () => briefVersions.find((brief) => brief.version === selectedVersion) ?? latestBrief,
-    [briefVersions, latestBrief, selectedVersion],
-  );
 
   const currentSection = briefSections[activeStep] ?? null;
   const missingOnStep = currentSection ? missingRequiredFields(form, currentSection) : [];
@@ -166,43 +161,17 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
           <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900">
             Brief submission complete — editing and re-submission are disabled for clients.
           </div>
-          <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_240px]">
-            <BriefFieldGrid>
-              {briefSections.map((section) => (
-                <BriefSection key={section.id} title={section.title} description={section.description} tone="paper">
-                  <div className="grid gap-3 md:grid-cols-2">
-                    {section.fields.map((field) => (
-                      <BriefField key={field.key} label={field.label} value={selectedBrief?.answers[field.key] ?? "—"} compact valueClassName="text-[15px] leading-7" />
-                    ))}
-                  </div>
-                </BriefSection>
-              ))}
-            </BriefFieldGrid>
-
-            <aside className="space-y-3 rounded-xl border border-neutral-200 bg-neutral-50/70 p-4">
-              <div className="rounded-lg border border-neutral-200 bg-white px-3 py-2">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">At a glance</p>
-                <p className="mt-1 text-xs text-neutral-700">{briefSections.length} sections · {briefSections.reduce((total, section) => total + section.fields.length, 0)} answers</p>
-              </div>
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-neutral-500">Version history</p>
-                <ul className="mt-3 space-y-2">
-                  {briefVersions.map((brief) => (
-                    <li key={brief.id}>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedVersion(brief.version)}
-                        className={`w-full rounded-lg border px-3 py-2 text-left text-xs ${selectedVersion === brief.version ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-200 bg-white text-neutral-700"}`}
-                      >
-                        <p className="font-semibold">v{brief.version}</p>
-                        <p className="mt-1 opacity-80">{dateLabel(brief.createdAt)}</p>
-                      </button>
-                    </li>
+          <BriefFieldGrid>
+            {briefSections.map((section) => (
+              <BriefSection key={section.id} title={section.title} description={section.description} tone="paper">
+                <div className="grid gap-3 md:grid-cols-2">
+                  {section.fields.map((field) => (
+                    <BriefField key={field.key} label={field.label} value={latestBrief.answers[field.key] ?? "—"} compact valueClassName="text-[15px] leading-7" />
                   ))}
-                </ul>
-              </div>
-            </aside>
-          </div>
+                </div>
+              </BriefSection>
+            ))}
+          </BriefFieldGrid>
         </BriefDocument>
       ) : null}
 

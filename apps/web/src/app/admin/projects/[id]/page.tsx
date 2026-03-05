@@ -29,6 +29,7 @@ type Snapshot = {
   primaryCta?: string | null;
   timeline?: Array<{ state: string; label: string; completed: boolean; current: boolean; timestamp?: string }>;
   recentAuditEventsCount?: number;
+  finalZip?: { available: boolean; url: string | null };
   clientContact?: {
     fullName: string | null;
     email: string;
@@ -111,6 +112,7 @@ export default function AdminProjectPage() {
   const [reprocessSessionId, setReprocessSessionId] = useState("");
   const [conceptLimit, setConceptLimit] = useState("");
   const [revisionLimit, setRevisionLimit] = useState("");
+  const [finalZipFile, setFinalZipFile] = useState<File | null>(null);
 
   async function refresh(id: string) {
     const snapshotResponse = await fetch(`/api/admin/projects/${id}`, { cache: "no-store" });
@@ -167,6 +169,32 @@ export default function AdminProjectPage() {
         }),
       "Failed to update entitlements",
     );
+  }
+
+  async function uploadFinalDeliverable(e: React.FormEvent) {
+    e.preventDefault();
+    if (!projectId || !finalZipFile) return;
+
+    setBusy(true);
+    setError(null);
+
+    const data = new FormData();
+    data.set("file", finalZipFile);
+
+    const res = await fetch(`/api/admin/projects/${projectId}/finals`, {
+      method: "POST",
+      body: data,
+    });
+
+    const payload = await res.json().catch(() => null);
+    if (!res.ok) {
+      setError(readError(payload, "Failed to upload final files"));
+    } else {
+      setFinalZipFile(null);
+      await refresh(projectId);
+    }
+
+    setBusy(false);
   }
 
   const pendingFeedbackCount = useMemo(
@@ -334,6 +362,26 @@ export default function AdminProjectPage() {
                 Reset project (clean slate)
               </button>
             </div>
+          </div>
+
+          <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm">
+            <p className="text-xs uppercase tracking-wide text-neutral-500">Final deliverables</p>
+            <p className="mt-1 text-neutral-700">Upload a ZIP when final files are ready for client delivery.</p>
+            <form className="mt-3 flex flex-wrap items-center gap-3" onSubmit={uploadFinalDeliverable}>
+              <input
+                type="file"
+                accept=".zip,application/zip"
+                onChange={(event) => setFinalZipFile(event.target.files?.[0] ?? null)}
+              />
+              <button className="rounded border border-neutral-300 bg-white px-3 py-1" type="submit" disabled={busy || !finalZipFile}>
+                {busy ? "Uploading…" : "Upload final ZIP"}
+              </button>
+              {snapshot?.finalZip?.url ? (
+                <a className="portal-link no-underline" href={snapshot.finalZip.url} target="_blank" rel="noreferrer">
+                  Download current final ZIP
+                </a>
+              ) : null}
+            </form>
           </div>
 
           {snapshot?.stuck ? (

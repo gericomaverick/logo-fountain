@@ -8,6 +8,7 @@ import { computeLatestConceptActivityAt } from "@/lib/concept-activity";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth/require";
+import { deriveDisplayProjectStatus, deriveOverviewBadgeStatus } from "@/lib/project-status";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +36,7 @@ type AdminProjectRow = {
   latestConceptAt: Date | null;
   hasNewConcepts: boolean;
   hasApprovedConcept: boolean;
+  hasFinalDeliverable: boolean;
 };
 
 function getSectionMeta(section: AdminSectionKey) {
@@ -133,7 +135,11 @@ function AdminSection({
             const clientName = project.client?.name ?? "Unknown client";
             const clientRecordMissing = !project.client;
             const needsFeedback = project.pendingFeedbackCount > 0;
-            const overviewStatus = project.hasApprovedConcept ? "APPROVED" : project.status;
+            const overviewStatus = deriveOverviewBadgeStatus({
+              persistedStatus: project.status,
+              hasApprovedConcept: project.hasApprovedConcept,
+              hasFinalDeliverable: project.hasFinalDeliverable,
+            });
 
             return (
               <Card key={project.id} className="mt-0">
@@ -249,6 +255,11 @@ export default async function AdminHomePage() {
         take: 1,
         select: { id: true },
       },
+      fileAssets: {
+        where: { kind: "final_zip" },
+        take: 1,
+        select: { id: true },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -295,14 +306,23 @@ export default async function AdminHomePage() {
     const lastSeenConceptsAt = lastSeenConceptsByProject.get(p.id) ?? null;
     const hasNewConcepts = Boolean(latestConceptAt && (!lastSeenConceptsAt || latestConceptAt > lastSeenConceptsAt));
 
+    const hasApprovedConcept = p.concepts.length > 0;
+    const hasFinalDeliverable = p.fileAssets.length > 0;
+
     return {
       ...p,
+      status: deriveDisplayProjectStatus({
+        persistedStatus: p.status,
+        hasApprovedConcept,
+        hasFinalDeliverable,
+      }),
       pendingFeedbackCount: p.revisionRequests.length,
       latestMessageAt,
       hasNewMessages,
       latestConceptAt,
       hasNewConcepts,
-      hasApprovedConcept: p.concepts.length > 0,
+      hasApprovedConcept,
+      hasFinalDeliverable,
     };
   });
 

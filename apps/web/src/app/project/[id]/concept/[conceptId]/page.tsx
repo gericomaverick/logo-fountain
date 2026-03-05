@@ -225,10 +225,13 @@ export default function ConceptDetailPage() {
   const isAdminView = fromAdmin || session.isAdmin;
   const backHref = fromAdmin ? `/admin/projects/${projectId}` : `/project/${projectId}`;
 
+  const isApprovedConcept = concept?.status === "approved";
+  const visibleAssets = isApprovedConcept ? assets.slice(0, 1) : assets;
+
   const selectedAsset = useMemo(() => {
-    if (selectedAssetPath) return assets.find((asset) => asset.path === selectedAssetPath) ?? null;
-    return assets[0] ?? null;
-  }, [assets, selectedAssetPath]);
+    if (selectedAssetPath) return visibleAssets.find((asset) => asset.path === selectedAssetPath) ?? null;
+    return visibleAssets[0] ?? null;
+  }, [visibleAssets, selectedAssetPath]);
 
   const selectedAssetUrl = selectedAsset?.url ?? concept?.imageUrl ?? null;
   const conceptExplainer = concept?.notes?.trim() ?? "";
@@ -246,9 +249,9 @@ export default function ConceptDetailPage() {
 
   useEffect(() => {
     if (selectedAssetPath) return;
-    if (!assets[0]?.path) return;
-    setSelectedAssetPath(assets[0].path);
-  }, [assets, selectedAssetPath]);
+    if (!visibleAssets[0]?.path) return;
+    setSelectedAssetPath(visibleAssets[0].path);
+  }, [visibleAssets, selectedAssetPath]);
 
   return (
     <PageShell>
@@ -299,11 +302,11 @@ export default function ConceptDetailPage() {
               <img className="mt-3 w-full rounded border border-neutral-200" src={selectedAssetUrl} alt={`Concept ${concept.number}`} />
             ) : null}
 
-            {assets.length > 1 ? (
+            {!isApprovedConcept && visibleAssets.length > 1 ? (
               <div className="mt-3">
                 <p className="text-xs font-medium text-neutral-600">Revision history</p>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {assets.map((asset) => (
+                  {visibleAssets.map((asset) => (
                     <button
                       key={asset.path}
                       type="button"
@@ -343,6 +346,13 @@ export default function ConceptDetailPage() {
               </div>
             ) : null}
 
+            {isApprovedConcept ? (
+              <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+                <p className="font-semibold">This concept is approved.</p>
+                <p className="mt-1">Your designer is now preparing the final files. We’ll notify you as soon as the final delivery package is ready to download.</p>
+              </div>
+            ) : null}
+
             {isAdminView ? (
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <Link
@@ -362,7 +372,7 @@ export default function ConceptDetailPage() {
           </section>
         ) : null}
 
-        {concept ? (
+        {concept && !isApprovedConcept ? (
           <section className="mt-3 portal-card">
             <h2 className="text-lg font-medium">Feedback & revisions</h2>
             <p className="mt-1 text-sm text-neutral-600">Revisions remaining: {snapshot?.entitlements.revisions ?? 0}</p>

@@ -51,7 +51,14 @@ export default function AdminProjectConceptsPage() {
   const [file, setFile] = useState<File | null>(null);
 
   async function refresh(id: string) {
-    const conceptsResponse = await fetch(`/api/admin/projects/${id}/concepts`, { cache: "no-store" });
+    const [conceptsResponse] = await Promise.all([
+      fetch(`/api/admin/projects/${id}/concepts`, { cache: "no-store" }),
+      fetch(`/api/projects/${id}/read-state`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ area: "concepts" }),
+      }),
+    ]);
 
     const conceptsPayload = await conceptsResponse.json().catch(() => null);
 

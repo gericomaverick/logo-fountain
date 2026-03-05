@@ -10,6 +10,7 @@ import { PageShell } from "@/components/page-shell";
 import { ProjectStatusBadge } from "@/components/project-status-badge";
 import { formatClientFirstName, getAreaCardSubtitle } from "@/lib/project-overview";
 import { getClientOverviewNextAction, getPendingFeedbackCountForLatestConcept } from "@/lib/project-hub";
+import { deriveOverviewBadgeStatus } from "@/lib/project-status";
 
 type EntitlementUsage = {
   limit: number;
@@ -416,7 +417,11 @@ export default function ProjectPage() {
   }, [searchParams]);
   const welcomeName = formatClientFirstName(firstName);
   const hasApprovedConcept = (snapshot?.concepts ?? []).some((concept) => concept.status === "approved");
-  const overviewStatus = hasApprovedConcept ? "APPROVED" : (snapshot?.status ?? "UNKNOWN");
+  const overviewStatus = deriveOverviewBadgeStatus({
+    persistedStatus: snapshot?.status ?? "UNKNOWN",
+    hasApprovedConcept,
+    hasFinalDeliverable: Boolean(snapshot?.finalZip?.available),
+  });
 
   return (
     <PageShell>
