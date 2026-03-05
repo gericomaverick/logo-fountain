@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { AuthShell } from "@/components/auth-shell";
+import resetImage from "@/img/image-2.png";
 import { ensureBrowserSupabaseSession } from "@/lib/auth/session";
 import { hasValidationErrors, toErrorList, validatePasswordReset, ValidationErrors } from "@/lib/auth/validation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -99,7 +100,7 @@ export default function SetPasswordPage() {
     <AuthShell
       title="Set your password"
       subtitle="For security, you’ll sign in with this password next time."
-      sideImageSrc="/img/auth/auth-set-password.svg"
+      sideImageSrc={resetImage}
       sideImageAlt="Gradient illustration representing account setup"
       sideTitle="One last step"
       sideDescription="Set your password now and future sign-ins will be faster."

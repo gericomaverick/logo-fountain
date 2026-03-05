@@ -1,12 +1,12 @@
 "use client";
 
-import Image from "next/image";
+import Image, { StaticImageData } from "next/image";
 import { ReactNode } from "react";
 
 type AuthShellProps = {
   title: string;
   subtitle?: string;
-  sideImageSrc?: string;
+  sideImageSrc?: string | StaticImageData;
   sideImageAlt?: string;
   sideTitle?: string;
   sideDescription?: string;

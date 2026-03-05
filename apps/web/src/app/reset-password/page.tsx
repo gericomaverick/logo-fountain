@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 import { AuthShell } from "@/components/auth-shell";
+import resetImage from "@/img/image-2.png";
 import { hasValidationErrors, toErrorList, validatePasswordReset, ValidationErrors } from "@/lib/auth/validation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -55,7 +56,7 @@ export default function ResetPasswordPage() {
     <AuthShell
       title="Choose a new password"
       subtitle="Set a new password for your account."
-      sideImageSrc="/img/auth/auth-reset-password.svg"
+      sideImageSrc={resetImage}
       sideImageAlt="Abstract security-inspired gradient illustration"
       sideTitle="Create a strong new password"
       sideDescription="Use at least 8 characters and avoid reusing old passwords."

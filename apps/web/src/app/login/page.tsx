@@ -4,6 +4,7 @@ import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { AuthShell } from "@/components/auth-shell";
+import loginImage from "@/img/image-1.png";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { hasValidationErrors, toErrorList, validateEmail, validateLogin, ValidationErrors } from "@/lib/auth/validation";
 
@@ -106,7 +107,7 @@ export default function LoginPage() {
     <AuthShell
       title="Sign in"
       subtitle="Sign in with your password, or request a magic link."
-      sideImageSrc="/img/auth/auth-login.svg"
+      sideImageSrc={loginImage}
       sideImageAlt="Abstract wave artwork in warm gradient tones"
       sideTitle="Welcome back"
       sideDescription="Pick up where you left off and keep your project momentum going."

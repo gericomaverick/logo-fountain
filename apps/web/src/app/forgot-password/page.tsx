@@ -4,6 +4,7 @@ import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
 
 import { AuthShell } from "@/components/auth-shell";
+import resetImage from "@/img/image-2.png";
 import { validateEmail } from "@/lib/auth/validation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -49,7 +50,7 @@ export default function ForgotPasswordPage() {
     <AuthShell
       title="Reset your password"
       subtitle="We’ll email you a link to set a new password."
-      sideImageSrc="/img/auth/auth-forgot-password.svg"
+      sideImageSrc={resetImage}
       sideImageAlt="Soft geometric illustration suggesting account recovery"
       sideTitle="Reset and continue"
       sideDescription="We’ll send a secure link so you can get back into your account quickly."
