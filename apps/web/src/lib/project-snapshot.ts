@@ -4,7 +4,7 @@ import { createSignedConceptAssetUrl, createSignedFinalDeliverableUrl } from "@/
 import { computeEntitlementUsage } from "@/lib/entitlements";
 import { computeLatestConceptActivityAt, maxDate } from "@/lib/concept-activity";
 import { parseBriefAnswers } from "@/lib/brief";
-import { deriveDisplayProjectStatus, isKnownProjectState } from "@/lib/project-status";
+import { deriveDisplayProjectStatus, deriveOverviewBadgeStatus, isKnownProjectState } from "@/lib/project-status";
 
 const PUBLISHED_OR_APPROVED = ["published", "approved"];
 
@@ -275,9 +275,16 @@ export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
 
   const primaryClientContact = getPrimaryClientContact(project.client.memberships);
 
+  const overviewStatus = deriveOverviewBadgeStatus({
+    persistedStatus: project.status,
+    hasApprovedConcept,
+    hasFinalDeliverable: Boolean(finalAsset),
+  });
+
   return {
     projectId: project.id,
     status: effectiveStatus,
+    overviewStatus,
     statusLabel: isKnownProjectState(effectiveStatus) ? PROJECT_STATE_LABELS[effectiveStatus] : effectiveStatus,
     primaryCta: isKnownProjectState(effectiveStatus) ? PRIMARY_CTA_BY_STATE[effectiveStatus] ?? null : null,
     timeline: buildTimeline(effectiveStatus, timestamps),

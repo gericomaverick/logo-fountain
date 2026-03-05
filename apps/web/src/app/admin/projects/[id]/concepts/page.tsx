@@ -34,6 +34,13 @@ function readError(payload: { error?: { message?: string; details?: { nextStep?:
   return nextStep ? `${message} — ${nextStep}` : message;
 }
 
+function getConceptStatusMeta(status: string): { label: string; className: string } {
+  if (status === "approved") return { label: "Approved", className: "bg-emerald-100 text-emerald-900" };
+  if (status === "published") return { label: "Published", className: "bg-indigo-100 text-indigo-900" };
+  if (status === "archived") return { label: "Archived", className: "bg-neutral-200 text-neutral-700" };
+  return { label: status, className: "bg-neutral-100 text-neutral-700" };
+}
+
 export default function AdminProjectConceptsPage() {
   const params = useParams<{ id: string }>();
   const projectId = params.id;
@@ -245,6 +252,8 @@ export default function AdminProjectConceptsPage() {
             {concepts.map((concept) => {
               const pendingFeedbackCount = concept.unresolvedFeedbackCount;
 
+              const conceptStatus = getConceptStatusMeta(concept.status);
+
               return (
                 <article id={`concept-${concept.id}`} key={concept.id} className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
                   <Link href={`/project/${projectId}/concept/${concept.id}?from=admin`} className="block transition hover:border-neutral-300">
@@ -257,7 +266,7 @@ export default function AdminProjectConceptsPage() {
                     <div className="space-y-2 p-3">
                       <div className="flex items-center justify-between gap-2">
                         <p className="text-sm font-medium text-neutral-900">Concept #{concept.number} · v{concept.revisionVersion}</p>
-                        <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-700">{concept.status}</span>
+                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${conceptStatus.className}`}>{conceptStatus.label}</span>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
                         {pendingFeedbackCount > 0 ? (

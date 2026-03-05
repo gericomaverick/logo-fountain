@@ -348,8 +348,8 @@ export default function ConceptDetailPage() {
 
             {isApprovedConcept ? (
               <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-                <p className="font-semibold">This concept is approved.</p>
-                <p className="mt-1">Your designer is now preparing the final files. We’ll notify you as soon as the final delivery package is ready to download.</p>
+                <p className="font-semibold">Great choice — this concept is officially approved 🎉</p>
+                <p className="mt-1">Your designer is now polishing the final files for delivery. We’ll send you notifications as soon as your deliverables are ready to download.</p>
               </div>
             ) : null}
 

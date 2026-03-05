@@ -14,6 +14,7 @@ type EntitlementUsage = { limit: number; consumed: number; reserved?: number; re
 
 type Snapshot = {
   status: string;
+  overviewStatus?: string;
   createdAt?: string;
   updatedAt?: string;
   stuck?: boolean;
@@ -67,6 +68,13 @@ function resolveUsage(usage: EntitlementUsage | undefined) {
   const ratio = limit > 0 ? Math.min((allocated / limit) * 100, 100) : 0;
 
   return { limit, consumed, reserved, allocated, remaining, ratio };
+}
+
+function getConceptStatusMeta(status: string): { label: string; className: string } {
+  if (status === "approved") return { label: "Approved", className: "bg-emerald-100 text-emerald-900" };
+  if (status === "published") return { label: "Published", className: "bg-indigo-100 text-indigo-900" };
+  if (status === "archived") return { label: "Archived", className: "bg-neutral-200 text-neutral-700" };
+  return { label: status, className: "bg-neutral-100 text-neutral-700" };
 }
 
 function EntitlementProgress({
@@ -211,7 +219,7 @@ export default function AdminProjectPage() {
         <section className="mt-3 portal-card">
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,360px)]">
             <div className="rounded-2xl border border-neutral-200 bg-neutral-50/60 p-4">
-              <ProjectStatusBadge status={snapshot?.status ?? "UNKNOWN"} />
+              <ProjectStatusBadge status={snapshot?.overviewStatus ?? snapshot?.status ?? "UNKNOWN"} />
               <h1 className="mt-3 text-2xl font-semibold">Project Overview</h1>
               <p className="mt-1 text-sm text-neutral-600">Operational overview and high-confidence controls for this project.</p>
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -252,6 +260,9 @@ export default function AdminProjectPage() {
                 <p className="mt-1 text-sm text-violet-950">Move fast on the most common admin workflows.</p>
               </div>
               <div className="relative mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1">
+                <a className="portal-btn-primary justify-center border border-violet-500/80 bg-violet-600 text-white hover:bg-violet-700" href="#final-deliverables-upload">
+                  Upload final deliverables
+                </a>
                 <Link className="portal-btn-secondary justify-center border-violet-300/80 bg-white/90 text-violet-900 hover:border-violet-400" href={`/admin/projects/${projectId}/messages`}>
                   Open messages
                 </Link>
@@ -364,9 +375,9 @@ export default function AdminProjectPage() {
             </div>
           </div>
 
-          <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm">
-            <p className="text-xs uppercase tracking-wide text-neutral-500">Final deliverables</p>
-            <p className="mt-1 text-neutral-700">Upload a ZIP when final files are ready for client delivery.</p>
+          <div id="final-deliverables-upload" className="mt-4 rounded-xl border border-teal-200 bg-teal-50/50 px-4 py-3 text-sm">
+            <p className="text-xs uppercase tracking-wide text-teal-700">Final deliverables upload</p>
+            <p className="mt-1 text-neutral-700">Upload a ZIP when final files are ready for client delivery. Clients are notified once files are available.</p>
             <form className="mt-3 flex flex-wrap items-center gap-3" onSubmit={uploadFinalDeliverable}>
               <input
                 type="file"
@@ -467,6 +478,7 @@ export default function AdminProjectPage() {
           <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {(snapshot?.concepts ?? []).map((concept) => {
               const pendingRevisionCount = (snapshot?.revisionRequests ?? []).filter((r) => r.status !== "delivered" && r.concept?.id === concept.id).length;
+              const conceptStatus = getConceptStatusMeta(concept.status);
 
               return (
                 <li key={concept.id} className="rounded-xl border border-neutral-200 bg-white p-3 text-sm">
@@ -478,7 +490,7 @@ export default function AdminProjectPage() {
                   )}
                   <div className="mt-3 flex items-center justify-between gap-2">
                     <p className="font-medium">#{concept.number}</p>
-                    <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-700">{concept.status}</span>
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${conceptStatus.className}`}>{conceptStatus.label}</span>
                   </div>
                   {pendingRevisionCount > 0 ? (
                     <p className="mt-2 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">{pendingRevisionCount} pending revision request{pendingRevisionCount === 1 ? "" : "s"}</p>

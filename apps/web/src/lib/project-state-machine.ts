@@ -14,23 +14,26 @@ export const PROJECT_STATES = [
 
 export type ProjectState = (typeof PROJECT_STATES)[number];
 
+export type TimelineState = ProjectState | "APPROVED";
+
 export type TimelineItem = {
-  state: ProjectState;
+  state: TimelineState;
   label: string;
   completed: boolean;
   current: boolean;
   timestamp?: string;
 };
 
-const FLOW_STATES: ProjectState[] = [
-  "AWAITING_BRIEF",
-  "BRIEF_SUBMITTED",
-  "IN_DESIGN",
-  "CONCEPTS_READY",
-  "REVISIONS_IN_PROGRESS",
-  "AWAITING_APPROVAL",
-  "FINAL_FILES_READY",
-  "DELIVERED",
+const FLOW_STEPS: Array<{ state: TimelineState; label: string; sourceState?: ProjectState }> = [
+  { state: "AWAITING_BRIEF", label: "Awaiting brief" },
+  { state: "BRIEF_SUBMITTED", label: "Brief submitted" },
+  { state: "IN_DESIGN", label: "In design" },
+  { state: "CONCEPTS_READY", label: "Concepts ready" },
+  { state: "REVISIONS_IN_PROGRESS", label: "Revisions in progress" },
+  { state: "AWAITING_APPROVAL", label: "Awaiting approval" },
+  { state: "APPROVED", label: "Approved", sourceState: "AWAITING_APPROVAL" },
+  { state: "FINAL_FILES_READY", label: "Final files ready" },
+  { state: "DELIVERED", label: "Delivered" },
 ];
 
 export const PROJECT_STATE_LABELS: Record<ProjectState, string> = {
@@ -145,18 +148,28 @@ export function applyTransition(current: string, next: string, context?: { reaso
 }
 
 export function buildTimeline(currentState: string, timestamps: Partial<Record<ProjectState, string>> = {}): TimelineItem[] {
-  const flow = FLOW_STATES;
-  const currentIdx = flow.indexOf((isProjectState(currentState) ? currentState : "AWAITING_BRIEF") as ProjectState);
+  const current = isProjectState(currentState) ? currentState : "AWAITING_BRIEF";
+  const stateOrder: ProjectState[] = [
+    "AWAITING_BRIEF",
+    "BRIEF_SUBMITTED",
+    "IN_DESIGN",
+    "CONCEPTS_READY",
+    "REVISIONS_IN_PROGRESS",
+    "AWAITING_APPROVAL",
+    "FINAL_FILES_READY",
+    "DELIVERED",
+  ];
+  const currentIdx = stateOrder.indexOf(current);
 
   if (currentState === "ON_HOLD" || currentState === "CANCELLED" || currentState === "REFUNDED") {
     const terminal = currentState as ProjectState;
     return [
-      ...flow.map((state) => ({
-        state,
-        label: PROJECT_STATE_LABELS[state],
+      ...FLOW_STEPS.map((step) => ({
+        state: step.state,
+        label: step.label,
         completed: false,
         current: false,
-        timestamp: timestamps[state],
+        timestamp: step.sourceState ? timestamps[step.sourceState] : (isProjectState(step.state) ? timestamps[step.state] : undefined),
       })),
       {
         state: terminal,
@@ -168,11 +181,25 @@ export function buildTimeline(currentState: string, timestamps: Partial<Record<P
     ];
   }
 
-  return flow.map((state, idx) => ({
-    state,
-    label: PROJECT_STATE_LABELS[state],
-    completed: idx < currentIdx,
-    current: idx === currentIdx,
-    timestamp: timestamps[state],
-  }));
+  return FLOW_STEPS.map((step) => {
+    if (step.state === "APPROVED") {
+      const approved = current === "FINAL_FILES_READY" || current === "DELIVERED";
+      return {
+        state: step.state,
+        label: step.label,
+        completed: approved,
+        current: false,
+        timestamp: timestamps.AWAITING_APPROVAL,
+      };
+    }
+
+    const stepIdx = stateOrder.indexOf(step.state);
+    return {
+      state: step.state,
+      label: step.label,
+      completed: stepIdx < currentIdx,
+      current: stepIdx === currentIdx,
+      timestamp: timestamps[step.state],
+    };
+  });
 }

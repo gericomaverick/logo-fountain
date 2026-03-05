@@ -35,7 +35,7 @@ export function ProjectTimeline({ timeline, primaryCta }: { timeline: TimelineIt
 
       <ol className="mt-5 space-y-3">
         {timeline.map((step, index) => (
-          <li key={step.state} className={`relative rounded-xl border p-3 pl-11 text-sm ${stepTone(step)}`}>
+          <li key={`${step.state}-${index}`} className={`relative rounded-xl border p-3 pl-11 text-sm ${stepTone(step)}`}>
             {index < timeline.length - 1 ? <span aria-hidden className="absolute bottom-[-14px] left-5 top-8 w-px bg-neutral-200" /> : null}
             <span className={`absolute left-3 top-3 inline-flex h-4 w-4 items-center justify-center rounded-full border-2 ${markerTone(step)}`}>
               {step.completed ? <span className="h-1.5 w-1.5 rounded-full bg-white" aria-hidden /> : null}

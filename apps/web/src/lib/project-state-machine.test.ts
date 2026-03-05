@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { applyTransition, canTransition } from "@/lib/project-state-machine";
+import { applyTransition, buildTimeline, canTransition } from "@/lib/project-state-machine";
 
 describe("project state machine", () => {
   it("allows BRIEF_SUBMITTED -> CONCEPTS_READY", () => {
@@ -20,5 +20,17 @@ describe("project state machine", () => {
     if (!transition.ok) {
       expect(transition.error).toBe("INVALID_TRANSITION");
     }
+  });
+
+  it("includes an explicit approved milestone after client approval", () => {
+    const timeline = buildTimeline("FINAL_FILES_READY", {
+      AWAITING_APPROVAL: "2026-01-01T12:00:00.000Z",
+    });
+
+    const approvedStep = timeline.find((step) => step.state === "APPROVED");
+    expect(approvedStep).toBeTruthy();
+    expect(approvedStep?.label).toBe("Approved");
+    expect(approvedStep?.completed).toBe(true);
+    expect(approvedStep?.timestamp).toBe("2026-01-01T12:00:00.000Z");
   });
 });
