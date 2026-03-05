@@ -37,10 +37,9 @@ export function AuthShell({
                 className="object-cover"
               />
             ) : null}
-            <div className="absolute inset-0 bg-gradient-to-tr from-black/70 via-black/45 to-black/20" aria-hidden="true" />
             <div className="absolute inset-x-0 bottom-0 p-8">
-              {sideTitle ? <h2 className="text-2xl font-semibold">{sideTitle}</h2> : null}
-              {sideDescription ? <p className="mt-3 text-sm text-neutral-200">{sideDescription}</p> : null}
+              {sideTitle ? <h2 className="text-2xl font-semibold text-white drop-shadow-sm">{sideTitle}</h2> : null}
+              {sideDescription ? <p className="mt-3 text-sm text-white/95 drop-shadow-sm">{sideDescription}</p> : null}
             </div>
           </aside>
 

@@ -4,7 +4,7 @@ import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { AuthShell } from "@/components/auth-shell";
-import loginImage from "@/img/image-1.png";
+import loginImage from "@/img/image-panel-1.png";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { hasValidationErrors, toErrorList, validateEmail, validateLogin, ValidationErrors } from "@/lib/auth/validation";
 
