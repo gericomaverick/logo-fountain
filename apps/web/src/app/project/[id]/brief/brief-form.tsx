@@ -159,19 +159,24 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
 
   if (submittedVersion !== null) {
     return (
-      <section className="mt-6 rounded-xl border border-green-200 bg-green-50 p-5 text-sm text-green-900">
-        <h2 className="text-base font-semibold">Brief saved — your designer now has your submission.</h2>
-        <p className="mt-2">Your brief has been submitted and is now locked for client editing.</p>
-
-        <div className="mt-4 flex flex-wrap gap-3">
-          <Link className="portal-btn-primary px-4 py-2" href={`/project/${projectId}`}>
-            Back to project overview
-          </Link>
-          <Link className="portal-btn-secondary border-green-300" href={`/project/${projectId}/messages`}>
-            Open project messages
-          </Link>
-        </div>
-      </section>
+      <FeatureNoticeCard
+        variant="success"
+        className="mt-6"
+        kicker="Brief submitted"
+        title="Your brief is in — your designer now has your submission"
+        body="Your brief has been submitted and is now locked for client editing."
+        signature="— Logo Fountain team"
+        actions={(
+          <>
+            <Link className="portal-btn-primary px-4 py-2" href={`/project/${projectId}`}>
+              Back to project overview
+            </Link>
+            <Link className="portal-btn-secondary border-emerald-300 text-emerald-900 hover:border-emerald-400" href={`/project/${projectId}/messages`}>
+              Open project messages
+            </Link>
+          </>
+        )}
+      />
     );
   }
 

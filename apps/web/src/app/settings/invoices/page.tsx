@@ -21,6 +21,33 @@ type Invoice = {
   documentType: "invoice" | "receipt" | "none";
 };
 
+function isPdfUrl(url: string | null | undefined) {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    return parsed.pathname.toLowerCase().endsWith(".pdf");
+  } catch {
+    return url.toLowerCase().includes(".pdf");
+  }
+}
+
+function getInvoiceAction(invoice: Invoice): { href: string | null; label: "Download PDF" | "View invoice" | "View receipt"; download: boolean } {
+  if (invoice.invoicePdfUrl) {
+    return { href: invoice.invoicePdfUrl, label: "Download PDF", download: true };
+  }
+
+  if (invoice.hostedInvoiceUrl) {
+    const hostedIsPdf = isPdfUrl(invoice.hostedInvoiceUrl);
+    return { href: invoice.hostedInvoiceUrl, label: hostedIsPdf ? "Download PDF" : "View invoice", download: hostedIsPdf };
+  }
+
+  if (invoice.receiptUrl) {
+    return { href: invoice.receiptUrl, label: "View receipt", download: false };
+  }
+
+  return { href: null, label: "View invoice", download: false };
+}
+
 const DATE_FORMATTER = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
 function formatAmount(amountCents: number, currency: string) {
@@ -70,6 +97,7 @@ export default function InvoicesSettingsPage() {
         <header className="mb-6">
           <h1 className="text-2xl font-semibold text-neutral-900">Invoices</h1>
           <p className="mt-2 text-sm text-neutral-600">Download your Stripe invoices and payment receipts.</p>
+          <p className="mt-1 text-xs text-neutral-500">Some older payments may only provide a hosted invoice or receipt link instead of a direct PDF.</p>
           <p className="mt-2 text-sm text-neutral-600">
             <Link className="portal-link no-underline" href="/settings">Back to settings</Link>
           </p>
@@ -91,7 +119,7 @@ export default function InvoicesSettingsPage() {
                   <th className="px-4 py-3">Amount</th>
                   <th className="px-4 py-3">Date</th>
                   <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Download</th>
+                  <th className="px-4 py-3">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-100">
@@ -102,18 +130,26 @@ export default function InvoicesSettingsPage() {
                     <td className="px-4 py-3 text-neutral-700">{DATE_FORMATTER.format(new Date(invoice.date))}</td>
                     <td className="px-4 py-3 text-neutral-700">{invoice.status}</td>
                     <td className="px-4 py-3">
-                      {invoice.downloadUrl ? (
-                        <a
-                          href={invoice.downloadUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="portal-link no-underline"
-                        >
-                          {invoice.documentType === "invoice" ? "Download PDF" : "View receipt"}
-                        </a>
-                      ) : (
-                        <span className="text-neutral-500">Unavailable</span>
-                      )}
+                      {(() => {
+                        const action = getInvoiceAction(invoice);
+
+                        if (!action.href) {
+                          return <span className="text-neutral-500">Unavailable</span>;
+                        }
+
+                        return (
+                          <a
+                            href={action.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="portal-link no-underline"
+                            download={action.download ? "invoice.pdf" : undefined}
+                            type={action.download ? "application/pdf" : undefined}
+                          >
+                            {action.label}
+                          </a>
+                        );
+                      })()}
                     </td>
                   </tr>
                 ))}
