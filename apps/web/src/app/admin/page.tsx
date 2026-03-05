@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth/require";
 import { deriveDisplayProjectStatus, deriveOverviewBadgeStatus } from "@/lib/project-status";
+import { extractBrandNameFromBriefAnswers, getProjectDisplayTitle } from "@/lib/project-display-name";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +38,7 @@ type AdminProjectRow = {
   hasNewConcepts: boolean;
   hasApprovedConcept: boolean;
   hasFinalDeliverable: boolean;
+  latestBrief?: { answers: unknown } | null;
 };
 
 function getSectionMeta(section: AdminSectionKey) {
@@ -141,12 +143,15 @@ function AdminSection({
               hasFinalDeliverable: project.hasFinalDeliverable,
             });
 
+            const brandName = extractBrandNameFromBriefAnswers(project.latestBrief?.answers);
+            const projectTitle = getProjectDisplayTitle({ projectId: project.id, brandName, audience: "admin" });
+
             return (
               <Card key={project.id} className="mt-0">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <ProjectStatusBadge status={overviewStatus} />
-                    <h3 className="mt-3 text-base font-semibold text-neutral-900">Project {project.id.slice(0, 8)}</h3>
+                    <h3 className="mt-3 text-base font-semibold text-neutral-900">{projectTitle}</h3>
                     <p className="mt-1 text-sm text-neutral-600">
                       Client: {clientName}
                       {clientRecordMissing ? <span className="text-amber-700"> (record missing)</span> : null}
@@ -260,6 +265,11 @@ export default async function AdminHomePage() {
         take: 1,
         select: { id: true },
       },
+      briefs: {
+        orderBy: { version: "desc" },
+        take: 1,
+        select: { answers: true },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -323,6 +333,7 @@ export default async function AdminHomePage() {
       hasNewConcepts,
       hasApprovedConcept,
       hasFinalDeliverable,
+      latestBrief: p.briefs[0] ?? null,
     };
   });
 

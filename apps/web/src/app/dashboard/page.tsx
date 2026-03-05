@@ -9,6 +9,7 @@ import { type ProjectState } from "@/lib/project-state-machine";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { deriveDisplayProjectStatus, deriveOverviewBadgeStatus } from "@/lib/project-status";
+import { extractBrandNameFromBriefAnswers, getProjectDisplayTitle } from "@/lib/project-display-name";
 
 type DashboardProject = {
   id: string;
@@ -20,6 +21,7 @@ type DashboardProject = {
   fileAssets?: Array<{ id: string }>;
   hasNewMessages?: boolean;
   hasNewConcepts?: boolean;
+  latestBrief?: { answers: unknown } | null;
 };
 
 type DashboardSectionKey = "needs-action" | "in-progress" | "delivered";
@@ -97,6 +99,8 @@ function ProjectCard({ project }: { project: DashboardProject }) {
     hasApprovedConcept: project.concepts.some((concept) => concept.status === "approved"),
     hasFinalDeliverable: (project.fileAssets?.length ?? 0) > 0,
   });
+  const brandName = extractBrandNameFromBriefAnswers(project.latestBrief?.answers);
+  const projectTitle = getProjectDisplayTitle({ projectId: project.id, brandName, audience: "client" });
 
   return (
     <article className="mt-3 portal-card">
@@ -107,7 +111,7 @@ function ProjectCard({ project }: { project: DashboardProject }) {
             {project.hasNewConcepts ? <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800">New concepts</span> : null}
             {project.hasNewMessages ? <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">New message</span> : null}
           </div>
-          <h3 className="mt-3 text-base font-semibold text-neutral-900">Project {project.id.slice(0, 8)}</h3>
+          <h3 className="mt-3 text-base font-semibold text-neutral-900">{projectTitle}</h3>
           <p className="mt-1 text-sm text-neutral-600">Package: {project.packageCode}</p>
           <p className="mt-1 text-xs text-neutral-500">{formatProjectDate(project)}</p>
         </div>
@@ -127,7 +131,11 @@ function ProjectCard({ project }: { project: DashboardProject }) {
         </div>
       </div>
 
-      {statusNote ? <p className="mt-4 rounded-lg bg-neutral-50 px-3 py-2 text-sm text-neutral-700">{statusNote}</p> : null}
+      {statusNote ? (
+        <p className={`mt-4 rounded-lg px-3 py-2 text-sm ${project.status === "FINAL_FILES_READY" ? "border border-emerald-200 bg-emerald-50 font-semibold text-emerald-900" : "bg-neutral-50 text-neutral-700"}`}>
+          {statusNote}
+        </p>
+      ) : null}
     </article>
   );
 }
@@ -205,6 +213,11 @@ export default async function DashboardPage() {
                 select: { id: true },
                 take: 1,
               },
+              briefs: {
+                orderBy: { version: "desc" },
+                take: 1,
+                select: { answers: true },
+              },
             },
             orderBy: { createdAt: "desc" },
           },
@@ -213,7 +226,10 @@ export default async function DashboardPage() {
     },
   });
 
-  const projectsRaw = memberships.flatMap((membership) => membership.client.projects) as DashboardProject[];
+  const projectsRaw = memberships.flatMap((membership) => membership.client.projects).map((project) => ({
+    ...project,
+    latestBrief: project.briefs[0] ?? null,
+  })) as DashboardProject[];
   const projectIds = projectsRaw.map((p) => p.id);
 
   const [readStates, latestMessages, latestConcepts] = await Promise.all([

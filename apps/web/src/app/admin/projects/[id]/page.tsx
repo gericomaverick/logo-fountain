@@ -375,21 +375,30 @@ export default function AdminProjectPage() {
             </div>
           </div>
 
-          <div id="final-deliverables-upload" className="mt-4 rounded-xl border border-teal-200 bg-teal-50/50 px-4 py-3 text-sm">
-            <p className="text-xs uppercase tracking-wide text-teal-700">Final deliverables upload</p>
-            <p className="mt-1 text-neutral-700">Upload a ZIP when final files are ready for client delivery. Clients are notified once files are available.</p>
-            <form className="mt-3 flex flex-wrap items-center gap-3" onSubmit={uploadFinalDeliverable}>
+          <div id="final-deliverables-upload" className="relative mt-4 overflow-hidden rounded-2xl border border-violet-200/70 bg-gradient-to-br from-violet-100 via-fuchsia-50 to-indigo-100 px-4 py-4 text-sm shadow-sm shadow-violet-200/30">
+            <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-gradient-to-br from-violet-300/25 via-fuchsia-200/20 to-indigo-200/20 blur-2xl" />
+            <div aria-hidden className="pointer-events-none absolute -bottom-20 left-8 h-40 w-40 rounded-full bg-gradient-to-tr from-indigo-200/20 via-violet-200/15 to-fuchsia-200/20 blur-2xl" />
+            <div className="relative">
+              <p className="text-xs font-semibold uppercase tracking-wide text-violet-900">Final deliverables upload</p>
+              <p className="mt-1 text-violet-950">Upload a ZIP when final files are ready for client delivery. Clients are notified once files are available.</p>
+            </div>
+            <form className="relative mt-3 flex flex-wrap items-center gap-3" onSubmit={uploadFinalDeliverable}>
               <input
                 type="file"
                 accept=".zip,application/zip"
                 onChange={(event) => setFinalZipFile(event.target.files?.[0] ?? null)}
               />
-              <button className="rounded border border-neutral-300 bg-white px-3 py-1" type="submit" disabled={busy || !finalZipFile}>
+              <button className="inline-flex items-center justify-center rounded-lg bg-violet-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-900 disabled:opacity-60" type="submit" disabled={busy || !finalZipFile}>
                 {busy ? "Uploading…" : "Upload final ZIP"}
               </button>
               {snapshot?.finalZip?.url ? (
-                <a className="portal-link no-underline" href={snapshot.finalZip.url} target="_blank" rel="noreferrer">
-                  Download current final ZIP
+                <a
+                  className="inline-flex items-center justify-center rounded-lg bg-violet-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-900"
+                  href={snapshot.finalZip.url}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Download current ZIP files
                 </a>
               ) : null}
             </form>

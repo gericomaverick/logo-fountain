@@ -9,6 +9,7 @@ type ConceptAssetItem = { path: string; version: number; createdAt: string; url:
 import { HeaderNav } from "@/components/header-nav";
 import { PageShell } from "@/components/page-shell";
 import { buildUnifiedConceptThread } from "@/lib/concept-thread";
+import { canConfirmFinalApproval, FINAL_APPROVAL_CONFIRMATION_COPY } from "@/lib/final-approval";
 
 type Snapshot = {
   status: string;
@@ -61,6 +62,8 @@ export default function ConceptDetailPage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
   const [approvalSuccess, setApprovalSuccess] = useState<{ conceptNumber?: number } | null>(null);
+  const [showApprovalConfirm, setShowApprovalConfirm] = useState(false);
+  const [approvalAcknowledged, setApprovalAcknowledged] = useState(false);
 
   const concept = useMemo(
     () => snapshot?.concepts.find((item) => item.id === conceptId) ?? null,
@@ -215,6 +218,8 @@ export default function ConceptDetailPage() {
 
       setApprovalSuccess({ conceptNumber: approvedConceptNumber });
       setActionSuccess("Concept approved. We’ve updated your project status.");
+      setShowApprovalConfirm(false);
+      setApprovalAcknowledged(false);
       await refresh(projectId);
     }
 
@@ -322,7 +327,7 @@ export default function ConceptDetailPage() {
               </div>
             ) : null}
 
-            {isAdminView && !isApprovedConcept && (conceptExplainer || showSelectedV1DesignerNote || showSelectedAssetNote) ? (
+            {isAdminView && (conceptExplainer || showSelectedV1DesignerNote || showSelectedAssetNote) ? (
               <div className="mt-4 rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-4">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-900">Designer notes for displayed concept</p>
                 {conceptExplainer ? (
@@ -365,11 +370,56 @@ export default function ConceptDetailPage() {
             ) : null}
 
             {!isAdminView && snapshot?.status === "CONCEPTS_READY" && concept.status === "published" ? (
-              <button className="mt-3 portal-btn-secondary" disabled={busy} onClick={() => void approveConcept()}>
+              <button
+                className="mt-3 portal-btn-secondary"
+                disabled={busy}
+                onClick={() => {
+                  setApprovalAcknowledged(false);
+                  setShowApprovalConfirm(true);
+                }}
+              >
                 Approve concept
               </button>
             ) : null}
           </section>
+        ) : null}
+
+        {showApprovalConfirm ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/45 px-4">
+            <div className="w-full max-w-md rounded-2xl border border-violet-200 bg-white p-5 shadow-xl">
+              <h2 className="text-lg font-semibold text-neutral-900">{FINAL_APPROVAL_CONFIRMATION_COPY.title}</h2>
+              <p className="mt-2 text-sm text-neutral-700">{FINAL_APPROVAL_CONFIRMATION_COPY.body}</p>
+              <label className="mt-4 flex items-start gap-2 text-sm text-neutral-800">
+                <input
+                  type="checkbox"
+                  className="mt-0.5"
+                  checked={approvalAcknowledged}
+                  onChange={(event) => setApprovalAcknowledged(event.target.checked)}
+                />
+                <span>{FINAL_APPROVAL_CONFIRMATION_COPY.checkboxLabel}</span>
+              </label>
+              <div className="mt-5 flex flex-wrap justify-end gap-2">
+                <button
+                  type="button"
+                  className="portal-btn-secondary"
+                  onClick={() => {
+                    setShowApprovalConfirm(false);
+                    setApprovalAcknowledged(false);
+                  }}
+                >
+                  {FINAL_APPROVAL_CONFIRMATION_COPY.cancelLabel}
+                </button>
+                <button
+                  type="button"
+                  className="portal-btn-primary"
+                  disabled={busy || !canConfirmFinalApproval(approvalAcknowledged)}
+                  onClick={() => void approveConcept()}
+                >
+                  {FINAL_APPROVAL_CONFIRMATION_COPY.confirmLabel}
+                </button>
+              </div>
+            </div>
+          </div>
         ) : null}
 
         {concept && !isApprovedConcept ? (
