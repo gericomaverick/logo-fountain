@@ -6,6 +6,11 @@ import Link from "next/link";
 import { BriefDocument, BriefField, BriefFieldGrid, BriefSection } from "@/components/brief-document";
 import { FeatureNoticeCard } from "@/components/feature-notice-card";
 import { briefSections, EMPTY_BRIEF_ANSWERS, missingRequiredFields, requiredFieldLabels, type BriefAnswers } from "@/lib/brief";
+import {
+  BRIEF_SUBMISSION_CONFIRMATION_COPY,
+  canConfirmBriefSubmission,
+  shouldShowBriefSubmitAction,
+} from "@/lib/brief-submission-confirmation";
 import { briefDraftStorageKey, hasBriefAnswerChanges, mergeWithBriefDefaults, parseBriefDraft } from "@/lib/brief-draft";
 import { nextStepIndex, previousStepIndex } from "@/lib/brief-wizard";
 import { scrollAndFocusEditor } from "./editor-focus";
@@ -45,6 +50,8 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedVersion, setSubmittedVersion] = useState<number | null>(null);
   const [isEditing, setIsEditing] = useState(latestBrief === null);
+  const [showSubmitConfirmation, setShowSubmitConfirmation] = useState(false);
+  const [submissionAcknowledged, setSubmissionAcknowledged] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [draftSavedAt, setDraftSavedAt] = useState<Date | null>(null);
   const editorRef = useRef<HTMLFormElement | null>(null);
@@ -57,8 +64,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
   const progressPercent = Math.round(((activeStep + 1) / (briefSections.length + 1)) * 100);
   const hasUnsavedChanges = isEditing && hasBriefAnswerChanges(form, latestBrief?.answers ?? EMPTY_BRIEF_ANSWERS);
 
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function submitBrief() {
     setIsSubmitting(true);
     setError(null);
 
@@ -77,12 +83,30 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
       return;
     }
 
+    setShowSubmitConfirmation(false);
+    setSubmissionAcknowledged(false);
     setSubmittedVersion(payload?.version ?? null);
     setIsEditing(false);
     setDraftSavedAt(null);
     if (typeof window !== "undefined") {
       window.sessionStorage.removeItem(draftStorageKey);
     }
+  }
+
+  function onSubmitIntent(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    setShowSubmitConfirmation(true);
+  }
+
+  async function onConfirmSubmit() {
+    if (!canConfirmBriefSubmission(submissionAcknowledged)) return;
+    await submitBrief();
+  }
+
+  function onCancelSubmitConfirmation() {
+    setShowSubmitConfirmation(false);
+    setSubmissionAcknowledged(false);
   }
 
   function goNext() {
@@ -177,7 +201,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
       ) : null}
 
       {isEditing ? (
-        <form id="brief-editor-form" ref={editorRef} className="portal-card scroll-mt-24 space-y-5 p-4 sm:p-5" onSubmit={onSubmit}>
+        <form id="brief-editor-form" ref={editorRef} className="portal-card scroll-mt-24 space-y-5 p-4 sm:p-5" onSubmit={onSubmitIntent}>
           <h3
             ref={editorHeadingRef}
             tabIndex={-1}
@@ -285,7 +309,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
               <button type="button" onClick={goNext} className="portal-btn-primary px-4 py-2">
                 Continue
               </button>
-            ) : (
+            ) : shouldShowBriefSubmitAction(Boolean(latestBrief)) ? (
               <button
                 type="submit"
                 disabled={isSubmitting}
@@ -293,11 +317,46 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
               >
                 {isSubmitting ? "Submitting..." : "Submit brief"}
               </button>
-            )}
+            ) : null}
           </div>
 
           {hasUnsavedChanges ? <p className="text-xs text-amber-700">You have unsaved changes in this version. Submit when ready.</p> : null}
           {error ? <p className="text-sm text-red-700" role="alert">{error}</p> : null}
+
+          {showSubmitConfirmation ? (
+            <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4" role="dialog" aria-modal="true" aria-labelledby="brief-submit-confirm-title">
+              <div className="w-full max-w-lg rounded-2xl border border-neutral-200 bg-white p-5 shadow-2xl">
+                <h4 id="brief-submit-confirm-title" className="text-lg font-semibold text-neutral-900">
+                  {BRIEF_SUBMISSION_CONFIRMATION_COPY.title}
+                </h4>
+                <p className="mt-2 text-sm text-neutral-700">{BRIEF_SUBMISSION_CONFIRMATION_COPY.body}</p>
+
+                <label className="mt-4 flex items-start gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-sm text-neutral-800">
+                  <input
+                    type="checkbox"
+                    checked={submissionAcknowledged}
+                    onChange={(event) => setSubmissionAcknowledged(event.target.checked)}
+                    className="mt-0.5 h-4 w-4"
+                  />
+                  <span>{BRIEF_SUBMISSION_CONFIRMATION_COPY.checkboxLabel}</span>
+                </label>
+
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <button type="button" onClick={onCancelSubmitConfirmation} className="portal-btn-secondary px-4 py-2">
+                    {BRIEF_SUBMISSION_CONFIRMATION_COPY.cancelLabel}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onConfirmSubmit}
+                    disabled={!canConfirmBriefSubmission(submissionAcknowledged) || isSubmitting}
+                    className="portal-btn-primary px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {isSubmitting ? "Submitting..." : BRIEF_SUBMISSION_CONFIRMATION_COPY.confirmLabel}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : null}
         </form>
       ) : null}
     </section>
