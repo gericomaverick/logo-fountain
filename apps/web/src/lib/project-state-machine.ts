@@ -147,8 +147,17 @@ export function applyTransition(current: string, next: string, context?: { reaso
   };
 }
 
-export function buildTimeline(currentState: string, timestamps: Partial<Record<ProjectState, string>> = {}): TimelineItem[] {
-  const current = isProjectState(currentState) ? currentState : "AWAITING_BRIEF";
+export function buildTimeline(
+  currentState: string,
+  timestamps: Partial<Record<ProjectState, string>> = {},
+  options?: { hasApprovedMilestone?: boolean },
+): TimelineItem[] {
+  const isExplicitApprovedState = currentState === "APPROVED";
+  const current = isProjectState(currentState)
+    ? currentState
+    : isExplicitApprovedState
+      ? "AWAITING_APPROVAL"
+      : "AWAITING_BRIEF";
   const stateOrder: ProjectState[] = [
     "AWAITING_BRIEF",
     "BRIEF_SUBMITTED",
@@ -183,12 +192,12 @@ export function buildTimeline(currentState: string, timestamps: Partial<Record<P
 
   return FLOW_STEPS.map((step) => {
     if (step.state === "APPROVED") {
-      const approved = current === "FINAL_FILES_READY" || current === "DELIVERED";
+      const approved = options?.hasApprovedMilestone || isExplicitApprovedState || current === "FINAL_FILES_READY" || current === "DELIVERED";
       return {
         state: step.state,
         label: step.label,
-        completed: approved,
-        current: false,
+        completed: !isExplicitApprovedState && approved,
+        current: isExplicitApprovedState,
         timestamp: timestamps.AWAITING_APPROVAL,
       };
     }

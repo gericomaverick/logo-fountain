@@ -5,12 +5,14 @@ import { computeEntitlementUsage } from "@/lib/entitlements";
 import { computeLatestConceptActivityAt, maxDate } from "@/lib/concept-activity";
 import { parseBriefAnswers } from "@/lib/brief";
 import { deriveDisplayProjectStatus, deriveOverviewBadgeStatus, isKnownProjectState } from "@/lib/project-status";
+import { buildFinalDeliverableFilename } from "@/lib/final-deliverable-filename";
 
 const PUBLISHED_OR_APPROVED = ["published", "approved"];
 
 type SnapshotArgs = {
   projectId: string;
   userId?: string;
+  standardizeClientDownloadName?: boolean;
 };
 
 type ClientMembershipContact = {
@@ -62,7 +64,7 @@ async function fetchAuditStateTimestamps(projectId: string): Promise<Partial<Rec
   return map;
 }
 
-export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
+export async function getProjectSnapshot({ projectId, userId, standardizeClientDownloadName = false }: SnapshotArgs) {
   const project = await prisma.project.findUnique({
     where: { id: projectId },
     select: {
@@ -73,6 +75,7 @@ export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
       updatedAt: true,
       client: {
         select: {
+          name: true,
           memberships: {
             select: {
               role: true,
@@ -222,11 +225,21 @@ export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
     hasApprovedConcept,
     hasFinalDeliverable: Boolean(finalAsset),
   });
+  const primaryClientContact = getPrimaryClientContact(project.client.memberships);
+
+  const finalZipDownloadName = finalAsset && standardizeClientDownloadName
+    ? buildFinalDeliverableFilename({
+        clientName: primaryClientContact?.fullName,
+        clientEmail: primaryClientContact?.email,
+        companyName: project.client.name,
+        createdAt: finalAsset.createdAt,
+      })
+    : undefined;
 
   const finalZip = finalAsset
     ? {
         available: true,
-        url: await createSignedFinalDeliverableUrl(finalAsset.path),
+        url: await createSignedFinalDeliverableUrl(finalAsset.path, 60 * 60, finalZipDownloadName),
       }
     : { available: false, url: null };
 
@@ -273,8 +286,6 @@ export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
         ? `Order status is ${latestOrder.status}.`
         : null;
 
-  const primaryClientContact = getPrimaryClientContact(project.client.memberships);
-
   const overviewStatus = deriveOverviewBadgeStatus({
     persistedStatus: project.status,
     hasApprovedConcept,
@@ -287,7 +298,7 @@ export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
     overviewStatus,
     statusLabel: isKnownProjectState(effectiveStatus) ? PROJECT_STATE_LABELS[effectiveStatus] : effectiveStatus,
     primaryCta: isKnownProjectState(effectiveStatus) ? PRIMARY_CTA_BY_STATE[effectiveStatus] ?? null : null,
-    timeline: buildTimeline(effectiveStatus, timestamps),
+    timeline: buildTimeline(effectiveStatus, timestamps, { hasApprovedMilestone: hasApprovedConcept || project.status === "APPROVED" }),
     packageCode: project.packageCode,
     clientContact: primaryClientContact,
     createdAt: project.createdAt.toISOString(),

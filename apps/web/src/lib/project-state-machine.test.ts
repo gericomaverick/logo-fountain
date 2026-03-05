@@ -22,6 +22,16 @@ describe("project state machine", () => {
     }
   });
 
+  it("maps key lifecycle states to timeline current step", () => {
+    const states = ["AWAITING_BRIEF", "IN_DESIGN", "CONCEPTS_READY", "FINAL_FILES_READY"] as const;
+
+    for (const state of states) {
+      const timeline = buildTimeline(state);
+      const current = timeline.find((step) => step.current);
+      expect(current?.state).toBe(state);
+    }
+  });
+
   it("includes an explicit approved milestone after client approval", () => {
     const timeline = buildTimeline("FINAL_FILES_READY", {
       AWAITING_APPROVAL: "2026-01-01T12:00:00.000Z",
@@ -32,5 +42,21 @@ describe("project state machine", () => {
     expect(approvedStep?.label).toBe("Approved");
     expect(approvedStep?.completed).toBe(true);
     expect(approvedStep?.timestamp).toBe("2026-01-01T12:00:00.000Z");
+  });
+
+  it("marks approved as current when project status is explicitly APPROVED", () => {
+    const timeline = buildTimeline("APPROVED", { AWAITING_APPROVAL: "2026-01-02T12:00:00.000Z" }, { hasApprovedMilestone: true });
+    const approvedStep = timeline.find((step) => step.state === "APPROVED");
+
+    expect(approvedStep?.current).toBe(true);
+    expect(approvedStep?.completed).toBe(false);
+  });
+
+  it("shows approved milestone when approval is concept-driven before final upload", () => {
+    const timeline = buildTimeline("AWAITING_APPROVAL", { AWAITING_APPROVAL: "2026-01-03T12:00:00.000Z" }, { hasApprovedMilestone: true });
+    const approvedStep = timeline.find((step) => step.state === "APPROVED");
+
+    expect(approvedStep?.completed).toBe(true);
+    expect(approvedStep?.timestamp).toBe("2026-01-03T12:00:00.000Z");
   });
 });

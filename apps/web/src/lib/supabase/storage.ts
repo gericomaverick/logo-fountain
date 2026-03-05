@@ -98,11 +98,11 @@ export async function createSignedConceptAssetUrl(path: string, expiresInSeconds
   return data.signedUrl;
 }
 
-export async function createSignedFinalDeliverableUrl(path: string, expiresInSeconds = 60 * 60) {
+export async function createSignedFinalDeliverableUrl(path: string, expiresInSeconds = 60 * 60, downloadFileName?: string) {
   const admin = createSupabaseAdminClient();
   const { data, error } = await admin.storage
     .from(SUPABASE_STORAGE_BUCKET_FINAL_DELIVERABLES)
-    .createSignedUrl(path, expiresInSeconds);
+    .createSignedUrl(path, expiresInSeconds, downloadFileName ? { download: downloadFileName } : undefined);
 
   if (error || !data?.signedUrl) {
     throw new Error(error?.message ?? "Failed to create final deliverable signed URL");

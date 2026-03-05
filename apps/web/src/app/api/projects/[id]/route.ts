@@ -19,7 +19,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       projectId = project.id;
     }
 
-    const snapshot = await getProjectSnapshot({ projectId, userId: user.id });
+    const snapshot = await getProjectSnapshot({ projectId, userId: user.id, standardizeClientDownloadName: true });
     if (!snapshot) return jsonError("Project not found", 404, { nextStep: "Check the project link." }, "PROJECT_NOT_FOUND");
 
     return Response.json({ snapshot });

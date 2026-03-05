@@ -9,6 +9,8 @@ type DeriveProjectStatusArgs = {
 export function deriveDisplayProjectStatus({ persistedStatus, hasApprovedConcept, hasFinalDeliverable }: DeriveProjectStatusArgs): string {
   if (hasFinalDeliverable) return "FINAL_FILES_READY";
 
+  if (persistedStatus === "APPROVED") return "AWAITING_APPROVAL";
+
   // Some projects remain persisted as CONCEPTS_READY after approval.
   // Surface the true client-facing phase consistently everywhere.
   if (hasApprovedConcept && (persistedStatus === "CONCEPTS_READY" || persistedStatus === "REVISIONS_IN_PROGRESS")) {

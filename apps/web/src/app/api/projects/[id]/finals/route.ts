@@ -2,6 +2,7 @@ import { jsonError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
 import { createSignedFinalDeliverableUrl } from "@/lib/supabase/storage";
 import { requireProjectMembership, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
+import { buildFinalDeliverableFilename } from "@/lib/final-deliverable-filename";
 
 export const runtime = "nodejs";
 
@@ -24,11 +25,29 @@ export async function GET(
       },
       select: {
         id: true,
+        client: {
+          select: {
+            name: true,
+            memberships: {
+              select: {
+                role: true,
+                user: {
+                  select: {
+                    firstName: true,
+                    lastName: true,
+                    fullName: true,
+                    email: true,
+                  },
+                },
+              },
+            },
+          },
+        },
         fileAssets: {
           where: { kind: "final_zip" },
           orderBy: { createdAt: "desc" },
           take: 1,
-          select: { path: true },
+          select: { path: true, createdAt: true },
         },
       },
     });
@@ -42,7 +61,18 @@ export async function GET(
       return jsonError("Final ZIP not available", 404, { nextStep: "Ask support to re-upload the final ZIP." }, "FINAL_ZIP_NOT_AVAILABLE");
     }
 
-    const url = await createSignedFinalDeliverableUrl(file.path);
+    const owner = project.client.memberships.find((membership) => membership.role.toLowerCase() === "owner") ?? project.client.memberships[0];
+    const fullName = owner
+      ? [owner.user.firstName, owner.user.lastName].filter(Boolean).join(" ").trim() || owner.user.fullName?.trim() || null
+      : null;
+    const fileName = buildFinalDeliverableFilename({
+      clientName: fullName,
+      clientEmail: owner?.user.email ?? null,
+      companyName: project.client.name,
+      createdAt: file.createdAt,
+    });
+
+    const url = await createSignedFinalDeliverableUrl(file.path, 60 * 60, fileName);
     return Response.json({ url });
   } catch (error) {
     return toRouteErrorResponse(error);
