@@ -1,5 +1,6 @@
 import "server-only";
 
+import { renderBrandedEmail } from "@/lib/email-branding";
 import { getConfiguredPublicSiteOrigin } from "@/lib/request-origin";
 
 const POSTMARK_API_URL = "https://api.postmarkapp.com/email";
@@ -51,16 +52,15 @@ export async function sendCheckoutContinueEmail({
         "You’ll be asked to set a password before entering your dashboard.",
       ].join("\n");
 
-  const htmlBody = isReturning
-    ? [
-        "<p>Thanks for your purchase.</p>",
-        `<p><a href=\"${continueUrl.toString()}\">Sign in to access your new project</a></p>`,
-      ].join("")
-    : [
-        "<p>Thanks for your purchase.</p>",
-        `<p><a href=\"${continueUrl.toString()}\">Finish account setup</a></p>`,
-        "<p>You’ll be asked to set a password before entering your dashboard.</p>",
-      ].join("");
+  const htmlBody = renderBrandedEmail({
+    heading: subject,
+    intro: isReturning
+      ? "Thanks for your purchase. Sign in to access your new project and jump straight into your dashboard."
+      : "Thanks for your purchase. Finish account setup to create your password and access your dashboard.",
+    ctaLabel: isReturning ? "Sign in to access your new project" : "Finish account setup",
+    ctaUrl: continueUrl.toString(),
+    footer: "This secure link is tied to your latest Logo Fountain order.",
+  });
 
   const response = await fetch(POSTMARK_API_URL, {
     method: "POST",

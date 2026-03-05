@@ -94,6 +94,8 @@ describe("project lifecycle emails", () => {
     for (const call of mocks.fetch.mock.calls) {
       const payload = JSON.parse(call[1].body as string);
       expect(payload.HtmlBody).toContain("Logo Fountain");
+      expect(payload.HtmlBody).toContain("background:#f8f7ff");
+      expect(payload.HtmlBody).toContain("border-radius:14px");
       expect(payload.MessageStream).toBe("outbound");
     }
   });

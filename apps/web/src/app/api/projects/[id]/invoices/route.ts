@@ -51,7 +51,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
           projectName: getProjectDisplayTitle({ projectId: order.projectId, brandName, audience: "client" }),
           amountCents: order.totalCents,
           currency: order.currency,
-          status: order.status,
+          status: order.status === "FULFILLED" ? "Paid" : order.status,
           date: order.createdAt.toISOString(),
           invoiceId: doc.invoiceId,
           invoicePdfUrl: doc.invoicePdfUrl,

@@ -9,6 +9,7 @@ const ORIGINAL_ENV = {
   NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
   POSTMARK_SERVER_TOKEN: process.env.POSTMARK_SERVER_TOKEN,
   POSTMARK_FROM: process.env.POSTMARK_FROM,
+  EMAIL_LOGO_URL: process.env.EMAIL_LOGO_URL,
 };
 
 function restoreEnv() {
@@ -49,6 +50,8 @@ describe("sendCheckoutContinueEmail", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const body = JSON.parse(fetchMock.mock.calls[0][1]?.body as string);
     expect(body.TextBody).toContain("https://lan.example.test:3100/checkout/continue?session_id=cs_test&flow=setup");
+    expect(body.HtmlBody).toContain('src="https://lan.example.test:3100/img/logo.svg"');
+    expect(body.HtmlBody).toContain("background:#f8f7ff");
   });
 
   it("falls back to the provided base URL when no env override exists", async () => {
@@ -66,6 +69,8 @@ describe("sendCheckoutContinueEmail", () => {
 
     const body = JSON.parse(fetchMock.mock.calls[0][1]?.body as string);
     expect(body.TextBody).toContain("https://app.local.test:4000/checkout/continue?session_id=cs_test&flow=setup");
+    expect(body.HtmlBody).toContain("Logo Fountain</div>");
+    expect(body.HtmlBody).not.toContain("<img src=");
   });
 
   it("uses returning-customer copy and signin flow links when flow=signin", async () => {

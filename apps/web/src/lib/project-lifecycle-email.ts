@@ -3,6 +3,7 @@ import "server-only";
 import { logAudit } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
 import { getConfiguredPublicSiteOrigin } from "@/lib/request-origin";
+import { renderBrandedEmail } from "@/lib/email-branding";
 
 const POSTMARK_API_URL = "https://api.postmarkapp.com/email";
 
@@ -17,28 +18,6 @@ function appOrigin(): string {
   return getConfiguredPublicSiteOrigin() ?? "http://localhost:3000";
 }
 
-function logoUrl() {
-  return new URL("/img/logo.svg", appOrigin()).toString();
-}
-
-function htmlTemplate(input: { heading: string; intro: string; ctaLabel: string; ctaUrl: string; footer?: string }): string {
-  const { heading, intro, ctaLabel, ctaUrl, footer } = input;
-  return [
-    '<div style="background:#f8f7ff;padding:24px;font-family:Inter,Arial,sans-serif;color:#1d1330;">',
-    '<div style="max-width:620px;margin:0 auto;background:#ffffff;border:1px solid #ebe7ff;border-radius:14px;overflow:hidden;">',
-    '<div style="padding:20px 24px;border-bottom:1px solid #f0ecff;background:#faf9ff;">',
-    `<img src="${logoUrl()}" alt="Logo Fountain" style="height:34px;display:block;"/>`,
-    "</div>",
-    '<div style="padding:28px 24px;">',
-    `<h1 style="margin:0 0 12px;font-size:24px;line-height:1.3;color:#1d1330;">${heading}</h1>`,
-    `<p style="margin:0 0 18px;font-size:16px;line-height:1.6;color:#43355f;">${intro}</p>`,
-    `<a href="${ctaUrl}" style="display:inline-block;background:#5b38f0;color:#ffffff !important;text-decoration:none;font-weight:600;padding:12px 18px;border-radius:10px;">${ctaLabel}</a>`,
-    footer ? `<p style="margin:18px 0 0;font-size:13px;line-height:1.5;color:#6f6590;">${footer}</p>` : "",
-    "</div>",
-    "</div>",
-    "</div>",
-  ].join("");
-}
 
 type BaseProjectData = {
   id: string;
@@ -112,7 +91,7 @@ async function sendClientEmail(input: {
     to,
     subject: input.subject,
     textBody: `${input.intro}\n\n${input.ctaLabel}: ${url}`,
-    htmlBody: htmlTemplate({
+    htmlBody: renderBrandedEmail({
       heading: input.heading ?? input.subject,
       intro: input.intro,
       ctaLabel: input.ctaLabel,
@@ -141,7 +120,7 @@ async function sendAdminEmail(input: {
     to: recipients.join(","),
     subject: input.subject,
     textBody: `${input.intro}\n\n${input.ctaLabel}: ${url}`,
-    htmlBody: htmlTemplate({
+    htmlBody: renderBrandedEmail({
       heading: input.subject,
       intro: input.intro,
       ctaLabel: input.ctaLabel,

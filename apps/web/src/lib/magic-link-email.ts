@@ -1,5 +1,6 @@
 import "server-only";
 
+import { renderBrandedEmail } from "@/lib/email-branding";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const POSTMARK_API_URL = "https://api.postmarkapp.com/email";
@@ -80,11 +81,13 @@ async function sendPostmarkEmail({
     "After signing in, you'll be asked to set your password before entering your dashboard.",
   ].join("\n");
 
-  const htmlBody = [
-    "<p>Thanks for your purchase.</p>",
-    `<p><a href=\"${actionLink}\">Use this secure sign-in link</a> to continue.</p>`,
-    "<p>After signing in, you&apos;ll be asked to set your password before entering your dashboard.</p>",
-  ].join("");
+  const htmlBody = renderBrandedEmail({
+    heading: subject,
+    intro: "Thanks for your purchase. Use this secure sign-in link to continue and finish access setup.",
+    ctaLabel: "Use this secure sign-in link",
+    ctaUrl: actionLink,
+    footer: "After signing in, you'll be prompted to set your password before entering your dashboard.",
+  });
 
   const response = await fetch(POSTMARK_API_URL, {
     method: "POST",

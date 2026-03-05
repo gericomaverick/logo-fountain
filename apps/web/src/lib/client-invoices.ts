@@ -28,14 +28,27 @@ function isSettledInvoice(invoice: Stripe.Invoice): boolean {
 function toInvoiceDocument(invoice: Stripe.Invoice | string | null | undefined): StripeInvoiceDocument | null {
   if (!invoice || typeof invoice === "string") return null;
 
-  const settled = isSettledInvoice(invoice);
-
   return {
     invoiceId: invoice.id,
     invoicePdfUrl: normalizeUrl(invoice.invoice_pdf),
-    hostedInvoiceUrl: settled ? normalizeUrl(invoice.hosted_invoice_url) : null,
+    hostedInvoiceUrl: normalizeUrl(invoice.hosted_invoice_url),
     receiptUrl: null,
-    source: normalizeUrl(invoice.invoice_pdf) || (settled && normalizeUrl(invoice.hosted_invoice_url)) ? "invoice" : "none",
+    source: normalizeUrl(invoice.invoice_pdf) || normalizeUrl(invoice.hosted_invoice_url) ? "invoice" : "none",
+  };
+}
+
+function prefersPaidFriendlyLinks(doc: StripeInvoiceDocument, preferSettled: boolean): boolean {
+  if (!preferSettled) return Boolean(doc.invoicePdfUrl || doc.hostedInvoiceUrl);
+  return Boolean(doc.invoicePdfUrl);
+}
+
+function finalizeInvoiceDocument(doc: StripeInvoiceDocument, preferSettled: boolean): StripeInvoiceDocument {
+  if (!preferSettled) return { ...doc, source: "invoice" };
+
+  return {
+    ...doc,
+    hostedInvoiceUrl: null,
+    source: doc.invoicePdfUrl ? "invoice" : "none",
   };
 }
 
@@ -61,11 +74,8 @@ async function resolveInvoiceById(invoiceId: string | null | undefined, preferSe
   const invoiceDoc = toInvoiceDocument(invoice);
   if (!invoiceDoc) return null;
 
-  if (invoiceDoc.invoicePdfUrl || invoiceDoc.hostedInvoiceUrl) {
-    return {
-      ...invoiceDoc,
-      source: "invoice",
-    };
+  if (prefersPaidFriendlyLinks(invoiceDoc, preferSettled)) {
+    return finalizeInvoiceDocument(invoiceDoc, preferSettled);
   }
 
   return null;
@@ -85,11 +95,8 @@ export async function resolveStripeInvoiceDocument(order: InvoiceLikeRecord): Pr
       const sessionInvoiceRecord = session.invoice as Stripe.Invoice | string | null | undefined;
       const sessionInvoice = toInvoiceDocument(sessionInvoiceRecord);
       const sessionInvoiceIsSettled = !!sessionInvoiceRecord && typeof sessionInvoiceRecord !== "string" && isSettledInvoice(sessionInvoiceRecord);
-      if (sessionInvoice && (!preferSettled || sessionInvoiceIsSettled) && (sessionInvoice.invoicePdfUrl || sessionInvoice.hostedInvoiceUrl)) {
-        return {
-          ...sessionInvoice,
-          source: "invoice",
-        };
+      if (sessionInvoice && (!preferSettled || sessionInvoiceIsSettled) && prefersPaidFriendlyLinks(sessionInvoice, preferSettled)) {
+        return finalizeInvoiceDocument(sessionInvoice, preferSettled);
       }
 
       const expandedPaymentIntent =
@@ -114,11 +121,8 @@ export async function resolveStripeInvoiceDocument(order: InvoiceLikeRecord): Pr
           if (invoiceFromLatestChargeId) return invoiceFromLatestChargeId;
         } else {
           const invoiceFromLatestCharge = toInvoiceDocument(latestChargeInvoice);
-          if (invoiceFromLatestCharge && (!preferSettled || isSettledInvoice(latestChargeInvoice)) && (invoiceFromLatestCharge.invoicePdfUrl || invoiceFromLatestCharge.hostedInvoiceUrl)) {
-            return {
-              ...invoiceFromLatestCharge,
-              source: "invoice",
-            };
+          if (invoiceFromLatestCharge && (!preferSettled || isSettledInvoice(latestChargeInvoice)) && prefersPaidFriendlyLinks(invoiceFromLatestCharge, preferSettled)) {
+            return finalizeInvoiceDocument(invoiceFromLatestCharge, preferSettled);
           }
         }
       }
@@ -140,11 +144,8 @@ export async function resolveStripeInvoiceDocument(order: InvoiceLikeRecord): Pr
             if (invoiceFromLatestChargeId) return invoiceFromLatestChargeId;
           } else {
             const invoiceFromLatestCharge = toInvoiceDocument(latestChargeInvoice);
-            if (invoiceFromLatestCharge && (!preferSettled || isSettledInvoice(latestChargeInvoice)) && (invoiceFromLatestCharge.invoicePdfUrl || invoiceFromLatestCharge.hostedInvoiceUrl)) {
-              return {
-                ...invoiceFromLatestCharge,
-                source: "invoice",
-              };
+            if (invoiceFromLatestCharge && (!preferSettled || isSettledInvoice(latestChargeInvoice)) && prefersPaidFriendlyLinks(invoiceFromLatestCharge, preferSettled)) {
+              return finalizeInvoiceDocument(invoiceFromLatestCharge, preferSettled);
             }
           }
         }

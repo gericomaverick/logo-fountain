@@ -60,7 +60,7 @@ export async function GET() {
           projectName,
           amountCents: order.totalCents,
           currency: order.currency,
-          status: order.status,
+          status: order.status === "FULFILLED" ? "Paid" : order.status,
           date: order.createdAt.toISOString(),
           invoiceId: doc.invoiceId,
           invoicePdfUrl: doc.invoicePdfUrl,

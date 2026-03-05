@@ -98,4 +98,35 @@ describe("resolveStripeInvoiceDocument", () => {
       source: "receipt",
     });
   });
+
+  it("prefers receipt over hosted invoice pages for settled orders even when invoice is marked paid", async () => {
+    mocks.stripe.checkout.sessions.retrieve.mockResolvedValueOnce({
+      invoice: {
+        id: "in_paid",
+        status: "paid",
+        amount_remaining: 0,
+        invoice_pdf: null,
+        hosted_invoice_url: "https://stripe.test/in_paid",
+      },
+      payment_intent: {
+        latest_charge: {
+          receipt_url: "https://stripe.test/receipt_paid_2",
+        },
+      },
+    });
+
+    const result = await resolveStripeInvoiceDocument({
+      stripeCheckoutSessionId: "cs_paid_2",
+      stripePaymentIntentId: "pi_paid_2",
+      isOrderSettled: true,
+    });
+
+    expect(result).toEqual({
+      invoiceId: null,
+      invoicePdfUrl: null,
+      hostedInvoiceUrl: null,
+      receiptUrl: "https://stripe.test/receipt_paid_2",
+      source: "receipt",
+    });
+  });
 });
