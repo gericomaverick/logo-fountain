@@ -87,7 +87,7 @@ export default async function ProjectBriefPage({ params }: ProjectBriefPageProps
           <div>
             <h1 className="text-2xl font-semibold">Project brief</h1>
             <p className="mt-2 text-sm text-neutral-600">
-              Review your brief history and resubmit updates when priorities shift.
+              Submit your brief once. After submission, the brief is locked and view-only.
             </p>
             <p className="mt-1 text-xs text-neutral-500">Current status: {project.status}</p>
           </div>

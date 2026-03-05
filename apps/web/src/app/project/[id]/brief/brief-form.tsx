@@ -109,12 +109,6 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
     });
   }
 
-  function openEditor() {
-    setIsEditing(true);
-    setActiveStep(0);
-    setError(null);
-  }
-
   useEffect(() => {
     if (!isEditing) return;
     focusEditorSection();
@@ -166,30 +160,12 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
       {latestBrief ? (
         <BriefDocument
           title={`Latest submitted brief (v${latestBrief.version})`}
-          subtitle="Review your current brief and earlier submissions in one document-style history view."
+          subtitle="Your brief is now locked. Review your submitted answers below."
           meta={<span>Submitted {dateLabel(latestBrief.createdAt)}</span>}
-          actions={(
-            <button
-              type="button"
-              onClick={() => {
-                if (isEditing) {
-                  if (hasUnsavedChanges && typeof window !== "undefined") {
-                    const leave = window.confirm("You have unsaved changes in this draft. Close the editor anyway?");
-                    if (!leave) return;
-                  }
-                  setIsEditing(false);
-                  return;
-                }
-                openEditor();
-              }}
-              className="portal-btn-secondary"
-              aria-controls="brief-editor-form"
-              aria-expanded={isEditing}
-            >
-              {isEditing ? "Close editor" : "Edit & resubmit"}
-            </button>
-          )}
         >
+          <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900">
+            Brief submission complete — editing and re-submission are disabled for clients.
+          </div>
           <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_240px]">
             <BriefFieldGrid>
               {briefSections.map((section) => (

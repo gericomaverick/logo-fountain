@@ -88,7 +88,7 @@ describe("POST /api/projects/[id]/brief", () => {
     );
   });
 
-  it("resubmission does not emit a state_changed audit event", async () => {
+  it("rejects re-submissions after the brief is already submitted", async () => {
     mocks.prisma.project.findUnique.mockResolvedValue({ id: "p1", status: "BRIEF_SUBMITTED" });
 
     const req = new Request("http://localhost", {
@@ -97,16 +97,10 @@ describe("POST /api/projects/[id]/brief", () => {
     });
 
     const res = await POST(req, { params: Promise.resolve({ id: "p1" }) });
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(400);
 
     expect(mocks.tx.project.update).not.toHaveBeenCalled();
-    expect(mocks.createProjectSystemMessage).toHaveBeenCalledWith(
-      mocks.tx,
-      expect.objectContaining({ body: "Brief updated. We saved this as a new version for your designer." }),
-    );
-
-    const stateChangedCalls = mocks.logAudit.mock.calls.filter((call) => call[1]?.type === "state_changed");
-    expect(stateChangedCalls).toHaveLength(0);
+    expect(mocks.tx.projectBrief.create).not.toHaveBeenCalled();
   });
 
   it("rejects payloads missing required fields", async () => {

@@ -14,16 +14,26 @@ const STATUS_TONE_CLASS: Record<ProjectState, string> = {
   REFUNDED: "border-neutral-300 bg-neutral-100 text-neutral-700",
 };
 
+const OVERVIEW_STATUS_TONE_OVERRIDES: Record<string, string> = {
+  APPROVED: "border-emerald-400 bg-emerald-50 text-emerald-900",
+};
+
+const OVERVIEW_STATUS_LABEL_OVERRIDES: Record<string, string> = {
+  APPROVED: "Approved",
+};
+
 function isProjectState(value: string): value is ProjectState {
   return value in PROJECT_STATE_LABELS;
 }
 
 export function getProjectStatusToneClass(status: string): string {
+  if (status in OVERVIEW_STATUS_TONE_OVERRIDES) return OVERVIEW_STATUS_TONE_OVERRIDES[status];
   if (!isProjectState(status)) return "border-neutral-300 bg-neutral-50 text-neutral-700";
   return STATUS_TONE_CLASS[status];
 }
 
 export function getProjectStatusLabel(status: string): string {
+  if (status in OVERVIEW_STATUS_LABEL_OVERRIDES) return OVERVIEW_STATUS_LABEL_OVERRIDES[status];
   if (!isProjectState(status)) return status;
   return PROJECT_STATE_LABELS[status];
 }

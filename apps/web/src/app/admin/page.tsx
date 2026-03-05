@@ -34,6 +34,7 @@ type AdminProjectRow = {
   hasNewMessages: boolean;
   latestConceptAt: Date | null;
   hasNewConcepts: boolean;
+  hasApprovedConcept: boolean;
 };
 
 function getSectionMeta(section: AdminSectionKey) {
@@ -132,12 +133,13 @@ function AdminSection({
             const clientName = project.client?.name ?? "Unknown client";
             const clientRecordMissing = !project.client;
             const needsFeedback = project.pendingFeedbackCount > 0;
+            const overviewStatus = project.hasApprovedConcept ? "APPROVED" : project.status;
 
             return (
               <Card key={project.id} className="mt-0">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <ProjectStatusBadge status={project.status} />
+                    <ProjectStatusBadge status={overviewStatus} />
                     <h3 className="mt-3 text-base font-semibold text-neutral-900">Project {project.id.slice(0, 8)}</h3>
                     <p className="mt-1 text-sm text-neutral-600">
                       Client: {clientName}
@@ -242,6 +244,11 @@ export default async function AdminHomePage() {
         where: { status: { not: "delivered" } },
         select: { id: true },
       },
+      concepts: {
+        where: { status: "approved" },
+        take: 1,
+        select: { id: true },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -295,6 +302,7 @@ export default async function AdminHomePage() {
       hasNewMessages,
       latestConceptAt,
       hasNewConcepts,
+      hasApprovedConcept: p.concepts.length > 0,
     };
   });
 

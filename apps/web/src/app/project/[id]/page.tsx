@@ -9,7 +9,7 @@ import { HeaderNav } from "@/components/header-nav";
 import { PageShell } from "@/components/page-shell";
 import { ProjectStatusBadge } from "@/components/project-status-badge";
 import { formatClientFirstName, getAreaCardSubtitle } from "@/lib/project-overview";
-import { buildActivityGroups, getClientOverviewNextAction, getMissionControlPrimaryCta, getPendingFeedbackCountForLatestConcept } from "@/lib/project-hub";
+import { getClientOverviewNextAction, getPendingFeedbackCountForLatestConcept } from "@/lib/project-hub";
 
 type EntitlementUsage = {
   limit: number;
@@ -49,21 +49,6 @@ function readError(payload: { error?: { message?: string; details?: { nextStep?:
   const message = typeof err === "string" ? err : err?.message ?? fallback;
   const nextStep = typeof err === "string" ? undefined : err?.details?.nextStep;
   return nextStep ? `${message} — ${nextStep}` : message;
-}
-
-const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("en-GB", {
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-});
-
-function formatDateTime(value?: string): string {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-  return DATE_TIME_FORMATTER.format(date);
 }
 
 function resolveUsage(usage: EntitlementUsage | undefined) {
@@ -151,50 +136,6 @@ function AreaCard({ title, href, hasNew, subtitle }: { title: string; href: stri
       </div>
       <p className="mt-1 text-sm text-neutral-600">{getAreaCardSubtitle(title, subtitle)}</p>
     </Link>
-  );
-}
-
-function ActivityPanel({ projectId, snapshot, pendingFeedbackCount }: { projectId: string; snapshot: Snapshot | null; pendingFeedbackCount: number }) {
-  const nextAction = getMissionControlPrimaryCta(projectId, snapshot?.status ?? "", { pendingFeedbackCount });
-  const groups = useMemo(() => buildActivityGroups(snapshot, 8), [snapshot]);
-
-  return (
-    <section className="mt-6 rounded-2xl border border-neutral-200 bg-white p-5">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-semibold text-neutral-900">Mission control</h2>
-          <p className="mt-1 text-sm text-neutral-600">What needs attention now, plus a clean activity timeline.</p>
-        </div>
-        <Link href={nextAction.href} className="portal-btn-primary">
-          {nextAction.label}
-        </Link>
-      </div>
-
-      <div className={`mt-4 rounded-xl border p-3 text-sm ${pendingFeedbackCount > 0 ? "border-amber-200 bg-amber-50 text-amber-900" : "border-emerald-200 bg-emerald-50 text-emerald-900"}`}>
-        {pendingFeedbackCount > 0 ? (
-          <>Pending feedback on latest concept: <span className="font-semibold">{pendingFeedbackCount}</span></>
-        ) : (
-          <>No pending feedback on latest concept.</>
-        )}
-      </div>
-
-      <div className="mt-5 space-y-4">
-        {groups.map((group) => (
-          <div key={group.dayLabel}>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">{group.dayLabel}</p>
-            <ul className="space-y-2">
-              {group.items.map((item) => (
-                <li key={item.id} className={`rounded-lg border p-3 text-sm ${item.tone === "attention" ? "border-amber-200 bg-amber-50" : "border-neutral-200 bg-neutral-50"}`}>
-                  <p className="text-neutral-900">{item.label}</p>
-                  <p className="mt-1 text-xs text-neutral-500">{formatDateTime(item.at)}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-        {groups.length === 0 ? <p className="text-sm text-neutral-600">No activity yet.</p> : null}
-      </div>
-    </section>
   );
 }
 
@@ -474,6 +415,8 @@ export default function ProjectPage() {
     return raw === "addon" || raw === "upgrade" ? raw : null;
   }, [searchParams]);
   const welcomeName = formatClientFirstName(firstName);
+  const hasApprovedConcept = (snapshot?.concepts ?? []).some((concept) => concept.status === "approved");
+  const overviewStatus = hasApprovedConcept ? "APPROVED" : (snapshot?.status ?? "UNKNOWN");
 
   return (
     <PageShell>
@@ -484,7 +427,7 @@ export default function ProjectPage() {
             <div className="lg:col-span-12 rounded-xl border border-neutral-200 bg-neutral-50/60 p-4">
               <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
                 <div>
-                  <ProjectStatusBadge status={snapshot?.status ?? "UNKNOWN"} />
+                  <ProjectStatusBadge status={overviewStatus} />
                   <h1 className="mt-3 text-2xl font-semibold text-neutral-900">Hey{welcomeName ? `, ${welcomeName}` : ""}</h1>
                   <p className="mt-1 text-sm text-neutral-600">Project overview · {projectId}</p>
 
@@ -511,9 +454,7 @@ export default function ProjectPage() {
                     ) : (
                       <p className="mt-1 text-sm font-medium text-emerald-900">You’re all caught up! We’ll surface the next step here when something needs your attention.</p>
                     )}
-                    <div className={`mt-3 rounded-lg border px-3 py-2 text-xs ${pendingFeedbackCount > 0 ? "border-amber-200 bg-amber-50 text-amber-900" : "border-emerald-200 bg-emerald-50 text-emerald-900"}`}>
-                      Pending feedback: <span className="font-semibold">{pendingFeedbackCount}</span>
-                    </div>
+
                   </div>
                 </div>
               </div>
@@ -556,8 +497,6 @@ export default function ProjectPage() {
 
         {loading ? <p className="mt-4 text-sm text-neutral-600">Loading…</p> : null}
         {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
-
-        <ActivityPanel projectId={projectId} snapshot={snapshot} pendingFeedbackCount={pendingFeedbackCount} />
 
         {snapshot?.timeline ? <ProjectTimeline timeline={snapshot.timeline} primaryCta={snapshot.primaryCta} /> : null}
 
