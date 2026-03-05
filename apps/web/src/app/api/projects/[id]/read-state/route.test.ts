@@ -60,6 +60,14 @@ describe("POST /api/projects/[id]/read-state", () => {
 
     expect(res.status).toBe(200);
     expect(mocks.requireProjectMembership).not.toHaveBeenCalled();
+    expect(mocks.prisma.message.aggregate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          projectId: "p1",
+          kind: { not: "system" },
+        }),
+      }),
+    );
     expect(mocks.prisma.projectReadState.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { userId_projectId: { userId: "u1", projectId: "p1" } },

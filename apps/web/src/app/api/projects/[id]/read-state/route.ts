@@ -2,6 +2,7 @@ import { jsonError } from "@/lib/api-error";
 import { RouteAuthError, requireAdmin, requireProjectMembership, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { prisma } from "@/lib/prisma";
 import { computeLatestConceptActivityAt } from "@/lib/concept-activity";
+import { NON_SYSTEM_MESSAGE_FILTER } from "@/lib/message-kind";
 
 export const runtime = "nodejs";
 
@@ -42,7 +43,7 @@ export async function POST(req: Request, { params }: RouteParams) {
     let stamp = new Date();
 
     if (area === "messages") {
-      const agg = await prisma.message.aggregate({ where: { projectId: auth.projectId }, _max: { createdAt: true } });
+      const agg = await prisma.message.aggregate({ where: { projectId: auth.projectId, ...NON_SYSTEM_MESSAGE_FILTER }, _max: { createdAt: true } });
       stamp = agg._max.createdAt ?? stamp;
     }
 

@@ -10,6 +10,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth/require";
 import { deriveDisplayProjectStatus, deriveOverviewBadgeStatus } from "@/lib/project-status";
 import { extractBrandNameFromBriefAnswers, getProjectDisplayTitle } from "@/lib/project-display-name";
+import { NON_SYSTEM_MESSAGE_FILTER } from "@/lib/message-kind";
 
 export const dynamic = "force-dynamic";
 
@@ -275,7 +276,7 @@ export default async function AdminHomePage() {
   });
 
   const [latestMessages, latestConcepts, latestConceptComments] = await Promise.all([
-    prisma.message.groupBy({ by: ["projectId"], _max: { createdAt: true } }),
+    prisma.message.groupBy({ by: ["projectId"], where: NON_SYSTEM_MESSAGE_FILTER, _max: { createdAt: true } }),
     prisma.concept.groupBy({
       by: ["projectId"],
       where: { status: { in: ["published", "approved"] } },

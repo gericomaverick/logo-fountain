@@ -6,6 +6,7 @@ import { computeLatestConceptActivityAt, maxDate } from "@/lib/concept-activity"
 import { parseBriefAnswers } from "@/lib/brief";
 import { deriveDisplayProjectStatus, deriveOverviewBadgeStatus, isKnownProjectState } from "@/lib/project-status";
 import { buildFinalDeliverableFilename } from "@/lib/final-deliverable-filename";
+import { NON_SYSTEM_MESSAGE_FILTER } from "@/lib/message-kind";
 
 const PUBLISHED_OR_APPROVED = ["published", "approved"];
 
@@ -153,7 +154,7 @@ export async function getProjectSnapshot({ projectId, userId, standardizeClientD
           select: { lastSeenMessagesAt: true, lastSeenConceptsAt: true },
         })
       : Promise.resolve(null),
-    prisma.message.aggregate({ where: { projectId: project.id }, _max: { createdAt: true } }),
+    prisma.message.aggregate({ where: { projectId: project.id, ...NON_SYSTEM_MESSAGE_FILTER }, _max: { createdAt: true } }),
     prisma.conceptComment.aggregate({ where: { projectId: project.id }, _max: { createdAt: true } }),
   ]);
 

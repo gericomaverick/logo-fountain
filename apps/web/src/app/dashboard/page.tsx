@@ -10,6 +10,7 @@ import { prisma } from "@/lib/prisma";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { deriveDisplayProjectStatus, deriveOverviewBadgeStatus } from "@/lib/project-status";
 import { extractBrandNameFromBriefAnswers, getProjectDisplayTitle } from "@/lib/project-display-name";
+import { NON_SYSTEM_MESSAGE_FILTER } from "@/lib/message-kind";
 
 type DashboardProject = {
   id: string;
@@ -239,7 +240,7 @@ export default async function DashboardPage() {
     }),
     prisma.message.groupBy({
       by: ["projectId"],
-      where: { projectId: { in: projectIds } },
+      where: { projectId: { in: projectIds }, ...NON_SYSTEM_MESSAGE_FILTER },
       _max: { createdAt: true },
     }),
     prisma.concept.groupBy({
