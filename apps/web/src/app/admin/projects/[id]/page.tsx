@@ -150,6 +150,7 @@ export default function AdminProjectPage() {
   const [reprocessSessionId, setReprocessSessionId] = useState("");
   const [conceptLimit, setConceptLimit] = useState("");
   const [revisionLimit, setRevisionLimit] = useState("");
+  const [entitlementsDirty, setEntitlementsDirty] = useState(false);
   const [finalZipFile, setFinalZipFile] = useState<File | null>(null);
   const [invoices, setInvoices] = useState<ProjectInvoice[]>([]);
   const [invoiceError, setInvoiceError] = useState<string | null>(null);
@@ -172,7 +173,7 @@ export default function AdminProjectPage() {
     setInvoices(Array.isArray(invoicesPayload?.invoices) ? invoicesPayload.invoices : []);
     setInvoiceError(invoicesResponse.ok ? null : readError(invoicesPayload, "Failed to load invoices"));
 
-    if (nextSnapshot) {
+    if (nextSnapshot && !entitlementsDirty) {
       setConceptLimit(String(nextSnapshot.entitlementUsage?.concepts?.limit ?? ""));
       setRevisionLimit(String(nextSnapshot.entitlementUsage?.revisions?.limit ?? ""));
     }
@@ -208,15 +209,25 @@ export default function AdminProjectPage() {
       return;
     }
 
-    await runAction(
-      () =>
-        fetch(`/api/admin/projects/${projectId}/entitlements`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ concepts, revisions }),
-        }),
-      "Failed to update entitlements",
-    );
+    setBusy(true);
+    setError(null);
+
+    const response = await fetch(`/api/admin/projects/${projectId}/entitlements`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ concepts, revisions }),
+    });
+
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      setError(readError(payload, "Failed to update entitlements"));
+    } else {
+      setEntitlementsDirty(false);
+      await refresh(projectId);
+    }
+
+    setBusy(false);
   }
 
   async function uploadFinalDeliverable(e: React.FormEvent) {
@@ -387,11 +398,11 @@ export default function AdminProjectPage() {
             <div className="mt-2 grid gap-3 sm:grid-cols-2">
               <label className="flex flex-col gap-1">
                 <span className="text-xs text-neutral-600">Concept limit</span>
-                <input className="rounded border border-neutral-300 bg-white px-2 py-1" value={conceptLimit} onChange={(e) => setConceptLimit(e.target.value)} placeholder="e.g. 3" inputMode="numeric" />
+                <input className="rounded border border-neutral-300 bg-white px-2 py-1" value={conceptLimit} onChange={(e) => { setConceptLimit(e.target.value); setEntitlementsDirty(true); }} placeholder="e.g. 3" inputMode="numeric" />
               </label>
               <label className="flex flex-col gap-1">
                 <span className="text-xs text-neutral-600">Revision limit</span>
-                <input className="rounded border border-neutral-300 bg-white px-2 py-1" value={revisionLimit} onChange={(e) => setRevisionLimit(e.target.value)} placeholder="e.g. 2" inputMode="numeric" />
+                <input className="rounded border border-neutral-300 bg-white px-2 py-1" value={revisionLimit} onChange={(e) => { setRevisionLimit(e.target.value); setEntitlementsDirty(true); }} placeholder="e.g. 2" inputMode="numeric" />
               </label>
             </div>
             <div className="mt-3 flex flex-wrap gap-2">

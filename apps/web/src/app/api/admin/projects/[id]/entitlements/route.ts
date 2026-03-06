@@ -2,6 +2,7 @@ import { jsonError } from "@/lib/api-error";
 import { logAudit } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
+import { computeEntitlementUsage } from "@/lib/entitlements";
 
 export const runtime = "nodejs";
 
@@ -42,15 +43,21 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const { id } = await params;
 
     const updated = await prisma.$transaction(async (tx) => {
-      const project = await tx.project.findUnique({ where: { id }, select: { id: true } });
+      const project = await tx.project.findUnique({ where: { id }, select: { id: true, packageCode: true } });
       if (!project) return null;
 
       const before = await tx.projectEntitlement.findMany({
         where: { projectId: id, key: { in: ["concepts", "revisions"] } },
-        select: { key: true, limitInt: true },
+        select: { key: true, limitInt: true, consumedInt: true, reservedInt: true },
       });
 
-      if (payload.concepts !== undefined) {
+      const previousConceptLimit = before.find((entry) => entry.key === "concepts")?.limitInt ?? null;
+      const previousRevisionLimit = before.find((entry) => entry.key === "revisions")?.limitInt ?? null;
+
+      const hasConceptUpdate = payload.concepts !== undefined && previousConceptLimit !== concepts;
+      const hasRevisionUpdate = payload.revisions !== undefined && previousRevisionLimit !== revisions;
+
+      if (hasConceptUpdate) {
         await tx.projectEntitlement.upsert({
           where: { projectId_key: { projectId: id, key: "concepts" } },
           create: { projectId: id, key: "concepts", limitInt: concepts },
@@ -58,7 +65,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
         });
       }
 
-      if (payload.revisions !== undefined) {
+      if (hasRevisionUpdate) {
         await tx.projectEntitlement.upsert({
           where: { projectId_key: { projectId: id, key: "revisions" } },
           create: { projectId: id, key: "revisions", limitInt: revisions },
@@ -68,27 +75,39 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
       const after = await tx.projectEntitlement.findMany({
         where: { projectId: id, key: { in: ["concepts", "revisions"] } },
-        select: { key: true, limitInt: true, consumedInt: true },
+        select: { key: true, limitInt: true, consumedInt: true, reservedInt: true },
       });
 
-      await logAudit(tx, {
-        projectId: id,
-        actorId: user.id,
-        type: "entitlement_limit_overridden",
-        payload: {
-          before,
-          after,
-        },
-      });
+      if (hasConceptUpdate || hasRevisionUpdate) {
+        await logAudit(tx, {
+          projectId: id,
+          actorId: user.id,
+          type: "entitlement_limit_overridden",
+          payload: {
+            before,
+            after,
+            changed: {
+              concepts: hasConceptUpdate,
+              revisions: hasRevisionUpdate,
+            },
+          },
+        });
+      }
 
-      return after;
+      const entitlementUsage = computeEntitlementUsage(after, project.packageCode);
+
+      return {
+        entitlements: after,
+        entitlementUsage,
+        changed: hasConceptUpdate || hasRevisionUpdate,
+      };
     });
 
     if (!updated) {
       return jsonError("Project not found", 404, { nextStep: "Check the project link." }, "PROJECT_NOT_FOUND");
     }
 
-    return Response.json({ ok: true, entitlements: updated });
+    return Response.json({ ok: true, ...updated });
   } catch (error) {
     return toRouteErrorResponse(error);
   }
