@@ -63,6 +63,7 @@ describe("project lifecycle emails", () => {
           },
         ],
       },
+      briefs: [],
     });
     mocks.createAudit.mockResolvedValue({ id: "audit-1" });
     mocks.fetch.mockResolvedValue({ ok: true });
@@ -120,12 +121,36 @@ describe("project lifecycle emails", () => {
           },
         ],
       },
+      briefs: [],
     });
 
     await notifyClientConceptReady("p1", "c-owner");
 
     const payload = JSON.parse(mocks.fetch.mock.calls[0][1].body as string);
     expect(payload.To).toBe("owner@example.com");
+  });
+
+  it("prefers brief brand name over client record name in admin emails", async () => {
+    mocks.findProject.mockResolvedValueOnce({
+      id: "p1",
+      client: {
+        name: "Jamie Lopez",
+        billingEmail: "client@example.com",
+        memberships: [
+          {
+            role: "owner",
+            user: { email: "owner@example.com", firstName: "Jamie", lastName: "Lopez", fullName: "Jamie Lopez" },
+          },
+        ],
+      },
+      briefs: [{ answers: { brandName: "Northvale Analytics" } }],
+    });
+
+    await notifyAdminNewProject("p1");
+
+    const payload = JSON.parse(mocks.fetch.mock.calls[0][1].body as string);
+    expect(payload.TextBody).toContain("Brand: Northvale Analytics");
+    expect(payload.TextBody).not.toContain("Brand: Jamie Lopez");
   });
 
   it("sends all remaining client lifecycle notifications", async () => {

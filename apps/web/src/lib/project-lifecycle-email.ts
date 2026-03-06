@@ -4,6 +4,7 @@ import { logAudit } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
 import { getConfiguredPublicSiteOrigin } from "@/lib/request-origin";
 import { renderBrandedEmail } from "@/lib/email-branding";
+import { extractBrandNameFromBriefAnswers } from "@/lib/project-display-name";
 
 const POSTMARK_API_URL = "https://api.postmarkapp.com/email";
 
@@ -33,6 +34,7 @@ type BaseProjectData = {
       };
     }>;
   };
+  briefs: Array<{ answers: unknown }>;
 };
 
 function resolveClientOwner(project: BaseProjectData | null) {
@@ -57,6 +59,12 @@ function resolveClientEmail(project: BaseProjectData | null): string | null {
   return ownerEmail || null;
 }
 
+function resolveBrandName(project: BaseProjectData | null): string {
+  const latestBrief = project?.briefs[0] ?? null;
+  const briefBrandName = extractBrandNameFromBriefAnswers(latestBrief?.answers);
+  return briefBrandName ?? project?.client.name?.trim() ?? "Unknown brand";
+}
+
 async function projectData(projectId: string): Promise<BaseProjectData | null> {
   return prisma.project.findUnique({
     where: { id: projectId },
@@ -73,6 +81,11 @@ async function projectData(projectId: string): Promise<BaseProjectData | null> {
             },
           },
         },
+      },
+      briefs: {
+        orderBy: { version: "desc" },
+        take: 1,
+        select: { answers: true },
       },
     },
   });
@@ -163,7 +176,7 @@ async function sendAdminEmail(input: {
   if (recipients.length === 0) return;
 
   const project = await projectData(input.projectId);
-  const brandName = project?.client.name?.trim() || "Unknown brand";
+  const brandName = resolveBrandName(project);
   const clientName = resolveClientName(project);
 
   const url = new URL(input.ctaPath, appOrigin()).toString();

@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => {
     createSignedConceptAssetUrl: vi.fn(),
     logAudit: vi.fn(),
     createProjectSystemMessage: vi.fn(),
+    notifyClientConceptReady: vi.fn(),
     prisma: {
       project: { findUnique: vi.fn() },
       concept: { findUnique: vi.fn(), findFirst: vi.fn(), findMany: vi.fn(), upsert: vi.fn(), update: vi.fn(), count: vi.fn() },
@@ -42,6 +43,7 @@ vi.mock("@/lib/supabase/storage", () => ({
 }));
 vi.mock("@/lib/audit", () => ({ logAudit: mocks.logAudit }));
 vi.mock("@/lib/system-messages", () => ({ createProjectSystemMessage: mocks.createProjectSystemMessage }));
+vi.mock("@/lib/project-lifecycle-email", () => ({ notifyClientConceptReady: mocks.notifyClientConceptReady }));
 
 import { GET, POST } from "./route";
 
@@ -73,6 +75,7 @@ describe("/api/admin/projects/[id]/concepts", () => {
     mocks.tx.revisionRequest.updateMany.mockResolvedValue({ count: 0 });
     mocks.logAudit.mockResolvedValue(undefined);
     mocks.createProjectSystemMessage.mockResolvedValue(undefined);
+    mocks.notifyClientConceptReady.mockResolvedValue(undefined);
   });
 
   it("GET keeps unresolved feedback tied to revision-request status and reports unassigned pending revisions", async () => {
@@ -130,6 +133,7 @@ describe("/api/admin/projects/[id]/concepts", () => {
       mocks.tx,
       expect.objectContaining({ type: "state_changed", payload: { previousStatus: "BRIEF_SUBMITTED", nextStatus: "CONCEPTS_READY" } }),
     );
+    expect(mocks.notifyClientConceptReady).toHaveBeenCalledWith("p1", "c1");
   });
 
   it("POST revision upload clears pending feedback only via delivery transition", async () => {
@@ -159,5 +163,6 @@ describe("/api/admin/projects/[id]/concepts", () => {
         payload: expect.objectContaining({ deliveredRevisionRequests: 2 }),
       }),
     );
+    expect(mocks.notifyClientConceptReady).not.toHaveBeenCalled();
   });
 });

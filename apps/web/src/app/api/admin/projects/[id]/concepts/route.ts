@@ -5,6 +5,7 @@ import { logAudit } from "@/lib/audit";
 import { applyTransition } from "@/lib/project-state-machine";
 import { requireAdmin, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { createProjectSystemMessage } from "@/lib/system-messages";
+import { notifyClientConceptReady } from "@/lib/project-lifecycle-email";
 
 export const runtime = "nodejs";
 
@@ -374,6 +375,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
       return { projectStatus: shouldSetConceptsReady ? PROJECT_STATUS_CONCEPTS_READY : project.status };
     });
+
+    if (uploadMode !== "revision") {
+      await notifyClientConceptReady(projectId, concept.id);
+    }
 
     return Response.json({ ok: true, concept, projectStatus: result.projectStatus });
   } catch (error) {
