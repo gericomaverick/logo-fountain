@@ -29,7 +29,6 @@ export default function AdminProjectUploadPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const [conceptNumber, setConceptNumber] = useState(1);
   const [notes, setNotes] = useState("");
   const [file, setFile] = useState<File | null>(null);
 
@@ -67,7 +66,6 @@ export default function AdminProjectUploadPage() {
 
     const data = new FormData();
     data.set("file", file);
-    data.set("conceptNumber", String(conceptNumber));
     data.set("notes", notes);
 
     const response = await fetch(`/api/admin/projects/${projectId}/concepts`, {
@@ -79,7 +77,9 @@ export default function AdminProjectUploadPage() {
     if (!response.ok) {
       setError(readError(payload, "Upload failed"));
     } else {
-      setSuccess(`Concept #${conceptNumber} uploaded and published.`);
+      const uploadedNumber = Number(payload?.concept?.number);
+      const label = Number.isFinite(uploadedNumber) && uploadedNumber > 0 ? `Concept #${uploadedNumber}` : "Concept";
+      setSuccess(`${label} uploaded and published.`);
       setFile(null);
       await refresh(projectId);
     }
@@ -111,8 +111,9 @@ export default function AdminProjectUploadPage() {
           {success ? <p className="mt-3 text-sm text-green-700">{success}</p> : null}
 
           <form className="mt-4" onSubmit={uploadConcept}>
-            <label className="block text-sm font-medium">Concept number</label>
-            <input className="mt-1 rounded border border-neutral-300 px-2 py-1" type="number" min={1} value={conceptNumber} onChange={(e) => setConceptNumber(Number.parseInt(e.target.value || "1", 10))} />
+            <p className="rounded border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-700">
+              Concept uploads auto-assign the next concept number so new uploads cannot overwrite Concept #1 by mistake.
+            </p>
 
             <label className="mt-4 block text-sm font-medium">Asset file</label>
             <input className="mt-1 block" type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />

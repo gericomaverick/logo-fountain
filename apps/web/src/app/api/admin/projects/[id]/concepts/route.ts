@@ -160,7 +160,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     const formData = await req.formData();
     const fileEntry = formData.get("file");
-    const conceptNumber = parseConceptNumber(formData.get("conceptNumber"));
+    const requestedConceptNumber = parseConceptNumber(formData.get("conceptNumber"));
     const conceptIdRaw = formData.get("conceptId");
     const conceptId = typeof conceptIdRaw === "string" && conceptIdRaw.trim() ? conceptIdRaw : null;
     const notes = parseNotes(formData.get("notes"));
@@ -193,21 +193,36 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         select: { id: true, number: true, status: true, notes: true },
       });
     } else {
-      if (!conceptNumber) return jsonError("Valid conceptNumber is required", 400, { nextStep: "Set conceptNumber to a positive integer." }, "INVALID_CONCEPT_NUMBER");
+      if (uploadMode === "replace") {
+        if (!requestedConceptNumber) {
+          return jsonError("Valid conceptNumber is required for replace uploads", 400, { nextStep: "Pick an existing concept number to replace." }, "INVALID_CONCEPT_NUMBER");
+        }
 
-      const existingConcept = await prisma.concept.findUnique({
-        where: { projectId_number: { projectId, number: conceptNumber } },
-        select: { id: true, status: true },
-      });
+        const existingConcept = await prisma.concept.findUnique({
+          where: { projectId_number: { projectId, number: requestedConceptNumber } },
+          select: { id: true, status: true },
+        });
 
-      concept = await prisma.concept.upsert({
-        where: { projectId_number: { projectId, number: conceptNumber } },
-        update: { notes, status: CONCEPT_STATUS_PUBLISHED },
-        create: { projectId, number: conceptNumber, status: CONCEPT_STATUS_PUBLISHED, notes },
-        select: { id: true, number: true, status: true, notes: true },
-      });
+        if (!existingConcept) {
+          return jsonError("Concept not found", 404, { nextStep: "Pick an existing concept number or use Upload concept to create a new one." }, "CONCEPT_NOT_FOUND");
+        }
 
-      shouldConsumeEntitlement = uploadMode === "concept" && (!existingConcept || existingConcept.status !== CONCEPT_STATUS_PUBLISHED);
+        concept = await prisma.concept.update({
+          where: { id: existingConcept.id },
+          data: { notes, status: CONCEPT_STATUS_PUBLISHED },
+          select: { id: true, number: true, status: true, notes: true },
+        });
+      } else {
+        const latest = await prisma.concept.aggregate({ where: { projectId }, _max: { number: true } });
+        const nextConceptNumber = Math.max((latest._max.number ?? 0) + 1, 1);
+
+        concept = await prisma.concept.create({
+          data: { projectId, number: nextConceptNumber, status: CONCEPT_STATUS_PUBLISHED, notes },
+          select: { id: true, number: true, status: true, notes: true },
+        });
+
+        shouldConsumeEntitlement = true;
+      }
     }
 
     const ext = inferExtension(fileEntry);
@@ -318,23 +333,50 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
       let deliveredCount = 0;
       if (uploadMode === "revision") {
+        const pendingCount = await tx.revisionRequest.count({
+          where: { projectId, conceptId: concept.id, status: { not: "delivered" } },
+        });
+
+        if (pendingCount <= 0) {
+          throw new Error("NO_PENDING_REVISION_REQUESTS");
+        }
+
+        const revisionsEntitlement = await tx.projectEntitlement.findFirst({
+          where: { projectId, key: "revisions" },
+          select: { id: true, limitInt: true, consumedInt: true, reservedInt: true },
+        });
+
+        if (!revisionsEntitlement) {
+          throw new Error("REVISIONS_ENTITLEMENT_MISSING");
+        }
+
+        const consumed = Math.max(revisionsEntitlement.consumedInt ?? 0, 0);
+        const reserved = Math.max(revisionsEntitlement.reservedInt ?? 0, 0);
+        const limit = revisionsEntitlement.limitInt;
+
+        if (reserved < pendingCount) {
+          throw new Error("INSUFFICIENT_REVISION_RESERVATION");
+        }
+
+        if (limit !== null && limit !== undefined && consumed + pendingCount > limit) {
+          throw new Error("REVISION_LIMIT_EXCEEDED");
+        }
+
         const delivered = await tx.revisionRequest.updateMany({
           where: { projectId, conceptId: concept.id, status: { not: "delivered" } },
           data: { status: "delivered" },
         });
         deliveredCount = delivered.count;
 
-        if (deliveredCount > 0) {
-          // Reserve-on-request, consume-on-delivery: convert reservations into consumed revisions.
-          await tx.$executeRaw`
-            UPDATE "ProjectEntitlement"
-            SET "reservedInt" = GREATEST(COALESCE("reservedInt", 0) - ${deliveredCount}, 0),
-                "consumedInt" = COALESCE("consumedInt", 0) + ${deliveredCount},
-                "updatedAt" = NOW()
-            WHERE "projectId" = ${projectId}::uuid
-              AND "key" = 'revisions'
-          `;
-        }
+        // Reserve-on-request, consume-on-delivery: convert reservations into consumed revisions.
+        await tx.$executeRaw`
+          UPDATE "ProjectEntitlement"
+          SET "reservedInt" = GREATEST(COALESCE("reservedInt", 0) - ${deliveredCount}, 0),
+              "consumedInt" = COALESCE("consumedInt", 0) + ${deliveredCount},
+              "updatedAt" = NOW()
+          WHERE "projectId" = ${projectId}::uuid
+            AND "key" = 'revisions'
+        `;
       }
 
       await logAudit(tx, {
@@ -382,6 +424,18 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     return Response.json({ ok: true, concept, projectStatus: result.projectStatus });
   } catch (error) {
+    if (error instanceof Error && error.message === "NO_PENDING_REVISION_REQUESTS") {
+      return jsonError("No pending revision request found for this concept", 400, { nextStep: "Deliver revisions from a concept with pending feedback." }, "NO_PENDING_REVISION_REQUESTS");
+    }
+    if (error instanceof Error && error.message === "REVISIONS_ENTITLEMENT_MISSING") {
+      return jsonError("Revisions entitlement not configured", 400, { nextStep: "Set a revisions entitlement before delivering revisions." }, "REVISIONS_ENTITLEMENT_MISSING");
+    }
+    if (error instanceof Error && error.message === "INSUFFICIENT_REVISION_RESERVATION") {
+      return jsonError("Revision upload exceeds reserved revisions", 400, { nextStep: "Ensure revision requests are submitted before delivery." }, "INSUFFICIENT_REVISION_RESERVATION");
+    }
+    if (error instanceof Error && error.message === "REVISION_LIMIT_EXCEEDED") {
+      return jsonError("Revision upload exceeds revision entitlement", 400, { nextStep: "Increase revision entitlement or reduce pending deliveries." }, "REVISION_LIMIT_EXCEEDED");
+    }
     return toRouteErrorResponse(error);
   }
 }

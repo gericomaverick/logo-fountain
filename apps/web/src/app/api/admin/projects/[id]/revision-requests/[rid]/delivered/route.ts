@@ -52,6 +52,42 @@ export async function POST(
   const previousStatus = project.status;
 
   const result = await prisma.$transaction(async (tx) => {
+    let deliveredNow = false;
+
+    if (revisionRequest.status !== STATUS_DELIVERED) {
+      const revisionsEntitlement = await tx.projectEntitlement.findFirst({
+        where: { projectId, key: "revisions" },
+        select: { id: true, limitInt: true, consumedInt: true, reservedInt: true },
+      });
+
+      if (!revisionsEntitlement) {
+        throw new Error("REVISIONS_ENTITLEMENT_MISSING");
+      }
+
+      const consumed = Math.max(revisionsEntitlement.consumedInt ?? 0, 0);
+      const reserved = Math.max(revisionsEntitlement.reservedInt ?? 0, 0);
+      const limit = revisionsEntitlement.limitInt;
+
+      if (reserved < 1) {
+        throw new Error("INSUFFICIENT_REVISION_RESERVATION");
+      }
+
+      if (limit !== null && limit !== undefined && consumed + 1 > limit) {
+        throw new Error("REVISION_LIMIT_EXCEEDED");
+      }
+
+      await tx.$executeRaw`
+        UPDATE "ProjectEntitlement"
+        SET "reservedInt" = GREATEST(COALESCE("reservedInt", 0) - 1, 0),
+            "consumedInt" = COALESCE("consumedInt", 0) + 1,
+            "updatedAt" = NOW()
+        WHERE "projectId" = ${projectId}::uuid
+          AND "key" = 'revisions'
+      `;
+
+      deliveredNow = true;
+    }
+
     const updatedRevisionRequest = await tx.revisionRequest.update({
       where: { id: revisionRequest.id },
       data: { status: STATUS_DELIVERED },
@@ -64,7 +100,7 @@ export async function POST(
       projectId,
       actorId: user.id,
       type: "revision_delivered",
-      payload: { revisionRequestId: updatedRevisionRequest.id },
+      payload: { revisionRequestId: updatedRevisionRequest.id, consumedEntitlement: deliveredNow },
     });
 
     await createProjectSystemMessage(tx, {
@@ -95,6 +131,15 @@ export async function POST(
 
   return Response.json({ ok: true, revisionRequest: result.updatedRevisionRequest, project: result.project });
   } catch (error) {
+    if (error instanceof Error && error.message === "REVISIONS_ENTITLEMENT_MISSING") {
+      return jsonError("Revisions entitlement not configured", 400, { nextStep: "Set a revisions entitlement before marking delivered." }, "REVISIONS_ENTITLEMENT_MISSING");
+    }
+    if (error instanceof Error && error.message === "INSUFFICIENT_REVISION_RESERVATION") {
+      return jsonError("No reserved revision remaining for delivery", 400, { nextStep: "Ensure this revision was requested before delivery." }, "INSUFFICIENT_REVISION_RESERVATION");
+    }
+    if (error instanceof Error && error.message === "REVISION_LIMIT_EXCEEDED") {
+      return jsonError("Delivering this revision exceeds entitlement", 400, { nextStep: "Increase revision entitlement before delivering." }, "REVISION_LIMIT_EXCEEDED");
+    }
     return toRouteErrorResponse(error);
   }
 }

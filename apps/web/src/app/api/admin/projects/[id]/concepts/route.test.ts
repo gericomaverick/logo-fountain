@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => {
     fileAsset: { create: vi.fn() },
     project: { update: vi.fn() },
     projectEntitlement: { findFirst: vi.fn() },
-    revisionRequest: { updateMany: vi.fn() },
+    revisionRequest: { count: vi.fn(), updateMany: vi.fn() },
     $executeRaw: vi.fn(),
   };
 
@@ -20,7 +20,7 @@ const mocks = vi.hoisted(() => {
     notifyClientConceptReady: vi.fn(),
     prisma: {
       project: { findUnique: vi.fn() },
-      concept: { findUnique: vi.fn(), findFirst: vi.fn(), findMany: vi.fn(), upsert: vi.fn(), update: vi.fn(), count: vi.fn() },
+      concept: { findUnique: vi.fn(), findFirst: vi.fn(), findMany: vi.fn(), aggregate: vi.fn(), create: vi.fn(), update: vi.fn(), count: vi.fn() },
       revisionRequest: { groupBy: vi.fn(), findMany: vi.fn() },
       fileAsset: { findMany: vi.fn() },
       projectReadState: { findMany: vi.fn() },
@@ -60,7 +60,8 @@ describe("/api/admin/projects/[id]/concepts", () => {
     mocks.prisma.concept.findUnique.mockResolvedValue(null);
     mocks.prisma.concept.findFirst.mockResolvedValue({ id: "c1", number: 1, status: "published", notes: null });
     mocks.prisma.concept.findMany.mockResolvedValue([]);
-    mocks.prisma.concept.upsert.mockResolvedValue({ id: "c1", number: 1, status: "published", notes: null });
+    mocks.prisma.concept.aggregate.mockResolvedValue({ _max: { number: 0 } });
+    mocks.prisma.concept.create.mockResolvedValue({ id: "c1", number: 1, status: "published", notes: null });
     mocks.prisma.concept.update.mockResolvedValue({ id: "c1", number: 1, status: "published", notes: null });
     mocks.prisma.concept.count.mockResolvedValue(0);
     mocks.prisma.revisionRequest.groupBy.mockResolvedValue([]);
@@ -72,6 +73,7 @@ describe("/api/admin/projects/[id]/concepts", () => {
     mocks.tx.$executeRaw.mockResolvedValue(1);
     mocks.tx.fileAsset.create.mockResolvedValue(undefined);
     mocks.tx.project.update.mockResolvedValue({ status: "CONCEPTS_READY" });
+    mocks.tx.revisionRequest.count.mockResolvedValue(0);
     mocks.tx.revisionRequest.updateMany.mockResolvedValue({ count: 0 });
     mocks.logAudit.mockResolvedValue(undefined);
     mocks.createProjectSystemMessage.mockResolvedValue(undefined);
@@ -107,7 +109,6 @@ describe("/api/admin/projects/[id]/concepts", () => {
   it("POST accepts first concept upload from BRIEF_SUBMITTED and transitions to CONCEPTS_READY", async () => {
     const formData = new FormData();
     formData.set("file", new File([new Uint8Array([1, 2, 3])], "concept.png", { type: "image/png" }));
-    formData.set("conceptNumber", "1");
     formData.set("notes", "Primary concept explainer");
 
     const res = await POST(new Request("http://localhost", { method: "POST", body: formData }), {
@@ -118,6 +119,10 @@ describe("/api/admin/projects/[id]/concepts", () => {
     const payload = await res.json();
     expect(payload.ok).toBe(true);
     expect(payload.projectStatus).toBe("CONCEPTS_READY");
+    expect(mocks.prisma.concept.aggregate).toHaveBeenCalledWith({ where: { projectId: "p1" }, _max: { number: true } });
+    expect(mocks.prisma.concept.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ projectId: "p1", number: 1 }) }),
+    );
     expect(mocks.tx.project.update).toHaveBeenCalledWith({ where: { id: "p1" }, data: { status: "CONCEPTS_READY" } });
     expect(mocks.tx.fileAsset.create).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -139,7 +144,9 @@ describe("/api/admin/projects/[id]/concepts", () => {
   it("POST revision upload clears pending feedback only via delivery transition", async () => {
     mocks.prisma.project.findUnique.mockResolvedValue({ id: "p1", status: "CONCEPTS_READY" });
     mocks.prisma.fileAsset.findMany.mockResolvedValue([{ path: "p1/c1/v2.png" }]);
+    mocks.tx.revisionRequest.count.mockResolvedValue(2);
     mocks.tx.revisionRequest.updateMany.mockResolvedValue({ count: 2 });
+    mocks.tx.projectEntitlement.findFirst.mockResolvedValue({ id: "ent-r", key: "revisions", limitInt: 5, consumedInt: 1, reservedInt: 3 });
 
     const formData = new FormData();
     formData.set("file", new File([new Uint8Array([1, 2, 3])], "revision.png", { type: "image/png" }));
@@ -164,5 +171,25 @@ describe("/api/admin/projects/[id]/concepts", () => {
       }),
     );
     expect(mocks.notifyClientConceptReady).not.toHaveBeenCalled();
+  });
+
+  it("POST revision upload rejects delivery when there is no pending reserved request", async () => {
+    mocks.prisma.project.findUnique.mockResolvedValue({ id: "p1", status: "CONCEPTS_READY" });
+    mocks.prisma.fileAsset.findMany.mockResolvedValue([{ path: "p1/c1/v2.png" }]);
+    mocks.tx.revisionRequest.count.mockResolvedValue(0);
+
+    const formData = new FormData();
+    formData.set("file", new File([new Uint8Array([1, 2, 3])], "revision.png", { type: "image/png" }));
+    formData.set("uploadMode", "revision");
+    formData.set("conceptId", "c1");
+
+    const res = await POST(new Request("http://localhost", { method: "POST", body: formData }), {
+      params: Promise.resolve({ id: "p1" }),
+    });
+    const payload = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(payload.error?.code).toBe("NO_PENDING_REVISION_REQUESTS");
+    expect(mocks.tx.revisionRequest.updateMany).not.toHaveBeenCalled();
   });
 });
