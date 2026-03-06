@@ -419,12 +419,13 @@ export default function ProjectPage() {
   }, [searchParams]);
   const welcomeName = formatClientFirstName(firstName);
   const hasApprovedConcept = (snapshot?.concepts ?? []).some((concept) => concept.status === "approved");
+  const canDownloadFinals = Boolean(snapshot?.finalZip?.available) && (snapshot?.status === "FINAL_FILES_READY" || snapshot?.status === "DELIVERED");
+  const showPendingDeliverablesCard = hasApprovedConcept && !canDownloadFinals;
   const overviewStatus = deriveOverviewBadgeStatus({
     persistedStatus: snapshot?.status ?? "UNKNOWN",
     hasApprovedConcept,
     hasFinalDeliverable: Boolean(snapshot?.finalZip?.available),
   });
-  const canDownloadFinals = Boolean(snapshot?.finalZip?.available) && (snapshot?.status === "FINAL_FILES_READY" || snapshot?.status === "DELIVERED");
 
   async function handleFinalDownload() {
     if (!projectId || downloadingFinals) return;
@@ -508,6 +509,16 @@ export default function ProjectPage() {
                       {downloadingFinals ? "Preparing download…" : "Download final ZIP"}
                     </button>
                   )}
+                />
+              </div>
+            ) : showPendingDeliverablesCard ? (
+              <div className="lg:col-span-12">
+                <FeatureNoticeCard
+                  variant="info"
+                  kicker="Final deliverables"
+                  title="Your logo files are in production"
+                  body="You are all set. We have started preparing your final logo files and quality checks are underway. We will update this space the moment your download is ready."
+                  signature="Logo Fountain team"
                 />
               </div>
             ) : (
