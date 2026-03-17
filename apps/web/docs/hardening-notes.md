@@ -1,5 +1,11 @@
 # Hardening notes
 
+## Supabase/database security
+
+- See `docs/supabase-security-runbook.md` for pre-deploy checks and SQL verification steps.
+- RLS/grant hardening migration: `prisma/migrations/20260317130500_harden_public_schema_rls/migration.sql`.
+
+
 ## Refresh strategy (current)
 
 - Added canonical snapshot endpoints:

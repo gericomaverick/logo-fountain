@@ -13,9 +13,13 @@ function getRequiredEnv(name: string): string {
 let cachedClient: SupabaseAdminClient | null = null;
 
 export function createSupabaseAdminClient(): SupabaseAdminClient {
+  if (typeof window !== "undefined") {
+    throw new Error("createSupabaseAdminClient must only run on the server");
+  }
+
   if (cachedClient) return cachedClient;
 
-  const url = getRequiredEnv("NEXT_PUBLIC_SUPABASE_URL");
+  const url = process.env.SUPABASE_URL || getRequiredEnv("NEXT_PUBLIC_SUPABASE_URL");
   const serviceRoleKey = getRequiredEnv("SUPABASE_SERVICE_ROLE_KEY");
 
   cachedClient = createClient(url, serviceRoleKey, {

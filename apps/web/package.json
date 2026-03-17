@@ -13,6 +13,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
+    "security:check": "node scripts/security-check.mjs",
+    "predeploy:check": "npm run security:check && npm run lint && npm run typecheck",
     "local:run": "node scripts/local-run.mjs",
     "seed:admin": "node scripts/seed-admin.mjs",
     "reset:client-data": "node scripts/reset-client-data.mjs"
