@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { installSafePerformanceMeasure, __resetSafePerformanceMeasureForTesting } from "../safe-performance-measure";
 
 describe("installSafePerformanceMeasure", () => {

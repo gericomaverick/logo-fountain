@@ -11,6 +11,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
     "local:run": "node scripts/local-run.mjs",
     "seed:admin": "node scripts/seed-admin.mjs",
     "reset:client-data": "node scripts/reset-client-data.mjs"
@@ -34,6 +36,7 @@
     "@types/pg": "^8.18.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@playwright/test": "^1.55.0",
     "dotenv": "^17.3.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",

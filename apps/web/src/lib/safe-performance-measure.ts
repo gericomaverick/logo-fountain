@@ -83,13 +83,13 @@ export function installSafePerformanceMeasure(): void {
           ? `start=${check.start.toFixed(2)}, end=${check.end.toFixed(2)}`
           : "missing marks";
         logSkip(name, details);
-        return undefined as ReturnType<Performance["measure"]>;
+        return undefined as unknown as ReturnType<Performance["measure"]>;
       }
     } else if (typeof startOrOptions === "string" || typeof endMark === "string") {
       const check = shouldSkipMeasure(perf, startOrOptions, endMark);
       if (check.skip) {
         logSkip(name, "missing marks");
-        return undefined as ReturnType<Performance["measure"]>;
+        return undefined as unknown as ReturnType<Performance["measure"]>;
       }
     }
 
@@ -98,7 +98,7 @@ export function installSafePerformanceMeasure(): void {
     } catch (error) {
       if (isNegativeTimestampError(error)) {
         logSkip(name, "runtime negative timestamp");
-        return undefined as ReturnType<Performance["measure"]>;
+        return undefined as unknown as ReturnType<Performance["measure"]>;
       }
       throw error;
     }

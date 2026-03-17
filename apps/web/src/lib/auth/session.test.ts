@@ -1,8 +1,15 @@
 import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 import { ensureBrowserSupabaseSession } from "./session";
 
 type SessionShape = { id: string } | null;
+
+const testGlobals = globalThis as unknown as {
+  window?: Window;
+  document?: Document;
+};
 
 function createSupabaseMock(options?: {
   session?: SessionShape;
@@ -35,11 +42,15 @@ function createSupabaseMock(options?: {
   };
 }
 
+function asBrowserClient(client: ReturnType<typeof createSupabaseMock>): SupabaseClient {
+  return client as unknown as SupabaseClient;
+}
+
 function mockWindow(href: string) {
   const url = new URL(href);
   const replaceState = vi.fn();
 
-  (globalThis as any).window = {
+  testGlobals.window = {
     location: {
       href: url.href,
       hash: url.hash,
@@ -49,27 +60,27 @@ function mockWindow(href: string) {
     history: {
       replaceState,
     },
-  } as any;
+  } as unknown as Window;
 
   return replaceState;
 }
 
 describe("ensureBrowserSupabaseSession", () => {
   beforeEach(() => {
-    (globalThis as any).document = { title: "Test" };
+    testGlobals.document = { title: "Test" } as unknown as Document;
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
-    delete (globalThis as any).window;
-    delete (globalThis as any).document;
+    delete testGlobals.window;
+    delete testGlobals.document;
   });
 
   it("returns the existing session without touching the URL", async () => {
     mockWindow("https://example.com/set-password");
     const supabase = createSupabaseMock({ session: { id: "123" } });
 
-    const result = await ensureBrowserSupabaseSession(supabase as any);
+    const result = await ensureBrowserSupabaseSession(asBrowserClient(supabase));
 
     expect(result).toEqual({ status: "signed-in", source: "existing" });
     expect(supabase.auth.exchangeCodeForSession).not.toHaveBeenCalled();
@@ -81,7 +92,7 @@ describe("ensureBrowserSupabaseSession", () => {
     const replaceState = mockWindow("https://example.com/set-password?code=123&state=abc&next=/dashboard");
     const supabase = createSupabaseMock();
 
-    const result = await ensureBrowserSupabaseSession(supabase as any);
+    const result = await ensureBrowserSupabaseSession(asBrowserClient(supabase));
 
     expect(result).toEqual({ status: "signed-in", source: "code" });
     expect(supabase.auth.signOut).toHaveBeenCalledWith({ scope: "local" });
@@ -93,7 +104,7 @@ describe("ensureBrowserSupabaseSession", () => {
     const replaceState = mockWindow("https://example.com/project/p2?code=fresh-code&state=s1");
     const supabase = createSupabaseMock({ session: { id: "stale-session" } });
 
-    const result = await ensureBrowserSupabaseSession(supabase as any);
+    const result = await ensureBrowserSupabaseSession(asBrowserClient(supabase));
 
     expect(result).toEqual({ status: "signed-in", source: "code" });
     expect(supabase.auth.signOut).toHaveBeenCalledWith({ scope: "local" });
@@ -105,7 +116,7 @@ describe("ensureBrowserSupabaseSession", () => {
     const replaceState = mockWindow("https://example.com/set-password#access_token=abc&refresh_token=def");
     const supabase = createSupabaseMock();
 
-    const result = await ensureBrowserSupabaseSession(supabase as any);
+    const result = await ensureBrowserSupabaseSession(asBrowserClient(supabase));
 
     expect(result).toEqual({ status: "signed-in", source: "hash" });
     expect(supabase.auth.signOut).toHaveBeenCalledWith({ scope: "local" });
@@ -117,7 +128,7 @@ describe("ensureBrowserSupabaseSession", () => {
     mockWindow("https://example.com/set-password?next=/dashboard");
     const supabase = createSupabaseMock();
 
-    const result = await ensureBrowserSupabaseSession(supabase as any);
+    const result = await ensureBrowserSupabaseSession(asBrowserClient(supabase));
     expect(result).toEqual({ status: "missing" });
   });
 
@@ -125,7 +136,7 @@ describe("ensureBrowserSupabaseSession", () => {
     mockWindow("https://example.com/set-password?code=123");
     const supabase = createSupabaseMock({ exchangeError: "boom" });
 
-    const result = await ensureBrowserSupabaseSession(supabase as any);
+    const result = await ensureBrowserSupabaseSession(asBrowserClient(supabase));
 
     expect(result).toEqual({ status: "error", message: "boom" });
   });
