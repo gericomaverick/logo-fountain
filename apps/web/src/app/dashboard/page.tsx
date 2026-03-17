@@ -298,14 +298,7 @@ export default async function DashboardPage() {
     <PageShell>
       <HeaderNav />
       <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
-        <section className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-gradient-to-br from-slate-50 via-white to-indigo-50/50 px-5 py-4">
-          <div aria-hidden className="pointer-events-none absolute -right-20 -top-16 h-44 w-44 rounded-full bg-gradient-to-br from-slate-200/20 via-indigo-200/20 to-transparent blur-2xl" />
-          <div className="relative">
-            <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">Project overview</p>
-            <h1 className="mt-1 portal-page-title">{greeting}</h1>
-            <p className="mt-1 text-sm text-neutral-600">Track current progress, jump into project threads, and handle anything that needs your input.</p>
-          </div>
-        </section>
+        <h1 className="portal-page-title">{greeting}</h1>
 
         {projects.length === 0 ? (
           <p className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 text-sm text-neutral-600">No projects yet.</p>
