@@ -275,7 +275,9 @@ export default function AdminProjectPage() {
 
         <section className="mt-3 portal-card">
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,360px)]">
-            <div className="rounded-2xl border border-neutral-200 bg-neutral-50/60 p-4">
+            <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-gradient-to-br from-slate-50 via-white to-sky-50/60 p-4">
+              <div aria-hidden className="pointer-events-none absolute -left-16 -top-16 h-40 w-40 rounded-full bg-gradient-to-br from-slate-200/25 via-sky-200/20 to-transparent blur-2xl" />
+              <div className="relative">
               <ProjectStatusBadge status={snapshot?.overviewStatus ?? snapshot?.status ?? "UNKNOWN"} />
               <h1 className="mt-3 text-2xl font-semibold">Project Overview</h1>
               <p className="mt-1 text-sm text-neutral-600">Operational overview and high-confidence controls for this project.</p>
@@ -298,14 +300,15 @@ export default function AdminProjectPage() {
                   <p className="mt-2 text-xs text-neutral-500">Project ID: <span className="font-mono">{projectId}</span></p>
                 </div>
               </div>
-              <div className="mt-3 grid gap-2 border-t border-neutral-200/80 pt-3 text-sm text-neutral-700 sm:grid-cols-2">
-                <div className="flex items-center gap-3">
-                  <p className="text-xs uppercase tracking-wide text-neutral-500">Created at</p>
-                  <p className="font-medium text-neutral-900">{formatDateTime(snapshot?.createdAt)}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <p className="text-xs uppercase tracking-wide text-neutral-500">Last updated</p>
-                  <p className="font-medium text-neutral-900">{formatDateTime(snapshot?.updatedAt)}</p>
+                <div className="mt-3 grid gap-2 border-t border-neutral-200/80 pt-3 text-sm text-neutral-700 sm:grid-cols-2">
+                  <div className="flex items-center gap-3">
+                    <p className="text-xs uppercase tracking-wide text-neutral-500">Created at</p>
+                    <p className="font-medium text-neutral-900">{formatDateTime(snapshot?.createdAt)}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <p className="text-xs uppercase tracking-wide text-neutral-500">Last updated</p>
+                    <p className="font-medium text-neutral-900">{formatDateTime(snapshot?.updatedAt)}</p>
+                  </div>
                 </div>
               </div>
             </div>
