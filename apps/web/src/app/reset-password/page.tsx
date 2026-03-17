@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 import { AuthShell } from "@/components/auth-shell";
-import resetImage from "@/img/image-panel-2.png";
+import resetImage from "@/img/image-panel-4.png";
 import { hasValidationErrors, toErrorList, validatePasswordReset, ValidationErrors } from "@/lib/auth/validation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
