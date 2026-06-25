@@ -68,7 +68,7 @@ export function HeaderNav() {
           {session.authenticated ? <Link className="portal-link no-underline" href="/settings">Settings</Link> : null}
           {shouldShowClientInvoicesNav(session) ? <Link className="portal-link no-underline" href="/settings/invoices">Invoices</Link> : null}
 
-          {!session.authenticated ? <Link className="portal-link no-underline" href="/pricing">Pricing</Link> : null}
+          {!session.authenticated ? <Link className="portal-link no-underline" href="/#packages">Pricing</Link> : null}
         </div>
 
         <div className="flex items-center gap-3">

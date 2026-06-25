@@ -1,162 +1,176 @@
-import {
-  DarkFeatureSection,
-  FAQ,
-  FinalCTA,
-  HeroCenter,
-  LogoWall,
-  ProofStatsRow,
-  PricingCardsSection,
-  SegmentCards,
-  TestimonialCardsRow,
-} from "@/components/marketing/sections";
+import Link from "next/link";
 
-const logoMarks = ["ATLAS", "NOVA", "APEX", "LUMEN", "KYTE", "MOTION", "SABLE", "AURIC", "FLINT", "OSLO", "BOLT", "VERVE"];
+import { PackageCheckoutButton } from "@/components/marketing/package-checkout-button";
 
-const stats = [
-  { value: "48h", label: "First concept delivery" },
-  { value: "500+", label: "Directions shipped" },
-  { value: "4.9/5", label: "Client satisfaction" },
-];
+const workMarks = ["Bracken", "Northline", "Alder & Co", "Morrow", "Fable Yard", "Cairn", "Oval House", "Wick Studio", "Threadwell", "The Good Plot", "Orra", "Bristol Fold"];
 
-const segments = [
+const values = [
   {
-    icon: "◉",
-    title: "Founders launching fast",
-    body: "Premium identity work that ships with your product launch instead of holding it back.",
+    title: "Drawn, not generated.",
+    body: "Every concept begins with human sketching and senior design judgement. No Midjourney, DALL·E, logo generators or prompt packs at any stage.",
   },
   {
-    icon: "◆",
-    title: "Agencies scaling output",
-    body: "White-label logo systems produced with consistent quality and direct-response intent.",
+    title: "A proper UK studio process.",
+    body: "Clear brief, named designer, private client portal, visible milestones and structured revision rounds — not a faceless freelancer marketplace.",
   },
   {
-    icon: "◌",
-    title: "Teams rebranding",
-    body: "A new mark and visual direction aligned with your market positioning and offer.",
+    title: "Marks that age well.",
+    body: "We test every direction from tiny favicons to signage scale, then hand over clean source files, exports and practical usage guidance.",
   },
 ];
 
-const testimonials = [
-  {
-    quote: "They replaced our placeholder brand in a week. Investor calls instantly felt more credible.",
-    byline: "— B2B SaaS Founder",
-  },
-  {
-    quote: "The concepts were sharp, strategic, and easy to present to our board in one pass.",
-    byline: "— Fintech Marketing Lead",
-  },
-  {
-    quote: "Fastest design partner we’ve worked with and still the cleanest execution.",
-    byline: "— Agency Operator",
-  },
+const steps = [
+  ["01", "Brief", "A focused questionnaire captures your audience, competitors, tone and where the mark needs to live."],
+  ["02", "Concepts", "Your designer explores distinct directions and explains the rationale behind each route."],
+  ["03", "Refinement", "You review work in your portal, leave feedback and track revisions without messy email threads."],
+  ["04", "Delivery", "Final artwork is supplied as vector and raster files with full ownership transferred to you."],
 ];
 
-const pricingPlans = [
+const packages = [
   {
+    code: "essential" as const,
     name: "Essential",
-    price: "$995",
-    cadence: "one-time",
-    bullets: ["1 strategic concept", "1 focused revision round", "Logo + web/social-ready exports"],
-    ctaLabel: "Choose Essential",
-    ctaHref: "/pricing?package=essential",
+    price: "£299",
+    strap: "For sole traders and first-year founders finding their feet.",
+    bullets: ["2 concept directions", "2 revision rounds", "Primary logo + favicon", "Vector & raster file pack", "Full copyright transferred"],
   },
   {
+    code: "professional" as const,
     name: "Professional",
-    price: "$1,995",
-    cadence: "one-time",
-    bullets: ["3 concept directions", "2 revision rounds", "Usage guide + source file handoff"],
-    ctaLabel: "Choose Professional",
-    ctaHref: "/pricing?package=professional",
+    price: "£499",
+    strap: "For growing businesses ready to look like a serious brand.",
+    bullets: ["3 concept directions", "2 revision rounds", "Primary + secondary lockups", "Colour and type pairing", "Usage guide and source files"],
     featured: true,
   },
   {
+    code: "complete" as const,
     name: "Complete",
-    price: "$2,995",
-    cadence: "one-time",
-    bullets: ["5 concept directions", "Priority designer turnaround", "Expanded deliverables for paid + product"],
-    ctaLabel: "Choose Complete",
-    ctaHref: "/pricing?package=complete",
+    price: "£749",
+    strap: "For established firms launching, rebranding or going public.",
+    bullets: ["3 concept directions", "5 revision rounds", "Expanded mark suite", "Priority designer turnaround", "Complete launch-ready file pack"],
   },
 ];
 
 const faqs = [
-  {
-    q: "How fast can we start?",
-    a: "Immediately after checkout. You submit your brief and we begin concept work right away.",
-  },
-  {
-    q: "How many revisions do we get?",
-    a: "Revision rounds are scoped per package, with enough room to land on a clear final direction.",
-  },
-  {
-    q: "Do we get source files?",
-    a: "Yes — delivery includes production-ready exports and editable source files.",
-  },
-  {
-    q: "Can you align to our existing brand?",
-    a: "Absolutely. Share your current brand system, references, and audience context in your brief.",
-  },
+  ["Are the designers UK based?", "Yes. Logo Fountain is built around British designers and a tight, accountable studio process."],
+  ["Do you use AI for concepts?", "No. Concepts are made by designers, not generated from prompts or logo-template tools."],
+  ["Who owns the final logo?", "You do. Final delivery includes the files needed to use the mark and ownership is transferred to your business."],
+  ["How do payments work?", "Choose a package and you are sent through secure Stripe checkout. After payment, your private project portal opens for the brief."],
 ];
+
+function Spark() {
+  return <span className="lf2-spark" aria-hidden />;
+}
 
 export default function Home() {
   return (
-    <main className="bg-white text-black">
-      <HeroCenter
-        hello="Hello"
-        title="Built for brands that refuse to look average"
-        body="Direct-response logo design that turns ‘we should fix our brand’ into ‘we launched and it converts.’"
-        primary={{ href: "/pricing", label: "Get started" }}
-        secondary={{ href: "/work", label: "Our work" }}
-      />
+    <main className="lf2-page">
+      <header className="lf2-nav">
+        <Link href="/" className="lf2-brand"><Spark /> Logo Fountain</Link>
+        <nav aria-label="Main navigation">
+          <Link href="#work">Work</Link>
+          <Link href="#process">Process</Link>
+          <Link href="#packages">Packages</Link>
+          <Link href="#faq">FAQ</Link>
+          <Link href="/login">Client login</Link>
+        </nav>
+        <Link href="#packages" className="lf2-nav-cta">Book your logo</Link>
+      </header>
 
-      <ProofStatsRow
-        quote="They made us look like the category leader before we raised our next round."
-        byline="— Placeholder testimonial, SaaS founder"
-        stats={stats}
-      />
+      <section className="lf2-hero">
+        <div className="lf2-container lf2-hero-grid">
+          <div>
+            <p className="lf2-eyebrow"><Spark /> British logo design · no AI · no outsourcing</p>
+            <h1>Logos designed in Britain. By people, never by prompts.</h1>
+            <p className="lf2-lede">Logo Fountain is a small studio building distinctive identities for independent businesses across the UK. Every mark is sketched, refined and prepared for real-world use by a named designer.</p>
+            <div className="lf2-actions">
+              <Link href="#packages" className="lf2-button lf2-button-primary">View packages</Link>
+              <Link href="#work" className="lf2-button lf2-button-ghost">See recent work</Link>
+            </div>
+          </div>
+          <div className="lf2-hero-card" aria-label="Logo Fountain process summary">
+            <div className="lf2-hero-orb"><Spark /></div>
+            <p>Private portal</p>
+            <h2>Brief → concepts → revisions → final files</h2>
+            <div className="lf2-mini-grid">
+              <span>Named designer</span><span>Stripe checkout</span><span>Full ownership</span><span>UK process</span>
+            </div>
+          </div>
+        </div>
+      </section>
 
-      <LogoWall title="Recent marks we’ve crafted" logos={logoMarks} />
+      <section className="lf2-section" id="values">
+        <div className="lf2-container lf2-split">
+          <div>
+            <p className="lf2-eyebrow"><Spark /> Studio values</p>
+            <h2>A quieter kind of craft.</h2>
+            <p className="lf2-lede">The market is flooded with generated marks and templated lookalikes. We build the opposite: identities made carefully, by people who understand the market you trade in.</p>
+          </div>
+          <div className="lf2-card-grid">
+            {values.map((item) => <article className="lf2-card" key={item.title}><h3>{item.title}</h3><p>{item.body}</p></article>)}
+          </div>
+        </div>
+      </section>
 
-      <SegmentCards eyebrow="Who this is for" title="Built for teams that ship fast" items={segments} />
+      <section className="lf2-section lf2-paper" id="process">
+        <div className="lf2-container">
+          <p className="lf2-eyebrow"><Spark /> Process</p>
+          <h2>Four steps. No surprises.</h2>
+          <p className="lf2-lede">A predictable path from first brief to final delivery. You always know where your project sits, what happens next and who is working on it.</p>
+          <div className="lf2-step-grid">
+            {steps.map(([number, title, body]) => <article key={number} className="lf2-step"><span>{number}</span><h3>{title}</h3><p>{body}</p></article>)}
+          </div>
+        </div>
+      </section>
 
-      <TestimonialCardsRow title="Trusted by teams shipping serious offers" items={testimonials} />
+      <section className="lf2-section" id="work">
+        <div className="lf2-container">
+          <div className="lf2-section-head"><div><p className="lf2-eyebrow"><Spark /> Recent work</p><h2>Marks we have drawn this year.</h2></div><p>A small selection of identity directions for founders, independents and family businesses.</p></div>
+          <div className="lf2-logo-wall">{workMarks.map((mark) => <div key={mark}>{mark}</div>)}</div>
+        </div>
+      </section>
 
-      <DarkFeatureSection
-        eyebrow="Why teams switch"
-        title="A faster, sharper logo process with less back-and-forth"
-        body="A proven conversion cadence, adapted for Logo Fountain: clear strategic segments, proof-heavy trust blocks, and a dark product section to anchor value."
-        cards={[
-          {
-            title: "Strategic first pass",
-            body: "Concepts are positioned against your market and offer before visuals are polished.",
-          },
-          {
-            title: "Feedback that moves",
-            body: "Revision cycles are structured around commercial clarity, not subjective taste loops.",
-          },
-          {
-            title: "Launch-ready delivery",
-            body: "You get complete logo assets prepared for product, web, and paid media usage.",
-          },
-        ]}
-        primary={{ href: "/pricing", label: "Start project" }}
-        secondary={{ href: "/work", label: "See examples" }}
-      />
+      <section className="lf2-section lf2-paper" id="packages">
+        <div className="lf2-container">
+          <p className="lf2-eyebrow"><Spark /> Packages</p>
+          <h2>Three clear packages. Fixed prices. Full ownership.</h2>
+          <p className="lf2-lede">All packages use the current Stripe checkout links and include full copyright transfer plus the files you need to launch.</p>
+          <div className="lf2-pricing-grid">
+            {packages.map((plan) => (
+              <article className={`lf2-price-card ${plan.featured ? "is-featured" : ""}`} key={plan.code}>
+                {plan.featured ? <span className="lf2-ribbon">Most popular</span> : null}
+                <h3>{plan.name}</h3>
+                <p>{plan.strap}</p>
+                <div className="lf2-price">{plan.price}</div>
+                <ul>{plan.bullets.map((bullet) => <li key={bullet}>{bullet}</li>)}</ul>
+                <PackageCheckoutButton packageCode={plan.code} className="lf2-button lf2-button-primary lf2-button-full">Choose {plan.name}</PackageCheckoutButton>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
 
-      <FAQ title="Frequently asked questions" items={faqs} />
+      <section className="lf2-section">
+        <div className="lf2-container lf2-studio">
+          <div><p className="lf2-eyebrow"><Spark /> About</p><h2>A small studio, not a logo factory.</h2></div>
+          <p>Logo Fountain keeps the team and process intentionally tight: considered design work, plain-English communication, private project tracking and a final handover that is easy to use.</p>
+        </div>
+      </section>
 
-      <PricingCardsSection
-        eyebrow="Packages"
-        title="Choose the logo package that fits your growth stage"
-        plans={pricingPlans}
-      />
+      <section className="lf2-section lf2-paper" id="faq">
+        <div className="lf2-container lf2-faq-grid">
+          <div><p className="lf2-eyebrow"><Spark /> FAQ</p><h2>Answered honestly.</h2></div>
+          <div>{faqs.map(([q, a]) => <details key={q} className="lf2-faq"><summary>{q}</summary><p>{a}</p></details>)}</div>
+        </div>
+      </section>
 
-      <FinalCTA
-        title="Ready to look like the market leader?"
-        body="Stop shipping weak visuals. Start with a logo system built to turn attention into trust."
-        primary={{ href: "/pricing", label: "Get started" }}
-        secondary={{ href: "/work", label: "View work" }}
-      />
+      <section className="lf2-final">
+        <div className="lf2-container">
+          <h2>Let’s draw something worth keeping.</h2>
+          <p>Choose a package, complete secure checkout and start your brief in the client portal.</p>
+          <Link href="#packages" className="lf2-button lf2-button-primary">Start your brief</Link>
+        </div>
+      </section>
     </main>
   );
 }

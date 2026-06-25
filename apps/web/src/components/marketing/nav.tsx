@@ -3,8 +3,8 @@ import Link from "next/link";
 
 const LINKS = [
   { href: "/", label: "Home" },
-  { href: "/work", label: "Work" },
-  { href: "/pricing", label: "Pricing" },
+  { href: "/#work", label: "Work" },
+  { href: "/#packages", label: "Pricing" },
 ];
 
 export function MarketingNav() {
@@ -25,7 +25,7 @@ export function MarketingNav() {
               {link.label}
             </Link>
           ))}
-          <Link href="/pricing" className="lf-btn lf-btn--primary ml-1">
+          <Link href="/#packages" className="lf-btn lf-btn--primary ml-1">
             Get started
           </Link>
         </div>
