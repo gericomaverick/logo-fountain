@@ -5,8 +5,7 @@ import { useEffect, useState } from "react";
 
 import { HeaderNav } from "@/components/header-nav";
 import { PageShell } from "@/components/page-shell";
-import { validatePasswordReset, type ValidationErrors } from "@/lib/auth/validation";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { validatePasswordChange, type ValidationErrors } from "@/lib/auth/validation";
 
 type SessionPayload = {
   authenticated: boolean;
@@ -21,7 +20,8 @@ type ProfilePayload = {
   };
 };
 
-type PasswordErrors = ValidationErrors<"password" | "confirm">;
+type PasswordErrors = ValidationErrors<"current" | "password" | "confirm">;
+type PasswordStatus = { tone: "success" | "error"; message: string };
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
@@ -32,11 +32,12 @@ export default function SettingsPage() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState<string | null>(null);
   const [session, setSession] = useState<SessionPayload>({ authenticated: false });
+  const [currentPassword, setCurrentPassword] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordErrors, setPasswordErrors] = useState<PasswordErrors>({});
   const [passwordSaving, setPasswordSaving] = useState(false);
-  const [passwordStatus, setPasswordStatus] = useState<string | null>(null);
+  const [passwordStatus, setPasswordStatus] = useState<PasswordStatus | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -102,27 +103,43 @@ export default function SettingsPage() {
     e.preventDefault();
     setPasswordStatus(null);
 
-    const nextErrors = validatePasswordReset(password, confirmPassword);
+    const nextErrors = validatePasswordChange(currentPassword, password, confirmPassword);
     setPasswordErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
     setPasswordSaving(true);
 
     try {
-      const supabase = createSupabaseBrowserClient();
-      const { error: updateError } = await supabase.auth.updateUser({ password });
+      const res = await fetch("/api/auth/password", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword: password }),
+      });
 
-      if (updateError) {
-        setPasswordStatus(`We couldn’t update your password. ${updateError.message}`);
+      if (!res.ok) {
+        const body = (await res.json().catch(() => null)) as
+          | { error?: { message?: string; code?: string } }
+          | null;
+        if (body?.error?.code === "CURRENT_PASSWORD_INVALID") {
+          setPasswordErrors({ current: "Current password is incorrect." });
+        }
+        setPasswordStatus({
+          tone: "error",
+          message: body?.error?.message ?? "We couldn’t update your password. Please try again.",
+        });
         return;
       }
 
+      setCurrentPassword("");
       setPassword("");
       setConfirmPassword("");
       setPasswordErrors({});
-      setPasswordStatus("Password updated. Use it the next time you sign in.");
+      setPasswordStatus({
+        tone: "success",
+        message: "Password updated. Any other active sessions have been signed out.",
+      });
     } catch {
-      setPasswordStatus("We couldn’t update your password. Please try again.");
+      setPasswordStatus({ tone: "error", message: "We couldn’t update your password. Please try again." });
     } finally {
       setPasswordSaving(false);
     }
@@ -195,6 +212,25 @@ export default function SettingsPage() {
               </div>
 
               <form className="space-y-4" onSubmit={(e) => void onPasswordSave(e)}>
+                <label className="block text-sm" htmlFor="current-password">
+                  <span className="mb-1 block font-medium">Current password</span>
+                  <input
+                    id="current-password"
+                    className={passwordErrors.current ? "portal-field border-red-400" : "portal-field"}
+                    type="password"
+                    autoComplete="current-password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    aria-invalid={Boolean(passwordErrors.current)}
+                    aria-describedby={passwordErrors.current ? "current-password-error" : undefined}
+                  />
+                </label>
+                {passwordErrors.current ? (
+                  <p id="current-password-error" className="text-sm font-medium text-red-700" role="alert">
+                    {passwordErrors.current}
+                  </p>
+                ) : null}
+
                 <label className="block text-sm" htmlFor="new-password">
                   <span className="mb-1 block font-medium">New password</span>
                   <input
@@ -239,11 +275,10 @@ export default function SettingsPage() {
 
                 {passwordStatus ? (
                   <p
-                    className={
-                      passwordStatus.startsWith("Password updated") ? "text-sm text-green-700" : "text-sm text-red-600"
-                    }
+                    className={passwordStatus.tone === "success" ? "text-sm text-green-700" : "text-sm text-red-600"}
+                    role={passwordStatus.tone === "error" ? "alert" : "status"}
                   >
-                    {passwordStatus}
+                    {passwordStatus.message}
                   </p>
                 ) : null}
               </form>

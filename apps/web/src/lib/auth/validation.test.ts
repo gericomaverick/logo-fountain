@@ -5,6 +5,8 @@ import {
   toErrorList,
   validateEmail,
   validateLogin,
+  validateNewPassword,
+  validatePasswordChange,
   validatePasswordReset,
 } from "./validation";
 
@@ -34,6 +36,28 @@ describe("auth validation", () => {
     });
 
     expect(validatePasswordReset("longenough", "longenough")).toEqual({});
+  });
+
+  it("enforces password length bounds", () => {
+    expect(validateNewPassword("short")).toBe("Use at least 8 characters.");
+    expect(validateNewPassword("longenough")).toBeNull();
+    expect(validateNewPassword("a".repeat(73))).toBe("Use 72 characters or fewer.");
+    // Multi-byte characters count by UTF-8 byte length, not string length.
+    expect(validateNewPassword("😀".repeat(19))).toBe("Use 72 characters or fewer.");
+  });
+
+  it("validates in-dashboard password changes", () => {
+    expect(validatePasswordChange("", "short", "")).toEqual({
+      current: "Enter your current password.",
+      password: "Use at least 8 characters.",
+      confirm: "Confirm your password.",
+    });
+
+    expect(validatePasswordChange("current-pass", "current-pass", "current-pass")).toEqual({
+      password: "Choose a password different from your current one.",
+    });
+
+    expect(validatePasswordChange("current-pass", "brand-new-pass", "brand-new-pass")).toEqual({});
   });
 
   it("builds summary data", () => {

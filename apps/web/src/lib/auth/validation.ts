@@ -27,11 +27,54 @@ export function validateLogin(email: string, password: string): ValidationErrors
   return errors;
 }
 
+export const PASSWORD_MIN_LENGTH = 8;
+// bcrypt (used by Supabase Auth) silently truncates input beyond 72 bytes, so a
+// longer password would not fully count. Reject it rather than mislead the user.
+export const PASSWORD_MAX_BYTES = 72;
+
+export function validateNewPassword(password: string): string | null {
+  if (password.length < PASSWORD_MIN_LENGTH) {
+    return `Use at least ${PASSWORD_MIN_LENGTH} characters.`;
+  }
+  if (new TextEncoder().encode(password).length > PASSWORD_MAX_BYTES) {
+    return `Use ${PASSWORD_MAX_BYTES} characters or fewer.`;
+  }
+  return null;
+}
+
 export function validatePasswordReset(password: string, confirm: string): ValidationErrors<"password" | "confirm"> {
   const errors: ValidationErrors<"password" | "confirm"> = {};
 
-  if (password.length < 8) {
-    errors.password = "Use at least 8 characters.";
+  const passwordError = validateNewPassword(password);
+  if (passwordError) {
+    errors.password = passwordError;
+  }
+
+  if (isBlank(confirm)) {
+    errors.confirm = "Confirm your password.";
+  } else if (password !== confirm) {
+    errors.confirm = "Passwords do not match.";
+  }
+
+  return errors;
+}
+
+export function validatePasswordChange(
+  currentPassword: string,
+  password: string,
+  confirm: string,
+): ValidationErrors<"current" | "password" | "confirm"> {
+  const errors: ValidationErrors<"current" | "password" | "confirm"> = {};
+
+  if (isBlank(currentPassword)) {
+    errors.current = "Enter your current password.";
+  }
+
+  const passwordError = validateNewPassword(password);
+  if (passwordError) {
+    errors.password = passwordError;
+  } else if (currentPassword && password === currentPassword) {
+    errors.password = "Choose a password different from your current one.";
   }
 
   if (isBlank(confirm)) {
