@@ -1,0 +1,14 @@
+<section class="section section--paper"{% if block.id %} id="{{ block.id }}"{% endif %}>
+  {% if block.showCanvas %}<canvas class="process-canvas" id="processCanvas" aria-hidden="true"></canvas>{% endif %}
+  <div class="container">
+    <div class="section-head">
+      <div><div class="eyebrow">{{ block.eyebrow }}</div><h2 class="display" style="margin-top:18px">{{ block.title | safe }}</h2></div>
+      <p class="lede">{{ block.content | markdown | safe }}</p>
+    </div>
+    <div class="process-grid">
+      {% for item in block.items %}
+        <div class="step"><div><div class="step-num">{% if loop.index < 10 %}0{% endif %}{{ loop.index }}<span class="small">/{% if (block.items | length) < 10 %}0{% endif %}{{ block.items | length }}</span></div><h4>{{ item.title }}</h4><p>{{ item.content }}</p></div><div class="step-meta">{{ item.meta }}</div></div>
+      {% endfor %}
+    </div>
+  </div>
+</section>

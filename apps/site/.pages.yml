@@ -1,0 +1,353 @@
+media:
+  input: src/uploads
+  output: /uploads
+  rename: safe
+
+settings:
+  content:
+    merge: true
+
+components:
+  button_href:
+    label: Button
+    type: object
+    fields:
+      - name: text
+        label: Text
+        type: string
+        required: false
+      - name: url
+        label: URL
+        type: string
+        required: false
+
+  meta:
+    type: object
+    label: Meta
+    fields:
+      - name: title
+        type: string
+        label: Title
+        required: false
+      - name: desc
+        type: text
+        label: Description
+        required: false
+      - name: socialImage
+        type: image
+        label: Sharing Image
+        required: false
+      - name: schema
+        type: text
+        label: Schema
+        required: false
+
+content:
+  - name: pages
+    label: Pages
+    path: src
+    type: collection
+    filename: "{primary}/index.md"
+    view:
+      layout: tree
+      primary: title
+      fields: [title]
+      sort: [title]
+      default:
+        sort: title
+        order: asc
+      node:
+        filename: index.md
+        hideDirs: all
+    fields:
+      - name: layout
+        type: string
+        hidden: true
+        default: layouts/page.njk
+      - name: title
+        label: Title
+        type: string
+        required: true
+      - name: blocks
+        label: Blocks
+        type: block
+        blockKey: type
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{fields.type}"
+        blocks:
+          - name: hero
+            label: Hero
+            fields:
+              - { name: showCanvas, label: Show Canvas, type: boolean, required: false }
+              - { name: eyebrow, label: Eyebrow, type: string, required: false }
+              - name: meta
+                label: Meta Items
+                type: object
+                required: false
+                list:
+                  collapsible:
+                    collapsed: true
+                    summary: "{fields.strong} {fields.text}"
+                fields:
+                  - { name: strong, label: Strong Text, type: string, required: false }
+                  - { name: text, label: Text, type: string, required: false }
+              - { name: title, label: Title, type: code, required: true, options: { language: html } }
+              - { name: ratingLabel, label: Rating Label, type: string, required: false }
+              - { name: ratingText, label: Rating Text, type: string, required: false }
+              - { name: content, label: Content, type: rich-text, required: false }
+              - { name: primary, component: button_href, required: false }
+              - { name: secondary, label: Secondary Button, component: button_href, required: false }
+
+          - name: marquee
+            label: Marquee
+            fields:
+              - { name: label, label: Aria Label, type: string, required: false }
+              - name: items
+                label: Items
+                type: object
+                list:
+                  collapsible:
+                    collapsed: true
+                    summary: "{fields.text}"
+                fields:
+                  - { name: text, label: Text, type: string, required: true }
+                  - name: icon
+                    label: Icon
+                    type: select
+                    required: false
+                    options:
+                      values:
+                        - { value: dot, label: Dot }
+                        - { value: x, label: Cross }
+
+          - name: values
+            label: Values / Pillars
+            fields:
+              - { name: id, label: Section ID, type: string, required: false }
+              - { name: eyebrow, label: Eyebrow, type: string, required: false }
+              - { name: title, label: Title, type: code, required: true, options: { language: html } }
+              - { name: content, label: Content, type: rich-text, required: false }
+              - name: items
+                label: Pillars
+                type: object
+                list:
+                  collapsible:
+                    collapsed: true
+                    summary: "{fields.title}"
+                fields:
+                  - { name: kicker, label: Kicker, type: string, required: false }
+                  - { name: title, label: Title, type: string, required: true }
+                  - { name: content, label: Content, type: rich-text, required: false }
+                  - { name: tag, label: Tag, type: string, required: false }
+
+          - name: process
+            label: Process
+            fields:
+              - { name: id, label: Section ID, type: string, required: false }
+              - { name: showCanvas, label: Show Canvas, type: boolean, required: false }
+              - { name: eyebrow, label: Eyebrow, type: string, required: false }
+              - { name: title, label: Title, type: code, required: true, options: { language: html } }
+              - { name: content, label: Content, type: rich-text, required: false }
+              - name: items
+                label: Steps
+                type: object
+                list:
+                  collapsible:
+                    collapsed: true
+                    summary: "{fields.title}"
+                fields:
+                  - { name: title, label: Title, type: string, required: true }
+                  - { name: content, label: Content, type: text, required: false }
+                  - { name: meta, label: Meta, type: string, required: false }
+
+          - name: work
+            label: Work Grid
+            fields:
+              - { name: id, label: Section ID, type: string, required: false }
+              - { name: eyebrow, label: Eyebrow, type: string, required: false }
+              - { name: title, label: Title, type: code, required: true, options: { language: html } }
+              - { name: content, label: Content, type: rich-text, required: false }
+              - name: items
+                label: Work Items
+                type: object
+                list:
+                  collapsible:
+                    collapsed: true
+                    summary: "{fields.client}"
+                fields:
+                  - { name: class, label: Layout Class, type: string, required: false }
+                  - { name: label, label: Accessible Label, type: string, required: false }
+                  - { name: mark, label: Display Mark, type: string, required: true }
+                  - { name: italic, label: Italic Mark, type: boolean, required: false }
+                  - { name: client, label: Client / Location, type: string, required: false }
+                  - { name: sector, label: Sector, type: string, required: false }
+                  - { name: metaStyle, label: Meta Style Override, type: string, required: false }
+                  - { name: tagStyle, label: Tag Style Override, type: string, required: false }
+
+          - name: packages
+            label: Packages
+            fields:
+              - { name: id, label: Section ID, type: string, required: false }
+              - { name: eyebrow, label: Eyebrow, type: string, required: false }
+              - { name: title, label: Title, type: code, required: true, options: { language: html } }
+              - { name: content, label: Content, type: text, required: false }
+              - name: items
+                label: Packages
+                type: object
+                list:
+                  collapsible:
+                    collapsed: true
+                    summary: "{fields.name}"
+                fields:
+                  - { name: name, label: Name, type: string, required: true }
+                  - { name: packageCode, label: Package Code, type: string, required: false }
+                  - { name: featured, label: Featured, type: boolean, required: false }
+                  - { name: ribbon, label: Ribbon, type: string, required: false }
+                  - { name: tagline, label: Tagline, type: text, required: false }
+                  - { name: price, label: Price, type: string, required: false }
+                  - { name: priceNote, label: Price Note, type: string, required: false }
+                  - { name: vatNote, label: VAT/Checkout Note, type: string, required: false }
+                  - name: features
+                    label: Features
+                    type: string
+                    required: false
+                    list:
+                      collapsible: false
+                  - { name: button, component: button_href, required: false }
+                  - { name: footnote, label: Footnote, type: string, required: false }
+
+          - name: testimonials
+            label: Testimonials
+            fields:
+              - { name: id, label: Section ID, type: string, required: false }
+              - { name: eyebrow, label: Eyebrow, type: string, required: false }
+              - { name: title, label: Title, type: code, required: true, options: { language: html } }
+              - { name: content, label: Content, type: rich-text, required: false }
+              - name: items
+                label: Testimonials
+                type: object
+                list:
+                  collapsible:
+                    collapsed: true
+                    summary: "{fields.name}"
+                fields:
+                  - { name: sector, label: Sector, type: string, required: false }
+                  - { name: quote, label: Quote, type: rich-text, required: true }
+                  - { name: initials, label: Initials, type: string, required: false }
+                  - { name: name, label: Name, type: string, required: true }
+                  - { name: role, label: Role, type: string, required: false }
+
+          - name: about
+            label: About / Stats
+            fields:
+              - { name: id, label: Section ID, type: string, required: false }
+              - { name: eyebrow, label: Eyebrow, type: string, required: false }
+              - { name: title, label: Title, type: code, required: true, options: { language: html } }
+              - { name: content, label: Content, type: rich-text, required: false }
+              - { name: signature, label: Signature, type: string, required: false }
+              - name: card
+                label: Stats Card
+                type: object
+                fields:
+                  - { name: eyebrow, label: Eyebrow, type: string, required: false }
+                  - { name: title, label: Title, type: string, required: false }
+                  - { name: content, label: Content, type: text, required: false }
+                  - name: stats
+                    label: Stats
+                    type: object
+                    list:
+                      collapsible:
+                        collapsed: true
+                        summary: "{fields.value}"
+                    fields:
+                      - { name: value, label: Value, type: string, required: true }
+                      - { name: label, label: Label, type: string, required: true }
+
+          - name: faq
+            label: FAQ
+            fields:
+              - { name: id, label: Section ID, type: string, required: false }
+              - { name: eyebrow, label: Eyebrow, type: string, required: false }
+              - { name: title, label: Title, type: code, required: true, options: { language: html } }
+              - { name: content, label: Intro, type: rich-text, required: false }
+              - name: items
+                label: Questions
+                type: object
+                list:
+                  collapsible:
+                    collapsed: true
+                    summary: "{fields.question}"
+                fields:
+                  - { name: question, label: Question, type: string, required: true }
+                  - { name: answer, label: Answer, type: text, required: true }
+
+          - name: final-cta
+            label: Final CTA
+            fields:
+              - { name: showCanvas, label: Show Canvas, type: boolean, required: false }
+              - { name: eyebrow, label: Eyebrow, type: string, required: false }
+              - { name: title, label: Title, type: code, required: true, options: { language: html } }
+              - { name: content, label: Content, type: text, required: false }
+              - { name: primary, component: button_href, required: false }
+              - { name: secondary, label: Secondary Button, component: button_href, required: false }
+              - { name: stampText, label: Stamp Text, type: string, required: false }
+      - name: meta
+        label: Meta
+        component: meta
+        required: false
+
+  - name: site
+    label: Site Settings
+    type: file
+    path: src/_data/site.json
+    format: json
+    fields:
+      - { name: url, label: Site URL, type: string, required: false }
+      - { name: name, label: Site Name, type: string, required: true }
+      - { name: email, label: Email, type: string, required: false }
+      - { name: telephone, label: Telephone, type: string, required: false }
+      - name: cta
+        label: Header CTA
+        component: button_href
+        required: false
+      - name: navigation
+        label: Navigation
+        type: object
+        required: false
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{fields.text}"
+        fields:
+          - { name: text, label: Text, type: string, required: true }
+          - { name: url, label: URL, type: string, required: true }
+      - name: footer
+        label: Footer
+        type: object
+        fields:
+          - { name: description, label: Description, type: text, required: false }
+          - { name: location, label: Location, type: string, required: false }
+          - { name: legal, label: Legal, type: string, required: false }
+          - { name: registration, label: Registration, type: string, required: false }
+          - name: linkGroups
+            label: Link Groups
+            type: object
+            required: false
+            list:
+              collapsible:
+                collapsed: true
+                summary: "{fields.title}"
+            fields:
+              - { name: title, label: Title, type: string, required: true }
+              - name: links
+                label: Links
+                type: object
+                list:
+                  collapsible:
+                    collapsed: true
+                    summary: "{fields.text}"
+                fields:
+                  - { name: text, label: Text, type: string, required: true }
+                  - { name: url, label: URL, type: string, required: true }

@@ -1,0 +1,26 @@
+{% import 'partials/icons.njk' as icon %}
+<section class="section section--paper"{% if block.id %} id="{{ block.id }}"{% endif %}>
+  <div class="container">
+    <div class="packages-head">
+      <div class="eyebrow" style="justify-content:center">{{ block.eyebrow }}</div>
+      <h2 class="display">{{ block.title | safe }}</h2>
+      <p class="lede">{{ block.content }}</p>
+    </div>
+    <div class="packages">
+      {% for item in block.items %}
+        <article class="pkg{% if item.featured %} pkg--featured{% endif %}">
+          {% if item.ribbon %}<span class="pkg-ribbon">{{ item.ribbon }}</span>{% endif %}
+          <div class="pkg-name">{% if loop.index < 10 %}0{% endif %}{{ loop.index }} · {{ item.name }}</div>
+          <p class="pkg-tagline">{{ item.tagline }}</p>
+          <div class="pkg-price"><span class="sym">£</span><span class="amt">{{ item.price }}</span><span class="note">{{ item.priceNote }}</span></div>
+          <div class="pkg-vat">{{ item.vatNote }}</div>
+          <ul class="pkg-list">
+            {% for feature in item.features %}<li>{{ icon.check() }}{% if loop.first %}<span class="primary">{{ feature }}</span>{% else %}{{ feature }}{% endif %}</li>{% endfor %}
+          </ul>
+          <a href="{{ item.button.url }}"{% if item.packageCode %} data-package="{{ item.packageCode }}"{% endif %} class="pkg-cta{% if item.featured %} pkg-cta--invert{% endif %}">{{ item.button.text }} {{ icon.arrowRight() }}</a>
+          <div class="pkg-footnote">{{ item.footnote }}</div>
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>

@@ -1,0 +1,16 @@
+<section class="section"{% if block.id %} id="{{ block.id }}"{% endif %}>
+  <div class="container">
+    <div class="section-head">
+      <div><div class="eyebrow">{{ block.eyebrow }}</div><h2 class="display" style="margin-top:18px">{{ block.title | safe }}</h2></div>
+      <p class="lede">{{ block.content | markdown | safe }}</p>
+    </div>
+    <div class="work-grid">
+      {% for item in block.items %}
+        <article class="work {{ item.class }}" aria-label="{{ item.label }}">
+          <span class="work-mark{% if item.italic %} italic{% endif %}">{{ item.mark }}</span>
+          <div class="work-meta"{% if item.metaStyle %} style="{{ item.metaStyle }}"{% endif %}><span>{{ item.client }}</span><span class="tag"{% if item.tagStyle %} style="{{ item.tagStyle }}"{% endif %}>{{ item.sector }}</span></div>
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>

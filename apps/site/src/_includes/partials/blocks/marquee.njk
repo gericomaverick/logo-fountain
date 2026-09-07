@@ -1,0 +1,9 @@
+<div class="strip" aria-label="{{ block.label | default('Values') }}">
+  <div class="strip-track">
+    {% for i in [1,2] %}
+      {% for item in block.items %}
+        <span class="strip-item"{% if i == 2 %} aria-hidden="true"{% endif %}><span class="{% if item.icon == 'x' %}dot--x{% else %}dot{% endif %}"></span>{{ item.text }}</span>
+      {% endfor %}
+    {% endfor %}
+  </div>
+</div>

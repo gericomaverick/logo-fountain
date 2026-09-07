@@ -1,0 +1,13 @@
+<section class="section"{% if block.id %} id="{{ block.id }}"{% endif %}>
+  <div class="container">
+    <div class="section-head">
+      <div><div class="eyebrow">{{ block.eyebrow }}</div><h2 class="display" style="margin-top:18px">{{ block.title | safe }}</h2></div>
+      <p class="lede">{{ block.content | markdown | safe }}</p>
+    </div>
+    <div class="testimonial-grid">
+      {% for item in block.items %}
+        <div class="tstm"><span class="tstm-sector">{{ item.sector }}</span><blockquote>“{{ item.quote | safe }}”</blockquote><div class="tstm-attr"><div class="tstm-avatar">{{ item.initials }}</div><div><div class="tstm-name">{{ item.name }}</div><div class="tstm-role">{{ item.role }}</div></div></div></div>
+      {% endfor %}
+    </div>
+  </div>
+</section>

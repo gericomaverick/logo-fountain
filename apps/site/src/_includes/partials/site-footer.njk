@@ -1,0 +1,24 @@
+<footer>
+  <div class="container">
+    <div class="foot-top">
+      <div class="foot-brand">
+        <div class="brand" style="color:var(--paper)">{% include 'partials/logo-mark.njk' %}<span>{{ site.name }}</span></div>
+        <p>{{ site.footer.description }}</p>
+        <p style="font-family:var(--mono);font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.5)">{{ site.footer.location }}</p>
+      </div>
+      {% for group in site.footer.linkGroups %}
+        <div class="foot-col">
+          <h5>{{ group.title }}</h5>
+          <ul>
+            {% for item in group.links %}<li><a href="{{ item.url }}">{{ item.text }}</a></li>{% endfor %}
+          </ul>
+        </div>
+      {% endfor %}
+    </div>
+    <div class="foot-bottom">
+      <span>{{ site.footer.legal }}</span>
+      <span>{{ site.footer.registration }}</span>
+    </div>
+  </div>
+  <div class="big-mark big-mark--foot" aria-hidden="true">Logo <em class="italic">Fountain</em></div>
+</footer>

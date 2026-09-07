@@ -1,0 +1,21 @@
+<section class="section section--values"{% if block.id %} id="{{ block.id }}"{% endif %}>
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">{{ block.eyebrow }}</div>
+        <h2 class="display" style="margin-top:18px">{{ block.title | safe }}</h2>
+      </div>
+      <p class="lede">{{ block.content | markdown | safe }}</p>
+    </div>
+    <div class="pillars">
+      {% for item in block.items %}
+        <article>
+          <div class="pillar-num">{% if loop.index < 10 %}0{% endif %}{{ loop.index }} · {{ item.kicker }}</div>
+          <h3 class="pillar-title">{{ item.title }}</h3>
+          <p class="pillar-body">{{ item.content | markdown | safe }}</p>
+          <span class="pillar-tag">{{ item.tag }}</span>
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>

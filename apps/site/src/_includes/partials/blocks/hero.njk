@@ -1,9 +1,28 @@
-<section class="py-l">
-  <div class="wrapper">
-    <div class="space-y-3xs">
-      <h1 class="text-primary lg:font-bold">{{ block.title }}</h1>
-      {{ block.content | markdown | safe }}
-      <a href="{{ block.button.link }}" class="button" target="_blank">{{ block.button.text }}</a>
+{% import 'partials/icons.njk' as icon %}
+<section class="hero">
+  {% if block.showCanvas %}<canvas class="hero-canvas" id="heroCanvas" aria-hidden="true"></canvas>{% endif %}
+  <div class="container">
+    <div class="hero-top">
+      <div class="eyebrow">{{ block.eyebrow }}</div>
+      <div class="hero-meta">
+        {% for item in block.meta %}<span>{% if item.strong %}<b>{{ item.strong }}</b> {% endif %}{{ item.text }}</span>{% if not loop.last %}<span class="sep">·</span>{% endif %}{% endfor %}
+      </div>
+    </div>
+    <h1 class="display">{{ block.title | safe }}</h1>
+    <div class="hero-grid">
+      <div>
+        <div class="trust-row" style="margin-top:40px">
+          <span class="stars" aria-label="{{ block.ratingLabel }}">{{ icon.star() }}{{ icon.star() }}{{ icon.star() }}{{ icon.star() }}{{ icon.star() }}</span>
+          <span>{{ block.ratingText }}</span>
+        </div>
+      </div>
+      <div class="hero-right">
+        <p class="lede">{{ block.content | markdown | safe }}</p>
+        <div class="ctas">
+          {% if block.primary.text %}<a href="{{ block.primary.url }}" class="btn-primary">{{ block.primary.text }} {{ icon.arrow() }}</a>{% endif %}
+          {% if block.secondary.text %}<a href="{{ block.secondary.url }}" class="btn-secondary">{{ block.secondary.text }}</a>{% endif %}
+        </div>
+      </div>
     </div>
   </div>
 </section>

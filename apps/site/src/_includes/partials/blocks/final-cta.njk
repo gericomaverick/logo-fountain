@@ -1,0 +1,17 @@
+{% import 'partials/icons.njk' as icon %}
+<div class="final" role="complementary">
+  {% if block.showCanvas %}<canvas class="final-canvas" id="finalCanvas" aria-hidden="true"></canvas>{% endif %}
+  <div class="final-inner">
+    <div class="eyebrow" style="color:rgba(255,255,255,.7)">{{ block.eyebrow }}</div>
+    <h2 class="display" style="margin-top:18px;color:#fff">{{ block.title | safe }}</h2>
+    <p class="lede">{{ block.content }}</p>
+    <div class="ctas">
+      {% if block.primary.text %}<a href="{{ block.primary.url }}" class="btn-primary">{{ block.primary.text }} {{ icon.arrow() }}</a>{% endif %}
+      {% if block.secondary.text %}<a href="{{ block.secondary.url }}" class="btn-secondary">{{ block.secondary.text }}</a>{% endif %}
+    </div>
+  </div>
+  <div class="final-stamp" aria-hidden="true">
+    <svg viewBox="0 0 200 200" class="stamp-rotor"><defs><path id="stampCircle" d="M 100,100 m -78,0 a 78,78 0 1,1 156,0 a 78,78 0 1,1 -156,0"/></defs><text class="stamp-text"><textPath href="#stampCircle" startOffset="0">{{ block.stampText }}</textPath></text></svg>
+    {% set logoClass = 'stamp-mark' %}{% include 'partials/logo-mark.njk' %}
+  </div>
+</div>

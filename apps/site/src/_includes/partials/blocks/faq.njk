@@ -1,0 +1,13 @@
+{% import 'partials/icons.njk' as icon %}
+<section class="section"{% if block.id %} id="{{ block.id }}"{% endif %}>
+  <div class="container">
+    <div class="faq-grid">
+      <div class="faq-side"><div class="eyebrow">{{ block.eyebrow }}</div><h2 class="display" style="margin-top:18px;margin-bottom:20px">{{ block.title | safe }}</h2><p style="color:var(--ink-60);max-width:36ch;font-size:16px;line-height:1.6">{{ block.content | markdown | safe }}</p></div>
+      <div class="faq-list">
+        {% for item in block.items %}
+          <details class="faq"{% if loop.first %} open{% endif %}><summary><div><div class="faq-q-num">Q.{% if loop.index < 10 %}0{% endif %}{{ loop.index }}</div><span>{{ item.question }}</span></div><span class="faq-toggle" aria-hidden="true">{{ icon.plus() }}</span></summary><p>{{ item.answer }}</p></details>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
