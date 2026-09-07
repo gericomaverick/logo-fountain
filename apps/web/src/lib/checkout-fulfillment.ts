@@ -11,16 +11,16 @@ const PROJECT_STATUS_AWAITING_BRIEF = "AWAITING_BRIEF";
 
 const PACKAGE_ENTITLEMENTS: Record<PackageCode, Array<{ key: string; limitInt: number }>> = {
   essential: [
-    { key: "concepts", limitInt: 2 },
-    { key: "revisions", limitInt: 2 },
+    { key: "concepts", limitInt: 1 },
+    { key: "revisions", limitInt: 1 },
   ],
   professional: [
-    { key: "concepts", limitInt: 3 },
+    { key: "concepts", limitInt: 2 },
     { key: "revisions", limitInt: 2 },
   ],
   complete: [
     { key: "concepts", limitInt: 3 },
-    { key: "revisions", limitInt: 5 },
+    { key: "revisions", limitInt: 3 },
   ],
 };
 

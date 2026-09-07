@@ -11,9 +11,9 @@ export type EntitlementUsage = {
 };
 
 const PACKAGE_DEFAULTS: Record<string, { concepts: number; revisions: number }> = {
-  essential: { concepts: 2, revisions: 2 },
-  professional: { concepts: 3, revisions: 2 },
-  complete: { concepts: 3, revisions: 5 },
+  essential: { concepts: 1, revisions: 1 },
+  professional: { concepts: 2, revisions: 2 },
+  complete: { concepts: 3, revisions: 3 },
 };
 
 export function computeEntitlementUsage(entitlements: EntitlementRow[], packageCode: string): EntitlementUsage {

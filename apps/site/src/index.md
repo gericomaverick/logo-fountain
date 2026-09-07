@@ -128,10 +128,11 @@ blocks:
         priceNote: one-off
         vatNote: one-off · secure Stripe checkout
         features:
-          - 2 strategic concept directions
-          - 2 rounds of refinements
+          - 1 developed logo direction
+          - Initial sketch exploration included
+          - 1 round of refinement
           - Primary logo + favicon
-          - Vector & raster file pack
+          - Essential vector & raster file pack
           - Full copyright transferred
           - About 10 working days
         button:
@@ -147,11 +148,12 @@ blocks:
         priceNote: one-off
         vatNote: one-off · secure Stripe checkout
         features:
-          - 3 distinct concept directions
+          - 2 developed logo directions
           - 2 rounds of refinements
           - Primary + secondary lockups, monogram, favicon
-          - Colour system + typography pairing
-          - 8-page usage guide (PDF)
+          - Colour palette + typography pairing
+          - Usage sheet / mini guide
+          - Complete file pack
           - Full copyright transferred
           - About 14 working days
         button:
@@ -165,12 +167,13 @@ blocks:
         priceNote: one-off
         vatNote: one-off · secure Stripe checkout
         features:
-          - 3 premium concept directions
-          - 5 rounds of refinements
+          - 3 developed logo directions
+          - 3 rounds of refinements
           - Complete logo suite and responsive lockups
           - Brand colours, type pairing and usage system
-          - 16-page mini brand guide
-          - Social profile artwork and launch assets
+          - Mini brand guide
+          - Social profile artwork
+          - Launch asset pack
           - Full copyright transferred
           - About 18 to 21 working days
         button:
@@ -237,7 +240,7 @@ blocks:
       - question: Who owns the copyright to my finished logo?
         answer: You do, in full, without restriction and worldwide. On final delivery we transfer copyright to your limited company or sole-trader name through a signed deed of assignment.
       - question: How long does the whole process take?
-        answer: Roughly 10 working days for Essential, 14 for Professional, and 18 to 21 for Complete.
+        answer: Roughly 10 working days for Essential, 14 for Professional, and 18 to 21 for Complete. Essential includes one refinement round, Professional includes two, and Complete includes three.
       - question: Can you register the trademark for us?
         answer: We do not file trademarks ourselves, but we will supply the export files and ownership paperwork a trademark attorney will usually need.
 

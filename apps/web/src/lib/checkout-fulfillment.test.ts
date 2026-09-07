@@ -149,8 +149,8 @@ describe("fulfillCheckoutSession", () => {
 
     expect(mocks.tx.projectEntitlement.upsert).toHaveBeenCalledTimes(2);
     expect(mocks.tx.projectEntitlement.updateMany).toHaveBeenCalledWith({
-      where: { projectId: "project-1", key: "concepts", limitInt: { lt: 3 } },
-      data: { limitInt: 3 },
+      where: { projectId: "project-1", key: "concepts", limitInt: { lt: 2 } },
+      data: { limitInt: 2 },
     });
     expect(mocks.tx.project.update).toHaveBeenCalledWith({ where: { id: "project-1" }, data: { packageCode: "professional" } });
   });
