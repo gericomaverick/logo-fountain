@@ -149,7 +149,6 @@ h3.display{font-family:var(--serif);font-size:clamp(28px, 2.6vw, 40px);line-heig
   mask-image:radial-gradient(ellipse 120% 100% at 50% 55%, #000 75%, transparent 100%);
   -webkit-mask-image:radial-gradient(ellipse 120% 100% at 50% 55%, #000 75%, transparent 100%);
 }
-@media(prefers-reduced-motion:reduce){.hero-canvas{display:none}}
 .hero-top{
   display:flex;justify-content:space-between;align-items:baseline;
   margin-bottom:clamp(28px, 5vw, 56px);
@@ -335,7 +334,6 @@ h3.display{font-family:var(--serif);font-size:clamp(28px, 2.6vw, 40px);line-heig
   -webkit-mask-image:radial-gradient(ellipse 110% 100% at 50% 50%, #000 65%, transparent 100%);
 }
 .section--paper#process > .container{position:relative;z-index:1}
-@media(prefers-reduced-motion:reduce){.process-canvas{display:none}}
 
 .process-grid{
   display:grid;grid-template-columns:repeat(4,1fr);gap:16px;
@@ -606,7 +604,6 @@ details.faq .faq-q-num{
   mask-image:radial-gradient(ellipse 130% 110% at 50% 50%, #000 78%, transparent 100%);
   -webkit-mask-image:radial-gradient(ellipse 130% 110% at 50% 50%, #000 78%, transparent 100%);
 }
-@media(prefers-reduced-motion:reduce){.final-canvas{display:none}}
 .final::before{
   content:"";position:absolute;inset:0;
   background:

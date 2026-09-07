@@ -228,35 +228,34 @@
   }
 
   // Mount on the hero (parchment surface)
-  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
-    mountFluidRipples(document.getElementById('heroCanvas'), {
+  // Keep these running on the marketing site because the canvas surface is a core part of the design direction.
+  mountFluidRipples(document.getElementById('heroCanvas'), {
       baseR: 245, baseG: 241, baseB: 232,
-      shade: 0.22,
+      shade: 0.42,
       autoDropMin: 1800,
       autoDropRange: 2200,
       autoPokeMin: 1200,
       autoPokeRange: 900,
       hoverPoke: 140,
       clickPoke: 1900,
-    });
-    // Process section — gentler version on the lighter paper background
-    mountFluidRipples(document.getElementById('processCanvas'), {
+  });
+  // Process section — gentler version on the lighter paper background
+  mountFluidRipples(document.getElementById('processCanvas'), {
       baseR: 251, baseG: 249, baseB: 244,
       shade: 0.05,
       autoDropMin: 4200, autoDropRange: 4500,
       autoPokeMin: 450, autoPokeRange: 350,
       hoverPoke: 50, clickPoke: 900,
       gridW: 180, gridH: 110,
-    });
-    // Mount on the final CTA (purple surface — #5150f7)
-    mountFluidRipples(document.getElementById('finalCanvas'), {
+  });
+  // Mount on the final CTA (purple surface — #5150f7)
+  mountFluidRipples(document.getElementById('finalCanvas'), {
       baseR: 81, baseG: 80, baseB: 247,
-      shade: 0.22,
+      shade: 0.45,
       autoDropMin: 1800,
       autoDropRange: 2200,
       autoPokeMin: 1300,
       autoPokeRange: 900,
       hoverPoke: 150,
       clickPoke: 2100,
-    });
-  }
+  });
