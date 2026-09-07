@@ -465,7 +465,7 @@ h3.display{font-family:var(--serif);font-size:clamp(28px, 2.6vw, 40px);line-heig
 .pkg--featured .pkg-name{color:rgba(255,255,255,.6)}
 
 .pkg-tagline{
-  font-family:var(--serif);font-size:22px;line-height:1.1;margin:8px 0 16px;letter-spacing:-.01em;
+  font-family:var(--sans);font-size:16px;font-weight:600;line-height:1.35;margin:8px 0 16px;letter-spacing:0;
 }
 
 .pkg-price{
