@@ -435,7 +435,7 @@ h3.display{font-family:var(--serif);font-size:clamp(28px, 2.6vw, 40px);line-heig
 @media(max-width:880px){.packages{grid-template-columns:1fr}}
 
 .pkg{
-  background:var(--paper);
+  background:color-mix(in srgb, var(--paper) 72%, var(--parchment-2));
   border:1px solid var(--ink-08);
   border-radius:24px;
   padding:28px 24px;
