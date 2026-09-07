@@ -277,7 +277,7 @@ h3.display{font-family:var(--serif);font-size:clamp(28px, 2.6vw, 40px);line-heig
   margin-bottom:clamp(40px,5vw,72px);
 }
 @media(max-width:780px){.section-head{grid-template-columns:1fr}}
-.section-head .lede{color:var(--ink-60)}
+.section-head .lede{color:var(--ink-60);max-width:none}
 .section--ink .section-head .lede{color:rgba(255,255,255,.72)}
 
 /* ---- WHY / VALUES grid lines ---- */
