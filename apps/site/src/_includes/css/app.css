@@ -459,14 +459,15 @@ h3.display{font-family:var(--serif);font-size:clamp(28px, 2.6vw, 40px);line-heig
   white-space:nowrap;
 }
 .pkg-name{
-  font-family:var(--mono);font-size:14px;letter-spacing:.2em;text-transform:uppercase;
-  color:var(--ink-60);
+  font-family:var(--sans);font-size:16px;font-weight:700;letter-spacing:0;text-transform:none;
+  color:var(--ink);
 }
-.pkg--featured .pkg-name{color:rgba(255,255,255,.6)}
+.pkg--featured .pkg-name{color:var(--paper)}
 
 .pkg-tagline{
-  font-family:var(--sans);font-size:16px;font-weight:600;line-height:1.35;margin:8px 0 16px;letter-spacing:0;
+  font-family:var(--sans);font-size:15px;font-weight:400;line-height:1.45;margin:8px 0 16px;letter-spacing:0;color:var(--ink-60);
 }
+.pkg--featured .pkg-tagline{color:rgba(255,255,255,.68)}
 
 .pkg-price{
   display:flex;align-items:baseline;gap:6px;
