@@ -10,7 +10,7 @@
       {% for item in block.items %}
         <article class="pkg{% if item.featured %} pkg--featured{% endif %}">
           {% if item.ribbon %}<span class="pkg-ribbon">{{ item.ribbon }}</span>{% endif %}
-          <div class="pkg-name">{% if loop.index < 10 %}0{% endif %}{{ loop.index }} · {{ item.name }}</div>
+          <div class="pkg-name">{{ item.name }}</div>
           <p class="pkg-tagline">{{ item.tagline }}</p>
           <div class="pkg-price"><span class="sym">£</span><span class="amt">{{ item.price }}</span><span class="note">{{ item.priceNote }}</span></div>
           <div class="pkg-vat">{{ item.vatNote }}</div>

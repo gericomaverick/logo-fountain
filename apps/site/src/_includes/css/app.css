@@ -459,7 +459,7 @@ h3.display{font-family:var(--serif);font-size:clamp(28px, 2.6vw, 40px);line-heig
   white-space:nowrap;
 }
 .pkg-name{
-  font-family:var(--sans);font-size:16px;font-weight:700;letter-spacing:0;text-transform:none;
+  font-family:var(--sans);font-size:18px;font-weight:700;letter-spacing:0;text-transform:none;
   color:var(--ink);
 }
 .pkg--featured .pkg-name{color:var(--paper)}
