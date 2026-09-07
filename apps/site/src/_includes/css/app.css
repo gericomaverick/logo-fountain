@@ -115,7 +115,11 @@ h3.display{font-family:var(--serif);font-size:clamp(28px, 2.6vw, 40px);line-heig
   backdrop-filter:saturate(180%) blur(14px);
   -webkit-backdrop-filter:saturate(180%) blur(14px);
   border-bottom:1px solid transparent;
-  transition:border-color .2s;
+  transition:
+    background-color .42s cubic-bezier(.22,1,.36,1),
+    border-color .42s cubic-bezier(.22,1,.36,1),
+    box-shadow .42s cubic-bezier(.22,1,.36,1),
+    color .42s cubic-bezier(.22,1,.36,1);
 }
 .nav.scrolled{background:rgba(14,14,12,.92);border-bottom-color:rgba(255,255,255,.12);color:var(--paper);box-shadow:0 14px 40px rgba(14,14,12,.16)}
 .nav.scrolled .nav-link{color:rgba(255,255,255,.74)}
@@ -135,7 +139,9 @@ h3.display{font-family:var(--serif);font-size:clamp(28px, 2.6vw, 40px);line-heig
   font-size:16px;
   color:var(--ink-80);
   border-radius:999px;
-  transition:background .15s, color .15s;
+  transition:
+    background .32s cubic-bezier(.22,1,.36,1),
+    color .32s cubic-bezier(.22,1,.36,1);
 }
 .nav-link:hover{background:var(--ink-08);color:var(--ink)}
 .nav-cta{
@@ -144,7 +150,11 @@ h3.display{font-family:var(--serif);font-size:clamp(28px, 2.6vw, 40px);line-heig
   background:var(--ink);color:var(--paper);
   border-radius:999px;
   font-size:16px;font-weight:500;
-  transition:background .15s;
+  transition:
+    background .32s cubic-bezier(.22,1,.36,1),
+    border-color .32s cubic-bezier(.22,1,.36,1),
+    color .32s cubic-bezier(.22,1,.36,1),
+    transform .32s cubic-bezier(.22,1,.36,1);
 }
 .nav-cta:hover{background:var(--purple)}
 .nav-cta svg{width:14px;height:14px}
