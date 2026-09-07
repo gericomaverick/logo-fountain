@@ -5,7 +5,7 @@
   background:
     linear-gradient(110deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.72) 18%, rgba(255, 255, 255, 0) 34%) -140% 0 / 90% 100% no-repeat,
     linear-gradient(135deg, #ffcf70 0%, #ff7ab6 22%, #8f7cff 48%, #51d6ff 72%, #b6ffbd 100%);
-  color: var(--ink);
+  color: #000;
   font-family: var(--sans);
   letter-spacing: 0;
   text-transform: none;
