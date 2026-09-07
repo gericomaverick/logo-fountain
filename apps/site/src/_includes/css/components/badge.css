@@ -7,6 +7,7 @@
     linear-gradient(135deg, #ffcf70 0%, #ff7ab6 22%, #8f7cff 48%, #51d6ff 72%, #b6ffbd 100%);
   color: #000;
   font-family: var(--sans);
+  font-size: 15px;
   letter-spacing: 0;
   text-transform: none;
   box-shadow:
