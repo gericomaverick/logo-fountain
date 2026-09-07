@@ -117,7 +117,11 @@ h3.display{font-family:var(--serif);font-size:clamp(28px, 2.6vw, 40px);line-heig
   border-bottom:1px solid transparent;
   transition:border-color .2s;
 }
-.nav.scrolled{border-bottom-color:var(--ink-08)}
+.nav.scrolled{background:rgba(14,14,12,.92);border-bottom-color:rgba(255,255,255,.12);color:var(--paper);box-shadow:0 14px 40px rgba(14,14,12,.16)}
+.nav.scrolled .nav-link{color:rgba(255,255,255,.74)}
+.nav.scrolled .nav-link:hover{background:rgba(255,255,255,.1);color:var(--paper)}
+.nav.scrolled .nav-cta{background:var(--paper);border-color:var(--paper);color:var(--ink)}
+.nav.scrolled .nav-cta:hover{background:var(--purple);border-color:var(--purple);color:#fff}
 .nav-inner{
   display:flex;align-items:center;justify-content:space-between;
   height:72px;
