@@ -54,7 +54,7 @@ blocks:
 
   - type: process
     id: process
-    showCanvas: false
+    showCanvas: true
     eyebrow: The process
     title: Four steps. <span class="italic" style="color:var(--purple)">No surprises.</span>
     content: A clear, predictable path from first brief to final delivery. You will always know where your project is, what happens next, and who is working on it. Most logos land in <strong>10 to 14 working days</strong>.
