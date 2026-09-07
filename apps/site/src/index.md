@@ -3,7 +3,7 @@ layout: layouts/page.njk
 title: Home
 blocks:
   - type: hero
-    showCanvas: false
+    showCanvas: true
     eyebrow: Est. 2018 · Logo design studio for London & the UK
     meta:
       - strong: "127"
@@ -242,7 +242,7 @@ blocks:
         answer: We do not file trademarks ourselves, but we will supply the export files and ownership paperwork a trademark attorney will usually need.
 
   - type: final-cta
-    showCanvas: false
+    showCanvas: true
     eyebrow: Take the first step
     title: Let's draw something <span class="italic">worth keeping.</span>
     content: Tell us about your business in a short, five-minute brief. An experienced UK designer will reply within one working day with honest thoughts, a realistic timeline, and a suggestion for the package that fits where you are.
