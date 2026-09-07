@@ -126,7 +126,7 @@ blocks:
         tagline: For sole traders and first-year founders finding their feet.
         price: "349"
         priceNote: one-off
-        vatNote: one-off · secure Stripe checkout
+        vatNote: Secure Stripe checkout
         features:
           - 1 developed logo direction
           - Initial sketch exploration included
@@ -146,7 +146,7 @@ blocks:
         tagline: For growing UK businesses ready to look like a serious brand.
         price: "795"
         priceNote: one-off
-        vatNote: one-off · secure Stripe checkout
+        vatNote: Secure Stripe checkout
         features:
           - 2 developed logo directions
           - 2 rounds of refinements
@@ -165,7 +165,7 @@ blocks:
         tagline: For founders who want the full brand foundation before launch.
         price: "1495"
         priceNote: one-off
-        vatNote: one-off · secure Stripe checkout
+        vatNote: Secure Stripe checkout
         features:
           - 3 developed logo directions
           - 3 rounds of refinements
