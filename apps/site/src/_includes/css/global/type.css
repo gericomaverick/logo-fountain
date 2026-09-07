@@ -1,0 +1,41 @@
+body {
+  font-family: var(--font-sans);
+  font-size: var(--text-0);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+  font-weight: var(--font-weight-bold);
+  line-height: var(--leading-none);
+}
+
+h1 {
+  font-size: var(--text-5);
+}
+
+h2 {
+  font-size: var(--text-4);
+}
+
+h3 {
+  font-size: var(--text-3);
+}
+
+h4 {
+  font-size: var(--text-2);
+}
+
+h5 {
+  font-size: var(--text-1);
+}
+
+a {
+  color: currentColor;
+}
+
+a:not(.button):hover {
+  opacity: 0.6;
+}

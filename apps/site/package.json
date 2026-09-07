@@ -1,0 +1,34 @@
+{
+  "name": "@bly-th/eleventy",
+  "version": "2.0.0",
+  "description": "An eleventy starter framework.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bly-th/eleventy"
+  },
+  "scripts": {
+    "dev": "concurrently \"npm run dev:css\" \"npm run dev:11ty\"",
+    "dev:css": "NODE_ENV=production npx @tailwindcss/cli -i src/_includes/css/app.css -o src/css/main.css --watch --minify",
+    "dev:11ty": "eleventy --serve --incremental",
+    "production": "npx eleventy"
+  },
+  "blyth": {
+    "utilityOutputPath": "src/_includes/css/utility"
+  },
+  "type": "module",
+  "author": "Ryan Gittings",
+  "license": "GPL-2.0 AND MIT",
+  "homepage": "https://github.com/bly-th/eleventy",
+  "devDependencies": {
+    "@11ty/eleventy": "^3.1.2",
+    "@11ty/eleventy-img": "^6.0.4",
+    "@11ty/eleventy-navigation": "^1.0.5",
+    "@11ty/eleventy-plugin-rss": "^2.0.4",
+    "concurrently": "^9.2.1",
+    "netlify-plugin-cache": "^1.0.3",
+    "prettier": "^3.8.1",
+    "prettier-plugin-jinja-template": "^2.1.0",
+    "prettier-plugin-tailwindcss": "^0.7.2",
+    "tailwindcss": "^4.2.0"
+  }
+}
