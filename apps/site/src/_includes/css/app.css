@@ -1,4 +1,5 @@
 /*! Logo Fountain marketing extracted from Next.js landing page. Source CSS for the generated /css/main.css file. */
+@import "./components/badge.css";
 
 @font-face{
   font-family:"Sfizia";
