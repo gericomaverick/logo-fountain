@@ -231,13 +231,28 @@ h3.display{font-family:var(--serif);font-size:clamp(28px, 2.6vw, 40px);line-heig
 .btn-secondary:hover{border-color:var(--ink);background:var(--white)}
 
 .trust-row{
-  display:flex;align-items:center;gap:14px;
-  padding:14px 0;
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  padding:16px 0;
   border-top:1px solid var(--rule);
-  font-family:var(--mono);font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-60);
+  font-family:var(--sans);font-size:15px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--ink-80);
 }
-.stars{display:inline-flex;gap:2px;color:var(--purple)}
-.stars svg{width:14px;height:14px}
+.review-avatars{display:flex;align-items:center;margin-right:2px}
+.review-avatar{
+  width:34px;height:34px;border-radius:50%;
+  display:grid;place-items:center;
+  border:2px solid var(--parchment);
+  margin-left:-10px;
+  font-size:10px;font-weight:700;line-height:1;color:var(--ink);
+  box-shadow:0 5px 14px rgba(14,14,12,.12);
+}
+.review-avatar:first-child{margin-left:0}
+.review-avatar--one{background:#f2d2a9}
+.review-avatar--two{background:#ffd1dc}
+.review-avatar--three{background:#c9e6ff}
+.review-avatar--four{background:#d6f4cf}
+.review-avatar--five{background:#e1d7ff}
+.stars{display:inline-flex;gap:2px;color:#d98200}
+.stars svg{width:15px;height:15px}
 
 /* UK flag chip (abstract, not literal) */
 .uk-chip{
