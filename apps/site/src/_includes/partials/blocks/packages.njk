@@ -18,7 +18,6 @@
             {% for feature in item.features %}<li>{{ icon.check() }}{% if loop.first %}<span class="primary">{{ feature }}</span>{% else %}{{ feature }}{% endif %}</li>{% endfor %}
           </ul>
           <a href="{{ item.button.url }}"{% if item.packageCode %} data-package="{{ item.packageCode }}"{% endif %} class="pkg-cta{% if item.featured %} pkg-cta--invert{% endif %}">{{ item.button.text }} {{ icon.arrowRight() }}</a>
-          <div class="pkg-footnote">{{ item.footnote }}</div>
         </article>
       {% endfor %}
     </div>
