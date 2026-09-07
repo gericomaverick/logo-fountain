@@ -231,13 +231,15 @@
   // Keep these running on the marketing site because the canvas surface is a core part of the design direction.
   mountFluidRipples(document.getElementById('heroCanvas'), {
       baseR: 245, baseG: 241, baseB: 232,
-      shade: 0.42,
-      autoDropMin: 1800,
-      autoDropRange: 2200,
-      autoPokeMin: 1200,
-      autoPokeRange: 900,
-      hoverPoke: 140,
-      clickPoke: 1900,
+      shade: 0.12,
+      autoDropMin: 2600,
+      autoDropRange: 3400,
+      autoPokeMin: 650,
+      autoPokeRange: 500,
+      hoverPoke: 55,
+      clickPoke: 1200,
+      gridW: 360,
+      gridH: 230,
   });
   // Process section — gentler version on the lighter paper background
   mountFluidRipples(document.getElementById('processCanvas'), {
@@ -251,11 +253,13 @@
   // Mount on the final CTA (purple surface — #5150f7)
   mountFluidRipples(document.getElementById('finalCanvas'), {
       baseR: 81, baseG: 80, baseB: 247,
-      shade: 0.45,
-      autoDropMin: 1800,
-      autoDropRange: 2200,
-      autoPokeMin: 1300,
-      autoPokeRange: 900,
-      hoverPoke: 150,
-      clickPoke: 2100,
+      shade: 0.14,
+      autoDropMin: 2600,
+      autoDropRange: 3400,
+      autoPokeMin: 700,
+      autoPokeRange: 500,
+      hoverPoke: 60,
+      clickPoke: 1300,
+      gridW: 360,
+      gridH: 210,
   });
