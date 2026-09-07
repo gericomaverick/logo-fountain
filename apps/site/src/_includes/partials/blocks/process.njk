@@ -3,7 +3,7 @@
   <div class="container">
     <div class="section-head">
       <div><div class="eyebrow">{{ block.eyebrow }}</div><h2 class="display" style="margin-top:18px">{{ block.title | safe }}</h2></div>
-      <p class="lede">{{ block.content | markdown | safe }}</p>
+      <div class="lede">{{ block.content | markdown | safe }}</div>
     </div>
     <div class="process-grid">
       {% for item in block.items %}

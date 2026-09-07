@@ -17,7 +17,7 @@
         </div>
       </div>
       <div class="hero-right">
-        <p class="lede">{{ block.content | markdown | safe }}</p>
+        <div class="lede">{{ block.content | markdown | safe }}</div>
         <div class="ctas">
           {% if block.primary.text %}<a href="{{ block.primary.url }}" class="btn-primary">{{ block.primary.text }} {{ icon.arrow() }}</a>{% endif %}
           {% if block.secondary.text %}<a href="{{ block.secondary.url }}" class="btn-secondary">{{ block.secondary.text }}</a>{% endif %}

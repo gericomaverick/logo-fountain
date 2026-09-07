@@ -5,14 +5,14 @@
         <div class="eyebrow">{{ block.eyebrow }}</div>
         <h2 class="display" style="margin-top:18px">{{ block.title | safe }}</h2>
       </div>
-      <p class="lede">{{ block.content | markdown | safe }}</p>
+      <div class="lede">{{ block.content | markdown | safe }}</div>
     </div>
     <div class="pillars">
       {% for item in block.items %}
         <article>
           <div class="pillar-num">{% if loop.index < 10 %}0{% endif %}{{ loop.index }} · {{ item.kicker }}</div>
           <h3 class="pillar-title">{{ item.title }}</h3>
-          <p class="pillar-body">{{ item.content | markdown | safe }}</p>
+          <div class="pillar-body">{{ item.content | markdown | safe }}</div>
           <span class="pillar-tag">{{ item.tag }}</span>
         </article>
       {% endfor %}
