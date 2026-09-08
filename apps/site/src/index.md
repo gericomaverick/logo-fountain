@@ -137,7 +137,7 @@ blocks:
           - About 10 working days
         button:
           text: Choose Essential
-          url: "#packages"
+          url: "https://app.logofountain.co.uk/checkout/start?package_code=essential"
         footnote: Best for single-founder start-ups
       - name: Professional
         packageCode: professional
@@ -158,7 +158,7 @@ blocks:
           - About 14 working days
         button:
           text: Choose Professional
-          url: "#packages"
+          url: "https://app.logofountain.co.uk/checkout/start?package_code=professional"
         footnote: Best balance of depth and speed
       - name: Complete
         packageCode: complete
@@ -178,7 +178,7 @@ blocks:
           - About 18 to 21 working days
         button:
           text: Choose Complete
-          url: "#packages"
+          url: "https://app.logofountain.co.uk/checkout/start?package_code=complete"
         footnote: Best for launch-ready brands
 
   - type: testimonials
