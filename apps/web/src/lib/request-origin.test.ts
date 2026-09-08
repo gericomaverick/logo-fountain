@@ -1,10 +1,12 @@
 import { afterEach, describe, expect, it } from "vitest";
 
-import { getPublicSiteOrigin, getRequestOrigin } from "./request-origin";
+import { getConfiguredMarketingSiteOrigin, getPublicSiteOrigin, getRequestOrigin } from "./request-origin";
 
 const ORIGINAL_ENV = {
   PUBLIC_SITE_URL: process.env.PUBLIC_SITE_URL,
   NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+  PUBLIC_MARKETING_SITE_URL: process.env.PUBLIC_MARKETING_SITE_URL,
+  NEXT_PUBLIC_MARKETING_SITE_URL: process.env.NEXT_PUBLIC_MARKETING_SITE_URL,
 };
 
 afterEach(() => {
@@ -13,6 +15,12 @@ afterEach(() => {
 
   if (ORIGINAL_ENV.NEXT_PUBLIC_SITE_URL === undefined) delete process.env.NEXT_PUBLIC_SITE_URL;
   else process.env.NEXT_PUBLIC_SITE_URL = ORIGINAL_ENV.NEXT_PUBLIC_SITE_URL;
+
+  if (ORIGINAL_ENV.PUBLIC_MARKETING_SITE_URL === undefined) delete process.env.PUBLIC_MARKETING_SITE_URL;
+  else process.env.PUBLIC_MARKETING_SITE_URL = ORIGINAL_ENV.PUBLIC_MARKETING_SITE_URL;
+
+  if (ORIGINAL_ENV.NEXT_PUBLIC_MARKETING_SITE_URL === undefined) delete process.env.NEXT_PUBLIC_MARKETING_SITE_URL;
+  else process.env.NEXT_PUBLIC_MARKETING_SITE_URL = ORIGINAL_ENV.NEXT_PUBLIC_MARKETING_SITE_URL;
 });
 
 describe("getRequestOrigin", () => {
@@ -61,6 +69,22 @@ describe("getRequestOrigin", () => {
     const req = new Request("http://example.test:3100/api/checkout/session");
 
     expect(getRequestOrigin(req)).toBe("http://example.test:3100");
+  });
+});
+
+describe("getConfiguredMarketingSiteOrigin", () => {
+  it("returns the configured marketing origin when valid", () => {
+    process.env.PUBLIC_MARKETING_SITE_URL = "https://logofountain.co.uk/packages";
+    process.env.NEXT_PUBLIC_MARKETING_SITE_URL = "https://fallback.example.test";
+
+    expect(getConfiguredMarketingSiteOrigin()).toBe("https://logofountain.co.uk");
+  });
+
+  it("falls back to NEXT_PUBLIC_MARKETING_SITE_URL", () => {
+    delete process.env.PUBLIC_MARKETING_SITE_URL;
+    process.env.NEXT_PUBLIC_MARKETING_SITE_URL = "https://marketing.example.test/path";
+
+    expect(getConfiguredMarketingSiteOrigin()).toBe("https://marketing.example.test");
   });
 });
 

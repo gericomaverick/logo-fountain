@@ -1,12 +1,19 @@
-export function getConfiguredPublicSiteOrigin(): string | null {
-  const envOverride = process.env.PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_SITE_URL;
-  if (!envOverride) return null;
+function parseOrigin(value: string | undefined): string | null {
+  if (!value) return null;
 
   try {
-    return new URL(envOverride).origin;
+    return new URL(value).origin;
   } catch {
     return null;
   }
+}
+
+export function getConfiguredPublicSiteOrigin(): string | null {
+  return parseOrigin(process.env.PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_SITE_URL);
+}
+
+export function getConfiguredMarketingSiteOrigin(): string | null {
+  return parseOrigin(process.env.PUBLIC_MARKETING_SITE_URL || process.env.NEXT_PUBLIC_MARKETING_SITE_URL);
 }
 
 export function getRequestOrigin(req: Request): string {

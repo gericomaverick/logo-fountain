@@ -1,5 +1,5 @@
 import { jsonError } from "@/lib/api-error";
-import { getRequestOrigin } from "@/lib/request-origin";
+import { getConfiguredMarketingSiteOrigin, getRequestOrigin } from "@/lib/request-origin";
 import { PACKAGE_TO_PRICE_ID, stripe, type PackageCode } from "@/lib/stripe";
 
 export const runtime = "nodejs";
@@ -25,6 +25,7 @@ export async function GET(req: Request) {
 
   const campaignSlug = parseCampaignSlug(url.searchParams.get("campaign_slug"));
   const origin = getRequestOrigin(req);
+  const cancelOrigin = getConfiguredMarketingSiteOrigin() ?? origin;
 
   try {
     const session = await stripe.checkout.sessions.create({
@@ -33,7 +34,7 @@ export async function GET(req: Request) {
       billing_address_collection: "auto",
       phone_number_collection: { enabled: false },
       success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/pricing`,
+      cancel_url: `${cancelOrigin}/#packages`,
       line_items: [{ price: PACKAGE_TO_PRICE_ID[packageCode], quantity: 1 }],
       invoice_creation: {
         enabled: true,
