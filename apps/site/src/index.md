@@ -57,7 +57,7 @@ blocks:
     showCanvas: true
     eyebrow: The logo design process
     title: A clear process from brief to final files.
-    content: Our logo design process is built to feel simple from the outside and careful behind the scenes. You will always know what is happening, what we need from you and when your next review is due.
+    content: Our logo design process is built to feel simple from the outside and careful behind the scenes. Your project lives in a private customer portal, so briefs, feedback, files and updates stay in one place instead of getting buried in messy email back and forth.
     items:
       - title: Brief and discovery
         content: You start with a short plain-English brief covering your business, audience, competitors and where the logo needs to appear. We review it and ask anything useful before design starts.
@@ -66,7 +66,7 @@ blocks:
         content: Your designer sketches by hand, explores visual routes and develops the strongest ideas into clear logo concepts. Each developed direction comes with a short explanation from a designer who has spent years learning what makes a logo work.
         meta: Days 2 to 7 · drawn in-house
       - title: Refinement and feedback
-        content: You review everything in your private client portal and leave feedback in one place. We refine the chosen direction around proportion, colour, type and practical use.
+        content: You review everything in your private customer portal and leave feedback in one place. No long email chains, lost attachments or guessing which version is current. We refine the chosen direction around proportion, colour, type and practical use.
         meta: Days 8 to 14 · package dependent
       - title: Final files and usage rights
         content: Your final logo is supplied in the file formats you need for web, print and everyday use. Your final approved logo is yours to use for your business across web, print, packaging and social media.
