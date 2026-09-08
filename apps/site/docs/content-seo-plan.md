@@ -13,6 +13,10 @@ Primary content goal:
 
 > Rank and convert for UK logo design searches by clearly explaining who the service is for, what the buyer gets, how much it costs, why it is safe to buy, and why Logo Fountain is a better choice than cheap logo marketplaces or large agency retainers.
 
+Positioning note:
+
+Logo Fountain should justify its price through experience rather than luxury language. The copy should quietly repeat that projects are handled by dedicated designers with over 15 years of professional experience each, and that the team genuinely cares about logos as a craft.
+
 ## Current content scan
 
 ### Current homepage structure
@@ -30,7 +34,7 @@ Primary content goal:
 
 ### Current strengths
 
-- The positioning is distinctive: hand-drawn, UK-based, named designer, fixed prices, clear usage rights.
+- The positioning is distinctive: hand-drawn, UK-based, experienced designers, fixed prices, clear usage rights.
 - The package structure is clear and avoids unrealistic unlimited revision promises.
 - The tone is already friendly and calm.
 - The homepage has good trust hooks: review score, delivery timeline, team size, experience, usage rights, Stripe checkout.
