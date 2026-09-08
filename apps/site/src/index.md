@@ -187,7 +187,7 @@ blocks:
     content: Buying logo design online can feel uncertain. These are the concerns we hear most often from small business owners, and the promises we are happy to make in plain English.
     items:
       - sector: Ownership
-        quote: Yes, the final approved logo is yours to use for your business. You can use it on your website, packaging, signage, social media and print. We should keep the formal legal wording in your terms, not over-promise it on the page.
+        quote: Yes, the final approved logo is yours to use for your business. You can use it on your website, packaging, signage, social media and print, with clear usage rights included in your final handover.
         initials: 01
         name: Commercial usage rights
         role: Included with every package
