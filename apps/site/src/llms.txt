@@ -2,7 +2,7 @@
 
 > Friendly bespoke logo design for UK small businesses, sole traders and founder-led teams.
 
-Logo Fountain is a UK-led logo design service offering fixed-price logo design packages from £349. The service focuses on hand-drawn logo concepts, practical brand assets, clear feedback, final logo files for web and print, and full copyright transfer.
+Logo Fountain is a UK-led logo design service offering fixed-price logo design packages from £349. The service focuses on hand-drawn logo concepts, practical brand assets, clear feedback, final logo files for web and print, and clear commercial usage rights.
 
 ## Core services
 
@@ -24,7 +24,7 @@ Logo Fountain is a UK-led logo design service offering fixed-price logo design p
 - Secure Stripe checkout
 - UK-led designer service
 - Client portal for feedback and files
-- Full copyright transfer on final delivery
+- Commercial usage rights on final delivery
 
 ## Primary pages
 

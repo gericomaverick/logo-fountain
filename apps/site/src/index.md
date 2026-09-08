@@ -13,7 +13,7 @@ blocks:
     title: Bespoke logo design for UK small businesses.
     ratingLabel: Client feedback and trust signals
     ratingText: Trusted by independent UK businesses since 2018
-    content: <strong>Logo Fountain</strong> is a friendly UK logo design studio for founders, sole traders and growing small businesses. We create hand-drawn logos, clear brand assets and practical files you can use everywhere, with fixed prices, a named designer and full copyright transfer at the end.
+    content: <strong>Logo Fountain</strong> is a friendly UK logo design studio for founders, sole traders and growing small businesses. We create hand-drawn logos, clear brand assets and practical files you can use everywhere, with fixed prices, a named designer and clear commercial usage rights included.
     primary:
       text: View logo design packages
       url: "#packages"
@@ -28,7 +28,7 @@ blocks:
       - text: Hand-drawn sketch exploration
         icon: x
       - text: Fixed logo design packages
-      - text: Full copyright transferred
+      - text: Commercial usage rights included
         icon: x
       - text: Final files for web and print
       - text: A UK designer you can talk to
@@ -68,9 +68,9 @@ blocks:
       - title: Refinement and feedback
         content: You review everything in your private client portal and leave feedback in one place. We refine the chosen direction around proportion, colour, type and practical use.
         meta: Days 8 to 14 · package dependent
-      - title: Final files and copyright
-        content: Your final logo is supplied in the file formats you need for web, print and everyday use. Full copyright is transferred to you, so the finished logo is yours to use without restriction.
-        meta: Final delivery · ownership included
+      - title: Final files and usage rights
+        content: Your final logo is supplied in the file formats you need for web, print and everyday use. Your final approved logo is yours to use for your business across web, print, packaging and social media.
+        meta: Final delivery · usage rights included
 
   - type: work
     id: work
@@ -119,7 +119,7 @@ blocks:
     id: packages
     eyebrow: Logo design packages UK
     title: Fixed-price logo design packages from £349.
-    content: Choose the level of logo design support that fits where your business is today. Every package includes a UK designer, hand-drawn exploration, secure Stripe checkout, final logo files and full copyright transfer.
+    content: Choose the level of logo design support that fits where your business is today. Every package includes a UK designer, hand-drawn exploration, secure Stripe checkout, final logo files and clear commercial usage rights.
     items:
       - name: Essential
         packageCode: essential
@@ -133,7 +133,7 @@ blocks:
           - 1 round of refinement
           - Primary logo + favicon
           - Essential vector and raster file pack
-          - Full copyright transferred
+          - Commercial usage rights included
           - About 10 working days
         button:
           text: Choose Essential
@@ -154,7 +154,7 @@ blocks:
           - Colour palette + typography pairing
           - Usage sheet / mini guide
           - Complete file pack
-          - Full copyright transferred
+          - Commercial usage rights included
           - About 14 working days
         button:
           text: Choose Professional
@@ -174,7 +174,7 @@ blocks:
           - Mini brand guide
           - Social profile artwork
           - Launch asset pack
-          - Full copyright transferred
+          - Commercial usage rights included
           - About 18 to 21 working days
         button:
           text: Choose Complete
@@ -187,9 +187,9 @@ blocks:
     content: Buying logo design online can feel uncertain. These are the concerns we hear most often from small business owners, and the promises we are happy to make in plain English.
     items:
       - sector: Ownership
-        quote: Yes, you own the finished logo. Once final files are delivered, copyright is transferred to your business so you can use it on your website, packaging, signage, social media and print.
+        quote: Yes, the final approved logo is yours to use for your business. You can use it on your website, packaging, signage, social media and print. We should keep the formal legal wording in your terms, not over-promise it on the page.
         initials: 01
-        name: Full copyright transfer
+        name: Commercial usage rights
         role: Included with every package
       - sector: Process
         quote: You work with a named designer and review concepts in a private portal. Feedback, files and project updates stay in one place, so the process feels calm and organised.
@@ -221,7 +221,7 @@ blocks:
         - value: "10+"
           label: Working day turnaround
         - value: "100%"
-          label: Copyright transferred
+          label: Usage rights included
         - value: "UK"
           label: Designer-led service
 
@@ -232,9 +232,9 @@ blocks:
     content: 'The questions we are asked most often by businesses in London and across the UK who are comparing logo designers, packages and cheaper logo maker options. Still unsure? <a href="mailto:hello@logofountain.co.uk" style="color:var(--ink);text-decoration:underline;text-underline-offset:3px">Email the studio directly</a>.'
     items:
       - question: How much does logo design cost in the UK?
-        answer: Logo design in the UK can cost anywhere from under £100 for a very basic logo to thousands for a full agency-led identity system. Our fixed logo design packages start at £349 and include hand-drawn exploration, final files and copyright transfer.
+        answer: Logo design in the UK can cost anywhere from under £100 for a very basic logo to thousands for a full agency-led identity system. Our fixed logo design packages start at £349 and include hand-drawn exploration, final files and commercial usage rights.
       - question: What is included in a logo design package?
-        answer: Every Logo Fountain package includes a clear brief, hand-drawn sketch exploration, developed logo direction or directions, refinement rounds, final files for web and print, and full copyright transfer. Higher packages include wider logo suites and brand guidance.
+        answer: Every Logo Fountain package includes a clear brief, hand-drawn sketch exploration, developed logo direction or directions, refinement rounds, final files for web and print, and clear commercial usage rights. Higher packages include wider logo suites and brand guidance.
       - question: Are all your designers based in the UK?
         answer: Logo Fountain is built as a UK-led logo design service for UK businesses. Before launch, any specific location or team-size claim should be verified and kept accurate on this page.
       - question: Is every logo really drawn by hand?
@@ -248,7 +248,7 @@ blocks:
       - question: What is the difference between a logo and a brand identity?
         answer: A logo is the main mark people recognise. A brand identity is the wider system around it, such as colours, type, layout rules and supporting assets. Essential focuses on the logo. Professional and Complete add more of the surrounding brand system.
       - question: Why not use an AI logo maker?
-        answer: A logo maker can be useful for quick experiments, but it will not understand your business, audience, positioning or future use cases in the same way a designer can. It can also create questions around originality and ownership. We are a better fit when you want something considered and yours.
+        answer: A logo maker can be useful for quick experiments, but it will not understand your business, audience, positioning or future use cases in the same way a designer can. It can also create questions around originality and originality and usage rights. We are a better fit when you want something considered and yours.
       - question: What happens after I buy a package?
         answer: After checkout, you complete a short brief and your project is set up in the client portal. Your designer reviews the brief, starts sketch exploration and keeps you updated as your concepts are prepared.
 
@@ -266,5 +266,5 @@ blocks:
     stampText: Made in the UK • Drawn by hand • Bespoke logo design • Fixed packages •
 meta:
   title: Bespoke Logo Design UK | Logo Designer for Small Businesses
-  desc: Friendly bespoke logo design for UK small businesses. Hand-drawn concepts, fixed packages from £349, full copyright transfer and final files ready for web and print.
+  desc: Friendly bespoke logo design for UK small businesses. Hand-drawn concepts, fixed packages from £349, clear commercial usage rights and final files ready for web and print.
 ---

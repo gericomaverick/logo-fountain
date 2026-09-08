@@ -30,10 +30,10 @@ Primary content goal:
 
 ### Current strengths
 
-- The positioning is distinctive: hand-drawn, UK-based, named designer, fixed prices, full copyright.
+- The positioning is distinctive: hand-drawn, UK-based, named designer, fixed prices, clear usage rights.
 - The package structure is clear and avoids unrealistic unlimited revision promises.
 - The tone is already friendly and calm.
-- The homepage has good trust hooks: review score, delivery timeline, team size, experience, ownership, Stripe checkout.
+- The homepage has good trust hooks: review score, delivery timeline, team size, experience, usage rights, Stripe checkout.
 - The FAQ already includes a strong SEO query: “How much does a logo cost in the UK?”
 
 ### Current weaknesses
@@ -140,7 +140,7 @@ Supporting copy should mention:
 - UK and London naturally
 - Fixed packages
 - Named designer
-- Full copyright
+- Clear usage rights
 - Hand-drawn process
 
 CTA labels:
@@ -165,7 +165,7 @@ If not verified yet:
 Add 3 small proof points nearby:
 
 - Fixed prices from £349
-- Full copyright transferred
+- Commercial usage rights included
 - Typical turnaround from 10 working days
 
 ### 3. “Is this right for you?” section
@@ -191,7 +191,7 @@ Content points:
 - Vector files: SVG, EPS, PDF
 - Web files: PNG, JPG, favicon
 - Colour and type guidance where included
-- Full copyright transfer
+- Commercial usage rights
 - Private client portal
 
 This could replace or reshape the current marquee/values section.
@@ -217,7 +217,7 @@ Keep four steps, but adjust headings to be more search-friendly:
 1. Brief and discovery
 2. Hand-drawn logo concepts
 3. Refinement and feedback
-4. Final files and copyright transfer
+4. Final files and usage rights
 
 Add a line explaining that buyers review everything in a private portal.
 
@@ -260,9 +260,9 @@ New section idea:
 
 Compare:
 
-- AI logo maker: cheap, fast, limited ownership and distinctiveness concerns
+- AI logo maker: cheap, fast, limited originality and usage-rights clarity
 - Marketplace: lots of options, mixed quality, inconsistent process
-- Logo Fountain: fixed scope, named designer, handmade, full copyright, final files
+- Logo Fountain: fixed scope, named designer, handmade, clear usage rights, final files
 
 This is likely useful for organic traffic and buyer education.
 
@@ -274,7 +274,7 @@ Keep current FAQs and add or rewrite around:
 
 - How much does logo design cost in the UK?
 - What files do I receive with my logo?
-- Do I own the copyright to my logo?
+- What usage rights do I get with my logo?
 - How long does a logo design project take?
 - What is the difference between a logo and brand identity?
 - Can you design a logo for a small business?
@@ -375,7 +375,7 @@ Alternative London-focused title:
 
 Recommended meta description:
 
-> Friendly bespoke logo design for UK small businesses. Hand-drawn concepts, fixed packages from £349, full copyright transfer and final files ready for web and print.
+> Friendly bespoke logo design for UK small businesses. Hand-drawn concepts, fixed packages from £349, clear commercial usage rights and final files ready for web and print.
 
 ## Tracking attributes for GA
 
