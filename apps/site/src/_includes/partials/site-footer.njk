@@ -10,7 +10,7 @@
         <div class="foot-col">
           <h5>{{ group.title }}</h5>
           <ul>
-            {% for item in group.links %}<li><a href="{{ item.url }}">{{ item.text }}</a></li>{% endfor %}
+            {% for item in group.links %}<li><a href="{{ item.url }}" data-track="{% if 'mailto:' in item.url %}contact_click{% elif 'login' in item.url %}login_click{% else %}footer_link{% endif %}" data-track-location="footer" data-track-label="{{ item.text }}"{% if 'mailto:' in item.url %} data-track-method="email"{% endif %}>{{ item.text }}</a></li>{% endfor %}
           </ul>
         </div>
       {% endfor %}

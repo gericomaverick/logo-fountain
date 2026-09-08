@@ -4,126 +4,126 @@ title: Home
 blocks:
   - type: hero
     showCanvas: true
-    eyebrow: Est. 2018 · Logo design studio for London & the UK
+    eyebrow: Friendly logo design for London & the UK
     meta:
-      - strong: "127"
-        text: marks delivered
-      - strong: 10 to 14 days
+      - strong: "Fixed packages"
+        text: from £349
+      - strong: 10 to 21 days
         text: typical turnaround
-    title: Bespoke logo design,<br>drawn by hand for London <span class="ampersand">&amp;</span> the <span class="italic">UK.</span>
-    ratingLabel: 4.9 out of 5
-    ratingText: 4.9/5 · 127 verified reviews
-    content: <strong>Logo Fountain</strong> is a small, experienced studio creating bespoke logos and brand identities for independent businesses in London and right across the UK. Every logo is sketched and refined by hand by a designer you will know by name, from the first idea through to your final files.
+    title: Bespoke logo design for UK small businesses.
+    ratingLabel: Client feedback and trust signals
+    ratingText: Trusted by independent UK businesses since 2018
+    content: <strong>Logo Fountain</strong> is a friendly UK logo design studio for founders, sole traders and growing small businesses. We create hand-drawn logos, clear brand assets and practical files you can use everywhere, with fixed prices, a named designer and full copyright transfer at the end.
     primary:
-      text: View packages
+      text: View logo design packages
       url: "#packages"
     secondary:
-      text: See recent work
+      text: See sample logos
       url: "#work"
 
   - type: marquee
-    label: Values
+    label: What you get
     items:
-      - text: Drawn by hand in the UK
-      - text: Experienced senior designers
+      - text: Custom logo design, not templates
+      - text: Hand-drawn sketch exploration
         icon: x
-      - text: Serving London & the whole UK
-      - text: Fixed prices, no surprises
+      - text: Fixed logo design packages
+      - text: Full copyright transferred
         icon: x
-      - text: Named designer on every project
-      - text: Full ownership & copyright transferred
+      - text: Final files for web and print
+      - text: A UK designer you can talk to
         icon: x
 
   - type: values
-    eyebrow: Why Logo Fountain
-    title: A warmer kind <span class="italic" style="color:var(--purple)">of craft.</span>
-    content: Your logo is often the first thing people notice and the last thing they forget. We take real care over it, drawing every idea by hand and shaping it with you, so you end up with something that feels genuinely yours and keeps working for years to come.
+    eyebrow: Is this right for you?
+    title: 'Logo design for businesses that want to feel <span class="italic" style="color:var(--purple)">ready.</span>'
+    content: A good logo does more than fill a space at the top of your website. It helps people recognise you, trust you and remember you. We work best with people who want a thoughtful logo design service without the agency waffle or marketplace guesswork.
     items:
-      - kicker: Made by hand
-        title: Drawn, not churned out.
-        content: Every logo starts as pencil sketches from an experienced designer, then grows into a handful of considered directions. You get genuine craft and real thinking, not a template with your name dropped into it.
-        tag: Hand-drawn craft
-      - kicker: A real relationship
-        title: One designer, start to finish.
-        content: You will know your designer by name from day one, and they are the person who sketches, refines and delivers your logo. It stays personal, friendly and easy to talk through at every step.
-        tag: UK-based team
-      - kicker: Built to last
-        title: Logos that age well.
-        content: We design for the long run, not this year's trend. Every logo is tested everywhere it needs to work, from a tiny favicon to a shop front, and comes with clear guidelines so it stays consistent as you grow.
-        tag: Timeless by default
+      - kicker: New businesses
+        title: You are launching and need to look credible.
+        content: If you are starting a business, your logo does not need to be loud. It needs to feel considered, trustworthy and easy to use. We help you get there with a clear brief, careful sketching and honest guidance.
+        tag: Start-up logo design
+      - kicker: Growing businesses
+        title: You have outgrown your first logo.
+        content: Many small businesses begin with a quick logo made in a rush. When the business grows, that first mark can start to hold things back. We can help you move to something more polished without losing what people already know.
+        tag: Small business branding
+      - kicker: Founder-led teams
+        title: You want a real designer, not a logo lottery.
+        content: You will not be passed around a big agency team or asked to choose from dozens of random options. Your project is handled by a named UK designer who sketches, refines and prepares your final files.
+        tag: Named designer
 
   - type: process
     id: process
     showCanvas: true
-    eyebrow: The process
-    title: Four steps. <span class="italic" style="color:var(--purple)">No surprises.</span>
-    content: A clear, predictable path from first brief to final delivery. You will always know where your project is, what happens next, and who is working on it. Most logos land in <strong>10 to 14 working days</strong>.
+    eyebrow: The logo design process
+    title: A clear process from brief to final files.
+    content: Our logo design process is built to feel simple from the outside and careful behind the scenes. You will always know what is happening, what we need from you and when your next review is due.
     items:
-      - title: Brief & discovery
-        content: A friendly questionnaire covering your audience, your market and where your logo needs to live. We ask in plain English, with no jargon and nothing to trip you up.
+      - title: Brief and discovery
+        content: You start with a short plain-English brief covering your business, audience, competitors and where the logo needs to appear. We review it and ask anything useful before design starts.
         meta: Day 1 · around 30 mins
-      - title: Sketch & concept
-        content: Your designer sketches by hand, then refines a few directions in the studio. Each concept comes with a short written note explaining the thinking behind it.
+      - title: Hand-drawn logo concepts
+        content: Your designer sketches by hand, explores visual routes and develops the strongest ideas into clear logo concepts. Each developed direction comes with a short explanation, not design jargon.
         meta: Days 2 to 7 · drawn in-house
-      - title: Refine & review
-        content: You review concepts in your private portal, leave clear feedback, and we refine towards a single final logo. Everything lives in one place, so nothing gets lost.
-        meta: Days 8 to 12 · 1 to 3 rounds
-      - title: Deliver & handover
-        content: Final artwork arrives as vector and raster files, along with a simple usage guide. Full copyright is transferred, so the logo is unambiguously yours.
-        meta: Days 13 to 14 · full ownership
+      - title: Refinement and feedback
+        content: You review everything in your private client portal and leave feedback in one place. We refine the chosen direction around proportion, colour, type and practical use.
+        meta: Days 8 to 14 · package dependent
+      - title: Final files and copyright
+        content: Your final logo is supplied in the file formats you need for web, print and everyday use. Full copyright is transferred to you, so the finished logo is yours to use without restriction.
+        meta: Final delivery · ownership included
 
   - type: work
     id: work
-    eyebrow: Recent work
-    title: Marks we've drawn <span class="italic" style="color:var(--purple)">this year.</span>
-    content: A small selection of logos delivered to founders, independents and family businesses across the UK. Each one was drawn in our studio, owned outright by the client, and built to last.
+    eyebrow: Sample logo directions
+    title: 'The kind of marks we build for <span class="italic" style="color:var(--purple)">real-world use.</span>'
+    content: 'These sample directions show the range we design for: professional services, cafés, makers, consultants and local businesses. Before launch, this section should be swapped for verified client work with permission to publish.'
     items:
       - class: work-a
-        label: Alderman & Co, solicitors in Bath
+        label: Sample solicitor logo direction
         mark: A&Co
-        client: Alderman & Co · Bath
-        sector: Solicitors
+        client: Professional services
+        sector: Trust-led wordmark
       - class: work-b
-        label: Kelpie, coastal café in Whitstable
+        label: Sample coastal café logo direction
         mark: Kelpie
         italic: true
-        client: Kelpie · Whitstable
-        sector: Hospitality
+        client: Hospitality
+        sector: Warm character mark
       - class: work-c
-        label: Forth, engineering in Edinburgh
+        label: Sample engineering logo direction
         mark: Forth.
-        client: Forth · Edinburgh
-        sector: Engineering
-        metaStyle: color:rgba(255,255,255,.6)
-        tagStyle: background:rgba(255,255,255,.12);color:#fff
+        client: Technical business
+        sector: Confident modern mark
+        metaStyle: 'color:rgba(255,255,255,.6)'
+        tagStyle: 'background:rgba(255,255,255,.12);color:#fff'
       - class: work-d
-        label: Nimbus, insurance in Manchester
+        label: Sample insurance monogram direction
         mark: N
-        client: Nimbus · Manchester
-        sector: Insurance
+        client: Finance and insurance
+        sector: Simple monogram
       - class: work-e
-        label: Wren Bakery, artisan bakery in Bristol
+        label: Sample bakery logo direction
         mark: Wren.
         italic: true
-        client: Wren Bakery · Bristol
-        sector: Food & drink
-        metaStyle: color:rgba(255,255,255,.8)
-        tagStyle: background:rgba(255,255,255,.15);color:#fff
+        client: Food and drink
+        sector: Packaging-ready wordmark
+        metaStyle: 'color:rgba(255,255,255,.8)'
+        tagStyle: 'background:rgba(255,255,255,.15);color:#fff'
       - class: work-f
-        label: Hedge Row, garden design in the Cotswolds
+        label: Sample garden design logo direction
         mark: H/R
-        client: Hedge Row · Cotswolds
-        sector: Landscape
+        client: Home and garden
+        sector: Flexible identity mark
 
   - type: packages
     id: packages
-    eyebrow: Packages
-    title: Three clear packages.<br><span class="italic" style="color:var(--purple)">Fixed prices. Full ownership.</span>
-    content: Every package includes an experienced UK designer, full copyright transfer, and all the files you need to launch. Secure checkout is handled by Stripe.
+    eyebrow: Logo design packages UK
+    title: Fixed-price logo design packages from £349.
+    content: Choose the level of logo design support that fits where your business is today. Every package includes a UK designer, hand-drawn exploration, secure Stripe checkout, final logo files and full copyright transfer.
     items:
       - name: Essential
         packageCode: essential
-        tagline: For sole traders and first-year founders finding their feet.
+        tagline: Best for sole traders, side projects and first-year founders who need a professional logo without a full brand system.
         price: "349"
         priceNote: one-off
         vatNote: Secure Stripe checkout
@@ -132,7 +132,7 @@ blocks:
           - Initial sketch exploration included
           - 1 round of refinement
           - Primary logo + favicon
-          - Essential vector & raster file pack
+          - Essential vector and raster file pack
           - Full copyright transferred
           - About 10 working days
         button:
@@ -143,7 +143,7 @@ blocks:
         packageCode: professional
         featured: true
         ribbon: Most popular
-        tagline: For growing UK businesses ready to look like a serious brand.
+        tagline: Best for growing UK businesses that want a stronger logo suite, clearer brand feel and room to compare two directions.
         price: "795"
         priceNote: one-off
         vatNote: Secure Stripe checkout
@@ -162,7 +162,7 @@ blocks:
         footnote: Best balance of depth and speed
       - name: Complete
         packageCode: complete
-        tagline: For founders who want the full brand foundation before launch.
+        tagline: Best for founders preparing a launch who need a complete logo suite and practical brand assets from day one.
         price: "1495"
         priceNote: one-off
         vatNote: Secure Stripe checkout
@@ -182,81 +182,89 @@ blocks:
         footnote: Best for launch-ready brands
 
   - type: testimonials
-    eyebrow: What clients say
-    title: Real businesses.<br><span class="italic" style="color:var(--purple)">Real British high streets.</span>
-    content: A handful of the 127 studios, shops, practices and start-ups we have worked with since 2018. Every review is collected through verified channels, with no incentives and no cherry-picking.
+    eyebrow: Buyer reassurance
+    title: What people usually want to know before they book.
+    content: Buying logo design online can feel uncertain. These are the concerns we hear most often from small business owners, and the promises we are happy to make in plain English.
     items:
-      - sector: Hospitality · Yorkshire
-        quote: It felt like working with an old friend who happens to be brilliant at drawing. People photograph our shopfront every Saturday now, and <em>that</em> is the logo doing its job.
-        initials: EH
-        name: Eleanor Hartley
-        role: Owner, Hartley's Tea Rooms · Harrogate
-      - sector: Professional services
-        quote: They took time to understand a fairly traditional profession and gave us something modern without losing our sense of trust. A real pleasure from start to finish.
-        initials: JM
-        name: James Montgomery
-        role: Partner, Montgomery & Finch · London
-      - sector: Retail · Scotland
-        quote: Properly thoughtful. The designer rang me after spotting my shop on Google Street View, and that is the level of care throughout.
-        initials: RA
-        name: Rhona Abernethy
-        role: Founder, The Fiddlehead · Inverness
+      - sector: Ownership
+        quote: Yes, you own the finished logo. Once final files are delivered, copyright is transferred to your business so you can use it on your website, packaging, signage, social media and print.
+        initials: 01
+        name: Full copyright transfer
+        role: Included with every package
+      - sector: Process
+        quote: You work with a named designer and review concepts in a private portal. Feedback, files and project updates stay in one place, so the process feels calm and organised.
+        initials: 02
+        name: Clear client portal
+        role: Built for easy feedback
+      - sector: Value
+        quote: We do not promise unlimited concepts or endless revisions. Instead, you get a focused number of developed directions, enough refinement time and honest advice about what will work.
+        initials: 03
+        name: Fixed scope, no surprises
+        role: Designed to protect your budget
 
   - type: about
     id: about
     eyebrow: The studio
-    title: A studio of four, <span class="italic" style="color:var(--purple)">not forty.</span>
+    title: Human logo design, without the big agency feeling.
     content: |
-      We are a small team of experienced UK designers working from a studio above a café in Bristol. We keep the team deliberately small, because it is the surest way to make sure every project gets the designer you hired and the care you are paying for.
+      Logo Fountain is a small UK logo design studio for independent businesses, founders and practical teams who want to work directly with a designer. We keep the process focused because that usually leads to better work and a much easier experience.
 
-      Between us we have 47 years at studios including Pentagram, DesignStudio and SomeOne, plus work for the V&A, John Lewis, Channel 4 and dozens of independent UK businesses. All of that experience goes into every logo we draw.
+      The idea is simple. You get senior design thinking, hand-drawn exploration and useful final files, without needing to brief a large agency or gamble on a cheap logo marketplace.
     signature: The Logo Fountain team
     card:
-      eyebrow: By the numbers
-      title: Eight years of drawing logos by hand.
-      content: A transparent look at the studio since we opened in 2018.
+      eyebrow: Why clients choose us
+      title: Clear, careful logo design for small businesses.
+      content: The numbers below should be kept proof-backed before launch. If a claim cannot be verified, soften it or remove it.
       stats:
-        - value: "127"
-          label: UK brands identified
-        - value: "4.9"
-          label: Avg. review score
-        - value: "98%"
-          label: On-time delivery
-        - value: "47"
-          label: Years of experience
+        - value: "£349"
+          label: Starting package
+        - value: "10+"
+          label: Working day turnaround
+        - value: "100%"
+          label: Copyright transferred
+        - value: "UK"
+          label: Designer-led service
 
   - type: faq
     id: faq
-    eyebrow: FAQ
-    title: Answered <span class="italic" style="color:var(--purple)">honestly.</span>
-    content: The questions we are asked most often by businesses in London and across the UK who are thinking about a new logo. Still unsure? <a href="mailto:hello@logofountain.co.uk" style="color:var(--ink);text-decoration:underline;text-underline-offset:3px">Email the studio directly</a>.
+    eyebrow: Logo design FAQ
+    title: Straight answers before you spend anything.
+    content: 'The questions we are asked most often by businesses in London and across the UK who are comparing logo designers, packages and cheaper logo maker options. Still unsure? <a href="mailto:hello@logofountain.co.uk" style="color:var(--ink);text-decoration:underline;text-underline-offset:3px">Email the studio directly</a>.'
     items:
-      - question: Are all your designers actually based in the UK?
-        answer: Yes. Every designer on the team is UK-based, and the person you brief is the person who draws your logo.
+      - question: How much does logo design cost in the UK?
+        answer: Logo design in the UK can cost anywhere from under £100 for a very basic logo to thousands for a full agency-led identity system. Our fixed logo design packages start at £349 and include hand-drawn exploration, final files and copyright transfer.
+      - question: What is included in a logo design package?
+        answer: Every Logo Fountain package includes a clear brief, hand-drawn sketch exploration, developed logo direction or directions, refinement rounds, final files for web and print, and full copyright transfer. Higher packages include wider logo suites and brand guidance.
+      - question: Are all your designers based in the UK?
+        answer: Logo Fountain is built as a UK-led logo design service for UK businesses. Before launch, any specific location or team-size claim should be verified and kept accurate on this page.
       - question: Is every logo really drawn by hand?
-        answer: Yes. Every logo begins with pencil on paper and is developed by a named designer, from the first rough sketches through to the final colour and type.
-      - question: How much does a logo cost in the UK?
-        answer: Bespoke logo design from a UK studio usually ranges from around £400 for a sole-trader logo up to £15,000 or more for a large brand system. Our packages sit at the accessible end of that range without cutting corners on craft.
-      - question: Who owns the copyright to my finished logo?
-        answer: You do, in full, without restriction and worldwide. On final delivery we transfer copyright to your limited company or sole-trader name through a signed deed of assignment.
-      - question: How long does the whole process take?
-        answer: Roughly 10 working days for Essential, 14 for Professional, and 18 to 21 for Complete. Essential includes one refinement round, Professional includes two, and Complete includes three.
-      - question: Can you register the trademark for us?
-        answer: We do not file trademarks ourselves, but we will supply the export files and ownership paperwork a trademark attorney will usually need.
+        answer: Yes. The design process starts with hand-drawn sketch exploration before the strongest ideas are developed digitally. That gives the work more character than a template or instant logo maker.
+      - question: Do you design logos for small businesses?
+        answer: Yes. Most packages are designed around small businesses, sole traders, start-ups and growing founder-led teams that need a professional logo without a complicated agency process.
+      - question: Do you work with businesses outside London?
+        answer: Yes. The process works remotely across the UK. We can work with businesses in London, Bristol, Manchester, Birmingham, Leeds, Edinburgh, Glasgow, Cardiff and anywhere else with email and a short online brief.
+      - question: What files do I receive with my logo?
+        answer: Your final pack includes practical files for everyday use. Depending on the package, this can include vector files for print, web-ready image files, favicon files and simple usage guidance.
+      - question: What is the difference between a logo and a brand identity?
+        answer: A logo is the main mark people recognise. A brand identity is the wider system around it, such as colours, type, layout rules and supporting assets. Essential focuses on the logo. Professional and Complete add more of the surrounding brand system.
+      - question: Why not use an AI logo maker?
+        answer: A logo maker can be useful for quick experiments, but it will not understand your business, audience, positioning or future use cases in the same way a designer can. It can also create questions around originality and ownership. We are a better fit when you want something considered and yours.
+      - question: What happens after I buy a package?
+        answer: After checkout, you complete a short brief and your project is set up in the client portal. Your designer reviews the brief, starts sketch exploration and keeps you updated as your concepts are prepared.
 
   - type: final-cta
     showCanvas: true
-    eyebrow: Take the first step
-    title: Let's draw something <span class="italic">worth keeping.</span>
-    content: Tell us about your business in a short, five-minute brief. An experienced UK designer will reply within one working day with honest thoughts, a realistic timeline, and a suggestion for the package that fits where you are.
+    eyebrow: Start your logo project
+    title: Ready for a logo that feels like it belongs to your business?
+    content: Choose a package or send a quick question first. We will keep the advice honest and recommend the lightest sensible option for where your business is right now.
     primary:
-      text: Start your brief
+      text: View packages
       url: "#packages"
     secondary:
       text: Email the studio
-      url: mailto:hello@logofountain.co.uk
-    stampText: Made in the UK • Drawn by hand • Bespoke logo design • Est. 2018 •
+      url: 'mailto:hello@logofountain.co.uk'
+    stampText: Made in the UK • Drawn by hand • Bespoke logo design • Fixed packages •
 meta:
-  title: Logo Design London & UK | Bespoke Logo Design
-  desc: Bespoke, hand-drawn logo design for businesses in London and across the UK. Experienced designers, fixed prices, full copyright transfer, and a named designer on every project.
+  title: Bespoke Logo Design UK | Logo Designer for Small Businesses
+  desc: Friendly bespoke logo design for UK small businesses. Hand-drawn concepts, fixed packages from £349, full copyright transfer and final files ready for web and print.
 ---

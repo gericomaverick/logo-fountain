@@ -1,13 +1,13 @@
 {% import 'partials/icons.njk' as icon %}
 <header class="nav" id="nav">
   <div class="container nav-inner">
-    <a href="/" class="brand" aria-label="{{ site.name }} home">
+    <a href="/" class="brand" aria-label="{{ site.name }} home" data-track="nav_brand" data-track-location="header">
       {% include 'partials/logo-mark.njk' %}
       <span>{{ site.name }}</span>
     </a>
     <nav class="nav-links" aria-label="Primary">
-      {% for item in site.navigation %}<a class="nav-link" href="{{ item.url }}">{{ item.text }}</a>{% endfor %}
-      <a class="nav-cta" href="{{ site.cta.url }}">{{ site.cta.text }} {{ icon.arrow() }}</a>
+      {% for item in site.navigation %}<a class="nav-link" href="{{ item.url }}" data-track="nav_link" data-track-location="header" data-track-label="{{ item.text }}">{{ item.text }}</a>{% endfor %}
+      <a class="nav-cta" href="{{ site.cta.url }}" data-track="cta_click" data-track-location="header" data-track-label="{{ site.cta.text }}">{{ site.cta.text }} {{ icon.arrow() }}</a>
     </nav>
   </div>
 </header>

@@ -6,8 +6,8 @@
     <h2 class="display" style="margin-top:18px;color:#fff">{{ block.title | safe }}</h2>
     <p class="lede">{{ block.content }}</p>
     <div class="ctas">
-      {% if block.primary.text %}<a href="{{ block.primary.url }}" class="btn-primary">{{ block.primary.text }} {{ icon.arrow() }}</a>{% endif %}
-      {% if block.secondary.text %}<a href="{{ block.secondary.url }}" class="btn-secondary">{{ block.secondary.text }}</a>{% endif %}
+      {% if block.primary.text %}<a href="{{ block.primary.url }}" class="btn-primary" data-track="cta_click" data-track-location="final_cta" data-track-label="{{ block.primary.text }}">{{ block.primary.text }} {{ icon.arrow() }}</a>{% endif %}
+      {% if block.secondary.text %}<a href="{{ block.secondary.url }}" class="btn-secondary" data-track="cta_click" data-track-location="final_cta" data-track-label="{{ block.secondary.text }}">{{ block.secondary.text }}</a>{% endif %}
     </div>
   </div>
   <div class="final-stamp" aria-hidden="true">

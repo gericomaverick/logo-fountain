@@ -377,6 +377,46 @@ Recommended meta description:
 
 > Friendly bespoke logo design for UK small businesses. Hand-drawn concepts, fixed packages from £349, full copyright transfer and final files ready for web and print.
 
+## Tracking attributes for GA
+
+Use lightweight `data-track` attributes on important links and conversion elements so GA can be wired without changing the templates again.
+
+Recommended event map:
+
+| Element | Attribute pattern | Suggested GA event |
+| --- | --- | --- |
+| Header brand | `data-track="nav_brand" data-track-location="header"` | `nav_brand_click` |
+| Header section links | `data-track="nav_link" data-track-location="header" data-track-label="Packages"` | `nav_link_click` |
+| Hero primary CTA | `data-track="cta_click" data-track-location="hero" data-track-label="View logo design packages"` | `cta_click` |
+| Hero secondary CTA | `data-track="cta_click" data-track-location="hero" data-track-label="See sample logos"` | `cta_click` |
+| Package buttons | `data-track="package_select" data-track-package="professional" data-track-value="795"` | `package_select` |
+| Final CTA buttons | `data-track="cta_click" data-track-location="final_cta"` | `cta_click` |
+| Email links | `data-track="contact_click" data-track-method="email"` | `contact_click` |
+| Client login | `data-track="login_click" data-track-location="footer"` | `login_click` |
+
+Useful GA parameters:
+
+- `location`
+- `label`
+- `package`
+- `value`
+- `href`
+- `page_path`
+
+Avoid using personal data in tracking labels or URLs.
+
+## JSON and LLM metadata
+
+Add structured data where it genuinely matches the page:
+
+- `Organization`
+- `WebSite`
+- `ProfessionalService`
+- `OfferCatalog` with package prices
+- `FAQPage` generated from the homepage FAQ
+
+Add an `llms.txt` file to give AI search and answer engines a short, plain-English description of the service, packages, trust points and primary URLs. This is not a guaranteed ranking factor, but it is a low-risk machine-readable context file.
+
 ## Content implementation sequence
 
 1. Fix proof and trust claims first.

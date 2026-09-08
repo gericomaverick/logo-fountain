@@ -54,6 +54,7 @@ export default async function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy("./src/web-app-manifest-512x512.png");
   eleventyConfig.addPassthroughCopy("./src/site.webmanifest");
   eleventyConfig.addPassthroughCopy("./src/robots.txt");
+  eleventyConfig.addPassthroughCopy("./src/llms.txt");
 
   return {
     dir: {

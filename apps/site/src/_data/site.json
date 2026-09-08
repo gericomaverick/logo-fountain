@@ -4,7 +4,7 @@
   "email": "hello@logofountain.co.uk",
   "telephone": "+44 117 900 0000",
   "cta": {
-    "text": "Book your logo",
+    "text": "View packages",
     "url": "#packages"
   },
   "navigation": [
@@ -15,7 +15,7 @@
     { "text": "FAQ", "url": "#faq" }
   ],
   "footer": {
-    "description": "Bespoke logo design, drawn by hand in the UK. Warm, personal branding for independent businesses in London and right across the country.",
+    "description": "Friendly bespoke logo design for UK small businesses. Hand-drawn concepts, fixed packages, final files and full copyright transfer.",
     "location": "Studio · Bristol, Gloucestershire & Edinburgh",
     "legal": "© 2018-2026 Logo Fountain Ltd · Company details pending",
     "registration": "Registered in England & Wales",

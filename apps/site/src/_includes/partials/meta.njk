@@ -9,6 +9,7 @@
 
 <title>{{ pageTitle }}</title>
 <link rel="canonical" href="{{ currentUrl }}">
+<link rel="llms.txt" type="text/plain" href="/llms.txt">
 
 {%- if sitemapIgnore %}
 <meta name="robots" content="noindex">
@@ -17,10 +18,12 @@
 <meta property="og:title" content="{{ pageTitle }}">
 <meta property="og:type" content="website">
 <meta property="og:url" content="{{ currentUrl }}">
+<meta name="twitter:card" content="summary_large_image">
 {%- if pageDesc %}
 <meta name="description" content="{{ pageDesc }}">
 <meta name="twitter:description" content="{{ pageDesc }}">
 <meta property="og:description" content="{{ pageDesc }}">
+<meta name="ai-summary" content="{{ pageDesc }}">
 {%- endif %}
 
 {%- if socialImage %}  
@@ -35,3 +38,83 @@
 <meta property="og:image:alt" content="Page image for {{ site.name }}">
 <meta name="twitter:image:alt" content="Page image for {{ site.name }}">
 {%- endif -%}
+
+{%- set packagesBlock = null -%}
+{%- set faqBlock = null -%}
+{%- if blocks -%}
+  {%- for block in blocks -%}
+    {%- if block.type == 'packages' -%}{%- set packagesBlock = block -%}{%- endif -%}
+    {%- if block.type == 'faq' -%}{%- set faqBlock = block -%}{%- endif -%}
+  {%- endfor -%}
+{%- endif -%}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "{{ site.url }}/#organization",
+      "name": "{{ site.name }}",
+      "url": "{{ site.url }}",
+      "email": "{{ site.email }}",
+      "telephone": "{{ site.telephone }}",
+      "description": "{{ site.footer.description }}"
+    },
+    {
+      "@type": "WebSite",
+      "@id": "{{ site.url }}/#website",
+      "url": "{{ site.url }}",
+      "name": "{{ site.name }}",
+      "publisher": { "@id": "{{ site.url }}/#organization" },
+      "inLanguage": "en-GB"
+    },
+    {
+      "@type": "ProfessionalService",
+      "@id": "{{ currentUrl }}#service",
+      "name": "Bespoke logo design for UK small businesses",
+      "url": "{{ currentUrl }}",
+      "provider": { "@id": "{{ site.url }}/#organization" },
+      "areaServed": ["United Kingdom", "London", "Bristol", "Manchester", "Birmingham", "Leeds", "Edinburgh", "Glasgow", "Cardiff"],
+      "serviceType": "Logo design",
+      "description": "{{ pageDesc }}"{% if packagesBlock %},
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Logo design packages",
+        "itemListElement": [
+          {%- for item in packagesBlock.items %}
+          {
+            "@type": "Offer",
+            "name": "{{ item.name }} logo design package",
+            "price": "{{ item.price }}",
+            "priceCurrency": "GBP",
+            "url": "{{ site.url }}/#packages",
+            "availability": "https://schema.org/InStock",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "{{ item.name }} logo design package",
+              "description": "{{ item.tagline }}"
+            }
+          }{% if not loop.last %},{% endif %}
+          {%- endfor %}
+        ]
+      }{% endif %}
+    }{% if faqBlock %},
+    {
+      "@type": "FAQPage",
+      "@id": "{{ currentUrl }}#faq-schema",
+      "mainEntity": [
+        {%- for item in faqBlock.items %}
+        {
+          "@type": "Question",
+          "name": "{{ item.question }}",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "{{ item.answer | striptags }}"
+          }
+        }{% if not loop.last %},{% endif %}
+        {%- endfor %}
+      ]
+    }{% endif %}
+  ]
+}
+</script>
