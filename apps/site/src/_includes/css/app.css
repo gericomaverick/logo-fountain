@@ -186,6 +186,7 @@ h3.display{font-family:var(--serif);font-size:clamp(28px, 2.6vw, 40px);line-heig
 .hero-meta b{color:var(--ink);font-weight:500}
 .hero-meta .sep{color:var(--ink-40)}
 
+.hero h1{max-width:11ch}
 .hero h1 .bracket{color:var(--ink-40);font-style:italic}
 .hero h1 .ampersand{color:var(--purple);font-style:italic}
 .hero h1 .under{
