@@ -1,40 +1,24 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import localFont from "next/font/local";
 import { SafePerformanceMeasure } from "@/components/safe-performance-measure";
 import "./globals.css";
-import "../styles/logo-fountain-theme.css";
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
 });
 
-const reckless = localFont({
-  variable: "--font-reckless",
-  src: [
-    {
-      path: "../fonts/RecklessStandardS-TRIAL-Regular.woff2",
-      weight: "400",
-      style: "normal",
-    },
-  ],
-});
-
-const sfizia = localFont({
-  variable: "--font-sfizia",
-  src: [
-    {
-      path: "../fonts/atipo-sfizia-regular.ttf",
-      weight: "400",
-      style: "normal",
-    },
-  ],
-});
-
 export const metadata: Metadata = {
-  title: "Logo Fountain",
-  description: "Premium direct-response logo design for growth-focused brands.",
+  metadataBase: new URL("https://app.logofountain.co.uk"),
+  title: {
+    default: "Logo Fountain Portal",
+    template: "%s | Logo Fountain Portal",
+  },
+  description: "Client and admin portal for Logo Fountain projects.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function RootLayout({
@@ -43,8 +27,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${reckless.variable} ${sfizia.variable}`}>
-      <body className="lf-theme antialiased">
+    <html lang="en" className={inter.variable}>
+      <body className="antialiased">
         <SafePerformanceMeasure />
         {children}
       </body>

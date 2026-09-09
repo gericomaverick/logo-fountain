@@ -29,20 +29,17 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Stripe checkout session API
+## Stripe checkout entry point
 
-### `POST /api/checkout/session`
+### `GET /checkout/start?package_code=...`
 
-Creates a Stripe Checkout Session for a selected package.
+Creates a Stripe Checkout Session for a selected package and redirects to Stripe.
 
-- Allowed request body keys:
-  - `package_code` (required): `essential` | `professional` | `complete`
-  - `campaign_slug` (optional)
+- Allowed package codes: `essential` | `professional` | `complete`
 - The server resolves `package_code` to a Stripe price ID via a server-side allowlist.
 - Raw price IDs from clients are not accepted.
 - Success URL: `/checkout/success?session_id={CHECKOUT_SESSION_ID}`
-- Cancel URL: `/pricing`
-- Returns: `{ "url": "https://checkout.stripe.com/..." }`
+- Cancel URL: configured marketing-site origin + `/#packages`
 
 ### Smoke test (local)
 
@@ -53,15 +50,13 @@ Creates a Stripe Checkout Session for a selected package.
 npm run dev
 ```
 
-3. Create session:
+3. Open a package checkout URL:
 
-```bash
-curl -sS -X POST http://localhost:3000/api/checkout/session \
-  -H 'Content-Type: application/json' \
-  -d '{"package_code":"professional","campaign_slug":"spring-launch"}'
+```text
+http://localhost:3000/checkout/start?package_code=professional
 ```
 
-4. Confirm response includes a `url` that opens Stripe Checkout.
+4. Confirm the route redirects to Stripe Checkout.
 
 ## Deploy on Vercel
 

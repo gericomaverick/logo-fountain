@@ -10,7 +10,6 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
-  --font-display: var(--font-reckless);
 }
 
 * {
@@ -24,12 +23,6 @@ body {
   font-family: var(--font-inter), Arial, Helvetica, sans-serif;
 }
 
-.font-display {
-  font-family: var(--font-display), Georgia, serif;
-  font-weight: 400;
-  letter-spacing: 0;
-  line-height: 1.2;
-}
 
 .text-muted {
   color: var(--muted);

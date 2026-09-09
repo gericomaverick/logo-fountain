@@ -1,5 +1,5 @@
-import { StaticLandingPageV2 } from "@/components/marketing/static-landing-page-v2";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return <StaticLandingPageV2 />;
+  redirect("/dashboard");
 }

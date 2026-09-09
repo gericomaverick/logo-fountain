@@ -1,11 +1,9 @@
 import { expect, test } from "@playwright/test";
 
-test("homepage pricing CTA anchors to packages", async ({ page }) => {
+test("root redirects to the app dashboard", async ({ page }) => {
   await page.goto("/");
 
-  await expect(page.getByRole("heading", { name: "Logos designed in Britain. By people, & never by prompts." })).toBeVisible();
-
-  await page.getByRole("link", { name: "View packages" }).first().click();
-  await expect(page).toHaveURL(/#packages$/);
-  await expect(page.getByRole("heading", { name: /Three clear packages/ })).toBeVisible();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+  await expect(page.getByText(/sign in/i)).toBeVisible();
 });

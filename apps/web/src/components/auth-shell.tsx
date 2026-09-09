@@ -23,7 +23,7 @@ export function AuthShell({
   children,
 }: AuthShellProps) {
   return (
-    <div className="lf-bg-parchment min-h-screen px-4 py-6 sm:px-6 sm:py-8 lg:py-10">
+    <div className="min-h-screen bg-neutral-50 px-4 py-6 sm:px-6 sm:py-8 lg:py-10">
       <div className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-6xl items-center justify-center sm:min-h-[calc(100vh-4rem)]">
         <section className="w-full overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-lg shadow-neutral-900/5 lg:grid lg:grid-cols-12">
           <aside className="relative hidden min-h-full border-r border-neutral-200 bg-neutral-950 text-white lg:col-span-6 lg:block">

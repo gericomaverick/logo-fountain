@@ -1,16 +1,6 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("launch-critical public and account recovery flows", () => {
-  test("pricing route lands on package selector", async ({ page }) => {
-    await page.goto("/pricing");
-
-    await expect(page).toHaveURL(/\/#packages$/);
-    await expect(page.getByRole("heading", { name: /Three clear packages/ })).toBeVisible();
-    await expect(page.getByRole("link", { name: /Choose Essential/i })).toBeVisible();
-    await expect(page.getByRole("link", { name: /Choose Professional/i })).toBeVisible();
-    await expect(page.getByRole("link", { name: /Choose Complete/i })).toBeVisible();
-  });
-
   test("login blocks empty submissions with accessible field errors", async ({ page }) => {
     await page.goto("/login");
 
