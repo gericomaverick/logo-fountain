@@ -28,7 +28,7 @@ describe("getRequestOrigin", () => {
     process.env.PUBLIC_SITE_URL = "https://lan.example.test:3000/app";
     process.env.NEXT_PUBLIC_SITE_URL = "https://public.example.test";
 
-    const req = new Request("http://localhost:3000/api/checkout/session", {
+    const req = new Request("http://localhost:3000/checkout/start", {
       headers: {
         "x-forwarded-proto": "https",
         "x-forwarded-host": "192.168.1.18:3000",
@@ -41,7 +41,7 @@ describe("getRequestOrigin", () => {
   it("uses the Host header when no forwarded host is provided", () => {
     process.env.PUBLIC_SITE_URL = "https://lan.example.test";
 
-    const req = new Request("http://localhost:3000/api/checkout/session", {
+    const req = new Request("http://localhost:3000/checkout/start", {
       headers: {
         host: "127.0.0.1:3000",
       },
@@ -53,7 +53,7 @@ describe("getRequestOrigin", () => {
   it("falls back to env override when the host is 0.0.0.0", () => {
     process.env.PUBLIC_SITE_URL = "https://lan.example.test:3000/app";
 
-    const req = new Request("http://localhost:3000/api/checkout/session", {
+    const req = new Request("http://localhost:3000/checkout/start", {
       headers: {
         host: "0.0.0.0:3000",
       },
@@ -66,7 +66,7 @@ describe("getRequestOrigin", () => {
     process.env.PUBLIC_SITE_URL = "not a url";
     delete process.env.NEXT_PUBLIC_SITE_URL;
 
-    const req = new Request("http://example.test:3100/api/checkout/session");
+    const req = new Request("http://example.test:3100/checkout/start");
 
     expect(getRequestOrigin(req)).toBe("http://example.test:3100");
   });
@@ -92,7 +92,7 @@ describe("getPublicSiteOrigin", () => {
   it("returns the env override when it is valid", () => {
     process.env.PUBLIC_SITE_URL = "https://lan.example.test:3000/app";
 
-    const req = new Request("http://localhost:3000/api/checkout/session", {
+    const req = new Request("http://localhost:3000/checkout/start", {
       headers: {
         "x-forwarded-proto": "https",
         "x-forwarded-host": "192.168.1.18:3000",
@@ -106,7 +106,7 @@ describe("getPublicSiteOrigin", () => {
     delete process.env.PUBLIC_SITE_URL;
     delete process.env.NEXT_PUBLIC_SITE_URL;
 
-    const req = new Request("http://localhost:3000/api/checkout/session", {
+    const req = new Request("http://localhost:3000/checkout/start", {
       headers: {
         "x-forwarded-proto": "https",
         "x-forwarded-host": "192.168.1.18:3000",
