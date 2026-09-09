@@ -171,17 +171,7 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return (
-      <PageShell>
-        <HeaderNav />
-        <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
-          <h1 className="text-2xl font-semibold">Dashboard</h1>
-          <p className="mt-2 text-sm text-neutral-600">
-            You need to <Link className="portal-link no-underline" href="/login">sign in</Link> to view your projects.
-          </p>
-        </main>
-      </PageShell>
-    );
+    redirect("/login");
   }
 
   if (await isAdminUser(user)) {
