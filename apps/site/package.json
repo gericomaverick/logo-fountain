@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "concurrently \"npm run dev:css\" \"npm run dev:11ty\"",
     "dev:css": "NODE_ENV=production npx @tailwindcss/cli -i src/_includes/css/app.css -o src/css/main.css --watch --minify",
-    "dev:11ty": "APP_URL=http://localhost:3000 eleventy --serve --incremental",
+    "dev:11ty": "APP_URL=${APP_URL:-http://localhost:3000} eleventy --serve --incremental",
     "production": "npx eleventy"
   },
   "blyth": {
