@@ -40,6 +40,12 @@ export default async function (eleventyConfig) {
   // Add shortcodes
   eleventyConfig.addShortcode("image", imageShortcode);
 
+  // App/portal origin used for checkout and login links.
+  // Local dev scripts set APP_URL=http://localhost:3000; production falls back to the hosted portal.
+  eleventyConfig.addGlobalData("app", () => ({
+    url: process.env.APP_URL || "https://app.logofountain.co.uk",
+  }));
+
   // Pass through
   eleventyConfig.addPassthroughCopy("./src/css/main.css");
   eleventyConfig.addPassthroughCopy("./src/_redirects");
