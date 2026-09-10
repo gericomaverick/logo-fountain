@@ -14,6 +14,8 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env.DATABASE_URL,
+    // Prisma migrations need the session-mode pooler/direct URL when Supabase
+    // runtime DATABASE_URL uses transaction pooling.
+    url: process.env.DIRECT_URL || process.env.DATABASE_URL,
   },
 });
