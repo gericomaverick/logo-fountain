@@ -11,7 +11,8 @@ const mocks = vi.hoisted(() => ({
       upsert: vi.fn(),
       create: vi.fn(),
       findUnique: vi.fn(),
-      update: vi.fn(),
+      updateMany: vi.fn(),
+      deleteMany: vi.fn(),
     },
   },
 }));
@@ -61,7 +62,8 @@ describe("POST /api/stripe/webhook", () => {
     mocks.generateAndSendMagicLinkEmail.mockResolvedValue({ skipped: false });
     mocks.ensureAccessProvisioning.mockResolvedValue({ userId: "user-1", existed: false });
     mocks.prisma.stripeEvent.create.mockResolvedValue(undefined);
-    mocks.prisma.stripeEvent.update.mockResolvedValue(undefined);
+    mocks.prisma.stripeEvent.updateMany.mockResolvedValue({ count: 1 });
+    mocks.prisma.stripeEvent.deleteMany.mockResolvedValue({ count: 1 });
   });
 
   it("dedupes already-processed duplicate events with 200 and skips fulfillment", async () => {
@@ -72,7 +74,11 @@ describe("POST /api/stripe/webhook", () => {
       data: { object: { id: "cs_1" } },
     });
     mocks.prisma.stripeEvent.create.mockRejectedValueOnce({ code: "P2002" });
-    mocks.prisma.stripeEvent.findUnique.mockResolvedValueOnce({ eventId: "evt_dup", processedAt: new Date() });
+    mocks.prisma.stripeEvent.findUnique.mockResolvedValueOnce({
+      eventId: "evt_dup",
+      type: "checkout.session.completed",
+      processedAt: new Date(),
+    });
 
     const res = await POST(webhookRequest());
     const body = await res.json();
@@ -82,7 +88,7 @@ describe("POST /api/stripe/webhook", () => {
     expect(mocks.fulfillCheckoutSession).not.toHaveBeenCalled();
   });
 
-  it("returns 202 while duplicate event is still in-flight", async () => {
+  it("returns non-2xx while a duplicate event is still in-flight so Stripe retries", async () => {
     mocks.constructEvent.mockReturnValue({
       id: "evt_inflight",
       type: "checkout.session.completed",
@@ -90,12 +96,51 @@ describe("POST /api/stripe/webhook", () => {
       data: { object: { id: "cs_2" } },
     });
     mocks.prisma.stripeEvent.create.mockRejectedValueOnce({ code: "P2002" });
-    mocks.prisma.stripeEvent.findUnique.mockResolvedValueOnce({ eventId: "evt_inflight", processedAt: null });
+    mocks.prisma.stripeEvent.findUnique.mockResolvedValueOnce({
+      eventId: "evt_inflight",
+      type: `processing:${Date.now()}:claim:checkout.session.completed`,
+      processedAt: null,
+    });
 
     const res = await POST(webhookRequest());
 
-    expect(res.status).toBe(202);
+    expect(res.status).toBe(409);
+    await expect(res.json()).resolves.toMatchObject({ inFlight: true, retry: true });
     expect(mocks.fulfillCheckoutSession).not.toHaveBeenCalled();
+  });
+
+  it("reclaims an expired processing claim and fulfills the event", async () => {
+    const expiredType = `processing:${Date.now() - 10 * 60 * 1000}:old-claim:checkout.session.completed`;
+    mocks.constructEvent.mockReturnValue({
+      id: "evt_expired",
+      type: "checkout.session.completed",
+      created: 1700000000,
+      data: { object: { id: "cs_expired" } },
+    });
+    mocks.prisma.stripeEvent.create.mockRejectedValueOnce({ code: "P2002" });
+    mocks.prisma.stripeEvent.findUnique.mockResolvedValueOnce({
+      eventId: "evt_expired",
+      type: expiredType,
+      processedAt: null,
+    });
+    mocks.fulfillCheckoutSession.mockResolvedValue({
+      deduped: true,
+      projectId: "project-expired",
+      orderId: "order-expired",
+      clientId: "client-expired",
+      purchaserEmail: null,
+      firstName: null,
+      lastName: null,
+    });
+
+    const res = await POST(webhookRequest());
+
+    expect(res.status).toBe(200);
+    expect(mocks.prisma.stripeEvent.updateMany).toHaveBeenCalledWith({
+      where: { eventId: "evt_expired", type: expiredType, processedAt: null },
+      data: { type: expect.stringMatching(/^processing:/) },
+    });
+    expect(mocks.fulfillCheckoutSession).toHaveBeenCalledTimes(1);
   });
 
   it("processes first delivery and marks event processed", async () => {
@@ -122,9 +167,13 @@ describe("POST /api/stripe/webhook", () => {
     expect(body.fulfilled).toBe(true);
     expect(body.deduped).toBe(false);
     expect(mocks.fulfillCheckoutSession).toHaveBeenCalledTimes(1);
-    expect(mocks.prisma.stripeEvent.update).toHaveBeenCalledWith({
-      where: { eventId: "evt_new" },
-      data: { processedAt: expect.any(Date) },
+    expect(mocks.prisma.stripeEvent.updateMany).toHaveBeenCalledWith({
+      where: {
+        eventId: "evt_new",
+        type: expect.stringMatching(/^processing:/),
+        processedAt: null,
+      },
+      data: { type: "checkout.session.completed", processedAt: expect.any(Date) },
     });
     expect(mocks.generateAndSendMagicLinkEmail).toHaveBeenCalledWith({
       purchaserEmail: "buyer@example.com",
@@ -241,14 +290,18 @@ describe("POST /api/stripe/webhook", () => {
       if (createCalls === 1) return undefined;
       throw { code: "P2002" };
     });
-    mocks.prisma.stripeEvent.findUnique.mockResolvedValueOnce({ eventId: "evt_race", processedAt: null });
+    mocks.prisma.stripeEvent.findUnique.mockResolvedValueOnce({
+      eventId: "evt_race",
+      type: `processing:${Date.now()}:claim:checkout.session.completed`,
+      processedAt: null,
+    });
     mocks.fulfillCheckoutSession.mockImplementationOnce(() => inflight.promise);
 
     const firstRequest = POST(webhookRequest());
     await Promise.resolve();
 
     const secondRes = await POST(webhookRequest());
-    expect(secondRes.status).toBe(202);
+    expect(secondRes.status).toBe(409);
     expect(mocks.fulfillCheckoutSession).toHaveBeenCalledTimes(1);
 
     inflight.resolve({
@@ -263,9 +316,13 @@ describe("POST /api/stripe/webhook", () => {
 
     const firstRes = await firstRequest;
     expect(firstRes.status).toBe(200);
-    expect(mocks.prisma.stripeEvent.update).toHaveBeenCalledWith({
-      where: { eventId: "evt_race" },
-      data: { processedAt: expect.any(Date) },
+    expect(mocks.prisma.stripeEvent.updateMany).toHaveBeenCalledWith({
+      where: {
+        eventId: "evt_race",
+        type: expect.stringMatching(/^processing:/),
+        processedAt: null,
+      },
+      data: { type: "checkout.session.completed", processedAt: expect.any(Date) },
     });
   });
 
@@ -293,21 +350,64 @@ describe("POST /api/stripe/webhook", () => {
     expect(mocks.notifyAdminNewProject).not.toHaveBeenCalled();
   });
 
-  it("returns 500/retry shape for transient fulfillment failures", async () => {
-    mocks.constructEvent.mockReturnValue({
+  it("releases a transiently failed event so its next sequential delivery fulfills", async () => {
+    const event = {
       id: "evt_transient",
       type: "checkout.session.completed",
       created: 1700000000,
       data: { object: { id: "cs_transient" } },
+    };
+    let storedEvent: { eventId: string; type: string; processedAt: Date | null } | null = null;
+
+    mocks.constructEvent.mockReturnValue(event);
+    mocks.prisma.stripeEvent.create.mockImplementation(async ({ data }) => {
+      if (storedEvent) throw { code: "P2002" };
+      storedEvent = { eventId: data.eventId, type: data.type, processedAt: null };
     });
-    mocks.fulfillCheckoutSession.mockRejectedValueOnce({ code: "P1001" });
+    mocks.prisma.stripeEvent.findUnique.mockImplementation(async () => storedEvent);
+    mocks.prisma.stripeEvent.deleteMany.mockImplementation(async ({ where }) => {
+      if (storedEvent && storedEvent.type === where.type && storedEvent.processedAt === null) {
+        storedEvent = null;
+        return { count: 1 };
+      }
+      return { count: 0 };
+    });
+    mocks.prisma.stripeEvent.updateMany.mockImplementation(async ({ where, data }) => {
+      if (storedEvent && storedEvent.type === where.type && storedEvent.processedAt === null) {
+        storedEvent = { ...storedEvent, type: data.type, processedAt: data.processedAt };
+        return { count: 1 };
+      }
+      return { count: 0 };
+    });
+    mocks.fulfillCheckoutSession
+      .mockRejectedValueOnce({ code: "P1001" })
+      .mockResolvedValueOnce({
+        deduped: false,
+        projectId: "project-retried",
+        orderId: "order-retried",
+        clientId: "client-retried",
+        purchaserEmail: "buyer@example.com",
+        firstName: "Retry",
+        lastName: "Success",
+      });
 
-    const res = await POST(webhookRequest());
-    const body = await res.json();
+    const firstRes = await POST(webhookRequest());
+    const firstBody = await firstRes.json();
+    expect(firstRes.status).toBe(500);
+    expect(firstBody.classification).toBe("transient");
+    expect(firstBody.retry).toBe(true);
+    expect(storedEvent).toBeNull();
 
-    expect(res.status).toBe(500);
-    expect(body.classification).toBe("transient");
-    expect(body.retry).toBe(true);
+    const secondRes = await POST(webhookRequest());
+    const secondBody = await secondRes.json();
+    expect(secondRes.status).toBe(200);
+    expect(secondBody.fulfilled).toBe(true);
+    expect(mocks.fulfillCheckoutSession).toHaveBeenCalledTimes(2);
+    expect(storedEvent).toMatchObject({
+      eventId: "evt_transient",
+      type: "checkout.session.completed",
+      processedAt: expect.any(Date),
+    });
   });
 
   it("returns 200/dead-letter shape for permanent fulfillment failures", async () => {

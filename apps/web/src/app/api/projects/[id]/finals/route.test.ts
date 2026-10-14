@@ -47,11 +47,45 @@ describe("GET /api/projects/[id]/finals", () => {
     mocks.prisma.$transaction.mockImplementation(async (fn: (tx: typeof mocks.tx) => Promise<unknown>) => fn(mocks.tx));
   });
 
+  it("returns no signed URL when the project is not in a persisted final state", async () => {
+    mocks.prisma.project.findFirst.mockResolvedValue(null);
+
+    const res = await GET(new Request("http://localhost"), { params: Promise.resolve({ id: "p1" }) });
+    const body = await res.json();
+
+    expect(res.status).toBe(404);
+    expect(body.error.code).toBe("PROJECT_NOT_FOUND");
+    expect(mocks.prisma.project.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        id: "p1",
+        status: { in: ["FINAL_FILES_READY", "DELIVERED"] },
+      },
+    }));
+    expect(mocks.createSignedFinalDeliverableUrl).not.toHaveBeenCalled();
+  });
+
+  it("returns no signed URL before concept approval even in a persisted final state", async () => {
+    mocks.prisma.project.findFirst.mockResolvedValue({
+      id: "p1",
+      status: "FINAL_FILES_READY",
+      client: { name: "Acme", memberships: [] },
+      concepts: [],
+      fileAssets: [{ path: "projects/p1/final.zip", createdAt: new Date("2026-03-05T08:00:00.000Z") }],
+    });
+
+    const res = await GET(new Request("http://localhost"), { params: Promise.resolve({ id: "p1" }) });
+
+    expect(res.status).toBe(404);
+    expect(mocks.createSignedFinalDeliverableUrl).not.toHaveBeenCalled();
+    expect(mocks.tx.project.update).not.toHaveBeenCalled();
+  });
+
   it("transitions FINAL_FILES_READY to DELIVERED on first download", async () => {
     mocks.prisma.project.findFirst.mockResolvedValue({
       id: "p1",
       status: "FINAL_FILES_READY",
       client: { name: "Acme", memberships: [] },
+      concepts: [{ id: "concept-approved" }],
       fileAssets: [{ path: "projects/p1/final.zip", createdAt: new Date("2026-03-05T08:00:00.000Z") }],
     });
 
@@ -63,17 +97,25 @@ describe("GET /api/projects/[id]/finals", () => {
     expect(mocks.logAudit).toHaveBeenCalled();
   });
 
-  it("does not transition when already DELIVERED", async () => {
+  it("signs the final ZIP without another transition when already DELIVERED", async () => {
     mocks.prisma.project.findFirst.mockResolvedValue({
       id: "p1",
       status: "DELIVERED",
       client: { name: "Acme", memberships: [] },
+      concepts: [{ id: "concept-approved" }],
       fileAssets: [{ path: "projects/p1/final.zip", createdAt: new Date("2026-03-05T08:00:00.000Z") }],
     });
 
     const res = await GET(new Request("http://localhost"), { params: Promise.resolve({ id: "p1" }) });
+    const body = await res.json();
 
     expect(res.status).toBe(200);
+    expect(body).toEqual({ url: "https://download.example/final.zip" });
+    expect(mocks.createSignedFinalDeliverableUrl).toHaveBeenCalledWith(
+      "projects/p1/final.zip",
+      60 * 60,
+      "brand-2026-03-05.zip",
+    );
     expect(mocks.applyTransition).not.toHaveBeenCalled();
     expect(mocks.tx.project.update).not.toHaveBeenCalled();
   });

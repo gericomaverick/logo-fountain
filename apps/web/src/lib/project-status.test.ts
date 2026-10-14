@@ -23,10 +23,30 @@ describe("project status derivation", () => {
     ).toBe("AWAITING_APPROVAL");
   });
 
-  it("prioritizes final files ready when final deliverable exists", () => {
+  it("does not infer final files ready from an uploaded ZIP before the persisted transition", () => {
     expect(
       deriveDisplayProjectStatus({
         persistedStatus: "AWAITING_APPROVAL",
+        hasApprovedConcept: true,
+        hasFinalDeliverable: true,
+      }),
+    ).toBe("AWAITING_APPROVAL");
+  });
+
+  it("does not expose a persisted final state before approval", () => {
+    expect(
+      deriveDisplayProjectStatus({
+        persistedStatus: "FINAL_FILES_READY",
+        hasApprovedConcept: false,
+        hasFinalDeliverable: true,
+      }),
+    ).toBe("AWAITING_APPROVAL");
+  });
+
+  it("keeps the persisted final files ready state after approval", () => {
+    expect(
+      deriveDisplayProjectStatus({
+        persistedStatus: "FINAL_FILES_READY",
         hasApprovedConcept: true,
         hasFinalDeliverable: true,
       }),
@@ -54,14 +74,14 @@ describe("project status derivation", () => {
   });
 
   it("keeps key lifecycle statuses stable when no override is needed", () => {
-    const states = ["AWAITING_BRIEF", "IN_DESIGN", "CONCEPTS_READY", "FINAL_FILES_READY"] as const;
+    const states = ["AWAITING_BRIEF", "IN_DESIGN", "CONCEPTS_READY"] as const;
 
     for (const status of states) {
       expect(
         deriveDisplayProjectStatus({
           persistedStatus: status,
           hasApprovedConcept: false,
-          hasFinalDeliverable: status === "FINAL_FILES_READY",
+          hasFinalDeliverable: false,
         }),
       ).toBe(status);
     }

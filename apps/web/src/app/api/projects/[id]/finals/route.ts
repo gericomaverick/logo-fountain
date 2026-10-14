@@ -47,6 +47,11 @@ export async function GET(
             },
           },
         },
+        concepts: {
+          where: { status: "approved" },
+          take: 1,
+          select: { id: true },
+        },
         fileAssets: {
           where: { kind: "final_zip" },
           orderBy: { createdAt: "desc" },
@@ -58,6 +63,15 @@ export async function GET(
 
     if (!project) {
       return jsonError("Project not found", 404, { nextStep: "Final files are available after delivery is complete." }, "PROJECT_NOT_FOUND");
+    }
+
+    if (project.concepts.length === 0) {
+      return jsonError(
+        "Final ZIP not available before concept approval",
+        404,
+        { nextStep: "Approve a concept before downloading final files." },
+        "FINAL_ZIP_NOT_AVAILABLE",
+      );
     }
 
     const file = project.fileAssets[0];

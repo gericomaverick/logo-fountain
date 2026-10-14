@@ -15,6 +15,19 @@ import { notifyAdminNewProject } from "@/lib/project-lifecycle-email";
 
 export const runtime = "nodejs";
 
+const PROCESSING_MARKER_PREFIX = "processing:";
+const PROCESSING_LEASE_MS = 5 * 60 * 1000;
+
+function createProcessingMarker(eventType: string, now = Date.now()) {
+  return `${PROCESSING_MARKER_PREFIX}${now}:${crypto.randomUUID()}:${eventType}`;
+}
+
+function processingStartedAt(type: string): number | null {
+  if (!type.startsWith(PROCESSING_MARKER_PREFIX)) return null;
+  const timestamp = Number(type.slice(PROCESSING_MARKER_PREFIX.length).split(":", 1)[0]);
+  return Number.isFinite(timestamp) ? timestamp : null;
+}
+
 export async function POST(req: Request) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!webhookSecret) {
@@ -55,11 +68,13 @@ export async function POST(req: Request) {
     return Response.json({ received: true, ignored: true, id: event.id, type: event.type });
   }
 
+  const processingMarker = createProcessingMarker(event.type);
+
   try {
     await prisma.stripeEvent.create({
       data: {
         eventId: event.id,
-        type: event.type,
+        type: processingMarker,
         createdAt: new Date(event.created * 1000),
       },
     });
@@ -70,26 +85,36 @@ export async function POST(req: Request) {
         return Response.json({ received: true, deduped: true, id: event.id, type: event.type });
       }
 
-      return Response.json(
-        { received: true, inFlight: true, id: event.id, type: event.type },
-        { status: 202 }
-      );
+      const startedAt = existing ? processingStartedAt(existing.type) : null;
+      const hasActiveLease = startedAt !== null && Date.now() - startedAt < PROCESSING_LEASE_MS;
+      if (existing && !hasActiveLease) {
+        const reclaimed = await prisma.stripeEvent.updateMany({
+          where: { eventId: event.id, type: existing.type, processedAt: null },
+          data: { type: processingMarker },
+        });
+        if (reclaimed.count === 1) {
+          // This delivery owns the expired (or legacy unmarked) processing claim.
+        } else {
+          return Response.json(
+            { received: true, inFlight: true, retry: true, id: event.id, type: event.type },
+            { status: 409 },
+          );
+        }
+      } else {
+        return Response.json(
+          { received: true, inFlight: true, retry: true, id: event.id, type: event.type },
+          { status: 409 },
+        );
+      }
+    } else {
+      throw error;
     }
-
-    throw error;
   }
 
   try {
     const session = event.data.object as Stripe.Checkout.Session;
     if (!session || typeof session.id !== "string" || session.id.trim().length === 0) {
-      return Response.json(
-        {
-          received: true,
-          fulfilled: false,
-          error: "Malformed Stripe event payload: missing checkout session id",
-        },
-        { status: 400 },
-      );
+      throw new Error("Malformed Stripe event payload: missing checkout session id");
     }
 
     const fulfillment = await fulfillCheckoutSession(session);
@@ -126,9 +151,9 @@ export async function POST(req: Request) {
       await notifyAdminNewProject(fulfillment.projectId);
     }
 
-    await prisma.stripeEvent.update({
-      where: { eventId: event.id },
-      data: { processedAt: new Date() },
+    await prisma.stripeEvent.updateMany({
+      where: { eventId: event.id, type: processingMarker, processedAt: null },
+      data: { type: event.type, processedAt: new Date() },
     });
 
     return Response.json({
@@ -158,8 +183,18 @@ export async function POST(req: Request) {
 
     if (classification.logLevel === "warn") {
       console.warn("Stripe checkout webhook failed permanently", logPayload);
+      await prisma.stripeEvent.updateMany({
+        where: { eventId: event.id, type: processingMarker, processedAt: null },
+        data: { type: event.type, processedAt: new Date() },
+      });
     } else {
       console.error("Stripe checkout webhook failed transiently", logPayload);
+      // Release only this delivery's claim. If the delete itself fails, the lease
+      // marker remains reclaimable after PROCESSING_LEASE_MS rather than wedging
+      // the Stripe event forever.
+      await prisma.stripeEvent.deleteMany({
+        where: { eventId: event.id, type: processingMarker, processedAt: null },
+      });
     }
 
     return Response.json(

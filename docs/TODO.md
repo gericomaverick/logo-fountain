@@ -77,3 +77,7 @@ Next-step notes (2026-03-04):
 - Regression sweep completed with targeted wizard tests + lint + typecheck; no blocking issues found in edit/back/next/review/submit paths.
 - Copy/navigation wording normalized across client/admin project surfaces (project overview/messages terminology, consistent link tone, mobile-safe link wrapping).
 - Local tester ops note added: `docs/local-lan-redirect-testing.md`.
+
+## Emergency reliability and delivery hardening (2026-10-14)
+- [x] Make Stripe checkout webhook event claims retry-safe after transient failures while preserving concurrent duplicate exclusion.
+- [x] Gate final-deliverable readiness on approval plus persisted `FINAL_FILES_READY`/`DELIVERED`, and issue signed download URLs only from the guarded finals endpoint.

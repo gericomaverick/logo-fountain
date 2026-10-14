@@ -1,19 +1,18 @@
 import { buildTimeline, type ProjectState, PROJECT_STATES, PROJECT_STATE_LABELS, PRIMARY_CTA_BY_STATE } from "@/lib/project-state-machine";
 import { prisma } from "@/lib/prisma";
-import { createSignedConceptAssetUrl, createSignedFinalDeliverableUrl } from "@/lib/supabase/storage";
+import { createSignedConceptAssetUrl } from "@/lib/supabase/storage";
 import { computeEntitlementUsage } from "@/lib/entitlements";
 import { computeLatestConceptActivityAt, maxDate } from "@/lib/concept-activity";
 import { parseBriefAnswers } from "@/lib/brief";
 import { deriveDisplayProjectStatus, deriveOverviewBadgeStatus, isKnownProjectState } from "@/lib/project-status";
-import { buildFinalDeliverableFilename } from "@/lib/final-deliverable-filename";
 import { NON_SYSTEM_MESSAGE_FILTER } from "@/lib/message-kind";
+import { buildFinalDeliverableSnapshot } from "@/lib/final-deliverable-access";
 
 const PUBLISHED_OR_APPROVED = ["published", "approved"];
 
 type SnapshotArgs = {
   projectId: string;
   userId?: string;
-  standardizeClientDownloadName?: boolean;
 };
 
 type ClientMembershipContact = {
@@ -65,7 +64,7 @@ async function fetchAuditStateTimestamps(projectId: string): Promise<Partial<Rec
   return map;
 }
 
-export async function getProjectSnapshot({ projectId, userId, standardizeClientDownloadName = false }: SnapshotArgs) {
+export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
   const project = await prisma.project.findUnique({
     where: { id: projectId },
     select: {
@@ -76,7 +75,6 @@ export async function getProjectSnapshot({ projectId, userId, standardizeClientD
       updatedAt: true,
       client: {
         select: {
-          name: true,
           memberships: {
             select: {
               role: true,
@@ -221,28 +219,18 @@ export async function getProjectSnapshot({ projectId, userId, standardizeClientD
 
   const finalAsset = project.fileAssets.find((f) => f.kind === "final_zip");
   const hasApprovedConcept = project.concepts.some((concept) => concept.status === "approved");
+  const finalZip = buildFinalDeliverableSnapshot({
+    persistedStatus: project.status,
+    hasApprovedConcept,
+    hasFinalAsset: Boolean(finalAsset),
+  });
+  const finalZipAvailable = finalZip.available;
   const effectiveStatus = deriveDisplayProjectStatus({
     persistedStatus: project.status,
     hasApprovedConcept,
-    hasFinalDeliverable: Boolean(finalAsset),
+    hasFinalDeliverable: finalZipAvailable,
   });
   const primaryClientContact = getPrimaryClientContact(project.client.memberships);
-
-  const finalZipDownloadName = finalAsset && standardizeClientDownloadName
-    ? buildFinalDeliverableFilename({
-        clientName: primaryClientContact?.fullName,
-        clientEmail: primaryClientContact?.email,
-        companyName: project.client.name,
-        createdAt: finalAsset.createdAt,
-      })
-    : undefined;
-
-  const finalZip = finalAsset
-    ? {
-        available: true,
-        url: await createSignedFinalDeliverableUrl(finalAsset.path, 60 * 60, finalZipDownloadName),
-      }
-    : { available: false, url: null };
 
   const inferredTimestamps: Partial<Record<ProjectState, string>> = {
     AWAITING_BRIEF: asIso(project.createdAt),
@@ -263,7 +251,7 @@ export async function getProjectSnapshot({ projectId, userId, standardizeClientD
   const approvedConcept = project.concepts.find((c) => c.status === "approved");
   if (approvedConcept) inferredTimestamps.AWAITING_APPROVAL = asIso(approvedConcept.updatedAt);
 
-  if (finalAsset?.createdAt) inferredTimestamps.FINAL_FILES_READY = asIso(finalAsset.createdAt);
+  if (finalZipAvailable && finalAsset?.createdAt) inferredTimestamps.FINAL_FILES_READY = asIso(finalAsset.createdAt);
 
   const auditTimestamps = await fetchAuditStateTimestamps(project.id);
   const timestamps = { ...inferredTimestamps, ...auditTimestamps };
@@ -290,7 +278,7 @@ export async function getProjectSnapshot({ projectId, userId, standardizeClientD
   const overviewStatus = deriveOverviewBadgeStatus({
     persistedStatus: project.status,
     hasApprovedConcept,
-    hasFinalDeliverable: Boolean(finalAsset),
+    hasFinalDeliverable: finalZipAvailable,
   });
 
   return {
