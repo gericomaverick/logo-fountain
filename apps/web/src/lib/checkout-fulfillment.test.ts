@@ -48,6 +48,7 @@ const session = {
   currency: "gbp",
   amount_total: 4900,
   payment_intent: "pi_123",
+  payment_status: "paid",
 } as const;
 
 describe("fulfillCheckoutSession", () => {
@@ -71,6 +72,26 @@ describe("fulfillCheckoutSession", () => {
     mocks.tx.projectOrder.create.mockResolvedValue({ id: "order-1" });
     mocks.prisma.projectOrder.findUnique.mockResolvedValue(null);
     mocks.prisma.projectOrder.findFirst.mockResolvedValue(null);
+  });
+
+  it("rejects unpaid sessions before lookups and provisions nothing", async () => {
+    await expect(
+      fulfillCheckoutSession({ ...session, payment_status: "unpaid" } as never),
+    ).rejects.toMatchObject({
+      name: "CheckoutSessionNotPaidError",
+      code: "CHECKOUT_SESSION_NOT_PAID",
+      paymentStatus: "unpaid",
+    });
+
+    expect(mocks.prisma.projectOrder.findUnique).not.toHaveBeenCalled();
+    expect(mocks.prisma.projectOrder.findFirst).not.toHaveBeenCalled();
+    expect(mocks.listLineItems).not.toHaveBeenCalled();
+    expect(mocks.prisma.$transaction).not.toHaveBeenCalled();
+    expect(mocks.tx.client.create).not.toHaveBeenCalled();
+    expect(mocks.tx.project.create).not.toHaveBeenCalled();
+    expect(mocks.tx.projectEntitlement.createMany).not.toHaveBeenCalled();
+    expect(mocks.tx.projectOrder.create).not.toHaveBeenCalled();
+    expect(mocks.logAudit).not.toHaveBeenCalled();
   });
 
   it("returns deduped result immediately when order already exists", async () => {

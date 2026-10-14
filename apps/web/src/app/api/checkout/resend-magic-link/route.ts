@@ -70,6 +70,9 @@ export async function POST(req: Request) {
       purchaserEmail,
       projectId: order.projectId,
       baseUrl: appBaseUrl,
+      // Session IDs are public redirect artifacts, so resend requests may only
+      // deliver a sign-in link. They must never authorize password setup.
+      flow: "signin",
     });
 
     resendRateLimit.set(rateKey, now);

@@ -9,6 +9,15 @@ export const ORDER_STATUS_FULFILLED = "FULFILLED";
 export const ORDER_STATUS_NEEDS_CONTACT = "NEEDS_CONTACT";
 const PROJECT_STATUS_AWAITING_BRIEF = "AWAITING_BRIEF";
 
+export class CheckoutSessionNotPaidError extends Error {
+  readonly code = "CHECKOUT_SESSION_NOT_PAID";
+
+  constructor(readonly paymentStatus: string | null) {
+    super(`Checkout session is not paid (payment_status: ${paymentStatus ?? "missing"})`);
+    this.name = "CheckoutSessionNotPaidError";
+  }
+}
+
 const PACKAGE_ENTITLEMENTS: Record<PackageCode, Array<{ key: string; limitInt: number }>> = {
   essential: [
     { key: "concepts", limitInt: 1 },
@@ -315,6 +324,12 @@ async function fulfillUpsellSession(
 }
 
 export async function fulfillCheckoutSession(session: Stripe.Checkout.Session): Promise<FulfillmentResult> {
+  // This is the shared trust boundary used by webhooks and manual reprocessing.
+  // Check payment before dedupe lookups or any purchaser/provisioning work.
+  if (session.payment_status !== "paid") {
+    throw new CheckoutSessionNotPaidError(session.payment_status ?? null);
+  }
+
   const sessionId = session.id;
   const purchaserEmail = await purchaserEmailFromSession(session);
   const checkoutName = checkoutNameFromSession(session);

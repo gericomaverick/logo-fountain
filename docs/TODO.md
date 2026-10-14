@@ -52,6 +52,12 @@ Step 4 notes:
   - Uses existing marketing typography/tokens with responsive 1-col mobile / 3-col desktop card grid.
   - Each package CTA routes into the existing Stripe path via `/pricing?package=<tier>`.
 
+## Emergency checkout security hardening
+- [x] Stop returning Supabase bearer/action links from checkout Session ID endpoints; authentication links are now delivered only to the purchaser mailbox.
+- [x] Keep public resend/continuation requests to sign-in-only links, while trusted first-purchase webhook provisioning may offer initial password setup.
+- [x] Reject unpaid Stripe Checkout Sessions at the shared fulfillment boundary used by webhooks and admin reprocessing.
+- [x] Add focused regressions for fulfilled Session ID credential disclosure and zero provisioning for unpaid sessions.
+
 ## Notes
 - Use subagents for implementation.
 - After each step: update this file and commit the change.

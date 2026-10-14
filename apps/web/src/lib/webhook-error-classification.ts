@@ -57,6 +57,8 @@ export function classifyWebhookError(error: unknown): WebhookErrorClassification
   }
 
   if (
+    code === "CHECKOUT_SESSION_NOT_PAID" ||
+    message.includes("checkout session is not paid") ||
     message.includes("malformed stripe event payload") ||
     message.includes("allowlisted package") ||
     message.includes("missing checkout session id")

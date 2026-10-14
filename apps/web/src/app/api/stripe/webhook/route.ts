@@ -9,7 +9,7 @@ import {
   ORDER_STATUS_FULFILLED,
   ORDER_STATUS_NEEDS_CONTACT,
 } from "@/lib/checkout-fulfillment";
-import { sendCheckoutContinueEmail } from "@/lib/checkout-continue-email";
+import { generateAndSendMagicLinkEmail } from "@/lib/magic-link-email";
 import { classifyWebhookError } from "@/lib/webhook-error-classification";
 import { getPublicSiteOrigin } from "@/lib/request-origin";
 import { notifyAdminNewProject } from "@/lib/project-lifecycle-email";
@@ -109,10 +109,12 @@ export async function POST(req: Request) {
     if (fulfillment.purchaserEmail) {
       const appBaseUrl = getPublicSiteOrigin(req);
       try {
-        await sendCheckoutContinueEmail({
+        await generateAndSendMagicLinkEmail({
           purchaserEmail: fulfillment.purchaserEmail,
           baseUrl: appBaseUrl,
-          sessionId: session.id,
+          projectId: fulfillment.projectId,
+          // Only trusted provisioning may select setup. Public endpoints always
+          // fall back to sign-in so a leaked Session ID cannot change a password.
           flow: isReturningCustomer ? "signin" : "setup",
         });
       } catch (emailError) {

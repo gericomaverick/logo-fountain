@@ -78,6 +78,7 @@ describe("POST /api/checkout/resend-magic-link", () => {
       purchaserEmail: "client@example.com",
       projectId: "project-1",
       baseUrl: "https://logofountain.co.uk",
+      flow: "signin",
     });
   });
 

@@ -4,7 +4,7 @@ const mocks = vi.hoisted(() => ({
   constructEvent: vi.fn(),
   fulfillCheckoutSession: vi.fn(),
   ensureAccessProvisioning: vi.fn(),
-  sendCheckoutContinueEmail: vi.fn(),
+  generateAndSendMagicLinkEmail: vi.fn(),
   notifyAdminNewProject: vi.fn(),
   getPublicSiteOrigin: vi.fn(),
   prisma: {
@@ -24,7 +24,7 @@ vi.mock("@/lib/stripe", () => ({
 }));
 
 vi.mock("@/lib/prisma", () => ({ prisma: mocks.prisma }));
-vi.mock("@/lib/checkout-continue-email", () => ({ sendCheckoutContinueEmail: mocks.sendCheckoutContinueEmail }));
+vi.mock("@/lib/magic-link-email", () => ({ generateAndSendMagicLinkEmail: mocks.generateAndSendMagicLinkEmail }));
 vi.mock("@/lib/project-lifecycle-email", () => ({ notifyAdminNewProject: mocks.notifyAdminNewProject }));
 vi.mock("@/lib/request-origin", () => ({ getPublicSiteOrigin: mocks.getPublicSiteOrigin }));
 vi.mock("@/lib/checkout-fulfillment", () => ({
@@ -60,7 +60,7 @@ describe("POST /api/stripe/webhook", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.STRIPE_WEBHOOK_SECRET = "whsec_test";
-    mocks.sendCheckoutContinueEmail.mockResolvedValue(undefined);
+    mocks.generateAndSendMagicLinkEmail.mockResolvedValue({ skipped: false });
     mocks.ensureAccessProvisioning.mockResolvedValue({ userId: "user-1", existed: false });
     mocks.prisma.stripeEvent.create.mockResolvedValue(undefined);
     mocks.getPublicSiteOrigin.mockReturnValue("https://app.example.com");
@@ -129,10 +129,10 @@ describe("POST /api/stripe/webhook", () => {
       where: { eventId: "evt_new" },
       data: { processedAt: expect.any(Date) },
     });
-    expect(mocks.sendCheckoutContinueEmail).toHaveBeenCalledWith({
+    expect(mocks.generateAndSendMagicLinkEmail).toHaveBeenCalledWith({
       purchaserEmail: "buyer@example.com",
       baseUrl: "https://app.example.com",
-      sessionId: "cs_new",
+      projectId: "project-1",
       flow: "setup",
     });
     expect(mocks.notifyAdminNewProject).toHaveBeenCalledWith("project-1");
@@ -183,10 +183,10 @@ describe("POST /api/stripe/webhook", () => {
 
     expect(res.status).toBe(200);
     expect(body.isReturningCustomer).toBe(true);
-    expect(mocks.sendCheckoutContinueEmail).toHaveBeenCalledWith({
+    expect(mocks.generateAndSendMagicLinkEmail).toHaveBeenCalledWith({
       purchaserEmail: "buyer@example.com",
       baseUrl: "https://app.example.com",
-      sessionId: "cs_returning",
+      projectId: "project-1",
       flow: "signin",
     });
   });
@@ -241,6 +241,30 @@ describe("POST /api/stripe/webhook", () => {
       where: { eventId: "evt_race" },
       data: { processedAt: expect.any(Date) },
     });
+  });
+
+  it("acknowledges an unpaid completed session without provisioning access or sending credentials", async () => {
+    mocks.constructEvent.mockReturnValue({
+      id: "evt_unpaid",
+      type: "checkout.session.completed",
+      created: 1700000000,
+      data: { object: { id: "cs_unpaid", payment_status: "unpaid" } },
+    });
+    mocks.fulfillCheckoutSession.mockRejectedValueOnce({
+      code: "CHECKOUT_SESSION_NOT_PAID",
+      message: "Checkout session is not paid (payment_status: unpaid)",
+    });
+
+    const res = await POST(webhookRequest());
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.fulfilled).toBe(false);
+    expect(body.classification).toBe("permanent");
+    expect(body.retry).toBe(false);
+    expect(mocks.ensureAccessProvisioning).not.toHaveBeenCalled();
+    expect(mocks.generateAndSendMagicLinkEmail).not.toHaveBeenCalled();
+    expect(mocks.notifyAdminNewProject).not.toHaveBeenCalled();
   });
 
   it("returns 500/retry shape for transient fulfillment failures", async () => {

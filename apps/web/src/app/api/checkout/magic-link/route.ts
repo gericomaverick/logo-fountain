@@ -1,5 +1,5 @@
 import { jsonError } from "@/lib/api-error";
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { generateAndSendMagicLinkEmail } from "@/lib/magic-link-email";
 import { prisma } from "@/lib/prisma";
 import { getRequestOrigin } from "@/lib/request-origin";
 
@@ -11,20 +11,6 @@ function parseSessionId(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
   return trimmed ? trimmed : null;
-}
-
-function buildSetPasswordRedirect(baseUrl: string, projectId?: string | null): string {
-  const redirect = new URL("/set-password", baseUrl);
-  const nextPath = projectId ? `/project/${projectId}` : "/dashboard";
-  redirect.searchParams.set("next", nextPath);
-  if (projectId) redirect.searchParams.set("projectId", projectId);
-  return redirect.toString();
-}
-
-function buildSigninRedirect(baseUrl: string, projectId?: string | null): string {
-  const redirect = new URL("/auth/callback", baseUrl);
-  redirect.searchParams.set("next", projectId ? `/project/${projectId}` : "/dashboard");
-  return redirect.toString();
 }
 
 export async function POST(req: Request) {
@@ -41,10 +27,8 @@ export async function POST(req: Request) {
   const order = await prisma.projectOrder.findUnique({
     where: { stripeCheckoutSessionId: sessionId },
     select: {
-      id: true,
       status: true,
       projectId: true,
-      createdAt: true,
       client: { select: { billingEmail: true } },
     },
   });
@@ -56,34 +40,25 @@ export async function POST(req: Request) {
   const purchaserEmail = order.client.billingEmail?.trim().toLowerCase();
   if (!purchaserEmail) return jsonError("No purchaser email found.", 409, undefined, "MISSING_EMAIL");
 
-  const priorOrder = await prisma.projectOrder.findFirst({
-    where: {
-      id: { not: order.id },
-      createdAt: { lt: order.createdAt },
-      status: "FULFILLED",
-      client: { billingEmail: purchaserEmail },
-    },
-    select: { id: true },
-  });
+  try {
+    // A Checkout Session ID is not an authentication credential. Always deliver
+    // the bearer link to the purchaser's mailbox, and conservatively use sign-in
+    // (never password setup) when this public endpoint is invoked. First-time
+    // password setup is only selected by trusted webhook provisioning.
+    const result = await generateAndSendMagicLinkEmail({
+      purchaserEmail,
+      baseUrl: getRequestOrigin(req),
+      projectId: order.projectId,
+      flow: "signin",
+    });
 
-  const appBaseUrl = getRequestOrigin(req);
-  const redirectTo = priorOrder
-    ? buildSigninRedirect(appBaseUrl, order.projectId)
-    : buildSetPasswordRedirect(appBaseUrl, order.projectId);
-
-  const supabaseAdmin = createSupabaseAdminClient();
-  const result = await supabaseAdmin.auth.admin.generateLink({
-    type: "magiclink",
-    email: purchaserEmail,
-    options: { redirectTo },
-  });
-
-  if (result.error) {
-    return jsonError(result.error.message, 500, undefined, "MAGIC_LINK_FAILED");
+    return Response.json({
+      ok: true,
+      delivery: result.skipped ? "unavailable" : "email",
+      reason: result.reason,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to send sign-in email";
+    return jsonError(message, 500, undefined, "MAGIC_LINK_SEND_FAILED");
   }
-
-  const actionLink = result.data?.properties?.action_link;
-  if (!actionLink) return jsonError("Magic link missing", 500, undefined, "MAGIC_LINK_MISSING");
-
-  return Response.json({ url: actionLink, flow: priorOrder ? "signin" : "setup" });
 }

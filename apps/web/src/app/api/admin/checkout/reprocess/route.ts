@@ -45,6 +45,18 @@ export async function POST(req: Request) {
       message: fulfillment.deduped ? "Session already fulfilled; ensured access provisioning." : "Session fulfilled successfully.",
     });
   } catch (error) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      (error as { code?: unknown }).code === "CHECKOUT_SESSION_NOT_PAID"
+    ) {
+      return Response.json(
+        { error: { code: "CHECKOUT_SESSION_NOT_PAID", message: "Checkout session has not been paid; nothing was provisioned." } },
+        { status: 409 },
+      );
+    }
+
     return toRouteErrorResponse(error);
   }
 }

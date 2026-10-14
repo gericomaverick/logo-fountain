@@ -34,15 +34,12 @@ export default function CheckoutContinuePage() {
       const data = contentType.includes("application/json") ? await res.json() : null;
 
       if (!res.ok) {
-        const message = data?.error?.message || data?.error || "Unable to generate sign-in link.";
+        const message = data?.error?.message || data?.error || "Unable to send sign-in email.";
         throw new Error(message);
       }
 
-      if (!data?.url) {
-        throw new Error("Sign-in link missing.");
-      }
-
-      window.location.href = data.url as string;
+      setStatus("Sign-in link sent. Check the purchaser email inbox to continue.");
+      setIsSubmitting(false);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Something went wrong.");
       setIsSubmitting(false);
@@ -54,8 +51,8 @@ export default function CheckoutContinuePage() {
       <h1 className="text-2xl font-semibold">{sessionInfo.flow === "signin" ? "Sign in to your account" : "Finish account setup"}</h1>
       <p className="mt-2 text-sm text-neutral-600">
         {sessionInfo.flow === "signin"
-          ? "Click continue to securely sign in and open your latest project."
-          : "Click continue to securely sign in, then set your password."}
+          ? "We’ll email the purchaser a secure sign-in link to open the latest project."
+          : "We’ll email the purchaser a secure sign-in link to finish account access."}
       </p>
 
       <button
@@ -64,7 +61,7 @@ export default function CheckoutContinuePage() {
         disabled={isSubmitting}
         className="mt-6 w-full rounded bg-black px-4 py-2 text-white disabled:opacity-60"
       >
-        {isSubmitting ? "Generating link..." : "Continue"}
+        {isSubmitting ? "Sending email..." : "Email me a sign-in link"}
       </button>
 
       {status ? <p className="mt-4 text-sm text-neutral-700">{status}</p> : null}

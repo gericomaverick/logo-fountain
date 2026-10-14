@@ -129,7 +129,7 @@ export default function SuccessProcessingClient() {
         <>
           <h1 className="text-2xl font-semibold">Check your email for your sign-in link</h1>
           <p className="mt-2 text-sm text-neutral-600">
-            We sent a secure sign-in link. After opening it, you&apos;ll set your password and land in your dashboard.
+            We sent a secure sign-in link to the purchaser email. Open it to finish setup or sign in to your dashboard.
           </p>
           <button
             type="button"

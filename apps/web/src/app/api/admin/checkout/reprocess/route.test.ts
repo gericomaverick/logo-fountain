@@ -109,6 +109,23 @@ describe("POST /api/admin/checkout/reprocess", () => {
     expect(mocks.ensureAccessProvisioning).toHaveBeenCalledWith("client-1", "buyer@example.com");
   });
 
+  it("returns conflict and provisions no access for an unpaid session", async () => {
+    mocks.retrieveSession.mockResolvedValue({ id: "cs_unpaid", payment_status: "unpaid" });
+    mocks.fulfillCheckoutSession.mockRejectedValueOnce({ code: "CHECKOUT_SESSION_NOT_PAID" });
+
+    const res = await POST(
+      new Request("http://localhost/api/admin/checkout/reprocess", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ session_id: "cs_unpaid" }),
+      }),
+    );
+
+    expect(res.status).toBe(409);
+    expect((await res.json()).error.code).toBe("CHECKOUT_SESSION_NOT_PAID");
+    expect(mocks.ensureAccessProvisioning).not.toHaveBeenCalled();
+  });
+
   it("supports idempotent safe re-run", async () => {
     mocks.retrieveSession.mockResolvedValue({ id: "cs_ok" });
     mocks.fulfillCheckoutSession.mockResolvedValue({
