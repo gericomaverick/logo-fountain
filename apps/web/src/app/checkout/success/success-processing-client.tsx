@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
@@ -130,6 +131,10 @@ export default function SuccessProcessingClient() {
           <h1 className="text-2xl font-semibold">Check your email for your sign-in link</h1>
           <p className="mt-2 text-sm text-neutral-600">
             We sent a secure sign-in link to the purchaser email. Open it to finish setup or sign in to your dashboard.
+          </p>
+          <p className="mt-2 text-sm text-neutral-600">
+            If the original first-time setup email expired, sign in through the mailbox link and use the normal{" "}
+            <Link className="underline" href="/forgot-password">password recovery flow</Link>. A checkout session ID cannot reset a password.
           </p>
           <button
             type="button"

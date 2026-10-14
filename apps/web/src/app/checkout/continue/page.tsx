@@ -1,13 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 export default function CheckoutContinuePage() {
   const [sessionInfo] = useState(() => {
-    if (typeof window === "undefined") return { sessionId: "", flow: "setup" as "setup" | "signin" };
+    if (typeof window === "undefined") return { sessionId: "" };
     const search = new URLSearchParams(window.location.search);
-    const flow = search.get("flow") === "signin" ? "signin" : "setup";
-    return { sessionId: search.get("session_id")?.trim() ?? "", flow };
+    return { sessionId: search.get("session_id")?.trim() ?? "" };
   });
   const sessionId = sessionInfo.sessionId;
 
@@ -48,11 +48,9 @@ export default function CheckoutContinuePage() {
 
   return (
     <main className="mx-auto max-w-md p-8">
-      <h1 className="text-2xl font-semibold">{sessionInfo.flow === "signin" ? "Sign in to your account" : "Finish account setup"}</h1>
+      <h1 className="text-2xl font-semibold">Sign in to your account</h1>
       <p className="mt-2 text-sm text-neutral-600">
-        {sessionInfo.flow === "signin"
-          ? "We’ll email the purchaser a secure sign-in link to open the latest project."
-          : "We’ll email the purchaser a secure sign-in link to finish account access."}
+        We’ll email the purchaser a secure sign-in link to open the latest project.
       </p>
 
       <button
@@ -65,6 +63,12 @@ export default function CheckoutContinuePage() {
       </button>
 
       {status ? <p className="mt-4 text-sm text-neutral-700">{status}</p> : null}
+
+      <p className="mt-4 text-sm text-neutral-600">
+        First purchase and need to create or recover a password? Use the normal{" "}
+        <Link className="underline" href="/forgot-password">password recovery flow</Link> after verifying your mailbox.
+        A checkout session link cannot set or reset a password.
+      </p>
 
       {sessionId ? <p className="mt-6 break-all text-xs text-neutral-500">Session: {sessionId}</p> : null}
     </main>

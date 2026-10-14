@@ -1,6 +1,7 @@
 import "server-only";
 
 import { renderBrandedEmail } from "@/lib/email-branding";
+import { getSecuritySensitivePublicOrigin } from "@/lib/request-origin";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const POSTMARK_API_URL = "https://api.postmarkapp.com/email";
@@ -48,11 +49,11 @@ async function generateMagicLink({
   });
 
   if (result.error) {
-    throw new Error(`Failed to generate Supabase magic link: ${result.error.message}`);
+    throw new Error("Authentication provider could not generate a sign-in link");
   }
 
   const actionLink = result.data?.properties?.action_link;
-  if (!actionLink) throw new Error("Supabase did not return action_link for magic link");
+  if (!actionLink) throw new Error("Authentication provider did not generate a sign-in link");
 
   return actionLink;
 }
@@ -68,12 +69,7 @@ async function sendPostmarkEmail({
 }): Promise<MagicLinkSendResult> {
   const postmarkToken = process.env.POSTMARK_SERVER_TOKEN;
   const from = process.env.POSTMARK_FROM;
-
-  if (!postmarkToken || !from) {
-    const reason = "POSTMARK_SERVER_TOKEN or POSTMARK_FROM missing; skipping magic-link email send";
-    console.warn(reason);
-    return { skipped: true, reason };
-  }
+  if (!postmarkToken || !from) throw new Error("Authentication email delivery is not configured");
 
   const isSetup = flow === "setup";
   const subject = isSetup ? "Finish setting up your Logo Fountain account" : "Your Logo Fountain sign-in link";
@@ -114,8 +110,9 @@ async function sendPostmarkEmail({
   });
 
   if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`Postmark send failed (${response.status}): ${body}`);
+    // Never read/propagate the provider response body: it may echo the submitted
+    // email body and therefore the generated bearer URL.
+    throw new Error(`Authentication email delivery failed (${response.status})`);
   }
 
   return { skipped: false };
@@ -123,15 +120,25 @@ async function sendPostmarkEmail({
 
 export async function generateAndSendMagicLinkEmail({
   purchaserEmail,
-  baseUrl,
+  request,
   projectId,
   flow = "signin",
 }: {
   purchaserEmail: string;
-  baseUrl: string;
+  request?: Request;
   projectId?: string | null;
   flow?: MagicLinkFlow;
 }): Promise<MagicLinkSendResult> {
+  // Resolve the canonical origin before generating any credential. Production
+  // fails closed when PUBLIC_SITE_URL is missing/invalid/insecure.
+  const baseUrl = getSecuritySensitivePublicOrigin(request);
+
+  if (!process.env.POSTMARK_SERVER_TOKEN || !process.env.POSTMARK_FROM) {
+    const reason = "Authentication email delivery is not configured";
+    console.warn(reason);
+    return { skipped: true, reason };
+  }
+
   const actionLink = await generateMagicLink({ email: purchaserEmail, baseUrl, projectId, flow });
   return sendPostmarkEmail({ to: purchaserEmail, actionLink, flow });
 }

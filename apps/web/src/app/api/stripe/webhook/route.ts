@@ -11,7 +11,6 @@ import {
 } from "@/lib/checkout-fulfillment";
 import { generateAndSendMagicLinkEmail } from "@/lib/magic-link-email";
 import { classifyWebhookError } from "@/lib/webhook-error-classification";
-import { getPublicSiteOrigin } from "@/lib/request-origin";
 import { notifyAdminNewProject } from "@/lib/project-lifecycle-email";
 
 export const runtime = "nodejs";
@@ -107,18 +106,18 @@ export async function POST(req: Request) {
     }
 
     if (fulfillment.purchaserEmail) {
-      const appBaseUrl = getPublicSiteOrigin(req);
       try {
         await generateAndSendMagicLinkEmail({
           purchaserEmail: fulfillment.purchaserEmail,
-          baseUrl: appBaseUrl,
+          request: req,
           projectId: fulfillment.projectId,
           // Only trusted provisioning may select setup. Public endpoints always
           // fall back to sign-in so a leaked Session ID cannot change a password.
           flow: isReturningCustomer ? "signin" : "setup",
         });
-      } catch (emailError) {
-        console.error("Failed to send checkout magic-link email", emailError);
+      } catch {
+        // Provider errors can contain an echoed email body and bearer URL.
+        console.error("Failed to send checkout authentication email");
       }
     }
 

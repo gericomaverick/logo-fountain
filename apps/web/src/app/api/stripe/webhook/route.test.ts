@@ -6,7 +6,6 @@ const mocks = vi.hoisted(() => ({
   ensureAccessProvisioning: vi.fn(),
   generateAndSendMagicLinkEmail: vi.fn(),
   notifyAdminNewProject: vi.fn(),
-  getPublicSiteOrigin: vi.fn(),
   prisma: {
     stripeEvent: {
       upsert: vi.fn(),
@@ -26,7 +25,6 @@ vi.mock("@/lib/stripe", () => ({
 vi.mock("@/lib/prisma", () => ({ prisma: mocks.prisma }));
 vi.mock("@/lib/magic-link-email", () => ({ generateAndSendMagicLinkEmail: mocks.generateAndSendMagicLinkEmail }));
 vi.mock("@/lib/project-lifecycle-email", () => ({ notifyAdminNewProject: mocks.notifyAdminNewProject }));
-vi.mock("@/lib/request-origin", () => ({ getPublicSiteOrigin: mocks.getPublicSiteOrigin }));
 vi.mock("@/lib/checkout-fulfillment", () => ({
   ORDER_STATUS_FULFILLED: "FULFILLED",
   ORDER_STATUS_NEEDS_CONTACT: "NEEDS_CONTACT",
@@ -63,7 +61,6 @@ describe("POST /api/stripe/webhook", () => {
     mocks.generateAndSendMagicLinkEmail.mockResolvedValue({ skipped: false });
     mocks.ensureAccessProvisioning.mockResolvedValue({ userId: "user-1", existed: false });
     mocks.prisma.stripeEvent.create.mockResolvedValue(undefined);
-    mocks.getPublicSiteOrigin.mockReturnValue("https://app.example.com");
     mocks.prisma.stripeEvent.update.mockResolvedValue(undefined);
   });
 
@@ -131,11 +128,40 @@ describe("POST /api/stripe/webhook", () => {
     });
     expect(mocks.generateAndSendMagicLinkEmail).toHaveBeenCalledWith({
       purchaserEmail: "buyer@example.com",
-      baseUrl: "https://app.example.com",
+      request: expect.any(Request),
       projectId: "project-1",
       flow: "setup",
     });
     expect(mocks.notifyAdminNewProject).toHaveBeenCalledWith("project-1");
+  });
+
+  it("does not log an authentication provider error that may contain a bearer URL", async () => {
+    mocks.constructEvent.mockReturnValue({
+      id: "evt_email_failure",
+      type: "checkout.session.completed",
+      created: 1700000000,
+      data: { object: { id: "cs_email_failure" } },
+    });
+    mocks.fulfillCheckoutSession.mockResolvedValue({
+      deduped: false,
+      projectId: "project-1",
+      orderId: "order-1",
+      clientId: "client-1",
+      purchaserEmail: "buyer@example.com",
+      firstName: "Buyer",
+      lastName: "Name",
+    });
+    mocks.generateAndSendMagicLinkEmail.mockRejectedValueOnce(
+      new Error("provider echoed https://auth.example.com/secret-bearer"),
+    );
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    const res = await POST(webhookRequest());
+
+    expect(res.status).toBe(200);
+    expect(JSON.stringify(errorSpy.mock.calls)).not.toContain("secret-bearer");
+    expect(errorSpy).toHaveBeenCalledWith("Failed to send checkout authentication email");
+    errorSpy.mockRestore();
   });
 
   it("skips new-project admin email for upsell metadata", async () => {
@@ -185,7 +211,7 @@ describe("POST /api/stripe/webhook", () => {
     expect(body.isReturningCustomer).toBe(true);
     expect(mocks.generateAndSendMagicLinkEmail).toHaveBeenCalledWith({
       purchaserEmail: "buyer@example.com",
-      baseUrl: "https://app.example.com",
+      request: expect.any(Request),
       projectId: "project-1",
       flow: "signin",
     });

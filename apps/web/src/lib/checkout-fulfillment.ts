@@ -2,6 +2,7 @@ import type Stripe from "stripe";
 
 import { logAudit } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
+import { getSecuritySensitivePublicOrigin } from "@/lib/request-origin";
 import { PRICE_ID_TO_PACKAGE, stripe, type PackageCode } from "@/lib/stripe";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
@@ -464,7 +465,9 @@ async function resolveOrCreateAuthUserId(email: string): Promise<{ userId: strin
     page += 1;
   }
 
-  const invited = await supabaseAdmin.auth.admin.inviteUserByEmail(email);
+  const callback = new URL("/auth/callback", getSecuritySensitivePublicOrigin());
+  callback.searchParams.set("next", "/dashboard");
+  const invited = await supabaseAdmin.auth.admin.inviteUserByEmail(email, { redirectTo: callback.toString() });
   if (invited.error || !invited.data.user?.id) {
     throw new Error(invited.error?.message || "Failed to invite Supabase auth user");
   }

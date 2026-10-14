@@ -1,16 +1,13 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useState } from "react";
 import Link from "next/link";
 
 import { AuthShell } from "@/components/auth-shell";
 import resetImage from "@/img/image-panel-4.png";
 import { validateEmail } from "@/lib/auth/validation";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export default function ForgotPasswordPage() {
-  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
-
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
@@ -28,19 +25,18 @@ export default function ForgotPasswordPage() {
     setBusy(true);
 
     try {
-      const redirectTo = new URL("/auth/callback", window.location.origin);
-      redirectTo.searchParams.set("next", "/reset-password");
-
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: redirectTo.toString(),
+      const response = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email }),
       });
 
-      if (error) {
-        setStatus(`We couldn’t send the reset email. ${error.message}`);
+      if (!response.ok) {
+        setStatus("We couldn’t start password recovery. Please try again later.");
         return;
       }
 
-      setStatus("Password reset email sent. Check your inbox.");
+      setStatus("If that account exists, a password recovery email has been sent. Check your inbox.");
     } finally {
       setBusy(false);
     }
@@ -88,7 +84,7 @@ export default function ForgotPasswordPage() {
       </form>
 
       {status ? (
-        <p className={`mt-4 text-sm ${status.startsWith("Password reset email sent") ? "text-green-700" : "text-red-700"}`} role="status" aria-live="polite">
+        <p className={`mt-4 text-sm ${status.startsWith("If that account exists") ? "text-green-700" : "text-red-700"}`} role="status" aria-live="polite">
           {status}
         </p>
       ) : null}

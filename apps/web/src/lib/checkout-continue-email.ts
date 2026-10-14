@@ -1,7 +1,7 @@
 import "server-only";
 
 import { renderBrandedEmail } from "@/lib/email-branding";
-import { getConfiguredPublicSiteOrigin } from "@/lib/request-origin";
+import { getSecuritySensitivePublicOrigin } from "@/lib/request-origin";
 
 const POSTMARK_API_URL = "https://api.postmarkapp.com/email";
 
@@ -9,15 +9,19 @@ type SendResult = { skipped: boolean; reason?: string };
 
 export async function sendCheckoutContinueEmail({
   purchaserEmail,
-  baseUrl,
+  request,
   sessionId,
   flow = "setup",
 }: {
   purchaserEmail: string;
-  baseUrl: string;
+  request?: Request;
   sessionId: string;
   flow?: "setup" | "signin";
 }): Promise<SendResult> {
+  const continueUrl = new URL("/checkout/continue", getSecuritySensitivePublicOrigin(request));
+  continueUrl.searchParams.set("session_id", sessionId);
+  continueUrl.searchParams.set("flow", flow);
+
   const postmarkToken = process.env.POSTMARK_SERVER_TOKEN;
   const from = process.env.POSTMARK_FROM;
 
@@ -26,13 +30,6 @@ export async function sendCheckoutContinueEmail({
     console.warn(reason);
     return { skipped: true, reason };
   }
-
-  const configuredBaseUrl = getConfiguredPublicSiteOrigin();
-  const resolvedBaseUrl = configuredBaseUrl ?? baseUrl;
-
-  const continueUrl = new URL("/checkout/continue", resolvedBaseUrl);
-  continueUrl.searchParams.set("session_id", sessionId);
-  continueUrl.searchParams.set("flow", flow);
 
   const isReturning = flow === "signin";
   const subject = isReturning ? "Your new Logo Fountain project is ready" : "Finish setting up your Logo Fountain account";

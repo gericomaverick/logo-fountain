@@ -57,6 +57,8 @@ Step 4 notes:
 - [x] Keep public resend/continuation requests to sign-in-only links, while trusted first-purchase webhook provisioning may offer initial password setup.
 - [x] Reject unpaid Stripe Checkout Sessions at the shared fulfillment boundary used by webhooks and admin reprocessing.
 - [x] Add focused regressions for fulfilled Session ID credential disclosure and zero provisioning for unpaid sessions.
+- [x] Pin auth-email redirects to production `PUBLIC_SITE_URL`, consolidate public sends behind bounded per-session/destination limits, and document the process-local residual risk.
+- [ ] Delayed-payment webhook handling is intentionally deferred to the integration branch. Reconciliation must add tests for `checkout.session.async_payment_succeeded`, unpaid `checkout.session.completed`, event deduplication, and exactly-once fulfillment/provisioning across the event sequence.
 
 ## Notes
 - Use subagents for implementation.

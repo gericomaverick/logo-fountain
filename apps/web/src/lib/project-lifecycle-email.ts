@@ -2,7 +2,7 @@ import "server-only";
 
 import { logAudit } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
-import { getConfiguredPublicSiteOrigin } from "@/lib/request-origin";
+import { getSecuritySensitivePublicOrigin } from "@/lib/request-origin";
 import { renderBrandedEmail } from "@/lib/email-branding";
 import { extractBrandNameFromBriefAnswers } from "@/lib/project-display-name";
 
@@ -16,7 +16,7 @@ function getAdminEmails(): string[] {
 }
 
 function appOrigin(): string {
-  return getConfiguredPublicSiteOrigin() ?? "http://localhost:3000";
+  return getSecuritySensitivePublicOrigin();
 }
 
 type BaseProjectData = {

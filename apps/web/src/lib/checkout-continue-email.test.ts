@@ -35,7 +35,7 @@ describe("sendCheckoutContinueEmail", () => {
     vi.unstubAllGlobals();
   });
 
-  it("prefers PUBLIC_SITE_URL over the provided base URL", async () => {
+  it("uses PUBLIC_SITE_URL rather than request host headers", async () => {
     process.env.PUBLIC_SITE_URL = "https://lan.example.test:3100";
 
     const fetchMock = vi.fn().mockResolvedValue({ ok: true });
@@ -43,7 +43,9 @@ describe("sendCheckoutContinueEmail", () => {
 
     await sendCheckoutContinueEmail({
       purchaserEmail: "buyer@example.com",
-      baseUrl: "http://localhost:3000",
+      request: new Request("http://localhost:3000/webhook", {
+        headers: { host: "evil.example", "x-forwarded-host": "evil.example" },
+      }),
       sessionId: "cs_test",
     });
 
@@ -54,7 +56,7 @@ describe("sendCheckoutContinueEmail", () => {
     expect(body.HtmlBody).toContain("background:#f8f7ff");
   });
 
-  it("falls back to the provided base URL when no env override exists", async () => {
+  it("allows only a directly invoked local URL as a development fallback", async () => {
     delete process.env.PUBLIC_SITE_URL;
     delete process.env.NEXT_PUBLIC_SITE_URL;
 
@@ -63,12 +65,14 @@ describe("sendCheckoutContinueEmail", () => {
 
     await sendCheckoutContinueEmail({
       purchaserEmail: "buyer@example.com",
-      baseUrl: "https://app.local.test:4000",
+      request: new Request("http://127.0.0.1:4000/webhook", {
+        headers: { host: "evil.example", "x-forwarded-host": "evil.example" },
+      }),
       sessionId: "cs_test",
     });
 
     const body = JSON.parse(fetchMock.mock.calls[0][1]?.body as string);
-    expect(body.TextBody).toContain("https://app.local.test:4000/checkout/continue?session_id=cs_test&flow=setup");
+    expect(body.TextBody).toContain("http://127.0.0.1:4000/checkout/continue?session_id=cs_test&flow=setup");
     expect(body.HtmlBody).toContain("data:image/svg+xml");
     expect(body.HtmlBody).toContain("<img src=");
   });
@@ -79,7 +83,7 @@ describe("sendCheckoutContinueEmail", () => {
 
     await sendCheckoutContinueEmail({
       purchaserEmail: "buyer@example.com",
-      baseUrl: "https://app.local.test:4000",
+      request: new Request("http://localhost:4000/webhook"),
       sessionId: "cs_test",
       flow: "signin",
     });

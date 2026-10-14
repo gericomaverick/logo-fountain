@@ -1,12 +1,18 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getConfiguredMarketingSiteOrigin, getPublicSiteOrigin, getRequestOrigin } from "./request-origin";
+import {
+  getConfiguredMarketingSiteOrigin,
+  getPublicSiteOrigin,
+  getRequestOrigin,
+  getSecuritySensitivePublicOrigin,
+} from "./request-origin";
 
 const ORIGINAL_ENV = {
   PUBLIC_SITE_URL: process.env.PUBLIC_SITE_URL,
   NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
   PUBLIC_MARKETING_SITE_URL: process.env.PUBLIC_MARKETING_SITE_URL,
   NEXT_PUBLIC_MARKETING_SITE_URL: process.env.NEXT_PUBLIC_MARKETING_SITE_URL,
+  NODE_ENV: process.env.NODE_ENV,
 };
 
 afterEach(() => {
@@ -21,6 +27,8 @@ afterEach(() => {
 
   if (ORIGINAL_ENV.NEXT_PUBLIC_MARKETING_SITE_URL === undefined) delete process.env.NEXT_PUBLIC_MARKETING_SITE_URL;
   else process.env.NEXT_PUBLIC_MARKETING_SITE_URL = ORIGINAL_ENV.NEXT_PUBLIC_MARKETING_SITE_URL;
+
+  vi.unstubAllEnvs();
 });
 
 describe("getRequestOrigin", () => {
@@ -85,6 +93,52 @@ describe("getConfiguredMarketingSiteOrigin", () => {
     process.env.NEXT_PUBLIC_MARKETING_SITE_URL = "https://marketing.example.test/path";
 
     expect(getConfiguredMarketingSiteOrigin()).toBe("https://marketing.example.test");
+  });
+});
+
+describe("getSecuritySensitivePublicOrigin", () => {
+  it("ignores hostile Host and forwarded headers and uses canonical PUBLIC_SITE_URL", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    process.env.PUBLIC_SITE_URL = "https://app.logofountain.test/some/path";
+
+    const req = new Request("https://internal.example.test/api/checkout/magic-link", {
+      headers: {
+        host: "evil.example",
+        "x-forwarded-host": "evil.example",
+        "x-forwarded-proto": "http",
+      },
+    });
+
+    expect(getSecuritySensitivePublicOrigin(req)).toBe("https://app.logofountain.test");
+  });
+
+  it("fails closed in production when PUBLIC_SITE_URL is absent, invalid, or insecure", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    delete process.env.PUBLIC_SITE_URL;
+    process.env.NEXT_PUBLIC_SITE_URL = "https://not-accepted.example.test";
+
+    const hostile = new Request("https://internal.example.test/path", {
+      headers: { host: "evil.example", "x-forwarded-host": "evil.example" },
+    });
+    expect(() => getSecuritySensitivePublicOrigin(hostile)).toThrow(/PUBLIC_SITE_URL/i);
+
+    process.env.PUBLIC_SITE_URL = "not-a-url";
+    expect(() => getSecuritySensitivePublicOrigin(hostile)).toThrow(/PUBLIC_SITE_URL/i);
+
+    process.env.PUBLIC_SITE_URL = "http://app.example.test";
+    expect(() => getSecuritySensitivePublicOrigin(hostile)).toThrow(/PUBLIC_SITE_URL/i);
+  });
+
+  it("allows only the directly invoked loopback URL as a development fallback", () => {
+    vi.stubEnv("NODE_ENV", "development");
+    delete process.env.PUBLIC_SITE_URL;
+
+    const local = new Request("http://127.0.0.1:3100/path", {
+      headers: { host: "evil.example", "x-forwarded-host": "evil.example" },
+    });
+    expect(getSecuritySensitivePublicOrigin(local)).toBe("http://127.0.0.1:3100");
+
+    expect(() => getSecuritySensitivePublicOrigin(new Request("https://evil.example/path"))).toThrow(/PUBLIC_SITE_URL/i);
   });
 });
 

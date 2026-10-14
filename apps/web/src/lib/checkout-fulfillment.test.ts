@@ -6,11 +6,16 @@ const mocks = vi.hoisted(() => {
     project: { create: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
     projectEntitlement: { createMany: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn(), upsert: vi.fn(), updateMany: vi.fn() },
     projectOrder: { create: vi.fn() },
+    profile: { upsert: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
+    clientMembership: { createMany: vi.fn() },
   };
 
   return {
     listLineItems: vi.fn(),
     logAudit: vi.fn(),
+    createUser: vi.fn(),
+    listUsers: vi.fn(),
+    inviteUserByEmail: vi.fn(),
     prisma: {
       projectOrder: { findUnique: vi.fn(), findFirst: vi.fn() },
       $transaction: vi.fn(async (fn: (trx: typeof tx) => unknown) => fn(tx)),
@@ -21,7 +26,17 @@ const mocks = vi.hoisted(() => {
 
 vi.mock("@/lib/audit", () => ({ logAudit: mocks.logAudit }));
 vi.mock("@/lib/prisma", () => ({ prisma: mocks.prisma }));
-vi.mock("@/lib/supabase/admin", () => ({ createSupabaseAdminClient: vi.fn() }));
+vi.mock("@/lib/supabase/admin", () => ({
+  createSupabaseAdminClient: () => ({
+    auth: {
+      admin: {
+        createUser: mocks.createUser,
+        listUsers: mocks.listUsers,
+        inviteUserByEmail: mocks.inviteUserByEmail,
+      },
+    },
+  }),
+}));
 vi.mock("@/lib/stripe", () => ({
   PRICE_ID_TO_PACKAGE: { price_essential: "essential" },
   stripe: {
@@ -36,7 +51,7 @@ vi.mock("@/lib/stripe", () => ({
   },
 }));
 
-import { fulfillCheckoutSession } from "./checkout-fulfillment";
+import { ensureAccessProvisioning, fulfillCheckoutSession } from "./checkout-fulfillment";
 
 const session = {
   id: "cs_test_12345678",
@@ -70,6 +85,8 @@ describe("fulfillCheckoutSession", () => {
     mocks.tx.projectEntitlement.upsert.mockResolvedValue({ id: "ent-any" });
     mocks.tx.projectEntitlement.updateMany.mockResolvedValue({ count: 1 });
     mocks.tx.projectOrder.create.mockResolvedValue({ id: "order-1" });
+    mocks.tx.profile.upsert.mockResolvedValue({ id: "user-invited" });
+    mocks.tx.clientMembership.createMany.mockResolvedValue({ count: 1 });
     mocks.prisma.projectOrder.findUnique.mockResolvedValue(null);
     mocks.prisma.projectOrder.findFirst.mockResolvedValue(null);
   });
@@ -92,6 +109,20 @@ describe("fulfillCheckoutSession", () => {
     expect(mocks.tx.projectEntitlement.createMany).not.toHaveBeenCalled();
     expect(mocks.tx.projectOrder.create).not.toHaveBeenCalled();
     expect(mocks.logAudit).not.toHaveBeenCalled();
+  });
+
+  it("pins fallback invitation redirects to the canonical public origin", async () => {
+    process.env.PUBLIC_SITE_URL = "https://app.example.com";
+    mocks.createUser.mockResolvedValueOnce({ data: { user: null }, error: { message: "already registered" } });
+    mocks.listUsers.mockResolvedValueOnce({ data: { users: [] }, error: null });
+    mocks.inviteUserByEmail.mockResolvedValueOnce({ data: { user: { id: "user-invited" } }, error: null });
+
+    await ensureAccessProvisioning("client-1", "buyer@example.com");
+
+    expect(mocks.inviteUserByEmail).toHaveBeenCalledWith("buyer@example.com", {
+      redirectTo: "https://app.example.com/auth/callback?next=%2Fdashboard",
+    });
+    delete process.env.PUBLIC_SITE_URL;
   });
 
   it("returns deduped result immediately when order already exists", async () => {

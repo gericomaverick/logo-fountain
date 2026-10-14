@@ -1,27 +1,27 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("server-only", () => ({}));
+
 const mocks = vi.hoisted(() => ({
   generateAndSendMagicLinkEmail: vi.fn(),
-  getRequestOrigin: vi.fn(),
-  prisma: {
-    projectOrder: {
-      findUnique: vi.fn(),
-    },
-  },
+  consumeLimit: vi.fn(),
+  prisma: { projectOrder: { findUnique: vi.fn() } },
 }));
 
 vi.mock("@/lib/prisma", () => ({ prisma: mocks.prisma }));
-vi.mock("@/lib/request-origin", () => ({ getRequestOrigin: mocks.getRequestOrigin }));
 vi.mock("@/lib/magic-link-email", () => ({
   generateAndSendMagicLinkEmail: mocks.generateAndSendMagicLinkEmail,
+}));
+vi.mock("@/lib/checkout-auth-email-rate-limit", () => ({
+  consumeCheckoutAuthEmailLimit: mocks.consumeLimit,
 }));
 
 import { POST } from "./route";
 
-function requestFor(sessionId: string) {
-  return new Request("http://localhost/api/checkout/magic-link", {
+function requestFor(sessionId: string, headers?: HeadersInit) {
+  return new Request("https://internal.example.test/api/checkout/magic-link", {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", ...headers },
     body: JSON.stringify({ session_id: sessionId }),
   });
 }
@@ -29,7 +29,7 @@ function requestFor(sessionId: string) {
 describe("POST /api/checkout/magic-link", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.getRequestOrigin.mockReturnValue("https://app.example.com");
+    mocks.consumeLimit.mockReturnValue({ allowed: true });
     mocks.generateAndSendMagicLinkEmail.mockResolvedValue({ skipped: false });
     mocks.prisma.projectOrder.findUnique.mockResolvedValue({
       status: "FULFILLED",
@@ -39,7 +39,12 @@ describe("POST /api/checkout/magic-link", () => {
   });
 
   it("mail-delivers sign-in and never returns a bearer credential for a fulfilled session id", async () => {
-    const res = await POST(requestFor("cs_stolen_fulfilled"));
+    const req = requestFor("cs_stolen_fulfilled", {
+      host: "evil.example",
+      "x-forwarded-host": "evil.example",
+      "x-forwarded-proto": "http",
+    });
+    const res = await POST(req);
     const body = await res.json();
 
     expect(res.status).toBe(200);
@@ -47,18 +52,37 @@ describe("POST /api/checkout/magic-link", () => {
     expect(JSON.stringify(body)).not.toMatch(/action_link|https:\/\/auth|token/i);
     expect(mocks.generateAndSendMagicLinkEmail).toHaveBeenCalledWith({
       purchaserEmail: "buyer@example.com",
-      baseUrl: "https://app.example.com",
+      request: req,
       projectId: "project-1",
       flow: "signin",
     });
+    expect(mocks.consumeLimit).toHaveBeenCalledWith({
+      sessionId: "cs_stolen_fulfilled",
+      destination: "buyer@example.com",
+    });
   });
 
-  it("never offers password setup through session-id possession, including for an existing or privileged account", async () => {
-    await POST(requestFor("cs_privileged_account"));
-
-    expect(mocks.generateAndSendMagicLinkEmail).toHaveBeenCalledWith(
-      expect.objectContaining({ flow: "signin" }),
+  it("returns a bounded generic response without provider details when delivery fails", async () => {
+    mocks.generateAndSendMagicLinkEmail.mockRejectedValueOnce(
+      new Error("Postmark echoed https://auth.example.com/secret-bearer"),
     );
+
+    const res = await POST(requestFor("cs_failure"));
+    const body = await res.json();
+
+    expect(res.status).toBe(500);
+    expect(body.error).toEqual({ code: "AUTH_EMAIL_SEND_FAILED", message: "Unable to send sign-in email." });
+    expect(JSON.stringify(body)).not.toContain("secret-bearer");
+  });
+
+  it("enforces the shared limiter before generating another credential", async () => {
+    mocks.consumeLimit.mockReturnValueOnce({ allowed: false, retryAfterSeconds: 123 });
+
+    const res = await POST(requestFor("cs_limited"));
+
+    expect(res.status).toBe(429);
+    expect(res.headers.get("retry-after")).toBe("123");
+    expect(mocks.generateAndSendMagicLinkEmail).not.toHaveBeenCalled();
   });
 
   it("does not send authentication mail for an unfulfilled session", async () => {
@@ -72,6 +96,7 @@ describe("POST /api/checkout/magic-link", () => {
 
     expect(res.status).toBe(409);
     expect((await res.json()).error.code).toBe("NOT_FULFILLED");
+    expect(mocks.consumeLimit).not.toHaveBeenCalled();
     expect(mocks.generateAndSendMagicLinkEmail).not.toHaveBeenCalled();
   });
 });
