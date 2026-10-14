@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
+import { shouldShowCheckoutTroubleshooting } from "@/lib/checkout-success";
+
 type CheckoutStatusResponse = {
   fulfilled: boolean;
-  projectId?: string | null;
 };
 
 const FAST_POLL_INTERVAL_MS = 2000;
@@ -23,7 +24,6 @@ export default function SuccessProcessingClient() {
   const [showTroubleshooting, setShowTroubleshooting] = useState(false);
   const [retryNonce, setRetryNonce] = useState(0);
   const [isFulfilled, setIsFulfilled] = useState(false);
-  const [fulfilledProjectId, setFulfilledProjectId] = useState<string | null>(null);
   const [resendState, setResendState] = useState<ResendState>("idle");
   const [resendMessage, setResendMessage] = useState<string | null>(null);
 
@@ -57,7 +57,6 @@ export default function SuccessProcessingClient() {
 
         if (data.fulfilled) {
           setIsFulfilled(true);
-          setFulfilledProjectId(data.projectId ?? null);
           setErrorMessage(null);
           return;
         }
@@ -150,7 +149,7 @@ export default function SuccessProcessingClient() {
 
       {sessionId ? <p className="mt-4 text-xs text-neutral-500">Session: {sessionId}</p> : null}
 
-      {showTroubleshooting && !fulfilledProjectId ? (
+      {shouldShowCheckoutTroubleshooting(showTroubleshooting, isFulfilled) ? (
         <div className="mt-6 rounded-lg border border-amber-300 bg-amber-50 p-4">
           <p className="text-sm font-medium text-amber-900">Still waiting for confirmation</p>
           <p className="mt-2 text-sm text-amber-800">

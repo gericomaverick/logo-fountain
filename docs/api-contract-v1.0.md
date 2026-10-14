@@ -105,7 +105,7 @@ Request:
 Upload metadata for a concept (file handled separately).
 
 ### POST `/api/admin/projects/:projectId/finals`
-Upload final deliverable set.
+Upload a final deliverable set to a new immutable/versioned storage path, then transactionally publish the new exact asset record under project-status and approval guards. On replacement, the prior DB record is removed only in the publishing transaction; failed publication cleans up the new object, and successful replacement cleans up the old object best-effort. If final-ready client email cannot be sent in production, the response is an actionable `502`/`503` partial failure with `committed: true` rather than a normal success.
 
 ### POST `/api/admin/projects/:projectId/override-entitlements`
 Request:

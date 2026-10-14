@@ -41,8 +41,8 @@ test.describe("launch-critical public and account recovery flows", () => {
   test("checkout continue surfaces missing session id instead of failing silently", async ({ page }) => {
     await page.goto("/checkout/continue");
 
-    await expect(page.getByRole("heading", { name: "Finish account setup" })).toBeVisible();
-    await page.getByRole("button", { name: "Continue" }).click();
+    await expect(page.getByRole("heading", { name: "Sign in to your account" })).toBeVisible();
+    await page.getByRole("button", { name: "Email me a sign-in link" }).click();
 
     await expect(page.getByText("Missing session id.")).toBeVisible();
   });

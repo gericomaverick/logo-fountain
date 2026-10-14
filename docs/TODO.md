@@ -7,10 +7,11 @@ This file is the single source of truth for in-progress work. Update it after ea
 - [x] Integrated reviewed checkout/auth and webhook/final-delivery commit chains with manual webhook conflict resolution.
 - [x] Added delayed-payment success/failure handling through the claimed idempotent fulfillment path.
 - [x] Made required webhook email outcomes explicit and retryable after durable fulfillment; documented at-least-once semantics and rare duplicate risk without a schema migration.
-- [x] Added final-file repair/replacement handling for `FINAL_FILES_READY` and `DELIVERED`, exact-asset download guards, bounded transactions, retryable conflicts, and canonical same-origin POST checks.
+- [x] Added immutable/versioned final-file repair/replacement handling for `FINAL_FILES_READY` and `DELIVERED`, guarded metadata switching and storage cleanup, exact-asset download guards, bounded transactions, retryable conflicts, and canonical same-origin POST checks.
 - [x] Added bounded process-local forgot-password abuse controls with uniform anti-enumeration responses, and minimized public checkout-status data.
+- [ ] Residual: public checkout status/magic-link endpoints remain lookup targets for high-volume Session-ID guessing. Session IDs are high entropy and responses are coarse, but a future distributed edge limiter should supplement the current per-email/session process-local controls.
 
-Validation note: no dependencies were installed or updated; validation reused the identical-lockfile `node_modules` from the reviewed webhook worktree. Targeted tests (60), the full unit suite (250), and typecheck pass. Lint passes with two pre-existing warnings. The default Turbopack build is blocked by the external dependency symlink; the webpack fallback compiles and typechecks, then stops during page-data collection because `STRIPE_SECRET_KEY` and `DATABASE_URL` are unavailable. E2E was not run because those app prerequisites are absent.
+Validation note: no dependencies were installed or updated; validation reused the identical-lockfile `node_modules` from the reviewed webhook worktree. The focused release-blocker set passes (5 files, 89 tests), the reconciled full unit suite passes (78 files, 363 tests), typecheck passes, and lint has 0 errors with 2 pre-existing warnings. A production webpack build passes using non-live placeholder environment values. Playwright passes all 5 E2E tests when its dev server is started with webpack; the default Turbopack build/dev commands remain incompatible with the external dependency symlink used in this worktree.
 
 ## Dashboard / Portal plan (execute in this order)
 
@@ -68,7 +69,7 @@ Step 4 notes:
 - [x] Reject unpaid Stripe Checkout Sessions at the shared fulfillment boundary used by webhooks and admin reprocessing.
 - [x] Add focused regressions for fulfilled Session ID credential disclosure and zero provisioning for unpaid sessions.
 - [x] Pin auth-email redirects to production `PUBLIC_SITE_URL`, consolidate public sends behind bounded per-session/destination limits, and document the process-local residual risk.
-- [ ] Delayed-payment webhook handling is intentionally deferred to the integration branch. Reconciliation must add tests for `checkout.session.async_payment_succeeded`, unpaid `checkout.session.completed`, event deduplication, and exactly-once fulfillment/provisioning across the event sequence.
+- [x] Reconciled delayed-payment webhook handling: `checkout.session.async_payment_succeeded` retrieves the paid Session, unpaid completion does not provision, distinct event IDs for one Session converge through durable idempotent fulfillment, and email side effects remain explicitly at-least-once (rare duplicates are possible).
 
 ## Notes
 - Use subagents for implementation.

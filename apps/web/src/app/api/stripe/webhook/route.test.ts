@@ -339,6 +339,55 @@ describe("POST /api/stripe/webhook", () => {
     });
   });
 
+  it("converges distinct event IDs for the same Checkout Session while preserving at-least-once side effects", async () => {
+    const firstFulfillment = deferred<{
+      deduped: boolean; projectId: string; orderId: string; clientId: string;
+      purchaserEmail: string; firstName: string; lastName: string;
+    }>();
+    const secondFulfillment = deferred<{
+      deduped: boolean; projectId: string; orderId: string; clientId: string;
+      purchaserEmail: string; firstName: string; lastName: string;
+    }>();
+    mocks.constructEvent
+      .mockReturnValueOnce({
+        id: "evt_session_race_a", type: "checkout.session.completed", created: 1700000000,
+        data: { object: { id: "cs_shared", payment_status: "paid" } },
+      })
+      .mockReturnValueOnce({
+        id: "evt_session_race_b", type: "checkout.session.async_payment_succeeded", created: 1700000001,
+        data: { object: { id: "cs_shared", payment_status: "paid" } },
+      });
+    mocks.retrieveSession.mockResolvedValueOnce({ id: "cs_shared", payment_status: "paid" });
+    mocks.fulfillCheckoutSession
+      .mockImplementationOnce(() => firstFulfillment.promise)
+      .mockImplementationOnce(() => secondFulfillment.promise);
+
+    const firstRequest = POST(webhookRequest());
+    const secondRequest = POST(webhookRequest());
+    await Promise.resolve();
+
+    firstFulfillment.resolve({
+      deduped: false, projectId: "project-shared", orderId: "order-shared", clientId: "client-shared",
+      purchaserEmail: "buyer@example.com", firstName: "Shared", lastName: "Buyer",
+    });
+    secondFulfillment.resolve({
+      deduped: true, projectId: "project-shared", orderId: "order-shared", clientId: "client-shared",
+      purchaserEmail: "buyer@example.com", firstName: "Shared", lastName: "Buyer",
+    });
+
+    const [firstResponse, secondResponse] = await Promise.all([firstRequest, secondRequest]);
+    expect(firstResponse.status).toBe(200);
+    expect(secondResponse.status).toBe(200);
+    expect(mocks.fulfillCheckoutSession).toHaveBeenCalledTimes(2);
+    expect(mocks.fulfillCheckoutSession.mock.calls.map(([session]) => session.id)).toEqual(["cs_shared", "cs_shared"]);
+    expect(await firstResponse.json()).toMatchObject({ fulfilled: true, projectId: "project-shared" });
+    expect(await secondResponse.json()).toMatchObject({ fulfilled: true, projectId: "project-shared" });
+    // Without a schema-level delivery claim, concurrent attempts may both send.
+    // At-least-once requires one or more attempts; exactly-once is not asserted.
+    expect(mocks.generateAndSendMagicLinkEmail.mock.calls.length).toBeGreaterThanOrEqual(1);
+    expect(mocks.notifyAdminNewProject.mock.calls.length).toBeGreaterThanOrEqual(1);
+  });
+
   it("acknowledges an unpaid completed session without provisioning access or sending credentials", async () => {
     mocks.constructEvent.mockReturnValue({
       id: "evt_unpaid",

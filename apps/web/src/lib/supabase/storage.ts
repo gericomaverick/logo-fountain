@@ -1,5 +1,7 @@
 import "server-only";
 
+import { randomUUID } from "node:crypto";
+
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const SUPABASE_STORAGE_BUCKET_CONCEPTS = "concepts";
@@ -62,7 +64,10 @@ export async function uploadConceptAsset({ bucketPath, file, upsert = true }: Up
 
 export async function uploadFinalDeliverable({ projectId, file }: UploadFinalDeliverableInput) {
   const ext = inferExtension(file);
-  const path = `${projectId}/final-deliverable.${ext}`;
+  // Final objects are immutable. Replacements publish a fresh database record
+  // pointing at a fresh object; an authorization race can never expose changed
+  // bytes through an already-authorized path.
+  const path = `${projectId}/finals/${randomUUID()}.${ext}`;
   const bytes = new Uint8Array(await file.arrayBuffer());
   const admin = createSupabaseAdminClient();
 
@@ -70,7 +75,7 @@ export async function uploadFinalDeliverable({ projectId, file }: UploadFinalDel
     .from(SUPABASE_STORAGE_BUCKET_FINAL_DELIVERABLES)
     .upload(path, bytes, {
       contentType: file.type || "application/octet-stream",
-      upsert: true,
+      upsert: false,
     });
 
   if (error) {
