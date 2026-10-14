@@ -76,7 +76,7 @@ describe("project lifecycle emails", () => {
   });
 
   it("sends client concept-ready emails once per concept id", async () => {
-    await notifyClientConceptReady("p1", "c1");
+    await expect(notifyClientConceptReady("p1", "c1")).resolves.toEqual({ status: "sent" });
 
     expect(mocks.fetch).toHaveBeenCalledTimes(1);
     const payload = JSON.parse(mocks.fetch.mock.calls[0][1].body as string);
@@ -86,6 +86,26 @@ describe("project lifecycle emails", () => {
     mocks.findAudit.mockResolvedValueOnce({ id: "audit-existing" });
     await notifyClientConceptReady("p1", "c1");
     expect(mocks.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns explicit skipped status and does not mark sent when configuration is missing", async () => {
+    delete process.env.POSTMARK_SERVER_TOKEN;
+
+    await expect(notifyAdminNewProject("p1")).resolves.toEqual({
+      status: "skipped",
+      reason: "not_configured",
+    });
+    expect(mocks.fetch).not.toHaveBeenCalled();
+    expect(mocks.createAudit).not.toHaveBeenCalled();
+  });
+
+  it("does not read or expose a rejected provider response body", async () => {
+    const text = vi.fn().mockResolvedValue("secret provider body");
+    mocks.fetch.mockResolvedValueOnce({ ok: false, status: 422, text });
+
+    await expect(notifyAdminNewProject("p1")).rejects.toThrow("Postmark send failed (422)");
+    expect(text).not.toHaveBeenCalled();
+    expect(mocks.createAudit).not.toHaveBeenCalled();
   });
 
   it("routes admin notifications to ADMIN_EMAILS and includes project and client context", async () => {

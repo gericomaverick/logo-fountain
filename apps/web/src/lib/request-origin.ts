@@ -63,6 +63,17 @@ function isSafeLocalOrigin(origin: URL): boolean {
  * Host and forwarded headers are never considered. Development may use the URL
  * the local server was directly invoked with, but only for loopback hosts.
  */
+export function hasCanonicalSameOrigin(req: Request): boolean {
+  const supplied = req.headers.get("origin");
+  if (!supplied) return false;
+
+  try {
+    return new URL(supplied).origin === getSecuritySensitivePublicOrigin(req);
+  } catch {
+    return false;
+  }
+}
+
 export function getSecuritySensitivePublicOrigin(req?: Request): string {
   const configured = parseOrigin(process.env.PUBLIC_SITE_URL);
   if (configured) {

@@ -33,11 +33,12 @@ Used by success page polling.
 
 Response:
 ```json
-{ "status": "pending|paid|fulfilled|failed", "orderId": "uuid", "projectId": "uuid|null" }
+{ "status": "PENDING", "fulfilled": false }
 ```
+`status` is only `PENDING` or `FULFILLED`. This public bearer-style lookup does not return internal order/project IDs or Stripe/customer diagnostics.
 
 ### POST `/api/stripe/webhook`
-Stripe webhook receiver (signature verified). Returns 2xx quickly.
+Stripe webhook receiver (signature verified). Paid completion and delayed-payment success use the same claimed/idempotent fulfillment path; delayed-payment failure is recorded without provisioning. Retryable processing/side-effect failures return non-2xx.
 
 ---
 

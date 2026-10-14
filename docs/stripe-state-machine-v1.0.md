@@ -4,7 +4,7 @@
 
 Assumptions:
 - One-time payments via Stripe Checkout.
-- Fulfillment only via `checkout.session.completed` webhook.
+- Fulfillment via a paid `checkout.session.completed` webhook, or a retrieved paid Checkout Session after `checkout.session.async_payment_succeeded` for delayed payment methods.
 
 ---
 
@@ -40,6 +40,16 @@ Actions:
 - create `project_entitlements` snapshot for package (Option B) + any add-ons
 - mark order `fulfilled`
 - emit `audit_event`: `order_fulfilled`
+
+### Event: `checkout.session.async_payment_succeeded`
+- retrieve the Checkout Session from Stripe
+- require `payment_status == paid`
+- run the same claimed, idempotent fulfillment and provisioning path as paid completion
+- an earlier unpaid `checkout.session.completed` must not provision
+
+### Event: `checkout.session.async_payment_failed`
+- record the event as processed and emit sanitized operational telemetry
+- do not fulfill or provision access
 
 ### Event: `checkout.session.expired`
 - mark order `expired` (if still pending)

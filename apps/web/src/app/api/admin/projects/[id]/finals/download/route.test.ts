@@ -22,7 +22,7 @@ vi.mock("@/lib/supabase/storage", () => ({ createSignedFinalDeliverableUrl: mock
 import { POST } from "./route";
 
 function request() {
-  return POST(new Request("http://localhost", { method: "POST" }), { params: Promise.resolve({ id: "p1" }) });
+  return POST(new Request("http://localhost", { method: "POST", headers: { origin: "http://localhost" } }), { params: Promise.resolve({ id: "p1" }) });
 }
 
 describe("POST /api/admin/projects/[id]/finals/download", () => {
@@ -38,10 +38,21 @@ describe("POST /api/admin/projects/[id]/finals/download", () => {
       status: "DELIVERED",
       updatedAt: new Date("2026-03-05T09:00:00Z"),
       client: { name: "Acme", memberships: [] },
-      fileAssets: [{ path: "projects/p1/final.zip", createdAt: new Date("2026-03-05T08:00:00Z") }],
+      fileAssets: [{ id: "asset-1", path: "projects/p1/final.zip", createdAt: new Date("2026-03-05T08:00:00Z") }],
     });
     mocks.tx.project.updateMany.mockResolvedValue({ count: 1 });
     mocks.prisma.$transaction.mockImplementation(async (fn: (tx: typeof mocks.tx) => Promise<unknown>) => fn(mocks.tx));
+  });
+
+  it("rejects cross-origin POSTs before authorization or signing", async () => {
+    const res = await POST(new Request("http://localhost", {
+      method: "POST",
+      headers: { origin: "https://evil.example" },
+    }), { params: Promise.resolve({ id: "p1" }) });
+
+    expect(res.status).toBe(403);
+    expect(mocks.requireUser).not.toHaveBeenCalled();
+    expect(mocks.createSignedFinalDeliverableUrl).not.toHaveBeenCalled();
   });
 
   it("rejects a signed-in non-admin before querying or signing", async () => {
@@ -68,6 +79,29 @@ describe("POST /api/admin/projects/[id]/finals/download", () => {
         fileAssets: { some: { kind: "final_zip" } },
       },
     }));
+  });
+
+  it("binds the guard to the selected asset and bounds the transaction", async () => {
+    await request();
+
+    expect(mocks.tx.project.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        fileAssets: { some: { id: "asset-1", kind: "final_zip", path: "projects/p1/final.zip" } },
+      }),
+    }));
+    expect(mocks.prisma.$transaction).toHaveBeenCalledWith(expect.any(Function), {
+      isolationLevel: "Serializable",
+      maxWait: 2_000,
+      timeout: 5_000,
+    });
+  });
+
+  it("maps Prisma serialization and timeout ownership conflicts to 409", async () => {
+    for (const code of ["P2034", "P2028"]) {
+      mocks.prisma.$transaction.mockRejectedValueOnce({ code });
+      const res = await request();
+      expect(res.status).toBe(409);
+    }
   });
 
   it("does not sign if a concurrent state/approval/asset change loses the guard", async () => {

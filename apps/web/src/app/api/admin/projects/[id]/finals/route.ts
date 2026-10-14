@@ -12,6 +12,7 @@ export const runtime = "nodejs";
 const CONCEPT_STATUS_APPROVED = "approved";
 const PROJECT_STATUS_AWAITING_APPROVAL = "AWAITING_APPROVAL";
 const PROJECT_STATUS_FINAL_FILES_READY = "FINAL_FILES_READY";
+const PROJECT_STATUS_DELIVERED = "DELIVERED";
 
 export async function POST(
   req: Request,
@@ -25,7 +26,7 @@ export async function POST(
 
   const project = await prisma.project.findUnique({
     where: { id: projectId },
-    select: { id: true, status: true },
+    select: { id: true, status: true, updatedAt: true },
   });
 
   if (!project) {
@@ -45,27 +46,52 @@ export async function POST(
   }
 
   try {
+    const hasApproved = (await prisma.concept.count({
+      where: { projectId: project.id, status: CONCEPT_STATUS_APPROVED },
+    })) > 0;
+
+    const isReadyRepair = project.status === PROJECT_STATUS_FINAL_FILES_READY || project.status === PROJECT_STATUS_DELIVERED;
+    if (isReadyRepair && !hasApproved) {
+      return jsonError(
+        "Final-file repair requires an approved concept",
+        400,
+        undefined,
+        "FINAL_REPAIR_REQUIRES_APPROVAL",
+      );
+    }
+
+    const targetStatus = isReadyRepair
+      ? project.status
+      : hasApproved ? PROJECT_STATUS_FINAL_FILES_READY : PROJECT_STATUS_AWAITING_APPROVAL;
+    const stateChanged = targetStatus !== project.status;
+    if (stateChanged) {
+      const transition = applyTransition(project.status, targetStatus);
+      if (!transition.ok) {
+        return jsonError(
+          `Invalid transition from ${project.status} to ${targetStatus}`,
+          400,
+          { allowed: transition.allowed },
+          "INVALID_PROJECT_STATUS_TRANSITION",
+        );
+      }
+    }
+
+    // Validate lifecycle state before writing storage so rejected requests cannot
+    // leave an uploaded object without matching database metadata.
     const upload = await uploadFinalDeliverable({
       projectId: project.id,
       file: fileEntry,
     });
 
-    const hasApproved = (await prisma.concept.count({
-      where: { projectId: project.id, status: CONCEPT_STATUS_APPROVED },
-    })) > 0;
-
-    const targetStatus = hasApproved ? PROJECT_STATUS_FINAL_FILES_READY : PROJECT_STATUS_AWAITING_APPROVAL;
-    const transition = applyTransition(project.status, targetStatus);
-    if (!transition.ok) {
-      return jsonError(
-        `Invalid transition from ${project.status} to ${targetStatus}`,
-        400,
-        { allowed: transition.allowed },
-        "INVALID_PROJECT_STATUS_TRANSITION",
-      );
-    }
-
     const result = await prisma.$transaction(async (tx) => {
+      const statusGuard = await tx.project.updateMany({
+        where: { id: project.id, status: project.status, updatedAt: project.updatedAt },
+        data: stateChanged
+          ? { status: targetStatus }
+          : { status: project.status, updatedAt: project.updatedAt },
+      });
+      if (statusGuard.count !== 1) throw new Error("Project state changed before final metadata update");
+
       const existing = await tx.fileAsset.findFirst({
         where: { projectId: project.id, kind: "final_zip" },
         select: { id: true },
@@ -96,11 +122,7 @@ export async function POST(
             select: { id: true, kind: true, path: true },
           });
 
-      const updatedProject = await tx.project.update({
-        where: { id: project.id },
-        data: { status: targetStatus },
-        select: { id: true, status: true },
-      });
+      const updatedProject = { id: project.id, status: targetStatus };
 
       await logAudit(tx, {
         projectId: project.id,
@@ -109,14 +131,16 @@ export async function POST(
         payload: { fileAssetId: asset.id, path: asset.path },
       });
 
-      await logAudit(tx, {
-        projectId: project.id,
-        actorId: user.id,
-        type: "state_changed",
-        payload: { previousStatus: project.status, nextStatus: targetStatus },
-      });
+      if (stateChanged) {
+        await logAudit(tx, {
+          projectId: project.id,
+          actorId: user.id,
+          type: "state_changed",
+          payload: { previousStatus: project.status, nextStatus: targetStatus },
+        });
+      }
 
-      if (targetStatus === PROJECT_STATUS_FINAL_FILES_READY) {
+      if (stateChanged && targetStatus === PROJECT_STATUS_FINAL_FILES_READY) {
         await createProjectSystemMessage(tx, {
           projectId: project.id,
           fallbackUserId: user.id,

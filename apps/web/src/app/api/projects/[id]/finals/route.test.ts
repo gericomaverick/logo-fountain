@@ -31,12 +31,12 @@ function project(status = "FINAL_FILES_READY") {
     status,
     updatedAt: new Date("2026-03-05T09:00:00.000Z"),
     client: { name: "Acme", memberships: [] },
-    fileAssets: [{ path: "projects/p1/final.zip", createdAt: new Date("2026-03-05T08:00:00.000Z") }],
+    fileAssets: [{ id: "asset-1", path: "projects/p1/final.zip", createdAt: new Date("2026-03-05T08:00:00.000Z") }],
   };
 }
 
 function request() {
-  return POST(new Request("http://localhost", { method: "POST" }), { params: Promise.resolve({ id: "p1" }) });
+  return POST(new Request("http://localhost", { method: "POST", headers: { origin: "http://localhost" } }), { params: Promise.resolve({ id: "p1" }) });
 }
 
 describe("POST /api/projects/[id]/finals", () => {
@@ -55,11 +55,26 @@ describe("POST /api/projects/[id]/finals", () => {
     mocks.prisma.$transaction.mockImplementation(async (fn: (tx: typeof mocks.tx) => Promise<unknown>) => fn(mocks.tx));
   });
 
+  it("rejects cross-origin POSTs before authorization or signing", async () => {
+    const res = await POST(new Request("http://localhost", {
+      method: "POST",
+      headers: { origin: "https://evil.example" },
+    }), { params: Promise.resolve({ id: "p1" }) });
+
+    expect(res.status).toBe(403);
+    expect(mocks.requireUser).not.toHaveBeenCalled();
+    expect(mocks.createSignedFinalDeliverableUrl).not.toHaveBeenCalled();
+  });
+
   it("checks client membership, state, approval and asset inside the guarded transaction", async () => {
     const res = await request();
 
     expect(res.status).toBe(200);
-    expect(mocks.prisma.$transaction).toHaveBeenCalledWith(expect.any(Function), { isolationLevel: "Serializable" });
+    expect(mocks.prisma.$transaction).toHaveBeenCalledWith(expect.any(Function), {
+      isolationLevel: "Serializable",
+      maxWait: 2_000,
+      timeout: 5_000,
+    });
     expect(mocks.tx.project.findFirst).toHaveBeenCalledWith(expect.objectContaining({
       where: {
         id: "p1",
@@ -70,7 +85,10 @@ describe("POST /api/projects/[id]/finals", () => {
       },
     }));
     expect(mocks.tx.project.updateMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: expect.objectContaining({ status: "FINAL_FILES_READY" }),
+      where: expect.objectContaining({
+        status: "FINAL_FILES_READY",
+        fileAssets: { some: { id: "asset-1", kind: "final_zip", path: "projects/p1/final.zip" } },
+      }),
       data: { status: "DELIVERED" },
     }));
     expect(mocks.createSignedFinalDeliverableUrl).toHaveBeenCalled();
@@ -96,6 +114,15 @@ describe("POST /api/projects/[id]/finals", () => {
     expect(body.error.code).toBe("FINAL_DOWNLOAD_CONFLICT");
     expect(mocks.logAudit).not.toHaveBeenCalled();
     expect(mocks.createSignedFinalDeliverableUrl).not.toHaveBeenCalled();
+  });
+
+  it("maps Prisma serialization and transaction timeout conflicts to retryable 409", async () => {
+    for (const code of ["P2034", "P2028"]) {
+      mocks.prisma.$transaction.mockRejectedValueOnce({ code });
+      const res = await request();
+      expect(res.status).toBe(409);
+      await expect(res.json()).resolves.toMatchObject({ error: { code: "FINAL_DOWNLOAD_CONFLICT" } });
+    }
   });
 
   it("transitions and signs FINAL_FILES_READY only after its conditional guard succeeds", async () => {

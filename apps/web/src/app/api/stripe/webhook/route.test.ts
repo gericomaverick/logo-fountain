@@ -1,7 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   constructEvent: vi.fn(),
+  retrieveSession: vi.fn(),
   fulfillCheckoutSession: vi.fn(),
   ensureAccessProvisioning: vi.fn(),
   generateAndSendMagicLinkEmail: vi.fn(),
@@ -24,6 +25,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/lib/stripe", () => ({
   stripe: {
     webhooks: { constructEvent: mocks.constructEvent },
+    checkout: { sessions: { retrieve: mocks.retrieveSession } },
   },
 }));
 
@@ -64,12 +66,17 @@ describe("POST /api/stripe/webhook", () => {
     vi.clearAllMocks();
     process.env.STRIPE_WEBHOOK_SECRET = "whsec_test";
     mocks.generateAndSendMagicLinkEmail.mockResolvedValue({ skipped: false });
+    mocks.notifyAdminNewProject.mockResolvedValue({ status: "sent" });
     mocks.prisma.auditEvent.findFirst.mockResolvedValue(null);
     mocks.prisma.auditEvent.create.mockResolvedValue({ id: "audit-email" });
     mocks.ensureAccessProvisioning.mockResolvedValue({ userId: "user-1", existed: false });
     mocks.prisma.stripeEvent.create.mockResolvedValue(undefined);
     mocks.prisma.stripeEvent.updateMany.mockResolvedValue({ count: 1 });
     mocks.prisma.stripeEvent.deleteMany.mockResolvedValue({ count: 1 });
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it("dedupes already-processed duplicate events with 200 and skips fulfillment", async () => {
@@ -213,9 +220,9 @@ describe("POST /api/stripe/webhook", () => {
 
     const res = await POST(webhookRequest());
 
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(500);
+    expect(await res.json()).toMatchObject({ error: "Webhook processing failed", retry: true });
     expect(JSON.stringify(errorSpy.mock.calls)).not.toContain("secret-bearer");
-    expect(errorSpy).toHaveBeenCalledWith("Failed to send checkout authentication email");
     errorSpy.mockRestore();
   });
 
@@ -546,8 +553,122 @@ describe("POST /api/stripe/webhook", () => {
     const secondRes = await POST(webhookRequest());
     expect(secondRes.status).toBe(200);
     expect(mocks.fulfillCheckoutSession).toHaveBeenCalledTimes(2);
-    expect(mocks.sendCheckoutContinueEmail).toHaveBeenCalledTimes(1);
+    expect(mocks.generateAndSendMagicLinkEmail).toHaveBeenCalledTimes(1);
     expect(mocks.notifyAdminNewProject).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not complete a production event when a required customer email is skipped", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    mocks.constructEvent.mockReturnValue({
+      id: "evt_skipped_email",
+      type: "checkout.session.completed",
+      created: 1700000000,
+      data: { object: { id: "cs_skipped_email" } },
+    });
+    mocks.fulfillCheckoutSession.mockResolvedValue({
+      deduped: true,
+      projectId: "project-1",
+      orderId: "order-1",
+      clientId: "client-1",
+      purchaserEmail: "buyer@example.com",
+      firstName: "Buyer",
+      lastName: "Name",
+    });
+    mocks.generateAndSendMagicLinkEmail.mockResolvedValueOnce({ skipped: true, reason: "not configured" });
+
+    const res = await POST(webhookRequest());
+
+    expect(res.status).toBe(500);
+    expect(mocks.prisma.auditEvent.create).not.toHaveBeenCalled();
+    expect(mocks.notifyAdminNewProject).not.toHaveBeenCalled();
+    expect(mocks.prisma.stripeEvent.deleteMany).toHaveBeenCalled();
+  });
+
+  it("does not complete a production event when the required admin email is skipped", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    mocks.constructEvent.mockReturnValue({
+      id: "evt_skipped_admin",
+      type: "checkout.session.completed",
+      created: 1700000000,
+      data: { object: { id: "cs_skipped_admin" } },
+    });
+    mocks.fulfillCheckoutSession.mockResolvedValue({
+      deduped: true,
+      projectId: "project-1",
+      orderId: "order-1",
+      clientId: "client-1",
+      purchaserEmail: null,
+      firstName: null,
+      lastName: null,
+    });
+    mocks.notifyAdminNewProject.mockResolvedValueOnce({ status: "skipped", reason: "missing_recipient" });
+
+    const res = await POST(webhookRequest());
+
+    expect(res.status).toBe(500);
+    expect(mocks.prisma.stripeEvent.deleteMany).toHaveBeenCalled();
+  });
+
+  it("fulfills a later async success after an unpaid completed event without provisioning early", async () => {
+    const unpaid = {
+      id: "evt_unpaid_sequence",
+      type: "checkout.session.completed",
+      created: 1700000000,
+      data: { object: { id: "cs_delayed", payment_status: "unpaid" } },
+    };
+    const paidEvent = {
+      id: "evt_paid_sequence",
+      type: "checkout.session.async_payment_succeeded",
+      created: 1700000060,
+      data: { object: { id: "cs_delayed", payment_status: "paid" } },
+    };
+    const paidSession = { id: "cs_delayed", payment_status: "paid", metadata: { kind: "addon" } };
+    mocks.constructEvent.mockReturnValueOnce(unpaid).mockReturnValueOnce(paidEvent);
+    mocks.fulfillCheckoutSession
+      .mockRejectedValueOnce({ code: "CHECKOUT_SESSION_NOT_PAID", message: "Checkout session is not paid" })
+      .mockResolvedValueOnce({
+        deduped: false,
+        projectId: "project-delayed",
+        orderId: "order-delayed",
+        clientId: "client-delayed",
+        purchaserEmail: "buyer@example.com",
+        firstName: "Delayed",
+        lastName: "Buyer",
+      });
+    mocks.retrieveSession.mockResolvedValueOnce(paidSession);
+
+    const unpaidRes = await POST(webhookRequest());
+    expect(unpaidRes.status).toBe(200);
+    expect(mocks.ensureAccessProvisioning).not.toHaveBeenCalled();
+
+    const paidRes = await POST(webhookRequest());
+    expect(paidRes.status).toBe(200);
+    expect(mocks.retrieveSession).toHaveBeenCalledWith("cs_delayed");
+    expect(mocks.fulfillCheckoutSession).toHaveBeenLastCalledWith(paidSession);
+    expect(mocks.ensureAccessProvisioning).toHaveBeenCalledTimes(1);
+  });
+
+  it("records async payment failure observably without provisioning", async () => {
+    mocks.constructEvent.mockReturnValue({
+      id: "evt_async_failed",
+      type: "checkout.session.async_payment_failed",
+      created: 1700000000,
+      data: { object: { id: "cs_failed" } },
+    });
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+
+    const res = await POST(webhookRequest());
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ paymentFailed: true });
+    expect(mocks.prisma.stripeEvent.upsert).toHaveBeenCalled();
+    expect(mocks.fulfillCheckoutSession).not.toHaveBeenCalled();
+    expect(mocks.ensureAccessProvisioning).not.toHaveBeenCalled();
+    expect(warn).toHaveBeenCalledWith("Stripe asynchronous checkout payment failed", {
+      id: "evt_async_failed",
+      type: "checkout.session.async_payment_failed",
+    });
+    warn.mockRestore();
   });
 
   it("returns 200/dead-letter shape for permanent fulfillment failures", async () => {

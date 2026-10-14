@@ -50,7 +50,11 @@ export async function POST(req: Request) {
     return new Response(`Webhook signature verification failed: ${message}`, { status: 400 });
   }
 
-  if (event.type !== "checkout.session.completed") {
+  const isFulfillmentEvent = event.type === "checkout.session.completed"
+    || event.type === "checkout.session.async_payment_succeeded";
+  const isAsyncFailure = event.type === "checkout.session.async_payment_failed";
+
+  if (!isFulfillmentEvent) {
     await prisma.stripeEvent.upsert({
       where: { eventId: event.id },
       create: {
@@ -65,6 +69,11 @@ export async function POST(req: Request) {
       },
     });
 
+    if (isAsyncFailure) {
+      // Keep the event durable and observable without logging the provider payload.
+      console.warn("Stripe asynchronous checkout payment failed", { id: event.id, type: event.type });
+      return Response.json({ received: true, paymentFailed: true, id: event.id, type: event.type });
+    }
     return Response.json({ received: true, ignored: true, id: event.id, type: event.type });
   }
 
@@ -126,10 +135,15 @@ export async function POST(req: Request) {
   }
 
   try {
-    const session = event.data.object as Stripe.Checkout.Session;
-    if (!session || typeof session.id !== "string" || session.id.trim().length === 0) {
+    const payloadSession = event.data.object as Stripe.Checkout.Session;
+    if (!payloadSession || typeof payloadSession.id !== "string" || payloadSession.id.trim().length === 0) {
       throw new Error("Malformed Stripe event payload: missing checkout session id");
     }
+    // Delayed-payment success is fulfilled from a fresh Stripe representation,
+    // rather than trusting a potentially sparse webhook object.
+    const session = event.type === "checkout.session.async_payment_succeeded"
+      ? await stripe.checkout.sessions.retrieve(payloadSession.id)
+      : payloadSession;
 
     const fulfillment = await fulfillCheckoutSession(session);
     // Fence off an owner whose lease expired during durable fulfillment before it
@@ -148,22 +162,45 @@ export async function POST(req: Request) {
     }
 
     if (fulfillment.purchaserEmail) {
-      await generateAndSendMagicLinkEmail({
-        purchaserEmail: fulfillment.purchaserEmail,
-        request: req,
-        projectId: fulfillment.projectId,
-        // Only trusted provisioning may select setup. Public endpoints always
-        // fall back to sign-in so a leaked Session ID cannot change a password.
-        flow: isReturningCustomer ? "signin" : "setup",
+      const customerEmailAuditType = `email_sent:checkout_auth:${session.id}`;
+      const alreadySent = await prisma.auditEvent.findFirst({
+        where: { projectId: fulfillment.projectId, type: customerEmailAuditType },
+        select: { id: true },
       });
+      if (!alreadySent) {
+        await renewProcessingLease();
+        const sendResult = await generateAndSendMagicLinkEmail({
+          purchaserEmail: fulfillment.purchaserEmail,
+          request: req,
+          projectId: fulfillment.projectId,
+          // Only trusted provisioning may select setup. Public endpoints always
+          // fall back to sign-in so a leaked Session ID cannot change a password.
+          flow: isReturningCustomer ? "signin" : "setup",
+        });
+        if (sendResult.skipped) {
+          if (process.env.NODE_ENV === "production") throw new Error("Required checkout customer email was skipped");
+        } else {
+          await prisma.auditEvent.create({
+            data: {
+              projectId: fulfillment.projectId,
+              actorId: null,
+              type: customerEmailAuditType,
+              payload: { checkoutSessionId: session.id },
+            },
+          });
+        }
+      }
     }
 
     const isNewProjectCheckout = !session.metadata?.kind;
     if (isNewProjectCheckout) {
-      // notifyAdminNewProject has its own durable audit dedupe marker. Calling it
-      // on deduped fulfillment lets a failed first notification retry safely.
+      // notifyAdminNewProject has its own durable sent marker. Durable fulfillment
+      // may therefore resume this side effect on a later webhook attempt.
       await renewProcessingLease();
-      await notifyAdminNewProject(fulfillment.projectId);
+      const adminResult = await notifyAdminNewProject(fulfillment.projectId);
+      if (adminResult?.status === "skipped" && process.env.NODE_ENV === "production") {
+        throw new Error("Required new-project admin email was skipped");
+      }
     }
 
     await renewProcessingLease();
@@ -199,7 +236,6 @@ export async function POST(req: Request) {
       classification: classification.kind,
       reason: classification.reason,
       retry: classification.shouldRetry,
-      error: message,
     };
 
     if (classification.logLevel === "warn") {
@@ -222,7 +258,7 @@ export async function POST(req: Request) {
       {
         received: true,
         fulfilled: false,
-        error: message,
+        error: "Webhook processing failed",
         classification: classification.kind,
         retry: classification.shouldRetry,
       },

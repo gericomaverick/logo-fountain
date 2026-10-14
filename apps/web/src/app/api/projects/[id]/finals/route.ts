@@ -5,6 +5,7 @@ import { requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { buildFinalDeliverableFilename } from "@/lib/final-deliverable-filename";
 import { applyTransition } from "@/lib/project-state-machine";
 import { logAudit } from "@/lib/audit";
+import { hasCanonicalSameOrigin } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
 
@@ -14,11 +15,19 @@ const DOWNLOADABLE_STATUSES = [PROJECT_STATUS_FINAL_FILES_READY, PROJECT_STATUS_
 
 class FinalDownloadConflict extends Error {}
 
+function isRetryableTransactionConflict(error: unknown): boolean {
+  return typeof error === "object" && error !== null && "code" in error
+    && ((error as { code?: string }).code === "P2034" || (error as { code?: string }).code === "P2028");
+}
+
 export async function POST(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    if (!hasCanonicalSameOrigin(req)) {
+      return jsonError("Cross-origin final download request rejected", 403, undefined, "INVALID_REQUEST_ORIGIN");
+    }
     const user = await requireUser();
     const { id } = await params;
 
@@ -57,7 +66,7 @@ export async function POST(
             where: { kind: "final_zip" },
             orderBy: { createdAt: "desc" },
             take: 1,
-            select: { path: true, createdAt: true },
+            select: { id: true, path: true, createdAt: true },
           },
         },
       });
@@ -70,7 +79,7 @@ export async function POST(
           status: project.status,
           client: { memberships: { some: { userId: user.id } } },
           concepts: { some: { status: "approved" } },
-          fileAssets: { some: { kind: "final_zip" } },
+          fileAssets: { some: { id: project.fileAssets[0].id, kind: "final_zip", path: project.fileAssets[0].path } },
         },
         // A same-value DELIVERED write is intentional: it takes a row lock and
         // makes this authorization/readiness check participate in serialization.
@@ -113,11 +122,12 @@ export async function POST(
         createdAt: file.createdAt,
       });
 
-      // Signing stays inside the serializable guarded operation. If a concurrent
-      // state/approval/asset change invalidates the transaction, its URL is never returned.
+      // Signing stays inside the bounded serializable operation, after the exact
+      // asset id/path guard. A URL is never returned if authorization rolls back.
+      // Once returned, the one-hour storage URL cannot be transactionally revoked.
       const url = await createSignedFinalDeliverableUrl(file.path, 60 * 60, fileName);
       return { url };
-    }, { isolationLevel: "Serializable" });
+    }, { isolationLevel: "Serializable", maxWait: 2_000, timeout: 5_000 });
 
     if (!result) {
       return jsonError(
@@ -130,7 +140,7 @@ export async function POST(
 
     return Response.json(result);
   } catch (error) {
-    if (error instanceof FinalDownloadConflict) {
+    if (error instanceof FinalDownloadConflict || isRetryableTransactionConflict(error)) {
       return jsonError(
         "Final download state changed; retry from the refreshed project",
         409,

@@ -32,6 +32,12 @@ instances. Before horizontal scaling, replace the fallback with an atomic distri
 store while keeping the same per-session and per-destination interface. Provider-side
 email limits remain defense in depth, not a replacement for application limiting.
 
+Forgot-password requests have a separate bounded fallback: five valid requests per
+15 minutes per normalized email and per request address. Limited requests preserve
+the same anti-enumeration success response and skip provider I/O. This limiter is
+also process-local, resets on restart, and must be replaced with an atomic distributed
+limiter before horizontal scaling.
+
 ## First-time recovery
 
 Only trusted paid-checkout webhook provisioning may select the initial password-setup

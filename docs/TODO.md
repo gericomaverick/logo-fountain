@@ -2,6 +2,16 @@
 
 This file is the single source of truth for in-progress work. Update it after each completed step and commit the update.
 
+## Emergency app hardening (2026-10-15)
+
+- [x] Integrated reviewed checkout/auth and webhook/final-delivery commit chains with manual webhook conflict resolution.
+- [x] Added delayed-payment success/failure handling through the claimed idempotent fulfillment path.
+- [x] Made required webhook email outcomes explicit and retryable after durable fulfillment; documented at-least-once semantics and rare duplicate risk without a schema migration.
+- [x] Added final-file repair/replacement handling for `FINAL_FILES_READY` and `DELIVERED`, exact-asset download guards, bounded transactions, retryable conflicts, and canonical same-origin POST checks.
+- [x] Added bounded process-local forgot-password abuse controls with uniform anti-enumeration responses, and minimized public checkout-status data.
+
+Validation note: dependency installation was intentionally not performed. This worktree has no `apps/web/node_modules`, so the requested web test/lint/typecheck/build/E2E commands remain blocked until existing dependencies are made available. The repository-level interruption harness passed, but it is not an app test substitute.
+
 ## Dashboard / Portal plan (execute in this order)
 
 ### Step 2 — Mission control clarity (what do I do next?)

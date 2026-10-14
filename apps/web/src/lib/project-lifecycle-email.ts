@@ -8,6 +8,11 @@ import { extractBrandNameFromBriefAnswers } from "@/lib/project-display-name";
 
 const POSTMARK_API_URL = "https://api.postmarkapp.com/email";
 
+export type LifecycleEmailResult =
+  | { status: "sent" }
+  | { status: "already_sent" }
+  | { status: "skipped"; reason: "not_configured" | "missing_recipient" };
+
 function getAdminEmails(): string[] {
   return (process.env.ADMIN_EMAILS ?? "")
     .split(",")
@@ -100,13 +105,13 @@ async function markSent(projectId: string, dedupeType: string): Promise<void> {
   await logAudit(prisma, { projectId, actorId: null, type: dedupeType, payload: {} });
 }
 
-async function sendEmail({ to, subject, textBody, htmlBody }: { to: string; subject: string; textBody: string; htmlBody: string }) {
+async function sendEmail({ to, subject, textBody, htmlBody }: { to: string; subject: string; textBody: string; htmlBody: string }): Promise<LifecycleEmailResult> {
   const postmarkToken = process.env.POSTMARK_SERVER_TOKEN;
   const from = process.env.POSTMARK_FROM;
 
   if (!postmarkToken || !from) {
     console.warn("POSTMARK_SERVER_TOKEN or POSTMARK_FROM missing; skipping lifecycle email send");
-    return;
+    return { status: "skipped", reason: "not_configured" };
   }
 
   const response = await fetch(POSTMARK_API_URL, {
@@ -127,9 +132,10 @@ async function sendEmail({ to, subject, textBody, htmlBody }: { to: string; subj
   });
 
   if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`Postmark send failed (${response.status}): ${body}`);
+    // Provider bodies can echo message contents and must never enter errors/logs.
+    throw new Error(`Postmark send failed (${response.status})`);
   }
+  return { status: "sent" };
 }
 
 async function sendClientEmail(input: {
@@ -140,14 +146,14 @@ async function sendClientEmail(input: {
   ctaLabel: string;
   ctaPath: string;
   heading?: string;
-}) {
-  if (await alreadySent(input.projectId, input.dedupeType)) return;
+}): Promise<LifecycleEmailResult> {
+  if (await alreadySent(input.projectId, input.dedupeType)) return { status: "already_sent" };
   const project = await projectData(input.projectId);
   const to = resolveClientEmail(project);
-  if (!to) return;
+  if (!to) return { status: "skipped", reason: "missing_recipient" };
 
   const url = new URL(input.ctaPath, appOrigin()).toString();
-  await sendEmail({
+  const result = await sendEmail({
     to,
     subject: input.subject,
     textBody: `${input.intro}\n\n${input.ctaLabel}: ${url}`,
@@ -160,7 +166,8 @@ async function sendClientEmail(input: {
     }),
   });
 
-  await markSent(input.projectId, input.dedupeType);
+  if (result.status === "sent") await markSent(input.projectId, input.dedupeType);
+  return result;
 }
 
 async function sendAdminEmail(input: {
@@ -170,10 +177,10 @@ async function sendAdminEmail(input: {
   intro: string;
   ctaLabel: string;
   ctaPath: string;
-}) {
-  if (await alreadySent(input.projectId, input.dedupeType)) return;
+}): Promise<LifecycleEmailResult> {
+  if (await alreadySent(input.projectId, input.dedupeType)) return { status: "already_sent" };
   const recipients = getAdminEmails();
-  if (recipients.length === 0) return;
+  if (recipients.length === 0) return { status: "skipped", reason: "missing_recipient" };
 
   const project = await projectData(input.projectId);
   const brandName = resolveBrandName(project);
@@ -181,7 +188,7 @@ async function sendAdminEmail(input: {
 
   const url = new URL(input.ctaPath, appOrigin()).toString();
   const contextLine = `Client: ${clientName}\nBrand: ${brandName}`;
-  await sendEmail({
+  const result = await sendEmail({
     to: recipients.join(","),
     subject: input.subject,
     textBody: `${input.intro}\n\n${contextLine}\n\n${input.ctaLabel}: ${url}`,
@@ -194,11 +201,12 @@ async function sendAdminEmail(input: {
     }),
   });
 
-  await markSent(input.projectId, input.dedupeType);
+  if (result.status === "sent") await markSent(input.projectId, input.dedupeType);
+  return result;
 }
 
 export async function notifyClientConceptReady(projectId: string, conceptId: string) {
-  await sendClientEmail({
+  return sendClientEmail({
     projectId,
     dedupeType: `email_sent:client_concept_ready:${conceptId}`,
     subject: "Your concept is ready for review",
@@ -209,7 +217,7 @@ export async function notifyClientConceptReady(projectId: string, conceptId: str
 }
 
 export async function notifyClientRevisionReady(projectId: string, revisionRequestId: string) {
-  await sendClientEmail({
+  return sendClientEmail({
     projectId,
     dedupeType: `email_sent:client_revision_ready:${revisionRequestId}`,
     subject: "Your revised concept is ready",
@@ -220,7 +228,7 @@ export async function notifyClientRevisionReady(projectId: string, revisionReque
 }
 
 export async function notifyClientNewMessage(projectId: string, messageId: string) {
-  await sendClientEmail({
+  return sendClientEmail({
     projectId,
     dedupeType: `email_sent:client_new_message:${messageId}`,
     subject: "New message from your Logo Fountain designer",
@@ -231,7 +239,7 @@ export async function notifyClientNewMessage(projectId: string, messageId: strin
 }
 
 export async function notifyClientConceptApproved(projectId: string, conceptId: string) {
-  await sendClientEmail({
+  return sendClientEmail({
     projectId,
     dedupeType: `email_sent:client_concept_approved:${conceptId}`,
     subject: "Concept approved - final files in progress",
@@ -242,7 +250,7 @@ export async function notifyClientConceptApproved(projectId: string, conceptId: 
 }
 
 export async function notifyAdminConceptApproved(projectId: string, conceptId: string) {
-  await sendAdminEmail({
+  return sendAdminEmail({
     projectId,
     dedupeType: `email_sent:admin_concept_approved:${conceptId}`,
     subject: "Client approved a concept",
@@ -253,7 +261,7 @@ export async function notifyAdminConceptApproved(projectId: string, conceptId: s
 }
 
 export async function notifyClientFinalDeliverablesReady(projectId: string) {
-  await sendClientEmail({
+  return sendClientEmail({
     projectId,
     dedupeType: "email_sent:client_final_deliverables_ready",
     subject: "Your final logo files are ready",
@@ -264,7 +272,7 @@ export async function notifyClientFinalDeliverablesReady(projectId: string) {
 }
 
 export async function notifyAdminNewProject(projectId: string) {
-  await sendAdminEmail({
+  return sendAdminEmail({
     projectId,
     dedupeType: "email_sent:admin_new_project",
     subject: "New project created",
@@ -275,7 +283,7 @@ export async function notifyAdminNewProject(projectId: string) {
 }
 
 export async function notifyAdminMessageFromProject(projectId: string, messageId: string) {
-  await sendAdminEmail({
+  return sendAdminEmail({
     projectId,
     dedupeType: `email_sent:admin_message_from_project:${messageId}`,
     subject: "New client message",
@@ -286,7 +294,7 @@ export async function notifyAdminMessageFromProject(projectId: string, messageId
 }
 
 export async function notifyAdminFeedbackOnConcept(projectId: string, revisionRequestId: string) {
-  await sendAdminEmail({
+  return sendAdminEmail({
     projectId,
     dedupeType: `email_sent:admin_feedback_on_concept:${revisionRequestId}`,
     subject: "New concept feedback submitted",
