@@ -64,7 +64,7 @@ export async function POST(
           },
           fileAssets: {
             where: { kind: "final_zip" },
-            orderBy: { createdAt: "desc" },
+            orderBy: [{ createdAt: "desc" }, { id: "desc" }],
             take: 1,
             select: { id: true, path: true, createdAt: true },
           },

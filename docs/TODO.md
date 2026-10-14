@@ -7,7 +7,8 @@ This file is the single source of truth for in-progress work. Update it after ea
 - [x] Integrated reviewed checkout/auth and webhook/final-delivery commit chains with manual webhook conflict resolution.
 - [x] Added delayed-payment success/failure handling through the claimed idempotent fulfillment path.
 - [x] Made required webhook email outcomes explicit and retryable after durable fulfillment; documented at-least-once semantics and rare duplicate risk without a schema migration.
-- [x] Added immutable/versioned final-file repair/replacement handling for `FINAL_FILES_READY` and `DELIVERED`, guarded metadata switching and storage cleanup, exact-asset download guards, bounded transactions, retryable conflicts, and canonical same-origin POST checks.
+- [x] Added immutable/versioned final-file repair/replacement handling for `FINAL_FILES_READY` and `DELIVERED`, deterministic newest-asset selection, retained superseded records/objects, guarded publication, notification-only retries, exact-asset download guards, bounded transactions, retryable conflicts, and canonical same-origin POST checks.
+- [ ] Residual: superseded immutable final assets are retained so issued one-hour signed URLs remain valid. Storage growth is bounded by the low-frequency admin publication workflow but needs a future audited housekeeping/retention policy; no emergency cleanup job is included.
 - [x] Added bounded process-local forgot-password abuse controls with uniform anti-enumeration responses, and minimized public checkout-status data.
 - [ ] Residual: public checkout status/magic-link endpoints remain lookup targets for high-volume Session-ID guessing. Session IDs are high entropy and responses are coarse, but a future distributed edge limiter should supplement the current per-email/session process-local controls.
 

@@ -201,6 +201,7 @@ export default async function DashboardPage() {
               },
               fileAssets: {
                 where: { kind: "final_zip" },
+                orderBy: [{ createdAt: "desc" }, { id: "desc" }],
                 select: { id: true },
                 take: 1,
               },

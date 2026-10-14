@@ -173,6 +173,16 @@ describe("project lifecycle emails", () => {
     expect(payload.TextBody).not.toContain("Brand: Jamie Lopez");
   });
 
+  it("scopes final-ready sent markers to the immutable publication asset", async () => {
+    await expect(notifyClientFinalDeliverablesReady("p1", "asset-2")).resolves.toEqual({ status: "sent" });
+    expect(mocks.findAudit).toHaveBeenCalledWith(expect.objectContaining({
+      where: { projectId: "p1", type: "email_sent:client_final_deliverables_ready:asset-2" },
+    }));
+    expect(mocks.createAudit).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ type: "email_sent:client_final_deliverables_ready:asset-2" }),
+    }));
+  });
+
   it("sends all remaining client lifecycle notifications", async () => {
     await notifyClientRevisionReady("p1", "r1");
     await notifyClientNewMessage("p1", "m1");

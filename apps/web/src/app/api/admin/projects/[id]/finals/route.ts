@@ -78,7 +78,7 @@ export async function POST(
     let result: {
       asset: { id: string; kind: string; path: string };
       project: { id: string; status: string };
-      oldAsset: { id: string; bucket: string; path: string } | null;
+      previousAsset: { id: string; path: string } | null;
     };
     try {
       const publicationTime = new Date();
@@ -98,10 +98,10 @@ export async function POST(
         });
         if (statusGuard.count !== 1) throw new Error("Project state or approval changed before final metadata update");
 
-        const oldAsset = await tx.fileAsset.findFirst({
+        const previousAsset = await tx.fileAsset.findFirst({
           where: { projectId: project.id, kind: "final_zip" },
-          orderBy: { createdAt: "desc" },
-          select: { id: true, bucket: true, path: true },
+          orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+          select: { id: true, path: true },
         });
         const asset = await tx.fileAsset.create({
           data: {
@@ -115,13 +115,12 @@ export async function POST(
           },
           select: { id: true, kind: true, path: true },
         });
-        if (oldAsset) await tx.fileAsset.delete({ where: { id: oldAsset.id } });
 
         await logAudit(tx, {
           projectId: project.id,
           actorId: user.id,
           type: "finals_uploaded",
-          payload: { fileAssetId: asset.id, path: asset.path, replacedFileAssetId: oldAsset?.id ?? null },
+          payload: { fileAssetId: asset.id, path: asset.path, supersededFileAssetId: previousAsset?.id ?? null },
         });
         if (stateChanged) {
           await logAudit(tx, {
@@ -138,59 +137,67 @@ export async function POST(
             body: "Final files are ready to download.",
           });
         }
-        return { asset, project: { id: project.id, status: targetStatus }, oldAsset };
+        return { asset, project: { id: project.id, status: targetStatus }, previousAsset };
       }, { isolationLevel: "Serializable", maxWait: 2_000, timeout: 5_000 });
     } catch {
       // The unique object was never published in DB; remove it best-effort. The
       // prior record/path remains untouched and therefore remains authorizable.
-      await deleteStoredFiles([{ bucket: upload.bucket, path: upload.path }]);
+      try {
+        await deleteStoredFiles([{ bucket: upload.bucket, path: upload.path }]);
+      } catch {
+        // Cleanup is best-effort and must never hide the publication conflict.
+      }
       return Response.json({ error: "Project state changed before final publication; retry from the refreshed project" }, { status: 409 });
     }
 
-    let oldStorageCleanup = { attempted: 0, deleted: 0, failed: 0 };
-    if (result.oldAsset && result.oldAsset.path !== upload.path) {
-      const cleanup = await deleteStoredFiles([{ bucket: result.oldAsset.bucket, path: result.oldAsset.path }]);
-      oldStorageCleanup = { attempted: cleanup.attempted, deleted: cleanup.deleted, failed: cleanup.failures.length };
-    }
-
-    let email: Awaited<ReturnType<typeof notifyClientFinalDeliverablesReady>> | null = null;
-    if (result.project.status === PROJECT_STATUS_FINAL_FILES_READY) {
-      try {
-        email = await notifyClientFinalDeliverablesReady(project.id);
-      } catch {
-        return Response.json({
-          ok: false,
-          committed: true,
-          code: "FINAL_PUBLISHED_EMAIL_FAILED",
-          message: "Final files were published, but the client email failed. Restore email delivery, then retry this upload request; the retry creates a new immutable version and retries the unsent notification.",
-          retry: { method: "POST", path: `/api/admin/projects/${project.id}/finals`, requiresZip: true },
-          fileAsset: result.asset,
-          project: result.project,
-          oldStorageCleanup,
-        }, { status: 502 });
+    try {
+      let email: Awaited<ReturnType<typeof notifyClientFinalDeliverablesReady>> | null = null;
+      if (result.project.status === PROJECT_STATUS_FINAL_FILES_READY) {
+        try {
+          email = await notifyClientFinalDeliverablesReady(project.id, result.asset.id);
+        } catch {
+          return Response.json({
+            ok: false,
+            committed: true,
+            code: "FINAL_PUBLISHED_EMAIL_FAILED",
+            message: "Final files are live, but the client notification failed. Restore email delivery, then retry only the notification.",
+            retry: { method: "POST", path: `/api/admin/projects/${project.id}/finals/notify` },
+            fileAsset: result.asset,
+            project: result.project,
+          }, { status: 502 });
+        }
+        if (email.status === "skipped" && process.env.NODE_ENV === "production") {
+          return Response.json({
+            ok: false,
+            committed: true,
+            code: "FINAL_PUBLISHED_EMAIL_SKIPPED",
+            message: "Final files are live, but client email configuration or recipient data is missing. Correct it, then retry only the notification.",
+            retry: { method: "POST", path: `/api/admin/projects/${project.id}/finals/notify` },
+            email,
+            fileAsset: result.asset,
+            project: result.project,
+          }, { status: 503 });
+        }
       }
-      if (email.status === "skipped" && process.env.NODE_ENV === "production") {
-        return Response.json({
-          ok: false,
-          committed: true,
-          code: "FINAL_PUBLISHED_EMAIL_SKIPPED",
-          message: "Final files were published, but client email configuration or recipient data is missing. Correct it, then retry this upload request; the retry creates a new immutable version and retries the unsent notification.",
-          retry: { method: "POST", path: `/api/admin/projects/${project.id}/finals`, requiresZip: true },
-          email,
-          fileAsset: result.asset,
-          project: result.project,
-          oldStorageCleanup,
-        }, { status: 503 });
-      }
-    }
 
-    return Response.json({
-      ok: true,
-      fileAsset: result.asset,
-      project: result.project,
-      email,
-      oldStorageCleanup,
-    });
+      return Response.json({
+        ok: true,
+        fileAsset: result.asset,
+        project: result.project,
+        email,
+        retainedPreviousAsset: result.previousAsset,
+      });
+    } catch {
+      return Response.json({
+        ok: false,
+        committed: true,
+        code: "FINAL_PUBLISHED_POST_COMMIT_FAILED",
+        message: "Final files are live, but a post-publication step failed. Refresh project state before retrying the client notification.",
+        retry: { method: "POST", path: `/api/admin/projects/${project.id}/finals/notify` },
+        fileAsset: result.asset,
+        project: result.project,
+      }, { status: 502 });
+    }
   } catch (error) {
     return toRouteErrorResponse(error);
   }

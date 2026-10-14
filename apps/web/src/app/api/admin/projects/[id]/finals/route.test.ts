@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => {
     constructor(public status: number, public code: string, message: string) { super(message); }
   }
   const tx = {
-    fileAsset: { findFirst: vi.fn(), create: vi.fn(), delete: vi.fn() },
+    fileAsset: { findFirst: vi.fn(), create: vi.fn() },
     project: { updateMany: vi.fn() },
   };
   return {
@@ -49,7 +49,7 @@ function request(file: File | null = zipFile()) {
 
 const updatedAt = new Date("2026-03-05T09:00:00Z");
 const newUpload = { bucket: "final-deliverables", path: "p1/finals/new-version.zip", mime: "application/zip", size: 3 };
-const oldAsset = { id: "asset-old", bucket: "final-deliverables", path: "p1/finals/old-version.zip" };
+const oldAsset = { id: "asset-old", path: "p1/finals/old-version.zip" };
 const newAsset = { id: "asset-new", kind: "final_zip", path: newUpload.path };
 
 describe("POST /api/admin/projects/[id]/finals", () => {
@@ -66,7 +66,6 @@ describe("POST /api/admin/projects/[id]/finals", () => {
     mocks.tx.project.updateMany.mockResolvedValue({ count: 1 });
     mocks.tx.fileAsset.findFirst.mockResolvedValue(oldAsset);
     mocks.tx.fileAsset.create.mockResolvedValue(newAsset);
-    mocks.tx.fileAsset.delete.mockResolvedValue(oldAsset);
     mocks.logAudit.mockResolvedValue(undefined);
     mocks.createProjectSystemMessage.mockResolvedValue(undefined);
     mocks.notifyClientFinalDeliverablesReady.mockResolvedValue({ status: "already_sent" });
@@ -109,9 +108,12 @@ describe("POST /api/admin/projects/[id]/finals", () => {
       maxWait: 2_000,
       timeout: 5_000,
     });
+    expect(mocks.tx.fileAsset.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    }));
     expect(mocks.tx.fileAsset.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ path: newUpload.path }) }));
-    expect(mocks.tx.fileAsset.delete).toHaveBeenCalledWith({ where: { id: oldAsset.id } });
-    expect(mocks.deleteStoredFiles).toHaveBeenCalledWith([{ bucket: oldAsset.bucket, path: oldAsset.path }]);
+    expect(body.retainedPreviousAsset).toEqual(oldAsset);
+    expect(mocks.deleteStoredFiles).not.toHaveBeenCalled();
     expect(mocks.createProjectSystemMessage).not.toHaveBeenCalled();
   });
 
@@ -122,11 +124,21 @@ describe("POST /api/admin/projects/[id]/finals", () => {
 
     expect(response.status).toBe(409);
     expect(mocks.tx.fileAsset.create).not.toHaveBeenCalled();
-    expect(mocks.tx.fileAsset.delete).not.toHaveBeenCalled();
     expect(mocks.logAudit).not.toHaveBeenCalled();
     expect(mocks.deleteStoredFiles).toHaveBeenCalledTimes(1);
     expect(mocks.deleteStoredFiles).toHaveBeenCalledWith([{ bucket: newUpload.bucket, path: newUpload.path }]);
-    expect(mocks.deleteStoredFiles).not.toHaveBeenCalledWith([{ bucket: oldAsset.bucket, path: oldAsset.path }]);
+    // Superseded immutable rows/objects are retained so issued signed URLs keep working.
+  });
+
+  it("does not let failed unpublished-object cleanup obscure the publication conflict", async () => {
+    mocks.tx.project.updateMany.mockResolvedValueOnce({ count: 0 });
+    mocks.deleteStoredFiles.mockRejectedValueOnce(new Error("cleanup provider failed"));
+
+    const response = await request();
+    expect(response.status).toBe(409);
+    await expect(response.json()).resolves.toMatchObject({
+      error: "Project state changed before final publication; retry from the refreshed project",
+    });
   });
 
   it("validates an invalid repair before uploading", async () => {
@@ -147,7 +159,7 @@ describe("POST /api/admin/projects/[id]/finals", () => {
     expect(response.status).toBe(200);
     expect(body.project.status).toBe("FINAL_FILES_READY");
     expect(mocks.createProjectSystemMessage).toHaveBeenCalled();
-    expect(mocks.notifyClientFinalDeliverablesReady).toHaveBeenCalledWith("p1");
+    expect(mocks.notifyClientFinalDeliverablesReady).toHaveBeenCalledWith("p1", "asset-new");
     expect(mocks.deleteStoredFiles).not.toHaveBeenCalled();
   });
 
@@ -179,8 +191,22 @@ describe("POST /api/admin/projects/[id]/finals", () => {
       ok: false,
       committed: true,
       code: "FINAL_PUBLISHED_EMAIL_SKIPPED",
-      retry: { method: "POST", path: "/api/admin/projects/p1/finals", requiresZip: true },
+      retry: { method: "POST", path: "/api/admin/projects/p1/finals/notify" },
     });
+  });
+
+  it("reports unexpected post-commit failures as committed partial success", async () => {
+    mocks.notifyClientFinalDeliverablesReady.mockResolvedValueOnce(null);
+
+    const response = await request();
+    expect(response.status).toBe(502);
+    await expect(response.json()).resolves.toMatchObject({
+      ok: false,
+      committed: true,
+      code: "FINAL_PUBLISHED_POST_COMMIT_FAILED",
+      retry: { method: "POST", path: "/api/admin/projects/p1/finals/notify" },
+    });
+    expect(mocks.deleteStoredFiles).not.toHaveBeenCalled();
   });
 
   it("returns an actionable partial failure when the provider send fails", async () => {
@@ -194,7 +220,7 @@ describe("POST /api/admin/projects/[id]/finals", () => {
       ok: false,
       committed: true,
       code: "FINAL_PUBLISHED_EMAIL_FAILED",
-      retry: { method: "POST", path: "/api/admin/projects/p1/finals", requiresZip: true },
+      retry: { method: "POST", path: "/api/admin/projects/p1/finals/notify" },
     });
     expect(JSON.stringify(body)).not.toContain("provider details");
   });

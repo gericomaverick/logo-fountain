@@ -83,6 +83,9 @@ describe("POST /api/projects/[id]/finals", () => {
         concepts: { some: { status: "approved" } },
         fileAssets: { some: { kind: "final_zip" } },
       },
+      select: expect.objectContaining({
+        fileAssets: expect.objectContaining({ orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: 1 }),
+      }),
     }));
     expect(mocks.tx.project.updateMany).toHaveBeenCalledWith(expect.objectContaining({
       where: expect.objectContaining({

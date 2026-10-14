@@ -260,10 +260,12 @@ export async function notifyAdminConceptApproved(projectId: string, conceptId: s
   });
 }
 
-export async function notifyClientFinalDeliverablesReady(projectId: string) {
+export async function notifyClientFinalDeliverablesReady(projectId: string, finalAssetId?: string) {
   return sendClientEmail({
     projectId,
-    dedupeType: "email_sent:client_final_deliverables_ready",
+    dedupeType: finalAssetId
+      ? `email_sent:client_final_deliverables_ready:${finalAssetId}`
+      : "email_sent:client_final_deliverables_ready",
     subject: "Your final logo files are ready",
     intro: "Your final deliverables are now ready to download from your project dashboard.",
     ctaLabel: "Download final files",

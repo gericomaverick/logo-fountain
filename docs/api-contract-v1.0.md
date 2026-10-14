@@ -105,7 +105,10 @@ Request:
 Upload metadata for a concept (file handled separately).
 
 ### POST `/api/admin/projects/:projectId/finals`
-Upload a final deliverable set to a new immutable/versioned storage path, then transactionally publish the new exact asset record under project-status and approval guards. On replacement, the prior DB record is removed only in the publishing transaction; failed publication cleans up the new object, and successful replacement cleans up the old object best-effort. If final-ready client email cannot be sent in production, the response is an actionable `502`/`503` partial failure with `committed: true` rather than a normal success.
+Upload a final deliverable set to a new immutable/versioned storage path, then transactionally publish the new exact asset record under project-status and approval guards. The active final is always the newest row by `createdAt DESC, id DESC`. Superseded `FileAsset` rows and storage objects are retained so already-issued one-hour signed URLs remain valid; only a newly uploaded object whose publication transaction fails is cleaned up best-effort. If final-ready client email cannot be sent, the response is an actionable `502`/`503` partial failure with `committed: true`; the admin retries notification through `POST /api/admin/projects/:projectId/finals/notify` without republishing bytes.
+
+### POST `/api/admin/projects/:projectId/finals/notify`
+Admin-only notification retry for the already-current final publication. Revalidates project state, approval, and the deterministic current final asset, then sends only the final-ready notification using an asset-scoped sent marker. It never uploads, republishes, or deletes storage objects.
 
 ### POST `/api/admin/projects/:projectId/override-entitlements`
 Request:

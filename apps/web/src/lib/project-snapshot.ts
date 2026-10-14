@@ -129,8 +129,8 @@ export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
       },
       fileAssets: {
         where: { kind: { in: ["concept", "final_zip"] } },
-        orderBy: [{ createdAt: "desc" }],
-        select: { kind: true, path: true, createdAt: true },
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        select: { id: true, kind: true, path: true, createdAt: true },
       },
       orders: {
         orderBy: [{ createdAt: "desc" }],

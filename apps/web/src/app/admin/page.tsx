@@ -263,6 +263,7 @@ export default async function AdminHomePage() {
       },
       fileAssets: {
         where: { kind: "final_zip" },
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
         take: 1,
         select: { id: true },
       },

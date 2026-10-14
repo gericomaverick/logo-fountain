@@ -35,6 +35,34 @@ function envCheck(name: string, label = name): CheckResult {
   };
 }
 
+function publicSiteUrlCheck(): CheckResult {
+  const value = process.env.PUBLIC_SITE_URL?.trim();
+  if (!value) return envCheck("PUBLIC_SITE_URL", "Public site URL");
+
+  try {
+    const url = new URL(value);
+    const isHttp = url.protocol === "http:" || url.protocol === "https:";
+    const hasNoCredentials = !url.username && !url.password;
+    const isSecureProduction = process.env.NODE_ENV !== "production" || url.protocol === "https:";
+    const passed = isHttp && hasNoCredentials && isSecureProduction;
+    return {
+      key: "env:PUBLIC_SITE_URL",
+      label: "Public site URL",
+      passed,
+      summary: passed ? `Valid canonical origin: ${url.origin}` : "Must resolve to an HTTP(S) origin without credentials; production requires HTTPS",
+      nextStep: passed ? "No action needed." : "Set PUBLIC_SITE_URL to the canonical HTTPS production origin (for example https://example.com).",
+    };
+  } catch {
+    return {
+      key: "env:PUBLIC_SITE_URL",
+      label: "Public site URL",
+      passed: false,
+      summary: "Invalid URL",
+      nextStep: "Set PUBLIC_SITE_URL to the canonical HTTPS production origin (for example https://example.com).",
+    };
+  }
+}
+
 function formatError(error: unknown): string {
   if (error instanceof Error) return error.message;
   return "Unknown error";
@@ -51,6 +79,9 @@ export async function GET() {
       envCheck("SUPABASE_SERVICE_ROLE_KEY", "Supabase service role key"),
       envCheck("STRIPE_SECRET_KEY", "Stripe secret key"),
       envCheck("STRIPE_WEBHOOK_SECRET", "Stripe webhook secret"),
+      envCheck("POSTMARK_SERVER_TOKEN", "Postmark server token"),
+      envCheck("POSTMARK_FROM", "Postmark sender"),
+      publicSiteUrlCheck(),
       envCheck("ADMIN_EMAILS", "Admin emails allowlist"),
     ];
 

@@ -78,6 +78,9 @@ describe("POST /api/admin/projects/[id]/finals/download", () => {
         concepts: { some: { status: "approved" } },
         fileAssets: { some: { kind: "final_zip" } },
       },
+      select: expect.objectContaining({
+        fileAssets: expect.objectContaining({ orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: 1 }),
+      }),
     }));
   });
 

@@ -9,6 +9,7 @@ import { FeatureNoticeCard } from "@/components/feature-notice-card";
 import { HeaderNav } from "@/components/header-nav";
 import { PageShell } from "@/components/page-shell";
 import { ProjectStatusBadge } from "@/components/project-status-badge";
+import { resolveFinalPublicationUi } from "@/lib/admin-final-publication";
 import { getPendingFeedbackCountForLatestConcept } from "@/lib/project-hub";
 
 type EntitlementUsage = { limit: number; consumed: number; reserved?: number; remaining: number };
@@ -155,6 +156,7 @@ export default function AdminProjectPage() {
   const [invoices, setInvoices] = useState<ProjectInvoice[]>([]);
   const [invoiceError, setInvoiceError] = useState<string | null>(null);
   const [finalUploadSuccess, setFinalUploadSuccess] = useState<string | null>(null);
+  const [finalNotificationRetryNeeded, setFinalNotificationRetryNeeded] = useState(false);
 
   async function refresh(id: string) {
     const [snapshotResponse, invoicesResponse] = await Promise.all([
@@ -262,15 +264,35 @@ export default function AdminProjectPage() {
     });
 
     const payload = await res.json().catch(() => null);
-    if (!res.ok) {
-      setError(readError(payload, "Failed to upload final files"));
-      setFinalUploadSuccess(null);
-    } else {
+    const outcome = resolveFinalPublicationUi(res.ok, payload);
+    setError(outcome.errorMessage);
+    setFinalUploadSuccess(outcome.successMessage);
+    setFinalNotificationRetryNeeded(outcome.retryNotification);
+    if (outcome.committed) {
       setFinalZipFile(null);
-      setFinalUploadSuccess("Final deliverables uploaded successfully. Client download is now ready.");
       await refresh(projectId);
     }
 
+    setBusy(false);
+  }
+
+  async function retryFinalNotification() {
+    if (!projectId || busy) return;
+    setBusy(true);
+    setError(null);
+    const res = await fetch(`/api/admin/projects/${projectId}/finals/notify`, { method: "POST" });
+    const payload = await res.json().catch(() => null);
+    if (res.ok) {
+      setFinalNotificationRetryNeeded(false);
+      setFinalUploadSuccess(payload?.notification === "already_sent"
+        ? "Final deliverables are live; the client notification was already sent."
+        : "Final deliverables are live and the client notification was sent.");
+    } else {
+      setFinalNotificationRetryNeeded(true);
+      setFinalUploadSuccess("Final deliverables are live and available to the client.");
+      setError(payload?.message ?? readError(payload, "Client notification failed"));
+    }
+    await refresh(projectId);
     setBusy(false);
   }
 
@@ -520,9 +542,19 @@ export default function AdminProjectPage() {
               ) : null}
 
               {snapshot?.finalZip?.available ? (
-                <p className="relative mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-                  Current final ZIP is published and visible to the client.
-                </p>
+                <div className="relative mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+                  <p>Current final ZIP is published and visible to the client.</p>
+                  {finalNotificationRetryNeeded ? (
+                    <button
+                      className="rounded border border-emerald-400 bg-white px-3 py-1 font-medium text-emerald-900 disabled:opacity-60"
+                      type="button"
+                      disabled={busy}
+                      onClick={() => void retryFinalNotification()}
+                    >
+                      {busy ? "Retrying…" : "Retry client notification"}
+                    </button>
+                  ) : null}
+                </div>
               ) : null}
 
               <form className="relative mt-4 grid gap-3 rounded-xl border border-violet-200/80 bg-white/90 p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center" onSubmit={uploadFinalDeliverable}>

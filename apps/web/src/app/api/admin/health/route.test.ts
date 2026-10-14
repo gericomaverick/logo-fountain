@@ -57,6 +57,9 @@ const ENV_KEYS = [
   "SUPABASE_SERVICE_ROLE_KEY",
   "STRIPE_SECRET_KEY",
   "STRIPE_WEBHOOK_SECRET",
+  "POSTMARK_SERVER_TOKEN",
+  "POSTMARK_FROM",
+  "PUBLIC_SITE_URL",
   "ADMIN_EMAILS",
 ] as const;
 
@@ -107,6 +110,7 @@ describe("GET /api/admin/health", () => {
     for (const key of ENV_KEYS) {
       process.env[key] = "test-value";
     }
+    process.env.PUBLIC_SITE_URL = "https://example.com";
 
     const res = await GET();
     const body = await res.json();
@@ -114,6 +118,24 @@ describe("GET /api/admin/health", () => {
     expect(res.status).toBe(200);
     expect(body.ok).toBe(true);
     expect(body.summary.failed).toBe(0);
+  });
+
+  it("requires a canonical HTTPS public origin in production", async () => {
+    for (const key of ENV_KEYS) process.env[key] = "test-value";
+    vi.stubEnv("NODE_ENV", "production");
+
+    for (const invalid of ["http://example.com", "https://user:pass@example.com", "ftp://example.com", "not-a-url"]) {
+      process.env.PUBLIC_SITE_URL = invalid;
+      const body = await (await GET()).json();
+      expect(body.checks.find((check: { key: string }) => check.key === "env:PUBLIC_SITE_URL").passed).toBe(false);
+    }
+
+    process.env.PUBLIC_SITE_URL = "https://example.com/app/path";
+    const body = await (await GET()).json();
+    const check = body.checks.find((item: { key: string }) => item.key === "env:PUBLIC_SITE_URL");
+    expect(check.passed).toBe(true);
+    expect(check.summary).toContain("https://example.com");
+    vi.unstubAllEnvs();
   });
 
   it("flags missing env vars and unreachable dependencies", async () => {
@@ -130,6 +152,9 @@ describe("GET /api/admin/health", () => {
 
     const byKey = new Map(body.checks.map((check: { key: string; passed: boolean }) => [check.key, check.passed]));
     expect(byKey.get("env:STRIPE_SECRET_KEY")).toBe(false);
+    expect(byKey.get("env:POSTMARK_SERVER_TOKEN")).toBe(false);
+    expect(byKey.get("env:POSTMARK_FROM")).toBe(false);
+    expect(byKey.get("env:PUBLIC_SITE_URL")).toBe(false);
     expect(byKey.get("db:connectivity")).toBe(false);
     expect(byKey.get("stripe:connectivity")).toBe(false);
     expect(byKey.get("supabase:bucket:concepts")).toBe(false);
