@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { deriveDisplayProjectStatus, deriveOverviewBadgeStatus } from "./project-status";
+import { PRIMARY_CTA_BY_STATE } from "./project-state-machine";
+import { deriveDisplayProjectStatus, deriveOverviewBadgeStatus, isKnownProjectState } from "./project-status";
 
 describe("project status derivation", () => {
   it("normalizes an explicit APPROVED persisted status", () => {
@@ -53,7 +54,20 @@ describe("project status derivation", () => {
     ).toBe("FINAL_FILES_READY");
   });
 
-  it("keeps delivered visible even when final deliverables still exist", () => {
+  it.each(["FINAL_FILES_READY", "DELIVERED"])(
+    "falls back to awaiting final upload when persisted %s has no final asset",
+    (persistedStatus) => {
+      expect(
+        deriveDisplayProjectStatus({
+          persistedStatus,
+          hasApprovedConcept: true,
+          hasFinalDeliverable: false,
+        }),
+      ).toBe("AWAITING_APPROVAL");
+    },
+  );
+
+  it("keeps delivered visible when approval and final deliverables exist", () => {
     expect(
       deriveDisplayProjectStatus({
         persistedStatus: "DELIVERED",
@@ -61,6 +75,16 @@ describe("project status derivation", () => {
         hasFinalDeliverable: true,
       }),
     ).toBe("DELIVERED");
+  });
+
+  it("uses the awaiting-final-upload CTA instead of download when the final asset is missing", () => {
+    const status = deriveDisplayProjectStatus({
+      persistedStatus: "FINAL_FILES_READY",
+      hasApprovedConcept: true,
+      hasFinalDeliverable: false,
+    });
+
+    expect(isKnownProjectState(status) && PRIMARY_CTA_BY_STATE[status]).toBe("Await final upload");
   });
 
   it("uses approved badge status for overview cards", () => {

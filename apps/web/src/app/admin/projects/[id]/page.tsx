@@ -230,6 +230,22 @@ export default function AdminProjectPage() {
     setBusy(false);
   }
 
+  async function downloadCurrentFinal() {
+    if (!projectId || busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/projects/${projectId}/finals/download`, { method: "POST" });
+      const payload = await res.json().catch(() => null);
+      if (!res.ok || !payload?.url) throw new Error(readError(payload, "Failed to prepare final ZIP"));
+      window.open(payload.url as string, "_blank", "noopener,noreferrer");
+    } catch (downloadError) {
+      setError(downloadError instanceof Error ? downloadError.message : "Failed to prepare final ZIP");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function uploadFinalDeliverable(e: React.FormEvent) {
     e.preventDefault();
     if (!projectId || !finalZipFile) return;
@@ -481,15 +497,15 @@ export default function AdminProjectPage() {
                   <h2 className="mt-1 text-xl font-semibold text-neutral-900">Publish client-ready handoff files</h2>
                   <p className="mt-1 max-w-2xl text-sm text-neutral-700">Upload the final ZIP package to make approved assets available in the client portal.</p>
                 </div>
-                {snapshot?.finalZip?.url ? (
-                  <a
-                    className="portal-btn-secondary border-violet-300/80 bg-white/95 text-violet-900 hover:border-violet-400"
-                    href={snapshot.finalZip.url}
-                    target="_blank"
-                    rel="noreferrer"
+                {snapshot?.finalZip?.available ? (
+                  <button
+                    className="portal-btn-secondary border-violet-300/80 bg-white/95 text-violet-900 hover:border-violet-400 disabled:opacity-60"
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void downloadCurrentFinal()}
                   >
                     Download current ZIP
-                  </a>
+                  </button>
                 ) : null}
               </div>
 

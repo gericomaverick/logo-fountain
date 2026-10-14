@@ -6,11 +6,11 @@ type DeriveProjectStatusArgs = {
   hasFinalDeliverable: boolean;
 };
 
-export function deriveDisplayProjectStatus({ persistedStatus, hasApprovedConcept }: DeriveProjectStatusArgs): string {
-  // A stored file is not a lifecycle transition. Only the persisted ready/delivered
-  // states may expose those phases; uploads can exist while approval is pending.
-  if (hasApprovedConcept && persistedStatus === "DELIVERED") return "DELIVERED";
-  if (hasApprovedConcept && persistedStatus === "FINAL_FILES_READY") return "FINAL_FILES_READY";
+export function deriveDisplayProjectStatus({ persistedStatus, hasApprovedConcept, hasFinalDeliverable }: DeriveProjectStatusArgs): string {
+  // A stored file is not a lifecycle transition. Final phases require approval,
+  // an actual asset, and the persisted ready/delivered state.
+  if (hasApprovedConcept && hasFinalDeliverable && persistedStatus === "DELIVERED") return "DELIVERED";
+  if (hasApprovedConcept && hasFinalDeliverable && persistedStatus === "FINAL_FILES_READY") return "FINAL_FILES_READY";
 
   if (["APPROVED", "FINAL_FILES_READY", "DELIVERED"].includes(persistedStatus)) return "AWAITING_APPROVAL";
 

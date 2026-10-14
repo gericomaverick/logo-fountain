@@ -431,7 +431,7 @@ export default function ProjectPage() {
     if (!projectId || downloadingFinals) return;
     setDownloadingFinals(true);
     try {
-      const res = await fetch(`/api/projects/${projectId}/finals`, { cache: "no-store" });
+      const res = await fetch(`/api/projects/${projectId}/finals`, { method: "POST" });
       const payload = await res.json().catch(() => null);
       if (!res.ok || !payload?.url) throw new Error(readError(payload, "Could not prepare final download"));
       window.open(payload.url as string, "_blank", "noopener,noreferrer");

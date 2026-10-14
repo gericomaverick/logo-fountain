@@ -80,4 +80,7 @@ Next-step notes (2026-03-04):
 
 ## Emergency reliability and delivery hardening (2026-10-14)
 - [x] Make Stripe checkout webhook event claims retry-safe after transient failures while preserving concurrent duplicate exclusion.
-- [x] Gate final-deliverable readiness on approval plus persisted `FINAL_FILES_READY`/`DELIVERED`, and issue signed download URLs only from the guarded finals endpoint.
+- [x] Gate final-deliverable readiness on approval plus persisted `FINAL_FILES_READY`/`DELIVERED`, and issue signed download URLs only from guarded client/admin endpoints.
+- [x] Harden final downloads against state/approval/asset races, move client download mutation to POST, and restore admin on-demand downloads without snapshot URLs.
+- [x] Fence and renew Stripe event claims and make post-fulfillment customer/admin email retries durable-audit-aware.
+- Merge note: keep the checkout-security commit separate for now; integrate it after this branch, resolving any webhook route/test overlap while retaining claim fencing and durable notification retry behavior.

@@ -14,6 +14,10 @@ const mocks = vi.hoisted(() => ({
       updateMany: vi.fn(),
       deleteMany: vi.fn(),
     },
+    auditEvent: {
+      findFirst: vi.fn(),
+      create: vi.fn(),
+    },
   },
 }));
 
@@ -60,6 +64,8 @@ describe("POST /api/stripe/webhook", () => {
     vi.clearAllMocks();
     process.env.STRIPE_WEBHOOK_SECRET = "whsec_test";
     mocks.generateAndSendMagicLinkEmail.mockResolvedValue({ skipped: false });
+    mocks.prisma.auditEvent.findFirst.mockResolvedValue(null);
+    mocks.prisma.auditEvent.create.mockResolvedValue({ id: "audit-email" });
     mocks.ensureAccessProvisioning.mockResolvedValue({ userId: "user-1", existed: false });
     mocks.prisma.stripeEvent.create.mockResolvedValue(undefined);
     mocks.prisma.stripeEvent.updateMany.mockResolvedValue({ count: 1 });
@@ -350,6 +356,64 @@ describe("POST /api/stripe/webhook", () => {
     expect(mocks.notifyAdminNewProject).not.toHaveBeenCalled();
   });
 
+  it("does not report owner success when the fenced completion update affects zero rows", async () => {
+    mocks.constructEvent.mockReturnValue({
+      id: "evt_completion_lost",
+      type: "checkout.session.completed",
+      created: 1700000000,
+      data: { object: { id: "cs_completion_lost", metadata: { kind: "addon" } } },
+    });
+    mocks.fulfillCheckoutSession.mockResolvedValue({
+      deduped: true,
+      projectId: "project-completion-lost",
+      orderId: "order-completion-lost",
+      clientId: "client-completion-lost",
+      purchaserEmail: null,
+      firstName: null,
+      lastName: null,
+    });
+    mocks.prisma.stripeEvent.updateMany
+      .mockResolvedValueOnce({ count: 1 })
+      .mockResolvedValueOnce({ count: 1 })
+      .mockResolvedValueOnce({ count: 0 });
+
+    const res = await POST(webhookRequest());
+    const body = await res.json();
+
+    expect(res.status).toBe(500);
+    expect(body.fulfilled).toBe(false);
+    expect(body.retry).toBe(true);
+  });
+
+  it("does not report success or run follow-up side effects after losing lease ownership", async () => {
+    mocks.constructEvent.mockReturnValue({
+      id: "evt_lost",
+      type: "checkout.session.completed",
+      created: 1700000000,
+      data: { object: { id: "cs_lost" } },
+    });
+    mocks.fulfillCheckoutSession.mockResolvedValue({
+      deduped: false,
+      projectId: "project-lost",
+      orderId: "order-lost",
+      clientId: "client-lost",
+      purchaserEmail: "buyer@example.com",
+      firstName: "Lease",
+      lastName: "Lost",
+    });
+    mocks.prisma.stripeEvent.updateMany.mockResolvedValueOnce({ count: 0 });
+
+    const res = await POST(webhookRequest());
+    const body = await res.json();
+
+    expect(res.status).toBe(500);
+    expect(body.fulfilled).toBe(false);
+    expect(body.retry).toBe(true);
+    expect(mocks.ensureAccessProvisioning).not.toHaveBeenCalled();
+    expect(mocks.generateAndSendMagicLinkEmail).not.toHaveBeenCalled();
+    expect(mocks.notifyAdminNewProject).not.toHaveBeenCalled();
+  });
+
   it("releases a transiently failed event so its next sequential delivery fulfills", async () => {
     const event = {
       id: "evt_transient",
@@ -374,7 +438,11 @@ describe("POST /api/stripe/webhook", () => {
     });
     mocks.prisma.stripeEvent.updateMany.mockImplementation(async ({ where, data }) => {
       if (storedEvent && storedEvent.type === where.type && storedEvent.processedAt === null) {
-        storedEvent = { ...storedEvent, type: data.type, processedAt: data.processedAt };
+        storedEvent = {
+          ...storedEvent,
+          type: data.type,
+          processedAt: data.processedAt === undefined ? storedEvent.processedAt : data.processedAt,
+        };
         return { count: 1 };
       }
       return { count: 0 };
@@ -408,6 +476,78 @@ describe("POST /api/stripe/webhook", () => {
       type: "checkout.session.completed",
       processedAt: expect.any(Date),
     });
+  });
+
+  it("retries a failed admin notification after durable fulfillment without resending customer mail", async () => {
+    const event = {
+      id: "evt_notify_retry",
+      type: "checkout.session.completed",
+      created: 1700000000,
+      data: { object: { id: "cs_notify_retry" } },
+    };
+    let storedEvent: { eventId: string; type: string; processedAt: Date | null } | null = null;
+    let customerEmailMarked = false;
+
+    mocks.constructEvent.mockReturnValue(event);
+    mocks.prisma.stripeEvent.create.mockImplementation(async ({ data }) => {
+      if (storedEvent) throw { code: "P2002" };
+      storedEvent = { eventId: data.eventId, type: data.type, processedAt: null };
+    });
+    mocks.prisma.stripeEvent.updateMany.mockImplementation(async ({ where, data }) => {
+      if (storedEvent && storedEvent.type === where.type && storedEvent.processedAt === null) {
+        storedEvent = {
+          ...storedEvent,
+          type: data.type,
+          processedAt: data.processedAt === undefined ? storedEvent.processedAt : data.processedAt,
+        };
+        return { count: 1 };
+      }
+      return { count: 0 };
+    });
+    mocks.prisma.stripeEvent.deleteMany.mockImplementation(async ({ where }) => {
+      if (storedEvent && storedEvent.type === where.type && storedEvent.processedAt === null) {
+        storedEvent = null;
+        return { count: 1 };
+      }
+      return { count: 0 };
+    });
+    mocks.prisma.auditEvent.findFirst.mockImplementation(async () => customerEmailMarked ? { id: "email-audit" } : null);
+    mocks.prisma.auditEvent.create.mockImplementation(async () => {
+      customerEmailMarked = true;
+      return { id: "email-audit" };
+    });
+    mocks.fulfillCheckoutSession
+      .mockResolvedValueOnce({
+        deduped: false,
+        projectId: "project-notify",
+        orderId: "order-notify",
+        clientId: "client-notify",
+        purchaserEmail: "buyer@example.com",
+        firstName: "Notify",
+        lastName: "Retry",
+      })
+      .mockResolvedValueOnce({
+        deduped: true,
+        projectId: "project-notify",
+        orderId: "order-notify",
+        clientId: "client-notify",
+        purchaserEmail: "buyer@example.com",
+        firstName: "Notify",
+        lastName: "Retry",
+      });
+    mocks.notifyAdminNewProject
+      .mockRejectedValueOnce(new Error("temporarily unavailable"))
+      .mockResolvedValueOnce(undefined);
+
+    const firstRes = await POST(webhookRequest());
+    expect(firstRes.status).toBe(500);
+    expect(customerEmailMarked).toBe(true);
+
+    const secondRes = await POST(webhookRequest());
+    expect(secondRes.status).toBe(200);
+    expect(mocks.fulfillCheckoutSession).toHaveBeenCalledTimes(2);
+    expect(mocks.sendCheckoutContinueEmail).toHaveBeenCalledTimes(1);
+    expect(mocks.notifyAdminNewProject).toHaveBeenCalledTimes(2);
   });
 
   it("returns 200/dead-letter shape for permanent fulfillment failures", async () => {

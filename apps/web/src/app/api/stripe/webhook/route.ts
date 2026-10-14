@@ -68,7 +68,7 @@ export async function POST(req: Request) {
     return Response.json({ received: true, ignored: true, id: event.id, type: event.type });
   }
 
-  const processingMarker = createProcessingMarker(event.type);
+  let processingMarker = createProcessingMarker(event.type);
 
   try {
     await prisma.stripeEvent.create({
@@ -111,6 +111,20 @@ export async function POST(req: Request) {
     }
   }
 
+  async function renewProcessingLease() {
+    const renewedMarker = createProcessingMarker(event.type);
+    const renewed = await prisma.stripeEvent.updateMany({
+      where: { eventId: event.id, type: processingMarker, processedAt: null },
+      data: { type: renewedMarker },
+    });
+    if (renewed.count !== 1) {
+      const error = new Error("Stripe webhook processing claim ownership was lost");
+      Object.assign(error, { code: "WEBHOOK_CLAIM_LOST" });
+      throw error;
+    }
+    processingMarker = renewedMarker;
+  }
+
   try {
     const session = event.data.object as Stripe.Checkout.Session;
     if (!session || typeof session.id !== "string" || session.id.trim().length === 0) {
@@ -118,6 +132,9 @@ export async function POST(req: Request) {
     }
 
     const fulfillment = await fulfillCheckoutSession(session);
+    // Fence off an owner whose lease expired during durable fulfillment before it
+    // can perform non-idempotent follow-up side effects.
+    await renewProcessingLease();
 
     let provisionedUserId: string | null = null;
     let isReturningCustomer = false;
@@ -131,30 +148,34 @@ export async function POST(req: Request) {
     }
 
     if (fulfillment.purchaserEmail) {
-      try {
-        await generateAndSendMagicLinkEmail({
-          purchaserEmail: fulfillment.purchaserEmail,
-          request: req,
-          projectId: fulfillment.projectId,
-          // Only trusted provisioning may select setup. Public endpoints always
-          // fall back to sign-in so a leaked Session ID cannot change a password.
-          flow: isReturningCustomer ? "signin" : "setup",
-        });
-      } catch {
-        // Provider errors can contain an echoed email body and bearer URL.
-        console.error("Failed to send checkout authentication email");
-      }
+      await generateAndSendMagicLinkEmail({
+        purchaserEmail: fulfillment.purchaserEmail,
+        request: req,
+        projectId: fulfillment.projectId,
+        // Only trusted provisioning may select setup. Public endpoints always
+        // fall back to sign-in so a leaked Session ID cannot change a password.
+        flow: isReturningCustomer ? "signin" : "setup",
+      });
     }
 
     const isNewProjectCheckout = !session.metadata?.kind;
-    if (!fulfillment.deduped && isNewProjectCheckout) {
+    if (isNewProjectCheckout) {
+      // notifyAdminNewProject has its own durable audit dedupe marker. Calling it
+      // on deduped fulfillment lets a failed first notification retry safely.
+      await renewProcessingLease();
       await notifyAdminNewProject(fulfillment.projectId);
     }
 
-    await prisma.stripeEvent.updateMany({
+    await renewProcessingLease();
+    const completed = await prisma.stripeEvent.updateMany({
       where: { eventId: event.id, type: processingMarker, processedAt: null },
       data: { type: event.type, processedAt: new Date() },
     });
+    if (completed.count !== 1) {
+      const error = new Error("Stripe webhook processing claim ownership was lost before completion");
+      Object.assign(error, { code: "WEBHOOK_CLAIM_LOST" });
+      throw error;
+    }
 
     return Response.json({
       received: true,
