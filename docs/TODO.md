@@ -10,7 +10,7 @@ This file is the single source of truth for in-progress work. Update it after ea
 - [x] Added final-file repair/replacement handling for `FINAL_FILES_READY` and `DELIVERED`, exact-asset download guards, bounded transactions, retryable conflicts, and canonical same-origin POST checks.
 - [x] Added bounded process-local forgot-password abuse controls with uniform anti-enumeration responses, and minimized public checkout-status data.
 
-Validation note: dependency installation was intentionally not performed. This worktree has no `apps/web/node_modules`, so the requested web test/lint/typecheck/build/E2E commands remain blocked until existing dependencies are made available. The repository-level interruption harness passed, but it is not an app test substitute.
+Validation note: no dependencies were installed or updated; validation reused the identical-lockfile `node_modules` from the reviewed webhook worktree. Targeted tests (60), the full unit suite (250), and typecheck pass. Lint passes with two pre-existing warnings. The default Turbopack build is blocked by the external dependency symlink; the webpack fallback compiles and typechecks, then stops during page-data collection because `STRIPE_SECRET_KEY` and `DATABASE_URL` are unavailable. E2E was not run because those app prerequisites are absent.
 
 ## Dashboard / Portal plan (execute in this order)
 

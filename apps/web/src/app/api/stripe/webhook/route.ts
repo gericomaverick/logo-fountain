@@ -227,7 +227,6 @@ export async function POST(req: Request) {
       isReturningCustomer,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Fulfillment failed";
     const classification = classifyWebhookError(error);
 
     const logPayload = {
