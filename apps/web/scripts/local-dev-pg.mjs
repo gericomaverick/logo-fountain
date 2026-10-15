@@ -17,6 +17,7 @@ const marker = join(home, "marker.json");
 const configFile = join(home, "config.json");
 const secretFile = join(home, "local-credentials.json");
 const providerFile = join(home, "r2-test.json");
+const stripeFile = join(home, "stripe-test.json");
 const identitiesFile = join(home, "local-identities.json");
 const kind = "logo-fountain-private-local-pg-5649";
 const port = 45232;
@@ -147,6 +148,10 @@ async function seed(c) {
   run("./node_modules/.bin/vitest", ["run", "src/lib/local-dev-seed.test.ts"], env);
   console.log(`Seeded locally only. Private setup details: ${secretFile} (mode 0600); never paste its contents into chat or logs.`);
 }
+/** `app` takes each of its two opt-in flags at most once, and nothing else. */
+function appFlagsValid(flags) {
+  return flags.every((flag) => flag === "--with-r2" || flag === "--with-stripe") && new Set(flags).size === flags.length;
+}
 async function app(c) {
   await verifyOwnedCluster(c);
   await safeNoEnvFiles();
@@ -162,11 +167,22 @@ async function app(c) {
     if (![extras.R2_CONCEPTS_BUCKET, extras.R2_FINAL_DELIVERABLES_BUCKET].every((bucket) => /^lf-5649-test-[a-z0-9-]+$/.test(bucket)) ||
         extras.R2_CONCEPTS_BUCKET === extras.R2_FINAL_DELIVERABLES_BUCKET) fail("Only two distinct lf-5649-test-* buckets are accepted");
   }
+  if (process.argv.includes("--with-stripe")) {
+    // Test mode only: a live key is refused, never loaded. The webhook secret is
+    // the one `stripe listen` prints for forwarding to this local server.
+    const st = await lstat(stripeFile);
+    if (!st.isFile() || st.isSymbolicLink() || st.mode & 0o077) fail("Stripe settings must be a private regular file (mode 0600)");
+    const settings = JSON.parse(await readFile(stripeFile, "utf8"));
+    if (!/^(?:sk|rk)_test_[A-Za-z0-9]+$/.test(settings.STRIPE_SECRET_KEY ?? "")) fail("STRIPE_SECRET_KEY must be a test-mode key");
+    if (!/^whsec_[A-Za-z0-9]+$/.test(settings.STRIPE_WEBHOOK_SECRET ?? "")) fail("STRIPE_WEBHOOK_SECRET must be a webhook signing secret");
+    extras.STRIPE_SECRET_KEY = settings.STRIPE_SECRET_KEY;
+    extras.STRIPE_WEBHOOK_SECRET = settings.STRIPE_WEBHOOK_SECRET;
+  }
   // Never accidentally connect a tester to a stale/wrong dev server.
   const reserve = createServer();
   await new Promise((yes, no) => { reserve.once("error", no); reserve.listen(45231, "127.0.0.1", yes); });
   await new Promise((yes) => reserve.close(yes));
-  console.log(`Local app: ${site}/login (localhost only; Postmark OFF; Stripe placeholder; R2 ${process.argv.includes("--with-r2") ? "test-only ON" : "OFF"}).`);
+  console.log(`Local app: ${site}/login (localhost only; Postmark OFF; Stripe ${process.argv.includes("--with-stripe") ? "test mode ON" : "placeholder"}; R2 ${process.argv.includes("--with-r2") ? "test-only ON" : "OFF"}).`);
   // Separate process group so SIGINT/SIGTERM stops both Next CLI and its
   // worker; do not emit request/exception output containing bearer links.
   const server = spawn("./node_modules/.bin/next", ["dev", "--webpack", "--hostname", "127.0.0.1", "--port", "45231"],
@@ -184,8 +200,8 @@ async function app(c) {
 try {
   if (!["init", "start", "stop", "seed", "app", "reset"].includes(command) ||
       (command === "reset" ? process.argv.length !== 4 || process.argv[3] !== "--confirm-disposable-local-data" :
-        command === "app" ? process.argv.length > 4 || (process.argv.length === 4 && process.argv[3] !== "--with-r2") : process.argv.length !== 3)) {
-    fail("Usage: node scripts/local-dev-pg.mjs init|start|stop|seed|app [--with-r2]|reset --confirm-disposable-local-data");
+        command === "app" ? !appFlagsValid(process.argv.slice(3)) : process.argv.length !== 3)) {
+    fail("Usage: node scripts/local-dev-pg.mjs init|start|stop|seed|app [--with-r2] [--with-stripe]|reset --confirm-disposable-local-data");
   }
   if (command === "init") await init();
   else {
