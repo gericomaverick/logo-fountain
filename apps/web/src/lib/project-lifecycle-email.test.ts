@@ -173,6 +173,18 @@ describe("project lifecycle emails", () => {
     expect(payload.TextBody).not.toContain("Brand: Jamie Lopez");
   });
 
+  it("does not let a legacy unscoped marker suppress a new asset-scoped final notification", async () => {
+    mocks.findAudit.mockImplementation(async (query: { where: { type: string } }) =>
+      query.where.type === "email_sent:client_final_deliverables_ready" ? { id: "legacy-marker" } : null,
+    );
+
+    await expect(notifyClientFinalDeliverablesReady("p1", "asset-current")).resolves.toEqual({ status: "sent" });
+    expect(mocks.fetch).toHaveBeenCalledTimes(1);
+    expect(mocks.createAudit).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ type: "email_sent:client_final_deliverables_ready:asset-current" }),
+    }));
+  });
+
   it("scopes final-ready sent markers to the immutable publication asset", async () => {
     await expect(notifyClientFinalDeliverablesReady("p1", "asset-2")).resolves.toEqual({ status: "sent" });
     expect(mocks.findAudit).toHaveBeenCalledWith(expect.objectContaining({

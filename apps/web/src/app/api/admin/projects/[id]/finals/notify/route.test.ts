@@ -4,12 +4,16 @@ const mocks = vi.hoisted(() => {
   class RouteAuthError extends Error {
     constructor(public status: number, public code: string, message: string) { super(message); }
   }
+  const tx = {
+    project: { findFirst: vi.fn(), updateMany: vi.fn() },
+  };
   return {
     RouteAuthError,
     requireUser: vi.fn(),
     requireAdmin: vi.fn(),
     notifyClientFinalDeliverablesReady: vi.fn(),
-    projectFindFirst: vi.fn(),
+    transaction: vi.fn(),
+    tx,
   };
 });
 
@@ -20,7 +24,7 @@ vi.mock("@/lib/auth/require", () => ({
     ? Response.json({ error: { code: error.code } }, { status: error.status })
     : Response.json({ error: "unexpected" }, { status: 500 }),
 }));
-vi.mock("@/lib/prisma", () => ({ prisma: { project: { findFirst: mocks.projectFindFirst } } }));
+vi.mock("@/lib/prisma", () => ({ prisma: { $transaction: mocks.transaction } }));
 vi.mock("@/lib/project-lifecycle-email", () => ({
   notifyClientFinalDeliverablesReady: mocks.notifyClientFinalDeliverablesReady,
 }));
@@ -30,20 +34,31 @@ vi.mock("@/lib/supabase/storage", () => {
 
 import { POST } from "./route";
 
-function request() {
-  return POST(new Request("http://localhost/api/admin/projects/p1/finals/notify", { method: "POST" }), {
-    params: Promise.resolve({ id: "p1" }),
-  });
+const projectUpdatedAt = "2026-03-05T10:00:00.000Z";
+function request(body: Record<string, unknown> = { assetId: "asset-new", projectUpdatedAt }) {
+  return POST(new Request("http://localhost/api/admin/projects/p1/finals/notify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  }), { params: Promise.resolve({ id: "p1" }) });
 }
 
 const currentAsset = { id: "asset-new", path: "p1/finals/new.zip", createdAt: new Date("2026-03-05T10:00:00Z") };
+const currentProject = {
+  id: "p1",
+  status: "FINAL_FILES_READY",
+  updatedAt: new Date(projectUpdatedAt),
+  fileAssets: [currentAsset],
+};
 
 describe("POST /api/admin/projects/[id]/finals/notify", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.requireUser.mockResolvedValue({ id: "admin-1" });
     mocks.requireAdmin.mockResolvedValue(undefined);
-    mocks.projectFindFirst.mockResolvedValue({ id: "p1", status: "FINAL_FILES_READY", fileAssets: [currentAsset] });
+    mocks.tx.project.findFirst.mockResolvedValue(currentProject);
+    mocks.tx.project.updateMany.mockResolvedValue({ count: 1 });
+    mocks.transaction.mockImplementation(async (fn: (tx: typeof mocks.tx) => Promise<unknown>) => fn(mocks.tx));
     mocks.notifyClientFinalDeliverablesReady.mockResolvedValue({ status: "sent" });
   });
 
@@ -57,18 +72,25 @@ describe("POST /api/admin/projects/[id]/finals/notify", () => {
     expect(mocks.notifyClientFinalDeliverablesReady).not.toHaveBeenCalled();
   });
 
-  it("revalidates final state, approval, and newest current asset ordering", async () => {
+  it("requires an explicit current asset and project version", async () => {
+    expect((await request({})).status).toBe(400);
+    expect(mocks.transaction).not.toHaveBeenCalled();
+  });
+
+  it("guards the requested current asset, eligible state, approval, and project version immediately before send", async () => {
     const response = await request();
     const body = await response.json();
 
     expect(response.status).toBe(200);
     expect(body).toMatchObject({ ok: true, committed: true, finalLive: true, notification: "sent" });
-    expect(mocks.projectFindFirst).toHaveBeenCalledWith(expect.objectContaining({
-      where: expect.objectContaining({
+    expect(mocks.tx.project.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
         id: "p1",
         status: { in: ["FINAL_FILES_READY", "DELIVERED"] },
+        updatedAt: new Date(projectUpdatedAt),
         concepts: { some: { status: "approved" } },
-      }),
+        fileAssets: { some: { id: "asset-new", kind: "final_zip" } },
+      },
       select: expect.objectContaining({
         fileAssets: expect.objectContaining({
           orderBy: [{ createdAt: "desc" }, { id: "desc" }],
@@ -76,14 +98,48 @@ describe("POST /api/admin/projects/[id]/finals/notify", () => {
         }),
       }),
     }));
+    expect(mocks.tx.project.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        status: "FINAL_FILES_READY",
+        updatedAt: new Date(projectUpdatedAt),
+        fileAssets: { some: { id: "asset-new", kind: "final_zip", path: currentAsset.path } },
+      }),
+    }));
+    expect(mocks.transaction).toHaveBeenCalledWith(expect.any(Function), {
+      isolationLevel: "Serializable", maxWait: 2_000, timeout: 5_000,
+    });
     expect(mocks.notifyClientFinalDeliverablesReady).toHaveBeenCalledWith("p1", "asset-new");
   });
 
-  it("returns already-sent success for the current publication", async () => {
+  it("returns already-sent success for the guarded publication", async () => {
     mocks.notifyClientFinalDeliverablesReady.mockResolvedValueOnce({ status: "already_sent" });
     const response = await request();
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({ notification: "already_sent", finalLive: true });
+  });
+
+  it("rejects a replacement race when the requested asset is no longer newest", async () => {
+    mocks.tx.project.findFirst.mockResolvedValueOnce({
+      ...currentProject,
+      fileAssets: [{ id: "asset-replacement", path: "p1/finals/replacement.zip", createdAt: new Date() }],
+    });
+    const response = await request();
+    expect(response.status).toBe(409);
+    expect(mocks.notifyClientFinalDeliverablesReady).not.toHaveBeenCalled();
+  });
+
+  it("rejects a late state, approval, or version conflict when the conditional guard loses", async () => {
+    mocks.tx.project.updateMany.mockResolvedValueOnce({ count: 0 });
+    const response = await request();
+    expect(response.status).toBe(409);
+    await expect(response.json()).resolves.toMatchObject({ error: { code: "FINAL_NOTIFICATION_CONFLICT" } });
+    expect(mocks.notifyClientFinalDeliverablesReady).not.toHaveBeenCalled();
+  });
+
+  it("rejects cancelled, refunded, on-hold, or otherwise ineligible current state", async () => {
+    mocks.tx.project.findFirst.mockResolvedValueOnce(null);
+    expect((await request()).status).toBe(409);
+    expect(mocks.notifyClientFinalDeliverablesReady).not.toHaveBeenCalled();
   });
 
   it("returns committed partial status for skipped configuration", async () => {
@@ -102,11 +158,5 @@ describe("POST /api/admin/projects/[id]/finals/notify", () => {
     expect(response.status).toBe(502);
     expect(body).toMatchObject({ ok: false, committed: true, finalLive: true, code: "FINAL_NOTIFICATION_FAILED" });
     expect(JSON.stringify(body)).not.toContain("provider secret body");
-  });
-
-  it("rejects notification when there is no currently valid publication", async () => {
-    mocks.projectFindFirst.mockResolvedValueOnce(null);
-    expect((await request()).status).toBe(409);
-    expect(mocks.notifyClientFinalDeliverablesReady).not.toHaveBeenCalled();
   });
 });

@@ -223,6 +223,7 @@ export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
     persistedStatus: project.status,
     hasApprovedConcept,
     hasFinalAsset: Boolean(finalAsset),
+    finalAssetId: finalAsset?.id,
   });
   const finalZipAvailable = finalZip.available;
   const effectiveStatus = deriveDisplayProjectStatus({

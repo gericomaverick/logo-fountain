@@ -11,7 +11,7 @@ describe("final deliverable snapshot access", () => {
       persistedStatus,
       hasApprovedConcept,
       hasFinalAsset: true,
-    })).toEqual({ available: false, url: null });
+    })).toEqual({ available: false, url: null, assetId: null });
   });
 
   it.each(["FINAL_FILES_READY", "DELIVERED"])(
@@ -21,7 +21,8 @@ describe("final deliverable snapshot access", () => {
         persistedStatus,
         hasApprovedConcept: true,
         hasFinalAsset: true,
-      })).toEqual({ available: true, url: null });
+        finalAssetId: "asset-current",
+      })).toEqual({ available: true, url: null, assetId: "asset-current" });
     },
   );
 });

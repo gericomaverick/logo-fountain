@@ -9,7 +9,7 @@ import { FeatureNoticeCard } from "@/components/feature-notice-card";
 import { HeaderNav } from "@/components/header-nav";
 import { PageShell } from "@/components/page-shell";
 import { ProjectStatusBadge } from "@/components/project-status-badge";
-import { resolveFinalPublicationUi } from "@/lib/admin-final-publication";
+import { resolveFinalPublicationUi, shouldOfferFinalNotificationRetry } from "@/lib/admin-final-publication";
 import { getPendingFeedbackCountForLatestConcept } from "@/lib/project-hub";
 
 type EntitlementUsage = { limit: number; consumed: number; reserved?: number; remaining: number };
@@ -44,7 +44,7 @@ type Snapshot = {
   primaryCta?: string | null;
   timeline?: Array<{ state: string; label: string; completed: boolean; current: boolean; timestamp?: string }>;
   recentAuditEventsCount?: number;
-  finalZip?: { available: boolean; url: string | null };
+  finalZip?: { available: boolean; url: string | null; assetId?: string | null };
   clientContact?: {
     fullName: string | null;
     email: string;
@@ -156,7 +156,6 @@ export default function AdminProjectPage() {
   const [invoices, setInvoices] = useState<ProjectInvoice[]>([]);
   const [invoiceError, setInvoiceError] = useState<string | null>(null);
   const [finalUploadSuccess, setFinalUploadSuccess] = useState<string | null>(null);
-  const [finalNotificationRetryNeeded, setFinalNotificationRetryNeeded] = useState(false);
 
   async function refresh(id: string) {
     const [snapshotResponse, invoicesResponse] = await Promise.all([
@@ -267,11 +266,8 @@ export default function AdminProjectPage() {
     const outcome = resolveFinalPublicationUi(res.ok, payload);
     setError(outcome.errorMessage);
     setFinalUploadSuccess(outcome.successMessage);
-    setFinalNotificationRetryNeeded(outcome.retryNotification);
-    if (outcome.committed) {
-      setFinalZipFile(null);
-      await refresh(projectId);
-    }
+    if (outcome.committed) setFinalZipFile(null);
+    if (outcome.refreshProject) await refresh(projectId);
 
     setBusy(false);
   }
@@ -280,15 +276,20 @@ export default function AdminProjectPage() {
     if (!projectId || busy) return;
     setBusy(true);
     setError(null);
-    const res = await fetch(`/api/admin/projects/${projectId}/finals/notify`, { method: "POST" });
+    const res = await fetch(`/api/admin/projects/${projectId}/finals/notify`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        assetId: snapshot?.finalZip?.assetId,
+        projectUpdatedAt: snapshot?.updatedAt,
+      }),
+    });
     const payload = await res.json().catch(() => null);
     if (res.ok) {
-      setFinalNotificationRetryNeeded(false);
       setFinalUploadSuccess(payload?.notification === "already_sent"
         ? "Final deliverables are live; the client notification was already sent."
         : "Final deliverables are live and the client notification was sent.");
     } else {
-      setFinalNotificationRetryNeeded(true);
       setFinalUploadSuccess("Final deliverables are live and available to the client.");
       setError(payload?.message ?? readError(payload, "Client notification failed"));
     }
@@ -544,14 +545,14 @@ export default function AdminProjectPage() {
               {snapshot?.finalZip?.available ? (
                 <div className="relative mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
                   <p>Current final ZIP is published and visible to the client.</p>
-                  {finalNotificationRetryNeeded ? (
+                  {shouldOfferFinalNotificationRetry(snapshot) ? (
                     <button
                       className="rounded border border-emerald-400 bg-white px-3 py-1 font-medium text-emerald-900 disabled:opacity-60"
                       type="button"
                       disabled={busy}
                       onClick={() => void retryFinalNotification()}
                     >
-                      {busy ? "Retrying…" : "Retry client notification"}
+                      {busy ? "Sending…" : "Send/retry client notification"}
                     </button>
                   ) : null}
                 </div>

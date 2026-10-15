@@ -79,6 +79,8 @@ export async function POST(
       asset: { id: string; kind: string; path: string };
       project: { id: string; status: string };
       previousAsset: { id: string; path: string } | null;
+      recoveredAfterTransactionError?: boolean;
+      isCurrentPublication?: boolean;
     };
     try {
       const publicationTime = new Date();
@@ -140,19 +142,68 @@ export async function POST(
         return { asset, project: { id: project.id, status: targetStatus }, previousAsset };
       }, { isolationLevel: "Serializable", maxWait: 2_000, timeout: 5_000 });
     } catch {
-      // The unique object was never published in DB; remove it best-effort. The
-      // prior record/path remains untouched and therefore remains authorizable.
+      // A transaction error does not prove rollback: the database may have
+      // committed before the client observed a connection/timeout failure.
       try {
-        await deleteStoredFiles([{ bucket: upload.bucket, path: upload.path }]);
+        const verifiedAsset = await prisma.fileAsset.findFirst({
+          where: {
+            projectId: project.id,
+            kind: "final_zip",
+            bucket: upload.bucket,
+            path: upload.path,
+          },
+          select: {
+            id: true,
+            kind: true,
+            path: true,
+            project: {
+              select: {
+                id: true,
+                status: true,
+                fileAssets: {
+                  where: { kind: "final_zip" },
+                  orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+                  take: 1,
+                  select: { id: true },
+                },
+              },
+            },
+          },
+        });
+
+        if (verifiedAsset) {
+          result = {
+            asset: { id: verifiedAsset.id, kind: verifiedAsset.kind, path: verifiedAsset.path },
+            project: { id: verifiedAsset.project.id, status: verifiedAsset.project.status },
+            previousAsset: null,
+            recoveredAfterTransactionError: true,
+            isCurrentPublication: verifiedAsset.project.fileAssets[0]?.id === verifiedAsset.id,
+          };
+        } else {
+          // Only an authoritative successful absence check permits deletion.
+          try {
+            await deleteStoredFiles([{ bucket: upload.bucket, path: upload.path }]);
+          } catch {
+            // Cleanup is best-effort and must never hide the publication conflict.
+          }
+          return Response.json({ error: "Project state changed before final publication; retry from the refreshed project" }, { status: 409 });
+        }
       } catch {
-        // Cleanup is best-effort and must never hide the publication conflict.
+        // Outcome cannot be established. Retain the object because deleting it
+        // could break a publication that actually committed.
+        return Response.json({
+          ok: false,
+          committed: "unknown",
+          code: "FINAL_PUBLICATION_OUTCOME_UNKNOWN",
+          message: "The final publication outcome could not be verified. The uploaded object was retained. Refresh project state and investigate before retrying.",
+          uploadedObject: { bucket: upload.bucket, path: upload.path },
+        }, { status: 503 });
       }
-      return Response.json({ error: "Project state changed before final publication; retry from the refreshed project" }, { status: 409 });
     }
 
     try {
       let email: Awaited<ReturnType<typeof notifyClientFinalDeliverablesReady>> | null = null;
-      if (result.project.status === PROJECT_STATUS_FINAL_FILES_READY) {
+      if (result.project.status === PROJECT_STATUS_FINAL_FILES_READY && result.isCurrentPublication !== false) {
         try {
           email = await notifyClientFinalDeliverablesReady(project.id, result.asset.id);
         } catch {
@@ -186,6 +237,8 @@ export async function POST(
         project: result.project,
         email,
         retainedPreviousAsset: result.previousAsset,
+        recoveredAfterTransactionError: result.recoveredAfterTransactionError ?? false,
+        currentPublication: result.isCurrentPublication ?? true,
       });
     } catch {
       return Response.json({

@@ -13,7 +13,12 @@ const mocks = vi.hoisted(() => {
     requireUser: vi.fn(), requireAdmin: vi.fn(), applyTransition: vi.fn(),
     uploadFinalDeliverable: vi.fn(), deleteStoredFiles: vi.fn(), logAudit: vi.fn(),
     createProjectSystemMessage: vi.fn(), notifyClientFinalDeliverablesReady: vi.fn(), tx,
-    prisma: { project: { findUnique: vi.fn() }, concept: { count: vi.fn() }, $transaction: vi.fn() },
+    prisma: {
+      project: { findUnique: vi.fn() },
+      concept: { count: vi.fn() },
+      fileAsset: { findFirst: vi.fn() },
+      $transaction: vi.fn(),
+    },
   };
 });
 
@@ -60,6 +65,7 @@ describe("POST /api/admin/projects/[id]/finals", () => {
     mocks.requireAdmin.mockResolvedValue(undefined);
     mocks.prisma.project.findUnique.mockResolvedValue({ id: "p1", status: "FINAL_FILES_READY", updatedAt });
     mocks.prisma.concept.count.mockResolvedValue(1);
+    mocks.prisma.fileAsset.findFirst.mockResolvedValue(null);
     mocks.applyTransition.mockReturnValue({ ok: true });
     mocks.uploadFinalDeliverable.mockResolvedValue(newUpload);
     mocks.deleteStoredFiles.mockResolvedValue({ attempted: 1, deleted: 1, failures: [] });
@@ -117,7 +123,7 @@ describe("POST /api/admin/projects/[id]/finals", () => {
     expect(mocks.createProjectSystemMessage).not.toHaveBeenCalled();
   });
 
-  it("keeps the currently published record/path intact and deletes only the new object when the DB guard fails", async () => {
+  it("cleans up the new object only after an authoritative query proves publication is absent", async () => {
     mocks.tx.project.updateMany.mockResolvedValueOnce({ count: 0 });
 
     const response = await request();
@@ -125,9 +131,89 @@ describe("POST /api/admin/projects/[id]/finals", () => {
     expect(response.status).toBe(409);
     expect(mocks.tx.fileAsset.create).not.toHaveBeenCalled();
     expect(mocks.logAudit).not.toHaveBeenCalled();
+    expect(mocks.prisma.fileAsset.findFirst).toHaveBeenCalledWith({
+      where: { projectId: "p1", kind: "final_zip", bucket: newUpload.bucket, path: newUpload.path },
+      select: {
+        id: true,
+        kind: true,
+        path: true,
+        project: {
+          select: {
+            id: true,
+            status: true,
+            fileAssets: {
+              where: { kind: "final_zip" },
+              orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+              take: 1,
+              select: { id: true },
+            },
+          },
+        },
+      },
+    });
     expect(mocks.deleteStoredFiles).toHaveBeenCalledTimes(1);
     expect(mocks.deleteStoredFiles).toHaveBeenCalledWith([{ bucket: newUpload.bucket, path: newUpload.path }]);
     // Superseded immutable rows/objects are retained so issued signed URLs keep working.
+  });
+
+  it("treats committed-then-thrown transactions as committed without deleting storage", async () => {
+    mocks.prisma.$transaction.mockImplementationOnce(async (fn: (tx: typeof mocks.tx) => Promise<unknown>) => {
+      await fn(mocks.tx);
+      throw new Error("connection lost after commit");
+    });
+    mocks.prisma.fileAsset.findFirst.mockResolvedValueOnce({
+      ...newAsset,
+      project: { id: "p1", status: "FINAL_FILES_READY", fileAssets: [{ id: "asset-new" }] },
+    });
+
+    const response = await request();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({
+      ok: true,
+      fileAsset: newAsset,
+      recoveredAfterTransactionError: true,
+      currentPublication: true,
+    });
+    expect(mocks.deleteStoredFiles).not.toHaveBeenCalled();
+    expect(mocks.notifyClientFinalDeliverablesReady).toHaveBeenCalledWith("p1", "asset-new");
+  });
+
+  it("does not notify a recovered publication that has already been superseded", async () => {
+    mocks.prisma.$transaction.mockRejectedValueOnce(new Error("ambiguous transaction result"));
+    mocks.prisma.fileAsset.findFirst.mockResolvedValueOnce({
+      ...newAsset,
+      project: { id: "p1", status: "FINAL_FILES_READY", fileAssets: [{ id: "asset-later" }] },
+    });
+
+    const response = await request();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({
+      recoveredAfterTransactionError: true,
+      currentPublication: false,
+    });
+    expect(mocks.deleteStoredFiles).not.toHaveBeenCalled();
+    expect(mocks.notifyClientFinalDeliverablesReady).not.toHaveBeenCalled();
+  });
+
+  it("fails safe without deleting when publication verification itself fails", async () => {
+    mocks.tx.project.updateMany.mockResolvedValueOnce({ count: 0 });
+    mocks.prisma.fileAsset.findFirst.mockRejectedValueOnce(new Error("database unavailable"));
+
+    const response = await request();
+    const body = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(body).toMatchObject({
+      ok: false,
+      committed: "unknown",
+      code: "FINAL_PUBLICATION_OUTCOME_UNKNOWN",
+      uploadedObject: { bucket: newUpload.bucket, path: newUpload.path },
+    });
+    expect(mocks.deleteStoredFiles).not.toHaveBeenCalled();
   });
 
   it("does not let failed unpublished-object cleanup obscure the publication conflict", async () => {
