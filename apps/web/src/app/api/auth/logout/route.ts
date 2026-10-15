@@ -1,8 +1,10 @@
 import { getAuth } from "@/lib/auth/server";
-import { authJson } from "@/lib/auth/http";
+import { authJson, authProxyUnavailable } from "@/lib/auth/http";
 import { rejectUntrustedMutationOrigin } from "@/lib/request-origin";
 export const runtime = "nodejs";
 export async function POST(req: Request) {
+  const proxy = authProxyUnavailable(req);
+  if (proxy) return proxy;
   const origin = rejectUntrustedMutationOrigin(req);
   if (origin) return origin;
   try {

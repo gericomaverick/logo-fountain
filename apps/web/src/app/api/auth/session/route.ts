@@ -1,8 +1,10 @@
 import { sessionFromHeaders } from "@/lib/auth/service";
 import { isAdminUser } from "@/lib/auth/admin";
-import { authJson } from "@/lib/auth/http";
+import { authJson, authProxyUnavailable } from "@/lib/auth/http";
 export const runtime = "nodejs";
 export async function GET(req: Request) {
+  const proxy = authProxyUnavailable(req);
+  if (proxy) return proxy;
   try {
     const result = await sessionFromHeaders(req.headers);
     if (!result) return authJson({ authenticated: false });

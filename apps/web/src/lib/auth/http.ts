@@ -8,7 +8,16 @@ export function authJson(body: unknown, status = 200, native?: Response) {
   for (const cookie of native?.headers.getSetCookie() || []) headers.append("set-cookie", cookie);
   return Response.json(body, { status, headers });
 }
+// Fail closed per request in production: hosting platforms may bypass npm start,
+// and a configured proxy can still omit or corrupt a header on a given request.
+// This check precedes the email failure-budget reservation and all auth work.
+export function authProxyUnavailable(req: Request): Response | null {
+  if (process.env.NODE_ENV !== "production" || trustedClientAddress(req.headers)) return null;
+  return authJson({ error: { code: "AUTH_UNAVAILABLE", message: "Authentication is temporarily unavailable." } }, 503);
+}
 export async function authMutation(req: Request, run: (body: Record<string, unknown>) => Promise<Response>) {
+  const proxy = authProxyUnavailable(req);
+  if (proxy) return proxy;
   const origin = rejectUntrustedMutationOrigin(req);
   if (origin) return origin;
   if (!/^application\/json(?:\s*;|$)/i.test(req.headers.get("content-type") || "")) return authJson({ error: { code: "INVALID_JSON" } }, 400);

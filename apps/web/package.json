@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "prebuild": "prisma generate",
-    "start": "next start",
+    "start": "node scripts/auth-proxy-preflight.mjs --production && next start",
     "lint": "eslint",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
