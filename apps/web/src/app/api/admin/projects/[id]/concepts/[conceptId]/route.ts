@@ -15,25 +15,25 @@ export async function DELETE(
 
     const { id: projectId, conceptId } = await params;
 
-    const concept = await prisma.concept.findFirst({
-      where: { id: conceptId, projectId },
-      select: { id: true, number: true, status: true },
-    });
-
-    if (!concept) {
-      return jsonError("Concept not found", 404, { nextStep: "Check the concept link." }, "CONCEPT_NOT_FOUND");
-    }
-
-    const wasPublished = concept.status === "published" || concept.status === "approved";
-
     await prisma.$transaction(async (tx) => {
-      await tx.concept.update({
-        where: { id: concept.id },
-        data: { status: "deleted" },
-      });
+      const concept = await tx.concept.findFirst({ where: { id: conceptId, projectId }, select: { id: true, number: true, status: true } });
+      if (!concept) throw new Error("CONCEPT_NOT_FOUND");
+      if (concept.status === "deleted") return;
+      const project = await tx.project.findUnique({ where: { id: projectId }, select: { status: true, updatedAt: true } });
+      if (!project || !["BRIEF_SUBMITTED", "IN_DESIGN", "CONCEPTS_READY"].includes(project.status) || concept.status === "approved") throw new Error("CONCEPT_DELETE_PHASE_GUARD");
+      if (project.status === "CONCEPTS_READY" && ["published", "approved"].includes(concept.status)) {
+        const otherVisible = await tx.concept.count({ where: { projectId, id: { not: concept.id }, status: { in: ["published", "approved"] } } });
+        if (!otherVisible) throw new Error("CONCEPT_DELETE_PHASE_GUARD");
+      }
+      const projectGuard = await tx.project.updateMany({ where: { id: projectId, status: project.status, updatedAt: project.updatedAt }, data: { updatedAt: new Date() } });
+      if (projectGuard.count !== 1) throw new Error("CONCEPT_DELETE_CONFLICT");
+      // Deletion never rewinds consumed usage, including delivered revisions.
+      // A clean-slate reset is the only supported usage rewind.
+      const changed = await tx.concept.updateMany({ where: { id: concept.id, projectId, status: concept.status }, data: { status: "deleted" } });
+      if (changed.count !== 1) throw new Error("CONCEPT_DELETE_CONFLICT");
 
       // If there are revision requests tied to this concept, remove them.
-      // (Concept deletion is a destructive admin action; for testing/reset flows we want a clean slate.)
+      // This is not a clean-slate usage reset.
       const revisionRequestsToDelete = await tx.revisionRequest.findMany({
         where: { projectId, conceptId: concept.id },
         select: { id: true, status: true },
@@ -43,25 +43,13 @@ export async function DELETE(
         where: { projectId, conceptId: concept.id },
       });
 
-      if (wasPublished) {
-        await tx.$executeRaw`
-          UPDATE "ProjectEntitlement"
-          SET "consumedInt" = GREATEST(COALESCE("consumedInt", 0) - 1, 0),
-              "updatedAt" = NOW()
-          WHERE "projectId" = ${projectId}::uuid
-            AND "key" = 'concepts'
-        `;
-      }
-
       if (deletedRevisionRequests.count > 0) {
         const requestedCount = revisionRequestsToDelete.filter((r) => r.status !== "delivered").length;
-        const deliveredCount = revisionRequestsToDelete.filter((r) => r.status === "delivered").length;
 
-        // Refund any reserved (requested) revisions, and any consumed (delivered) revisions.
+        // Release only reservations cancelled by deletion; delivered usage is durable.
         await tx.$executeRaw`
           UPDATE "ProjectEntitlement"
           SET "reservedInt" = GREATEST(COALESCE("reservedInt", 0) - ${requestedCount}, 0),
-              "consumedInt" = GREATEST(COALESCE("consumedInt", 0) - ${deliveredCount}, 0),
               "updatedAt" = NOW()
           WHERE "projectId" = ${projectId}::uuid
             AND "key" = 'revisions'
@@ -80,10 +68,14 @@ export async function DELETE(
           deletedRevisionRequestIds: revisionRequestsToDelete.map((r) => r.id),
         },
       });
-    });
+    }, { isolationLevel: "Serializable" });
 
     return Response.json({ ok: true });
   } catch (error) {
+    if (error instanceof Error && error.message === "CONCEPT_DELETE_PHASE_GUARD") return jsonError("Deletion would invalidate the current phase or approval; use an explicit clean-slate reset for a complete restart", 409, undefined, "CONCEPT_DELETE_PHASE_GUARD");
+    if (error instanceof Error && error.message === "CONCEPT_NOT_FOUND") return jsonError("Concept not found", 404, undefined, "CONCEPT_NOT_FOUND");
+    if (error instanceof Error && error.message === "CONCEPT_DELETE_CONFLICT") return jsonError("Concept changed; refresh before retrying", 409, undefined, "CONCEPT_DELETE_CONFLICT");
+    if (typeof error === "object" && error !== null && "code" in error && ["P2034", "P2028"].includes(String(error.code))) return jsonError("Concurrent lifecycle change; refresh before retrying", 409, undefined, "LIFECYCLE_CONFLICT");
     return toRouteErrorResponse(error);
   }
 }

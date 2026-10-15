@@ -1,5 +1,7 @@
 "use client";
 
+import { conceptUploadKey } from "@/lib/concept-upload-key";
+
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -104,6 +106,7 @@ export default function AdminProjectConceptsPage() {
     data.set("file", file);
     data.set("notes", notes);
 
+    const retireRequestKey = await conceptUploadKey(projectId, data);
     const response = await fetch(`/api/admin/projects/${projectId}/concepts`, {
       method: "POST",
       body: data,
@@ -116,6 +119,7 @@ export default function AdminProjectConceptsPage() {
       const uploadedNumber = Number(payload?.concept?.number);
       const label = Number.isFinite(uploadedNumber) && uploadedNumber > 0 ? `Concept #${uploadedNumber}` : "Concept";
       setSuccess(`${label} uploaded and published.`);
+      retireRequestKey();
       setFile(null);
       await refresh(projectId);
     }
@@ -229,7 +233,8 @@ export default function AdminProjectConceptsPage() {
             </p>
 
             <label className="mt-4 block text-sm font-medium">Asset file</label>
-            <input className="mt-1 block" type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+            <input className="mt-1 block" type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+            <p className="mt-1 text-xs text-neutral-600">PNG, JPEG, or WebP only; 10 MB maximum.</p>
 
             <label className="mt-4 block text-sm font-medium">Notes</label>
             <textarea className="mt-1 portal-field px-2 py-1" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />

@@ -6,8 +6,8 @@ export type EntitlementRow = {
 };
 
 export type EntitlementUsage = {
-  concepts: { limit: number; consumed: number; reserved: number; remaining: number };
-  revisions: { limit: number; consumed: number; reserved: number; remaining: number };
+  concepts: { limit: number; consumed: number; reserved: number; remaining: number; unlimited?: boolean; configured?: boolean };
+  revisions: { limit: number; consumed: number; reserved: number; remaining: number; unlimited?: boolean; configured?: boolean };
 };
 
 const PACKAGE_DEFAULTS: Record<string, { concepts: number; revisions: number }> = {
@@ -18,25 +18,27 @@ const PACKAGE_DEFAULTS: Record<string, { concepts: number; revisions: number }> 
 
 export function computeEntitlementUsage(entitlements: EntitlementRow[], packageCode: string): EntitlementUsage {
   const usage: EntitlementUsage = {
-    concepts: { limit: 0, consumed: 0, reserved: 0, remaining: 0 },
-    revisions: { limit: 0, consumed: 0, reserved: 0, remaining: 0 },
+    concepts: { limit: 0, consumed: 0, reserved: 0, remaining: 0, configured: false },
+    revisions: { limit: 0, consumed: 0, reserved: 0, remaining: 0, configured: false },
   };
 
   for (const entitlement of entitlements) {
+    const unlimited = entitlement.limitInt === null;
+    const configured = true;
     const limit = Math.max(entitlement.limitInt ?? 0, 0);
     const consumed = Math.max(entitlement.consumedInt ?? 0, 0);
     const reserved = Math.max(entitlement.reservedInt ?? 0, 0);
     const remaining = Math.max(limit - consumed - reserved, 0);
 
-    if (entitlement.key === "concepts") usage.concepts = { limit, consumed, reserved, remaining };
-    if (entitlement.key === "revisions") usage.revisions = { limit, consumed, reserved, remaining };
+    if (entitlement.key === "concepts") usage.concepts = { limit, consumed, reserved, remaining, unlimited, configured };
+    if (entitlement.key === "revisions") usage.revisions = { limit, consumed, reserved, remaining, unlimited, configured };
   }
 
-  if (usage.concepts.limit === 0 && usage.revisions.limit === 0) {
+  if (!entitlements.some(e => e.key === "concepts" || e.key === "revisions")) {
     const defaults = PACKAGE_DEFAULTS[packageCode] ?? null;
     if (defaults) {
-      usage.concepts = { limit: defaults.concepts, consumed: 0, reserved: 0, remaining: defaults.concepts };
-      usage.revisions = { limit: defaults.revisions, consumed: 0, reserved: 0, remaining: defaults.revisions };
+      usage.concepts = { limit: defaults.concepts, consumed: 0, reserved: 0, remaining: defaults.concepts, configured: false };
+      usage.revisions = { limit: defaults.revisions, consumed: 0, reserved: 0, remaining: defaults.revisions, configured: false };
     }
   }
 

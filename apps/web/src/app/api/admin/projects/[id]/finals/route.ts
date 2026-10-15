@@ -2,7 +2,8 @@ import { jsonError } from "@/lib/api-error";
 import { requireAdmin, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { prisma } from "@/lib/prisma";
 import { applyTransition } from "@/lib/project-state-machine";
-import { uploadFinalDeliverable } from "@/lib/supabase/storage";
+import { deleteStoredFiles, uploadFinalDeliverable } from "@/lib/supabase/storage";
+import { prepareFinalZip, UploadValidationError } from "@/lib/upload-validation";
 import { logAudit } from "@/lib/audit";
 import { createProjectSystemMessage } from "@/lib/system-messages";
 import { notifyClientFinalDeliverablesReady } from "@/lib/project-lifecycle-email";
@@ -15,6 +16,8 @@ const PROJECT_STATUS_FINAL_FILES_READY = "FINAL_FILES_READY";
 const PROJECT_STATUS_DELIVERED = "DELIVERED";
 
 type UploadedFinal = Awaited<ReturnType<typeof uploadFinalDeliverable>>;
+
+class KnownSafePublicationConflict extends Error {}
 
 export async function POST(
   req: Request,
@@ -34,10 +37,8 @@ export async function POST(
     const formData = await req.formData();
     const fileEntry = formData.get("file");
     if (!(fileEntry instanceof File) || fileEntry.size <= 0) {
-      return Response.json({ error: "ZIP file is required" }, { status: 400 });
+      return Response.json({ error: "ZIP file is required", code: "FILE_REQUIRED" }, { status: 400 });
     }
-    const isZip = fileEntry.type === "application/zip" || fileEntry.name.toLowerCase().endsWith(".zip");
-    if (!isZip) return Response.json({ error: "Only ZIP uploads are supported" }, { status: 400 });
 
     const hasApproved = (await prisma.concept.count({
       where: { projectId: project.id, status: CONCEPT_STATUS_APPROVED },
@@ -63,12 +64,23 @@ export async function POST(
       }
     }
 
-    // Validation deliberately precedes storage. Storage is immutable/versioned;
-    // until the guarded transaction commits, existing published bytes and metadata
-    // continue to point at the previous asset.
+    // State/approval checks precede allocation and storage. The size check inside
+    // prepareFinalZip also precedes arrayBuffer().
+    let prepared;
+    try {
+      prepared = await prepareFinalZip(fileEntry);
+    } catch (error) {
+      if (error instanceof UploadValidationError) {
+        return Response.json({ error: error.message, code: error.code }, { status: 400 });
+      }
+      throw error;
+    }
+
+    // Storage is immutable/versioned; until the guarded transaction commits,
+    // existing published bytes and metadata still point at the previous asset.
     let upload: UploadedFinal;
     try {
-      upload = await uploadFinalDeliverable({ projectId: project.id, file: fileEntry });
+      upload = await uploadFinalDeliverable({ projectId: project.id, upload: prepared });
     } catch {
       // Storage provider details are intentionally not returned; they may contain
       // sensitive request/object diagnostics.
@@ -98,7 +110,7 @@ export async function POST(
           // so concurrent publishers cannot both satisfy the optimistic guard.
           data: { status: targetStatus, updatedAt: publicationTime },
         });
-        if (statusGuard.count !== 1) throw new Error("Project state or approval changed before final metadata update");
+        if (statusGuard.count !== 1) throw new KnownSafePublicationConflict("Project state or approval changed before final metadata update");
 
         const previousAsset = await tx.fileAsset.findFirst({
           where: { projectId: project.id, kind: "final_zip" },
@@ -141,8 +153,19 @@ export async function POST(
         }
         return { asset, project: { id: project.id, status: targetStatus }, previousAsset };
       }, { isolationLevel: "Serializable", maxWait: 2_000, timeout: 5_000 });
-    } catch {
-      // A transaction error does not prove rollback: the database may have
+    } catch (transactionError) {
+      if (transactionError instanceof KnownSafePublicationConflict) {
+        // The optimistic guard performed no write and the callback deliberately
+        // aborted, so this object is known to be unpublished and is safe to remove.
+        const cleanup = await deleteStoredFiles([{ bucket: upload.bucket, path: upload.path }]).catch(() => ({ attempted: 1, deleted: 0, failures: [{ bucket: upload.bucket, message: "cleanup unavailable" }] }));
+        return Response.json({
+          error: "Project state changed before final publication",
+          code: "FINAL_PUBLICATION_CONFLICT",
+          uploadedObjectRetained: cleanup.deleted !== 1,
+          cleanup: { attempted: cleanup.attempted, deleted: cleanup.deleted, failed: cleanup.failures.length > 0 },
+        }, { status: 409 });
+      }
+      // Other transaction errors do not prove rollback: the database may have
       // committed before the client observed a connection/timeout failure.
       try {
         const verifiedAsset = await prisma.fileAsset.findFirst({

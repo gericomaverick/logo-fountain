@@ -23,38 +23,20 @@ export async function POST(
   const payload = (await req.json().catch(() => null)) as { setConceptsReady?: boolean } | null;
   const setConceptsReady = payload?.setConceptsReady !== false;
 
-  const revisionRequest = await prisma.revisionRequest.findFirst({
-    where: { id: rid, projectId },
-    select: { id: true, status: true },
-  });
-
-  if (!revisionRequest) {
-    return jsonError("Revision request not found", 404, undefined, "REVISION_REQUEST_NOT_FOUND");
-  }
-
-  const project = await prisma.project.findUnique({ where: { id: projectId }, select: { status: true } });
-  if (!project) {
-    return jsonError("Project not found", 404, undefined, "PROJECT_NOT_FOUND");
-  }
-
-  if (setConceptsReady) {
-    const transition = applyTransition(project.status, PROJECT_STATUS_CONCEPTS_READY);
-    if (!transition.ok) {
-      return jsonError(
-        `Invalid transition from ${project.status} to ${PROJECT_STATUS_CONCEPTS_READY}`,
-        400,
-        { allowed: transition.allowed },
-        "INVALID_PROJECT_STATUS_TRANSITION",
-      );
-    }
-  }
-
-  const previousStatus = project.status;
-
   const result = await prisma.$transaction(async (tx) => {
-    let deliveredNow = false;
-
-    if (revisionRequest.status !== STATUS_DELIVERED) {
+    const revisionRequest = await tx.revisionRequest.findFirst({ where: { id: rid, projectId }, select: { id: true, status: true, updatedAt: true } });
+    if (!revisionRequest) throw new Error("REVISION_REQUEST_NOT_FOUND");
+    const currentProject = await tx.project.findUnique({ where: { id: projectId }, select: { status: true, updatedAt: true } });
+    if (!currentProject) throw new Error("PROJECT_NOT_FOUND");
+    if (revisionRequest.status === STATUS_DELIVERED) return { updatedRevisionRequest: revisionRequest, project: null, deliveredNow: false };
+    if (!["REVISIONS_IN_PROGRESS", "CONCEPTS_READY"].includes(currentProject.status)) throw new Error("INVALID_PROJECT_STATUS_TRANSITION");
+    if (setConceptsReady && !applyTransition(currentProject.status, PROJECT_STATUS_CONCEPTS_READY).ok && currentProject.status !== PROJECT_STATUS_CONCEPTS_READY) throw new Error("INVALID_PROJECT_STATUS_TRANSITION");
+    const previousStatus = currentProject.status;
+    const guard = await tx.project.updateMany({ where: { id: projectId, status: currentProject.status, updatedAt: currentProject.updatedAt }, data: { updatedAt: new Date() } });
+    if (guard.count !== 1) throw new Error("REVISION_DELIVERY_CONFLICT");
+    const claimed = await tx.revisionRequest.updateMany({ where: { id: rid, projectId, status: revisionRequest.status }, data: { status: STATUS_DELIVERED } });
+    if (claimed.count !== 1) throw new Error("REVISION_DELIVERY_CONFLICT");
+    {
       const revisionsEntitlement = await tx.projectEntitlement.findFirst({
         where: { projectId, key: "revisions" },
         select: { id: true, limitInt: true, consumedInt: true, reservedInt: true },
@@ -76,16 +58,18 @@ export async function POST(
         throw new Error("REVISION_LIMIT_EXCEEDED");
       }
 
-      await tx.$executeRaw`
+      const changed = await tx.$executeRaw`
         UPDATE "ProjectEntitlement"
         SET "reservedInt" = GREATEST(COALESCE("reservedInt", 0) - 1, 0),
             "consumedInt" = COALESCE("consumedInt", 0) + 1,
             "updatedAt" = NOW()
         WHERE "projectId" = ${projectId}::uuid
           AND "key" = 'revisions'
+          AND COALESCE("reservedInt", 0) >= 1
+          AND ("limitInt" IS NULL OR COALESCE("consumedInt", 0) + 1 <= "limitInt")
       `;
 
-      deliveredNow = true;
+      if (changed !== 1) throw new Error("REVISION_DELIVERY_CONFLICT");
     }
 
     const updatedRevisionRequest = await tx.revisionRequest.update({
@@ -100,7 +84,7 @@ export async function POST(
       projectId,
       actorId: user.id,
       type: "revision_delivered",
-      payload: { revisionRequestId: updatedRevisionRequest.id, consumedEntitlement: deliveredNow },
+      payload: { revisionRequestId: updatedRevisionRequest.id, consumedEntitlement: true },
     });
 
     await createProjectSystemMessage(tx, {
@@ -124,13 +108,15 @@ export async function POST(
       });
     }
 
-    return { updatedRevisionRequest, project };
-  });
+    return { updatedRevisionRequest, project, deliveredNow: true };
+  }, { isolationLevel: "Serializable" });
 
-  await notifyClientRevisionReady(projectId, result.updatedRevisionRequest.id);
+  if (result.deliveredNow) await notifyClientRevisionReady(projectId, result.updatedRevisionRequest.id).catch(() => undefined);
 
   return Response.json({ ok: true, revisionRequest: result.updatedRevisionRequest, project: result.project });
   } catch (error) {
+    if (error instanceof Error && ["REVISION_DELIVERY_CONFLICT", "INVALID_PROJECT_STATUS_TRANSITION"].includes(error.message)) return jsonError("Revision or project state changed; refresh before retrying", 409, undefined, error.message);
+    if (error instanceof Error && ["PROJECT_NOT_FOUND", "REVISION_REQUEST_NOT_FOUND"].includes(error.message)) return jsonError("Project or request not found", 404, undefined, error.message);
     if (error instanceof Error && error.message === "REVISIONS_ENTITLEMENT_MISSING") {
       return jsonError("Revisions entitlement not configured", 400, { nextStep: "Set a revisions entitlement before marking delivered." }, "REVISIONS_ENTITLEMENT_MISSING");
     }
@@ -140,6 +126,7 @@ export async function POST(
     if (error instanceof Error && error.message === "REVISION_LIMIT_EXCEEDED") {
       return jsonError("Delivering this revision exceeds entitlement", 400, { nextStep: "Increase revision entitlement before delivering." }, "REVISION_LIMIT_EXCEEDED");
     }
+    if (typeof error === "object" && error !== null && "code" in error && ["P2034", "P2028"].includes(String(error.code))) return jsonError("Concurrent lifecycle change; refresh before retrying", 409, undefined, "LIFECYCLE_CONFLICT");
     return toRouteErrorResponse(error);
   }
 }

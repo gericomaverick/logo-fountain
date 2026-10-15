@@ -16,7 +16,7 @@ import {
 } from "@/lib/admin-final-publication";
 import { getPendingFeedbackCountForLatestConcept } from "@/lib/project-hub";
 
-type EntitlementUsage = { limit: number; consumed: number; reserved?: number; remaining: number };
+type EntitlementUsage = { limit: number; consumed: number; reserved?: number; remaining: number; unlimited?: boolean; configured?: boolean };
 
 type ProjectInvoice = {
   id: string;
@@ -134,9 +134,9 @@ function EntitlementProgress({
     <article className="rounded-xl border border-neutral-200 bg-white p-4 text-sm">
       <div className="flex items-center justify-between gap-3">
         <h3 className="font-semibold text-neutral-900">{label}</h3>
-        <p className="text-xs text-neutral-500">{stats.remaining} left</p>
+        <p className="text-xs text-neutral-500">{usage?.configured === false ? "Not configured" : usage?.unlimited ? "Unlimited" : `${stats.remaining} left`}</p>
       </div>
-      <p className="mt-1 text-neutral-700">{stats.allocated} of {stats.limit} allocated</p>
+      <p className="mt-1 text-neutral-700">{usage?.unlimited ? `${stats.consumed} used (unlimited)` : `${stats.allocated} of ${stats.limit} allocated`}</p>
       {stats.reserved > 0 ? <p className="mt-0.5 text-xs text-neutral-500">{stats.consumed} delivered · {stats.reserved} pending</p> : null}
       <div className="mt-2 h-2 rounded-full bg-neutral-200">
         <div className={`h-2 rounded-full transition-all duration-700 ease-out ${fillClassName}`} style={{ width: `${animatedRatio}%` }} />
@@ -153,8 +153,11 @@ export default function AdminProjectPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reprocessSessionId, setReprocessSessionId] = useState("");
+  const [conceptDirty, setConceptDirty] = useState(false);
+  const [revisionDirty, setRevisionDirty] = useState(false);
   const [conceptLimit, setConceptLimit] = useState("");
   const [revisionLimit, setRevisionLimit] = useState("");
+  const [entitlementOverrideReason, setEntitlementOverrideReason] = useState("");
   const [entitlementsDirty, setEntitlementsDirty] = useState(false);
   const [finalZipFile, setFinalZipFile] = useState<File | null>(null);
   const [invoices, setInvoices] = useState<ProjectInvoice[]>([]);
@@ -179,8 +182,8 @@ export default function AdminProjectPage() {
     setInvoiceError(invoicesResponse.ok ? null : readError(invoicesPayload, "Failed to load invoices"));
 
     if (nextSnapshot && !entitlementsDirty) {
-      setConceptLimit(String(nextSnapshot.entitlementUsage?.concepts?.limit ?? ""));
-      setRevisionLimit(String(nextSnapshot.entitlementUsage?.revisions?.limit ?? ""));
+      setConceptLimit(nextSnapshot.entitlementUsage?.concepts?.unlimited ? "" : String(nextSnapshot.entitlementUsage?.concepts?.limit ?? ""));
+      setRevisionLimit(nextSnapshot.entitlementUsage?.revisions?.unlimited ? "" : String(nextSnapshot.entitlementUsage?.revisions?.limit ?? ""));
     }
   }
 
@@ -213,6 +216,11 @@ export default function AdminProjectPage() {
       setError("Entitlement limits must be integers (or blank for null).");
       return;
     }
+    const reason = entitlementOverrideReason.trim();
+    if (!reason) {
+      setError("A reason is required for every entitlement override.");
+      return;
+    }
 
     setBusy(true);
     setError(null);
@@ -220,7 +228,7 @@ export default function AdminProjectPage() {
     const response = await fetch(`/api/admin/projects/${projectId}/entitlements`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ concepts, revisions }),
+      body: JSON.stringify({ ...(conceptDirty ? { concepts } : {}), ...(revisionDirty ? { revisions } : {}), reason }),
     });
 
     const payload = await response.json().catch(() => null);
@@ -229,6 +237,9 @@ export default function AdminProjectPage() {
       setError(readError(payload, "Failed to update entitlements"));
     } else {
       setEntitlementsDirty(false);
+      setConceptDirty(false);
+      setRevisionDirty(false);
+      setEntitlementOverrideReason("");
       await refresh(projectId);
     }
 
@@ -390,6 +401,14 @@ export default function AdminProjectPage() {
             </div>
           ) : null}
 
+          {snapshot?.status === "ON_HOLD" ? (
+            <button className="mt-4 rounded border px-3 py-2" type="button" disabled={busy} onClick={() => {
+              const reason = window.prompt("Reason for restoring the recorded pre-hold phase (no usage reset):");
+              if (!reason?.trim()) return;
+              void runAction(() => fetch(`/api/admin/projects/${projectId}/status`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "RESUME", reason }) }), "Cannot safely resume project");
+            }}>Resume recorded phase</button>
+          ) : null}
+
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <EntitlementProgress label="Concepts" usage={snapshot?.entitlementUsage?.concepts} fillClassName="bg-gradient-to-r from-indigo-600 to-sky-500" />
             <EntitlementProgress label="Revisions" usage={snapshot?.entitlementUsage?.revisions} fillClassName="bg-gradient-to-r from-fuchsia-600 to-violet-500" />
@@ -438,61 +457,35 @@ export default function AdminProjectPage() {
             <div className="mt-2 grid gap-3 sm:grid-cols-2">
               <label className="flex flex-col gap-1">
                 <span className="text-xs text-neutral-600">Concept limit</span>
-                <input className="rounded border border-neutral-300 bg-white px-2 py-1" value={conceptLimit} onChange={(e) => { setConceptLimit(e.target.value); setEntitlementsDirty(true); }} placeholder="e.g. 3" inputMode="numeric" />
+                <input className="rounded border border-neutral-300 bg-white px-2 py-1" value={conceptLimit} onChange={(e) => { setConceptLimit(e.target.value); setConceptDirty(true); setEntitlementsDirty(true); }} placeholder="e.g. 3" inputMode="numeric" />
               </label>
               <label className="flex flex-col gap-1">
                 <span className="text-xs text-neutral-600">Revision limit</span>
-                <input className="rounded border border-neutral-300 bg-white px-2 py-1" value={revisionLimit} onChange={(e) => { setRevisionLimit(e.target.value); setEntitlementsDirty(true); }} placeholder="e.g. 2" inputMode="numeric" />
+                <input className="rounded border border-neutral-300 bg-white px-2 py-1" value={revisionLimit} onChange={(e) => { setRevisionLimit(e.target.value); setRevisionDirty(true); setEntitlementsDirty(true); }} placeholder="e.g. 2" inputMode="numeric" />
               </label>
             </div>
+            <label className="mt-3 flex flex-col gap-1">
+              <span className="text-xs text-neutral-600">Reason (required and recorded in the audit trail)</span>
+              <textarea
+                className="rounded border border-neutral-300 bg-white px-2 py-1"
+                value={entitlementOverrideReason}
+                onChange={(e) => { setEntitlementOverrideReason(e.target.value); setEntitlementsDirty(true); }}
+                maxLength={500}
+                placeholder="Why is this package entitlement changing?"
+                rows={2}
+                required
+              />
+            </label>
             <div className="mt-3 flex flex-wrap gap-2">
-              <button className="rounded border border-neutral-300 bg-white px-3 py-1" type="button" disabled={busy} onClick={() => void saveEntitlementOverrides()}>
+              <button className="rounded border border-neutral-300 bg-white px-3 py-1" type="button" disabled={busy || !entitlementOverrideReason.trim()} onClick={() => void saveEntitlementOverrides()}>
                 Save entitlement override
-              </button>
-              <button
-                className="rounded border border-neutral-300 bg-white px-3 py-1"
-                type="button"
-                disabled={busy}
-                onClick={() => {
-                  if (!window.confirm("Reset concepts used to 0? This is for testing only.")) return;
-                  void runAction(
-                    () =>
-                      fetch(`/api/admin/projects/${projectId}/entitlements/reset`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ key: "concepts" }),
-                      }),
-                    "Failed to reset concepts usage",
-                  );
-                }}
-              >
-                Reset concepts used → 0
-              </button>
-              <button
-                className="rounded border border-neutral-300 bg-white px-3 py-1 text-rose-700"
-                type="button"
-                disabled={busy}
-                onClick={() => {
-                  if (!window.confirm("Reset revisions used to 0? This is for testing only.")) return;
-                  void runAction(
-                    () =>
-                      fetch(`/api/admin/projects/${projectId}/entitlements/reset`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ key: "revisions", confirm: true }),
-                      }),
-                    "Failed to reset revisions usage",
-                  );
-                }}
-              >
-                Reset revisions used → 0
               </button>
               <button
                 className="rounded border border-rose-300 bg-rose-50 px-3 py-1 font-medium text-rose-700"
                 type="button"
                 disabled={busy}
                 onClick={() => {
-                  if (!window.confirm("Full project reset? This deletes concepts, revisions, concept comments, and all non-system messages. This is irreversible.")) return;
+                  if (!window.confirm("Full project reset? This deletes concepts, revisions, concept comments, and all non-system messages, and retires ALL final publication records. Stored files are retained; previously issued signed links remain valid until expiry. This is irreversible.")) return;
                   if (!window.confirm("Final confirmation: reset this project to a clean-slate baseline?")) return;
                   void runAction(
                     () =>
@@ -565,9 +558,10 @@ export default function AdminProjectPage() {
                   <input
                     className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm"
                     type="file"
-                    accept=".zip,application/zip"
+                    accept=".zip,application/zip,application/x-zip-compressed"
                     onChange={(event) => setFinalZipFile(event.target.files?.[0] ?? null)}
                   />
+                  <span className="text-xs text-neutral-500">Standard ZIP only; 100 MB compressed / 500 MB expanded maximum.</span>
                 </label>
                 <button className="portal-btn-primary justify-center bg-violet-700 text-white hover:bg-violet-800 disabled:opacity-60" type="submit" disabled={busy || !finalZipFile}>
                   {busy ? "Uploading…" : "Upload and publish"}

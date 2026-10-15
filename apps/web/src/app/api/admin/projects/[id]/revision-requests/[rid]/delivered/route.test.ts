@@ -3,8 +3,8 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 vi.mock("server-only", () => ({}));
 
 const mocks = vi.hoisted(() => {
-  const revisionRequest = { findFirst: vi.fn(), update: vi.fn() };
-  const project = { findUnique: vi.fn(), update: vi.fn() };
+  const revisionRequest = { findFirst: vi.fn(), update: vi.fn(), updateMany: vi.fn() };
+  const project = { findUnique: vi.fn(), update: vi.fn(), updateMany: vi.fn() };
   const projectEntitlement = { findFirst: vi.fn() };
   const $executeRaw = vi.fn();
   type Tx = {
@@ -50,6 +50,7 @@ import { POST } from "./route";
 describe("POST /api/admin/projects/[id]/revision-requests/[rid]/delivered", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.notifyClientRevisionReady.mockResolvedValue(undefined);
     mocks.requireUser.mockResolvedValue({ id: "admin-user-1" });
     mocks.requireAdmin.mockResolvedValue(undefined);
     mocks.prisma.revisionRequest.findFirst.mockResolvedValue({ id: "rev-1", status: "requested" });
@@ -58,6 +59,8 @@ describe("POST /api/admin/projects/[id]/revision-requests/[rid]/delivered", () =
     mocks.prisma.project.update.mockResolvedValue({ id: "p1", status: "CONCEPTS_READY" });
     mocks.prisma.projectEntitlement.findFirst.mockResolvedValue({ id: "ent-r", limitInt: 2, consumedInt: 0, reservedInt: 1 });
     mocks.prisma.$executeRaw.mockResolvedValue(1);
+    mocks.prisma.project.updateMany.mockResolvedValue({ count: 1 });
+    mocks.prisma.revisionRequest.updateMany.mockResolvedValue({ count: 1 });
   });
 
   it("logs state_changed with the true previous status", async () => {
@@ -85,4 +88,18 @@ describe("POST /api/admin/projects/[id]/revision-requests/[rid]/delivered", () =
     expect(res.status).toBe(400);
     expect(payload.error?.code).toBe("INSUFFICIENT_REVISION_RESERVATION");
   });
+  it("replay of delivered request does not convert another reservation", async () => {
+    mocks.prisma.revisionRequest.findFirst.mockResolvedValue({ id: "rev-1", status: "delivered" });
+    const res = await POST(new Request("http://localhost", { method: "POST" }), { params: Promise.resolve({ id: "p1", rid: "rev-1" }) });
+    expect(res.status).toBe(200);
+    expect(mocks.prisma.$executeRaw).not.toHaveBeenCalled();
+    expect(mocks.notifyClientRevisionReady).not.toHaveBeenCalled();
+  });
+  it("conditional claim loser cannot consume another reservation", async () => {
+    mocks.prisma.revisionRequest.updateMany.mockResolvedValue({ count: 0 });
+    const res = await POST(new Request("http://localhost", { method: "POST" }), { params: Promise.resolve({ id: "p1", rid: "rev-1" }) });
+    expect(res.status).toBe(409);
+    expect(mocks.prisma.$executeRaw).not.toHaveBeenCalled();
+  });
+
 });

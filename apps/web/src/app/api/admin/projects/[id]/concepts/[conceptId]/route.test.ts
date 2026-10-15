@@ -13,7 +13,8 @@ const mocks = vi.hoisted(() => {
   }
 
   const tx = {
-    concept: { update: vi.fn() },
+    project: { findUnique: vi.fn(), updateMany: vi.fn() },
+    concept: { findFirst: vi.fn(), updateMany: vi.fn(), count: vi.fn() },
     revisionRequest: { findMany: vi.fn(), deleteMany: vi.fn() },
     $executeRaw: vi.fn(),
   };
@@ -57,10 +58,13 @@ function deleteConcept(id: string, conceptId: string) {
 describe("DELETE /api/admin/projects/[id]/concepts/[conceptId]", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.tx.project.findUnique.mockResolvedValue({status:"CONCEPTS_READY",updatedAt:new Date("2026-03-01")});
+    mocks.tx.project.updateMany.mockResolvedValue({count:1});
+    mocks.tx.concept.count.mockResolvedValue(1);
     mocks.requireUser.mockResolvedValue({ id: "admin-1", email: "admin@example.com" });
     mocks.requireAdmin.mockResolvedValue(undefined);
-    mocks.prisma.concept.findFirst.mockResolvedValue({ id: "c1", number: 1, status: "published" });
-    mocks.tx.concept.update.mockResolvedValue(undefined);
+    mocks.tx.concept.findFirst.mockResolvedValue({ id: "c1", number: 1, status: "published" });
+    mocks.tx.concept.updateMany.mockResolvedValue({ count: 1 });
     mocks.tx.revisionRequest.findMany.mockResolvedValue([]);
     mocks.tx.revisionRequest.deleteMany.mockResolvedValue({ count: 0 });
     mocks.tx.$executeRaw.mockResolvedValue(1);
@@ -73,32 +77,32 @@ describe("DELETE /api/admin/projects/[id]/concepts/[conceptId]", () => {
     const res = await deleteConcept("p1", "c1");
 
     expect(res.status).toBe(403);
-    expect(mocks.prisma.concept.findFirst).not.toHaveBeenCalled();
+    expect(mocks.tx.concept.findFirst).not.toHaveBeenCalled();
   });
 
   it("scopes the concept lookup to the project (no cross-project deletes)", async () => {
-    mocks.prisma.concept.findFirst.mockResolvedValue(null);
+    mocks.tx.concept.findFirst.mockResolvedValue(null);
 
     const res = await deleteConcept("p-other", "c1");
     const body = await res.json();
 
     expect(res.status).toBe(404);
     expect(body.error.code).toBe("CONCEPT_NOT_FOUND");
-    expect(mocks.prisma.concept.findFirst).toHaveBeenCalledWith(
+    expect(mocks.tx.concept.findFirst).toHaveBeenCalledWith(
       expect.objectContaining({ where: { id: "c1", projectId: "p-other" } }),
     );
-    expect(mocks.prisma.$transaction).not.toHaveBeenCalled();
+
   });
 
-  it("soft-deletes a published concept and refunds the concept entitlement", async () => {
+  it("soft-deletes without rewinding first-publication usage", async () => {
     const res = await deleteConcept("p1", "c1");
 
     expect(res.status).toBe(200);
-    expect(mocks.tx.concept.update).toHaveBeenCalledWith(
+    expect(mocks.tx.concept.updateMany).toHaveBeenCalledWith(
       expect.objectContaining({ data: { status: "deleted" } }),
     );
     // One raw update refunding the consumed concept entitlement.
-    expect(mocks.tx.$executeRaw).toHaveBeenCalledTimes(1);
+    expect(mocks.tx.$executeRaw).not.toHaveBeenCalled();
     expect(mocks.logAudit).toHaveBeenCalledWith(
       mocks.tx,
       expect.objectContaining({ type: "concept_deleted" }),
@@ -106,7 +110,7 @@ describe("DELETE /api/admin/projects/[id]/concepts/[conceptId]", () => {
   });
 
   it("does not refund concept entitlement for unpublished concepts", async () => {
-    mocks.prisma.concept.findFirst.mockResolvedValue({ id: "c1", number: 1, status: "draft" });
+    mocks.tx.concept.findFirst.mockResolvedValue({ id: "c1", number: 1, status: "draft" });
 
     const res = await deleteConcept("p1", "c1");
 
@@ -114,7 +118,7 @@ describe("DELETE /api/admin/projects/[id]/concepts/[conceptId]", () => {
     expect(mocks.tx.$executeRaw).not.toHaveBeenCalled();
   });
 
-  it("refunds reserved and consumed revisions tied to the concept", async () => {
+  it("releases pending reservations but never refunds delivered usage", async () => {
     mocks.tx.revisionRequest.findMany.mockResolvedValue([
       { id: "r1", status: "requested" },
       { id: "r2", status: "delivered" },
@@ -125,7 +129,7 @@ describe("DELETE /api/admin/projects/[id]/concepts/[conceptId]", () => {
 
     expect(res.status).toBe(200);
     // Concept refund + revision refund.
-    expect(mocks.tx.$executeRaw).toHaveBeenCalledTimes(2);
+    expect(mocks.tx.$executeRaw).toHaveBeenCalledTimes(1);
     expect(mocks.logAudit).toHaveBeenCalledWith(
       mocks.tx,
       expect.objectContaining({
@@ -133,4 +137,28 @@ describe("DELETE /api/admin/projects/[id]/concepts/[conceptId]", () => {
       }),
     );
   });
+  it("repeated deletion performs no accounting or audit", async () => {
+    mocks.tx.concept.findFirst.mockResolvedValue({ id: "c1", number: 1, status: "deleted" });
+    expect((await deleteConcept("p1", "c1")).status).toBe(200);
+    expect(mocks.tx.$executeRaw).not.toHaveBeenCalled();
+    expect(mocks.tx.concept.updateMany).not.toHaveBeenCalled();
+    expect(mocks.logAudit).not.toHaveBeenCalled();
+  });
+  it("losing conditional delete does not release someone else's reservation", async () => {
+    mocks.tx.concept.updateMany.mockResolvedValue({ count: 0 });
+    expect((await deleteConcept("p1", "c1")).status).toBe(409);
+    expect(mocks.tx.$executeRaw).not.toHaveBeenCalled();
+  });
+
+  it("protects the last visible concept, approvals and held/final phases", async () => {
+    mocks.tx.concept.count.mockResolvedValue(0);
+    expect((await deleteConcept("p1", "c1")).status).toBe(409);
+    mocks.tx.concept.findFirst.mockResolvedValue({id:"c1",number:1,status:"approved"});
+    expect((await deleteConcept("p1", "c1")).status).toBe(409);
+    mocks.tx.concept.findFirst.mockResolvedValue({id:"c1",number:1,status:"published"});
+    mocks.tx.project.findUnique.mockResolvedValue({status:"ON_HOLD",updatedAt:new Date()});
+    expect((await deleteConcept("p1", "c1")).status).toBe(409);
+    expect(mocks.tx.concept.updateMany).not.toHaveBeenCalled();
+  });
+
 });

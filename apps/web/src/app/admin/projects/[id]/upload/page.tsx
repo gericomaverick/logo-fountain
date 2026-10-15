@@ -1,5 +1,7 @@
 "use client";
 
+import { conceptUploadKey } from "@/lib/concept-upload-key";
+
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -68,6 +70,7 @@ export default function AdminProjectUploadPage() {
     data.set("file", file);
     data.set("notes", notes);
 
+    const retireRequestKey = await conceptUploadKey(projectId, data);
     const response = await fetch(`/api/admin/projects/${projectId}/concepts`, {
       method: "POST",
       body: data,
@@ -80,6 +83,7 @@ export default function AdminProjectUploadPage() {
       const uploadedNumber = Number(payload?.concept?.number);
       const label = Number.isFinite(uploadedNumber) && uploadedNumber > 0 ? `Concept #${uploadedNumber}` : "Concept";
       setSuccess(`${label} uploaded and published.`);
+      retireRequestKey();
       setFile(null);
       await refresh(projectId);
     }
@@ -116,7 +120,8 @@ export default function AdminProjectUploadPage() {
             </p>
 
             <label className="mt-4 block text-sm font-medium">Asset file</label>
-            <input className="mt-1 block" type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+            <input className="mt-1 block" type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+            <p className="mt-1 text-xs text-neutral-600">PNG, JPEG, or WebP only; 10 MB maximum.</p>
 
             <label className="mt-4 block text-sm font-medium">Description / explainer</label>
             <p className="mt-1 text-xs text-neutral-600">Shown to the client on the concept page. You can use multiple lines.</p>

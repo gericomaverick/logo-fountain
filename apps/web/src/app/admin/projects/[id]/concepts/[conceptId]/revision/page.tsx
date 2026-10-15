@@ -1,5 +1,7 @@
 "use client";
 
+import { conceptUploadKey } from "@/lib/concept-upload-key";
+
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -42,6 +44,7 @@ export default function AdminConceptRevisionUploadPage() {
     data.set("uploadMode", "revision");
     data.set("assetNotes", notes);
 
+    const retireRequestKey = await conceptUploadKey(projectId, data);
     const response = await fetch(`/api/admin/projects/${projectId}/concepts`, {
       method: "POST",
       body: data,
@@ -55,6 +58,7 @@ export default function AdminConceptRevisionUploadPage() {
       return;
     }
 
+    retireRequestKey();
     setSuccess("Revision uploaded.");
     setBusy(false);
     router.push(backHref);
@@ -84,7 +88,8 @@ export default function AdminConceptRevisionUploadPage() {
 
           <form className="mt-4" onSubmit={uploadRevision}>
             <label className="block text-sm font-medium">Revision asset file</label>
-            <input className="mt-1 block" type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+            <input className="mt-1 block" type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+            <p className="mt-1 text-xs text-neutral-600">PNG, JPEG, or WebP only; 10 MB maximum.</p>
 
             <label className="mt-4 block text-sm font-medium">Revision note (optional)</label>
             <p className="mt-1 text-xs text-neutral-600">Shown on the concept page when the client selects this revision version.</p>

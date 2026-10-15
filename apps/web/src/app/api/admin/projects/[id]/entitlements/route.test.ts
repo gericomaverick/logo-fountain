@@ -32,6 +32,7 @@ import { PATCH } from "./route";
 describe("PATCH /api/admin/projects/[id]/entitlements", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.tx.projectEntitlement.findMany.mockReset();
     mocks.requireUser.mockResolvedValue({ id: "admin-1", email: "admin@example.com" });
     mocks.requireAdmin.mockResolvedValue(undefined);
     mocks.tx.project.findUnique.mockResolvedValue({ id: "p1", packageCode: "professional" });
@@ -45,7 +46,7 @@ describe("PATCH /api/admin/projects/[id]/entitlements", () => {
   it("rejects unauthorised admin override attempts", async () => {
     mocks.requireAdmin.mockRejectedValueOnce(new Error("Forbidden"));
 
-    const res = await PATCH(new Request("http://localhost", { method: "PATCH", body: JSON.stringify({ concepts: 4 }) }), {
+    const res = await PATCH(new Request("http://localhost", { method: "PATCH", body: JSON.stringify({ concepts: 4, reason: "Customer goodwill" }) }), {
       params: Promise.resolve({ id: "p1" }),
     });
 
@@ -62,6 +63,15 @@ describe("PATCH /api/admin/projects/[id]/entitlements", () => {
     expect(res.status).toBe(400);
     const body = await res.json();
     expect(body.error.code).toBe("INVALID_CONCEPTS_LIMIT");
+  });
+
+  it("requires a reason before applying an override", async () => {
+    const res = await PATCH(new Request("http://localhost", { method: "PATCH", body: JSON.stringify({ concepts: 4 }) }), {
+      params: Promise.resolve({ id: "p1" }),
+    });
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toMatchObject({ error: { code: "OVERRIDE_REASON_REQUIRED" } });
+    expect(mocks.tx.projectEntitlement.upsert).not.toHaveBeenCalled();
   });
 
   it("updates revision limits repeatedly and returns recalculated usage", async () => {
@@ -83,26 +93,29 @@ describe("PATCH /api/admin/projects/[id]/entitlements", () => {
         { key: "revisions", limitInt: 4, consumedInt: 1, reservedInt: 1 },
       ]);
 
-    const first = await PATCH(new Request("http://localhost", { method: "PATCH", body: JSON.stringify({ revisions: 3 }) }), {
+    const first = await PATCH(new Request("http://localhost", { method: "PATCH", body: JSON.stringify({ revisions: 3, reason: "Purchased manual extension" }) }), {
       params: Promise.resolve({ id: "p1" }),
     });
     const firstBody = await first.json();
 
     expect(first.status).toBe(200);
     expect(firstBody.changed).toBe(true);
-    expect(firstBody.entitlementUsage.revisions).toEqual({ limit: 3, consumed: 1, reserved: 1, remaining: 1 });
+    expect(firstBody.entitlementUsage.revisions).toMatchObject({ limit: 3, consumed: 1, reserved: 1, remaining: 1 });
 
-    const second = await PATCH(new Request("http://localhost", { method: "PATCH", body: JSON.stringify({ revisions: 4 }) }), {
+    const second = await PATCH(new Request("http://localhost", { method: "PATCH", body: JSON.stringify({ revisions: 4, reason: "Further scoped work agreed" }) }), {
       params: Promise.resolve({ id: "p1" }),
     });
     const secondBody = await second.json();
 
     expect(second.status).toBe(200);
     expect(secondBody.changed).toBe(true);
-    expect(secondBody.entitlementUsage.revisions).toEqual({ limit: 4, consumed: 1, reserved: 1, remaining: 2 });
+    expect(secondBody.entitlementUsage.revisions).toMatchObject({ limit: 4, consumed: 1, reserved: 1, remaining: 2 });
 
     expect(mocks.tx.projectEntitlement.upsert).toHaveBeenCalledTimes(2);
     expect(mocks.logAudit).toHaveBeenCalledTimes(2);
+    expect(mocks.logAudit).toHaveBeenCalledWith(mocks.tx, expect.objectContaining({
+      payload: expect.objectContaining({ reason: "Purchased manual extension" }),
+    }));
   });
 
   it("does not emit misleading override audit events for no-op saves", async () => {
@@ -116,7 +129,7 @@ describe("PATCH /api/admin/projects/[id]/entitlements", () => {
         { key: "revisions", limitInt: 2, consumedInt: 1, reservedInt: 1 },
       ]);
 
-    const res = await PATCH(new Request("http://localhost", { method: "PATCH", body: JSON.stringify({ concepts: 3, revisions: 2 }) }), {
+    const res = await PATCH(new Request("http://localhost", { method: "PATCH", body: JSON.stringify({ concepts: 3, revisions: 2, reason: "Confirm existing limits" }) }), {
       params: Promise.resolve({ id: "p1" }),
     });
     const body = await res.json();
@@ -126,4 +139,14 @@ describe("PATCH /api/admin/projects/[id]/entitlements", () => {
     expect(mocks.tx.projectEntitlement.upsert).not.toHaveBeenCalled();
     expect(mocks.logAudit).not.toHaveBeenCalled();
   });
+  it("creates a missing row as unlimited and audits the repair without touching revisions", async () => {
+    mocks.tx.projectEntitlement.findMany.mockResolvedValueOnce([]).mockResolvedValueOnce([{key:"concepts",limitInt:null,consumedInt:0,reservedInt:0}]);
+    const res = await PATCH(new Request("http://localhost",{method:"PATCH",body:JSON.stringify({concepts:null,reason:"Repair missing configuration as unlimited"})}),{params:Promise.resolve({id:"p1"})});
+    expect(res.status).toBe(200);
+    expect((await res.json()).entitlementUsage.concepts.unlimited).toBe(true);
+    expect(mocks.tx.projectEntitlement.upsert).toHaveBeenCalledTimes(1);
+    expect(mocks.tx.projectEntitlement.upsert).toHaveBeenCalledWith(expect.objectContaining({create:{projectId:"p1",key:"concepts",limitInt:null}}));
+    expect(mocks.logAudit).toHaveBeenCalledTimes(1);
+  });
+
 });
