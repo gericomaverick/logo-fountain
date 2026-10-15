@@ -32,6 +32,7 @@ import { PATCH } from "./route";
 describe("PATCH /api/admin/projects/[id]/entitlements", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.tx.projectEntitlement.findMany.mockReset();
     mocks.requireUser.mockResolvedValue({ id: "admin-1", email: "admin@example.com" });
     mocks.requireAdmin.mockResolvedValue(undefined);
     mocks.tx.project.findUnique.mockResolvedValue({ id: "p1", packageCode: "professional" });
@@ -99,7 +100,7 @@ describe("PATCH /api/admin/projects/[id]/entitlements", () => {
 
     expect(first.status).toBe(200);
     expect(firstBody.changed).toBe(true);
-    expect(firstBody.entitlementUsage.revisions).toEqual({ limit: 3, consumed: 1, reserved: 1, remaining: 1 });
+    expect(firstBody.entitlementUsage.revisions).toMatchObject({ limit: 3, consumed: 1, reserved: 1, remaining: 1 });
 
     const second = await PATCH(new Request("http://localhost", { method: "PATCH", body: JSON.stringify({ revisions: 4, reason: "Further scoped work agreed" }) }), {
       params: Promise.resolve({ id: "p1" }),
@@ -108,7 +109,7 @@ describe("PATCH /api/admin/projects/[id]/entitlements", () => {
 
     expect(second.status).toBe(200);
     expect(secondBody.changed).toBe(true);
-    expect(secondBody.entitlementUsage.revisions).toEqual({ limit: 4, consumed: 1, reserved: 1, remaining: 2 });
+    expect(secondBody.entitlementUsage.revisions).toMatchObject({ limit: 4, consumed: 1, reserved: 1, remaining: 2 });
 
     expect(mocks.tx.projectEntitlement.upsert).toHaveBeenCalledTimes(2);
     expect(mocks.logAudit).toHaveBeenCalledTimes(2);
@@ -138,4 +139,14 @@ describe("PATCH /api/admin/projects/[id]/entitlements", () => {
     expect(mocks.tx.projectEntitlement.upsert).not.toHaveBeenCalled();
     expect(mocks.logAudit).not.toHaveBeenCalled();
   });
+  it("creates a missing row as unlimited and audits the repair without touching revisions", async () => {
+    mocks.tx.projectEntitlement.findMany.mockResolvedValueOnce([]).mockResolvedValueOnce([{key:"concepts",limitInt:null,consumedInt:0,reservedInt:0}]);
+    const res = await PATCH(new Request("http://localhost",{method:"PATCH",body:JSON.stringify({concepts:null,reason:"Repair missing configuration as unlimited"})}),{params:Promise.resolve({id:"p1"})});
+    expect(res.status).toBe(200);
+    expect((await res.json()).entitlementUsage.concepts.unlimited).toBe(true);
+    expect(mocks.tx.projectEntitlement.upsert).toHaveBeenCalledTimes(1);
+    expect(mocks.tx.projectEntitlement.upsert).toHaveBeenCalledWith(expect.objectContaining({create:{projectId:"p1",key:"concepts",limitInt:null}}));
+    expect(mocks.logAudit).toHaveBeenCalledTimes(1);
+  });
+
 });

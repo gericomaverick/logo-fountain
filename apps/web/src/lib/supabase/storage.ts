@@ -11,7 +11,7 @@ export const SUPABASE_STORAGE_BUCKET_FINAL_DELIVERABLES = "final-deliverables";
 type UploadConceptAssetInput = {
   bucketPath: string;
   upload: PreparedUpload;
-  upsert?: boolean;
+  upsert?: false;
 };
 
 type UploadFinalDeliverableInput = {
@@ -19,7 +19,7 @@ type UploadFinalDeliverableInput = {
   upload: PreparedUpload;
 };
 
-export async function uploadConceptAsset({ bucketPath, upload, upsert = true }: UploadConceptAssetInput) {
+export async function uploadConceptAsset({ bucketPath, upload, upsert = false }: UploadConceptAssetInput) {
   const admin = createSupabaseAdminClient();
 
   const { error } = await admin.storage
@@ -27,7 +27,6 @@ export async function uploadConceptAsset({ bucketPath, upload, upsert = true }: 
     .upload(bucketPath, upload.bytes, {
       contentType: upload.contentType,
       cacheControl: "3600",
-      metadata: { contentDisposition: upload.contentDisposition },
       upsert,
     });
 
@@ -55,7 +54,6 @@ export async function uploadFinalDeliverable({ projectId, upload }: UploadFinalD
     .upload(path, upload.bytes, {
       contentType: upload.contentType,
       cacheControl: "3600",
-      metadata: { contentDisposition: upload.contentDisposition },
       upsert: false,
     });
 
@@ -88,7 +86,7 @@ export async function createSignedFinalDeliverableUrl(path: string, expiresInSec
   const admin = createSupabaseAdminClient();
   const { data, error } = await admin.storage
     .from(SUPABASE_STORAGE_BUCKET_FINAL_DELIVERABLES)
-    .createSignedUrl(path, expiresInSeconds, downloadFileName ? { download: downloadFileName } : undefined);
+    .createSignedUrl(path, expiresInSeconds, { download: downloadFileName ?? "final-deliverables.zip" });
 
   if (error || !data?.signedUrl) {
     throw new Error(error?.message ?? "Failed to create final deliverable signed URL");

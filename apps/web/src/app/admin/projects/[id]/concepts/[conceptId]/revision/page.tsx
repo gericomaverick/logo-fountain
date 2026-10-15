@@ -1,5 +1,7 @@
 "use client";
 
+import { conceptUploadKey } from "@/lib/concept-upload-key";
+
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -42,6 +44,7 @@ export default function AdminConceptRevisionUploadPage() {
     data.set("uploadMode", "revision");
     data.set("assetNotes", notes);
 
+    const retireRequestKey = await conceptUploadKey(projectId, data);
     const response = await fetch(`/api/admin/projects/${projectId}/concepts`, {
       method: "POST",
       body: data,
@@ -55,6 +58,7 @@ export default function AdminConceptRevisionUploadPage() {
       return;
     }
 
+    retireRequestKey();
     setSuccess("Revision uploaded.");
     setBusy(false);
     router.push(backHref);

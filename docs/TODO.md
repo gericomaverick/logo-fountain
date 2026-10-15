@@ -79,7 +79,7 @@ Step 4 notes:
 ## Lifecycle integrity hardening (2026-10-15)
 - [x] Atomically enforce concept entitlements on immediate-create, draft-publish, and draft-replacement paths (missing, exhausted, unlimited, retry/first-publish-only, and concurrent-slot behavior).
 - [x] Make clean-slate reset remove active final publication rows, reset consumed and reserved usage, retain/audit immutable final storage paths, and serialize against final publication.
-- [x] Restrict generic Admin status mutation to reasoned hold/cancel exceptions; lifecycle progression remains in domain routes.
+- [x] Restrict generic Admin status mutation to reasoned hold/cancel exceptions and recorded-phase resume; lifecycle progression remains in domain routes.
 - [x] Require and audit entitlement override reasons in API and Admin UI; disable incoherent standalone usage rewinds.
 
 Lifecycle-integrity notes:
@@ -110,3 +110,15 @@ Upload hardening note (2026-03-06):
 - [x] Harden final downloads against state/approval/asset races, move client download mutation to POST, and restore admin on-demand downloads without snapshot URLs.
 - [x] Fence and renew Stripe event claims and make post-fulfillment customer/admin email retries durable-audit-aware.
 - Merge note: keep the checkout-security commit separate for now; integrate it after this branch, resolving any webhook route/test overlap while retaining claim fencing and durable notification retry behavior.
+
+
+## Combined lifecycle/upload critic revision
+- [x] Imported `cfbffb0` as `ad72064`; resolved concept route/tests using its lifecycle guards and atomic consumed-plus-reserved first-publication boundary.
+- [x] Durable content/action-bound request keys and atomic audit receipts; response-loss recovery, unique immutable attempts, explicit unknown-outcome retention and typed safe-abort cleanup.
+- [x] Streaming ZIP deflate/CRC verification with actual limits; local/central name/header/descriptor consistency, CP437 support, portable normalized collision policy and link/special-file rejection.
+- [x] Tightened partial image screening (PNG CRC/IDAT, complete JPEG marker traversal, static WebP payload/canvas checks); no full codec decode or canonical re-encoding claim.
+- [x] Guarded recorded-phase hold resume; current-state conditional deletion without consumed refunds; once-only revision conversion; missing/unlimited override repair; edited-fields-only override UI and explicit final-retirement reset confirmation.
+- [x] Removed ineffective custom disposition metadata; signed finals use SDK download options, concept URLs remain previews.
+- [ ] Follow-up: bounded sandboxed image decoding/re-encoding, audited orphan retention/housekeeping, real PostgreSQL race integration tests, and deployment-side multipart body limits/provider-header verification. No live changes or migrations in this revision.
+- Details/compatibility/deployment prerequisites: [combined policy](upload-lifecycle-hardening.md).
+- Validation for combined revision: 106 focused tests passed in 15 files; TypeScript typecheck passed; lint passed with only the two existing warnings (admin refresh effect dependency and header-nav `<img>`). No full suite/build/E2E/live provider or live database tests run.

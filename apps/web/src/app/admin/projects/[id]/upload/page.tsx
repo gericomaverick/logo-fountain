@@ -1,5 +1,7 @@
 "use client";
 
+import { conceptUploadKey } from "@/lib/concept-upload-key";
+
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -68,6 +70,7 @@ export default function AdminProjectUploadPage() {
     data.set("file", file);
     data.set("notes", notes);
 
+    const retireRequestKey = await conceptUploadKey(projectId, data);
     const response = await fetch(`/api/admin/projects/${projectId}/concepts`, {
       method: "POST",
       body: data,
@@ -80,6 +83,7 @@ export default function AdminProjectUploadPage() {
       const uploadedNumber = Number(payload?.concept?.number);
       const label = Number.isFinite(uploadedNumber) && uploadedNumber > 0 ? `Concept #${uploadedNumber}` : "Concept";
       setSuccess(`${label} uploaded and published.`);
+      retireRequestKey();
       setFile(null);
       await refresh(projectId);
     }

@@ -1,3 +1,4 @@
+import { validateZip, crc32 } from "./zip-validation";
 const MIB = 1024 * 1024;
 
 export const MAX_CONCEPT_IMAGE_BYTES = 10 * MIB;
@@ -12,7 +13,6 @@ export type PreparedUpload = {
   extension: "png" | "jpg" | "webp" | "zip";
   contentType: "image/png" | "image/jpeg" | "image/webp" | "application/zip";
   size: number;
-  contentDisposition: string;
 };
 
 export class UploadValidationError extends Error {
@@ -69,69 +69,102 @@ function validatePng(bytes: Uint8Array) {
   if (![1, 2, 4, 8, 16].includes(bitDepth) || ![0, 2, 3, 4, 6].includes(colourType) || bytes[26] !== 0 || bytes[27] !== 0 || bytes[28] > 1) {
     fail("MALFORMED_IMAGE", "PNG has an unsupported or malformed IHDR header");
   }
+  const depths: Record<number, number[]> = { 0: [1, 2, 4, 8, 16], 2: [8, 16], 3: [1, 2, 4, 8], 4: [8, 16], 6: [8, 16] };
+  if (!depths[colourType]?.includes(bitDepth)) fail("MALFORMED_IMAGE", "Invalid PNG colour/bit-depth combination");
   let offset = 8;
-  let foundEnd = false;
+  let foundEnd = false, foundData = false, dataEnded = false, palette = false;
   while (offset + 12 <= bytes.length) {
     const length = readU32BE(bytes, offset);
     if (length > bytes.length - offset - 12) fail("MALFORMED_IMAGE", "PNG chunk is truncated");
     const kind = String.fromCharCode(...bytes.slice(offset + 4, offset + 8));
+    if (crc32(bytes.subarray(offset + 4, offset + 8 + length)) !== readU32BE(bytes, offset + 8 + length)) fail("MALFORMED_IMAGE", "PNG chunk CRC mismatch");
+    if (kind === "acTL" || kind === "fcTL" || kind === "fdAT") fail("MALFORMED_IMAGE", "Animated PNG is not supported");
+    if (kind === "IHDR" && offset !== 8) fail("MALFORMED_IMAGE", "Duplicate PNG header");
+    if (kind === "PLTE") {
+      if (palette || foundData || !length || length % 3 || length > 768 || [0, 4].includes(colourType)) fail("MALFORMED_IMAGE", "Invalid PNG palette");
+      palette = true;
+    }
+    if (kind === "IDAT") {
+      if (dataEnded || (colourType === 3 && !palette)) fail("MALFORMED_IMAGE", "Invalid PNG data order");
+      if (length) foundData = true;
+    } else if (foundData) dataEnded = true;
+    if (!/^[A-Za-z]{4}$/.test(kind) || (kind[0] === kind[0]!.toUpperCase() && !["IHDR", "PLTE", "IDAT", "IEND"].includes(kind))) fail("MALFORMED_IMAGE", "Unsupported critical PNG chunk");
     offset += 12 + length;
-    if (kind === "IEND") { foundEnd = offset === bytes.length; break; }
+    if (kind === "IEND") { foundEnd = length === 0 && foundData && offset === bytes.length; break; }
   }
   if (!foundEnd) fail("MALFORMED_IMAGE", "PNG is truncated or missing its end chunk");
 }
 
 function validateJpeg(bytes: Uint8Array) {
-  if (bytes.length < 4 || bytes[0] !== 0xff || bytes[1] !== 0xd8 || bytes[2] !== 0xff) fail("FILE_SIGNATURE_MISMATCH", "File is not a valid JPEG");
-  if (bytes[bytes.length - 2] !== 0xff || bytes[bytes.length - 1] !== 0xd9) fail("MALFORMED_IMAGE", "JPEG is truncated or missing its end marker");
-  let offset = 2;
-  let foundFrame = false;
-  while (offset + 3 < bytes.length - 2) {
-    if (bytes[offset] !== 0xff) fail("MALFORMED_IMAGE", "JPEG marker stream is malformed");
+  if (bytes.length < 4 || bytes[0] !== 0xff || bytes[1] !== 0xd8) fail("FILE_SIGNATURE_MISMATCH", "Not a JPEG");
+  let offset = 2, frames = 0, scans = 0;
+  while (offset < bytes.length) {
+    if (bytes[offset++] !== 0xff) fail("MALFORMED_IMAGE", "Malformed JPEG marker");
     while (bytes[offset] === 0xff) offset++;
-    const marker = bytes[offset++]!;
-    if (marker === 0xd9) break;
-    if (marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) continue;
-    if (offset + 2 > bytes.length) fail("MALFORMED_IMAGE", "JPEG segment is truncated");
-    const length = (bytes[offset]! << 8) | bytes[offset + 1]!;
-    if (length < 2 || offset + length > bytes.length) fail("MALFORMED_IMAGE", "JPEG segment length is invalid");
-    const isFrame = marker >= 0xc0 && marker <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(marker);
-    if (isFrame) {
-      if (length < 8) fail("MALFORMED_IMAGE", "JPEG frame header is truncated");
-      assertDimensions((bytes[offset + 5]! << 8) | bytes[offset + 6]!, (bytes[offset + 3]! << 8) | bytes[offset + 4]!);
-      foundFrame = true;
-    }
-    if (marker === 0xda) {
-      if (!foundFrame || offset + length >= bytes.length - 2) fail("MALFORMED_IMAGE", "JPEG has no complete decodable scan");
+    const marker = bytes[offset++];
+    if (marker === 0xd9) {
+      if (offset !== bytes.length || frames !== 1 || scans === 0) fail("MALFORMED_IMAGE", "Incomplete JPEG");
       return;
     }
-    offset += length;
+    if (marker === undefined || marker === 0 || marker === 0xd8 || (marker >= 0xd0 && marker <= 0xd7)) fail("MALFORMED_IMAGE", "Unexpected JPEG marker");
+    if (marker === 0x01) continue;
+    if (offset + 2 > bytes.length) fail("MALFORMED_IMAGE", "Truncated JPEG segment");
+    const length = (bytes[offset]! << 8) | bytes[offset + 1]!;
+    if (length < 2 || offset + length > bytes.length) fail("MALFORMED_IMAGE", "Invalid JPEG segment size");
+    const frame = marker >= 0xc0 && marker <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(marker);
+    if (frame) {
+      if (![0xc0, 0xc1, 0xc2].includes(marker) || ++frames !== 1 || length < 8 || !bytes[offset + 7] || bytes[offset + 7]! > 4 || length !== 8 + 3 * bytes[offset + 7]!) fail("MALFORMED_IMAGE", "Unsupported or duplicate JPEG frame");
+      assertDimensions((bytes[offset + 5]! << 8) | bytes[offset + 6]!, (bytes[offset + 3]! << 8) | bytes[offset + 4]!);
+    }
+    if (marker === 0xdc) fail("MALFORMED_IMAGE", "JPEG deferred dimensions unsupported");
+    if (marker === 0xda) {
+      if (frames !== 1 || length < 6 || !bytes[offset + 2] || length !== 6 + 2 * bytes[offset + 2]!) fail("MALFORMED_IMAGE", "Invalid JPEG scan");
+      scans++;
+      offset += length;
+      const start = offset;
+      while (offset < bytes.length) {
+        if (bytes[offset] !== 0xff) { offset++; continue; }
+        if (bytes[offset + 1] === 0 || (bytes[offset + 1]! >= 0xd0 && bytes[offset + 1]! <= 0xd7)) { offset += 2; continue; }
+        break;
+      }
+      if (offset === start) fail("MALFORMED_IMAGE", "Empty JPEG scan");
+    } else offset += length;
   }
-  fail("MALFORMED_IMAGE", foundFrame ? "JPEG has no decodable scan" : "JPEG has no decodable frame header");
+  fail("MALFORMED_IMAGE", "Missing JPEG end marker");
 }
 
 function validateWebp(bytes: Uint8Array) {
-  const text = (offset: number, length: number) => String.fromCharCode(...bytes.slice(offset, offset + length));
-  if (bytes.length < 20 || text(0, 4) !== "RIFF" || text(8, 4) !== "WEBP") fail("FILE_SIGNATURE_MISMATCH", "File is not a valid WebP image");
-  if (readU32LE(bytes, 4) + 8 !== bytes.length) fail("MALFORMED_IMAGE", "WebP RIFF length does not match the file");
-  const kind = text(12, 4);
-  const chunkSize = readU32LE(bytes, 16);
-  if (20 + chunkSize > bytes.length) fail("MALFORMED_IMAGE", "WebP image chunk is truncated");
-  if (kind === "VP8X") {
-    if (chunkSize < 10) fail("MALFORMED_IMAGE", "WebP extended header is truncated");
-    const width = 1 + bytes[24]! + (bytes[25]! << 8) + (bytes[26]! << 16);
-    const height = 1 + bytes[27]! + (bytes[28]! << 8) + (bytes[29]! << 16);
-    assertDimensions(width, height);
-  } else if (kind === "VP8L") {
-    if (chunkSize < 5 || bytes[20] !== 0x2f) fail("MALFORMED_IMAGE", "WebP lossless header is malformed");
-    const bits = readU32LE(bytes, 21);
-    assertDimensions((bits & 0x3fff) + 1, ((bits >>> 14) & 0x3fff) + 1);
-  } else if (kind === "VP8 ") {
-    if (chunkSize < 10 || bytes[23] !== 0x9d || bytes[24] !== 0x01 || bytes[25] !== 0x2a) fail("MALFORMED_IMAGE", "WebP lossy frame header is malformed");
-    assertDimensions(readU16LE(bytes, 26) & 0x3fff, readU16LE(bytes, 28) & 0x3fff);
-  } else {
-    fail("MALFORMED_IMAGE", "WebP has no supported decode chunk");
+  const text = (o: number) => String.fromCharCode(...bytes.subarray(o, o + 4));
+  if (bytes.length < 20 || text(0) !== "RIFF" || text(8) !== "WEBP") fail("FILE_SIGNATURE_MISMATCH", "Not WebP");
+  if (readU32LE(bytes, 4) + 8 !== bytes.length) fail("MALFORMED_IMAGE", "Invalid RIFF size");
+  let p = 12, images = 0;
+  let canvas: [number, number] | null = null;
+  while (p < bytes.length) {
+    if (p + 8 > bytes.length) fail("MALFORMED_IMAGE", "Truncated WebP chunk");
+    const kind = text(p), size = readU32LE(bytes, p + 4), d = p + 8;
+    if (d + size + (size % 2) > bytes.length) fail("MALFORMED_IMAGE", "Invalid WebP chunk size");
+    if (kind === "ANIM" || kind === "ANMF") fail("MALFORMED_IMAGE", "Animated WebP unsupported");
+    if (kind === "VP8X") {
+      if (p !== 12 || size !== 10 || (bytes[d]! & 0xc3) || bytes[d + 1] || bytes[d + 2] || bytes[d + 3]) fail("MALFORMED_IMAGE", "Invalid/animated extended WebP");
+      canvas = [1 + bytes[d + 4]! + (bytes[d + 5]! << 8) + (bytes[d + 6]! << 16), 1 + bytes[d + 7]! + (bytes[d + 8]! << 8) + (bytes[d + 9]! << 16)];
+      assertDimensions(...canvas);
+    } else if (kind === "VP8 " || kind === "VP8L") {
+      if (++images !== 1) fail("MALFORMED_IMAGE", "Multiple WebP image payloads");
+      let width: number, height: number;
+      if (kind === "VP8L") {
+        if (size <= 5 || bytes[d] !== 0x2f || (bytes[d + 4]! & 0xe0)) fail("MALFORMED_IMAGE", "Invalid VP8L header");
+        const bits = readU32LE(bytes, d + 1);
+        width = (bits & 0x3fff) + 1; height = ((bits >>> 14) & 0x3fff) + 1;
+      } else {
+        if (size <= 10 || (bytes[d]! & 1) || bytes[d + 3] !== 0x9d || bytes[d + 4] !== 1 || bytes[d + 5] !== 0x2a) fail("MALFORMED_IMAGE", "Invalid VP8 keyframe");
+        width = readU16LE(bytes, d + 6) & 0x3fff; height = readU16LE(bytes, d + 8) & 0x3fff;
+      }
+      assertDimensions(width, height);
+      if (canvas && (canvas[0] !== width || canvas[1] !== height)) fail("MALFORMED_IMAGE", "WebP canvas/image mismatch");
+    } else if (!["ALPH", "ICCP", "EXIF", "XMP "].includes(kind)) fail("MALFORMED_IMAGE", "Unsupported WebP chunk");
+    p = d + size + (size % 2);
   }
+  if (images !== 1) fail("MALFORMED_IMAGE", "Missing WebP image payload");
 }
 
 export async function prepareConceptImage(file: File): Promise<PreparedUpload> {
@@ -147,66 +180,7 @@ export async function prepareConceptImage(file: File): Promise<PreparedUpload> {
   if (!expected || file.type !== expected.mime) fail("INVALID_FILE_TYPE", "Use a PNG, JPEG, or WebP image with matching file extension and MIME type");
   const bytes = new Uint8Array(await file.arrayBuffer());
   expected.validate(bytes);
-  return { bytes, extension: expected.extension, contentType: expected.mime, size: bytes.byteLength, contentDisposition: "inline" };
-}
-
-function findEndOfCentralDirectory(bytes: Uint8Array): number {
-  const minimum = Math.max(0, bytes.length - 65_557);
-  for (let offset = bytes.length - 22; offset >= minimum; offset--) {
-    if (readU32LE(bytes, offset) === 0x06054b50 && offset + 22 + readU16LE(bytes, offset + 20) === bytes.length) return offset;
-  }
-  return -1;
-}
-
-function validateZip(bytes: Uint8Array) {
-  if (bytes.length < 22 || readU32LE(bytes, 0) !== 0x04034b50) fail("FILE_SIGNATURE_MISMATCH", "File is not a standard ZIP archive");
-  const eocd = findEndOfCentralDirectory(bytes);
-  if (eocd < 0) fail("MALFORMED_ZIP", "ZIP central directory is missing or malformed");
-  const disk = readU16LE(bytes, eocd + 4);
-  const centralDisk = readU16LE(bytes, eocd + 6);
-  const entriesOnDisk = readU16LE(bytes, eocd + 8);
-  const entries = readU16LE(bytes, eocd + 10);
-  const centralSize = readU32LE(bytes, eocd + 12);
-  const centralOffset = readU32LE(bytes, eocd + 16);
-  if (disk !== 0 || centralDisk !== 0 || entries !== entriesOnDisk || entries === 0) fail("MALFORMED_ZIP", "Multi-volume and empty ZIP archives are not supported");
-  if (entries > MAX_FINAL_ZIP_ENTRIES) fail("ZIP_LIMIT_EXCEEDED", `ZIP exceeds the ${MAX_FINAL_ZIP_ENTRIES}-entry limit`);
-  if (centralOffset + centralSize !== eocd || centralOffset >= bytes.length) fail("MALFORMED_ZIP", "ZIP central directory bounds are invalid");
-
-  let offset = centralOffset;
-  let totalCompressed = 0;
-  let totalUncompressed = 0;
-  const decoder = new TextDecoder("utf-8", { fatal: true });
-  for (let index = 0; index < entries; index++) {
-    if (offset + 46 > eocd || readU32LE(bytes, offset) !== 0x02014b50) fail("MALFORMED_ZIP", "ZIP central directory entry is malformed");
-    const flags = readU16LE(bytes, offset + 8);
-    const method = readU16LE(bytes, offset + 10);
-    const compressed = readU32LE(bytes, offset + 20);
-    const uncompressed = readU32LE(bytes, offset + 24);
-    const nameLength = readU16LE(bytes, offset + 28);
-    const extraLength = readU16LE(bytes, offset + 30);
-    const commentLength = readU16LE(bytes, offset + 32);
-    const localOffset = readU32LE(bytes, offset + 42);
-    const end = offset + 46 + nameLength + extraLength + commentLength;
-    if (end > eocd || compressed === 0xffffffff || uncompressed === 0xffffffff || localOffset === 0xffffffff) fail("MALFORMED_ZIP", "ZIP64 or truncated entries are not supported");
-    if ((flags & 1) !== 0) fail("MALFORMED_ZIP", "Encrypted ZIP entries are not supported");
-    if (![0, 8].includes(method)) fail("MALFORMED_ZIP", "ZIP uses an unsupported compression method");
-    let name: string;
-    try { name = decoder.decode(bytes.slice(offset + 46, offset + 46 + nameLength)); } catch { fail("MALFORMED_ZIP", "ZIP entry name is not valid UTF-8"); }
-    if (!name! || name!.includes("\0") || name!.startsWith("/") || name!.startsWith("\\") || /^[a-z]:/i.test(name!) || name!.split(/[\\/]/).includes("..")) fail("MALFORMED_ZIP", "ZIP contains an unsafe entry path");
-    if (localOffset + 30 > centralOffset || readU32LE(bytes, localOffset) !== 0x04034b50) fail("MALFORMED_ZIP", "ZIP local entry header is invalid");
-    const localFlags = readU16LE(bytes, localOffset + 6);
-    const localMethod = readU16LE(bytes, localOffset + 8);
-    const localNameLength = readU16LE(bytes, localOffset + 26);
-    const localExtraLength = readU16LE(bytes, localOffset + 28);
-    const localDataOffset = localOffset + 30 + localNameLength + localExtraLength;
-    if (localMethod !== method || localFlags !== flags || localDataOffset + compressed > centralOffset) fail("MALFORMED_ZIP", "ZIP local entry bounds do not match its directory");
-    totalCompressed += compressed;
-    totalUncompressed += uncompressed;
-    if (totalUncompressed > MAX_FINAL_ZIP_UNCOMPRESSED_BYTES) fail("ZIP_LIMIT_EXCEEDED", `ZIP expands beyond the ${MAX_FINAL_ZIP_UNCOMPRESSED_BYTES / MIB} MB limit`);
-    offset = end;
-  }
-  if (offset !== eocd) fail("MALFORMED_ZIP", "ZIP central directory length is inconsistent");
-  if (totalUncompressed > 0 && totalUncompressed / Math.max(totalCompressed, 1) > MAX_FINAL_ZIP_COMPRESSION_RATIO) fail("ZIP_LIMIT_EXCEEDED", `ZIP compression ratio exceeds ${MAX_FINAL_ZIP_COMPRESSION_RATIO}:1`);
+  return { bytes, extension: expected.extension, contentType: expected.mime, size: bytes.byteLength };
 }
 
 export async function prepareFinalZip(file: File): Promise<PreparedUpload> {
@@ -215,6 +189,7 @@ export async function prepareFinalZip(file: File): Promise<PreparedUpload> {
     fail("INVALID_FILE_TYPE", "Use a .zip file with an allowed ZIP MIME type");
   }
   const bytes = new Uint8Array(await file.arrayBuffer());
-  validateZip(bytes);
-  return { bytes, extension: "zip", contentType: "application/zip", size: bytes.byteLength, contentDisposition: 'attachment; filename="final-deliverables.zip"' };
+  if (bytes.length < 4 || readU32LE(bytes, 0) !== 0x04034b50) fail("FILE_SIGNATURE_MISMATCH", "File is not a standard ZIP archive");
+  await validateZip(bytes);
+  return { bytes, extension: "zip", contentType: "application/zip", size: bytes.byteLength };
 }

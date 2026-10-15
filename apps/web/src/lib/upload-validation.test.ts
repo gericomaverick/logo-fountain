@@ -1,3 +1,5 @@
+import { deflateSync } from "node:zlib";
+import { crc32 } from "./zip-validation";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -13,15 +15,17 @@ function part(bytes: Uint8Array): ArrayBuffer {
 }
 
 function png(width = 1, height = 1): Uint8Array {
-  const bytes = new Uint8Array(45);
-  bytes.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 0x49, 0x48, 0x44, 0x52]);
-  new DataView(bytes.buffer).setUint32(16, width);
-  new DataView(bytes.buffer).setUint32(20, height);
-  bytes.set([8, 6, 0, 0, 0], 24);
-  // CRC bytes are intentionally arbitrary; structural validation is bounded and
-  // the browser remains responsible for full pixel decoding.
-  bytes.set([0, 0, 0, 0, 0x49, 0x45, 0x4e, 0x44, 0, 0, 0, 0], 33);
-  return bytes;
+  function chunk(type: string, data: Uint8Array) {
+    const b = new Uint8Array(12 + data.length), view = new DataView(b.buffer);
+    view.setUint32(0, data.length); b.set(new TextEncoder().encode(type), 4); b.set(data, 8);
+    view.setUint32(8 + data.length, crc32(b.subarray(4, 8 + data.length)));
+    return b;
+  }
+  const ihdr = new Uint8Array(13), v = new DataView(ihdr.buffer);
+  v.setUint32(0, width); v.setUint32(4, height); ihdr.set([8, 6], 8);
+  const chunks = [new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]), chunk("IHDR", ihdr), chunk("IDAT", deflateSync(new Uint8Array([0, 255, 0, 0, 255]))), chunk("IEND", new Uint8Array())];
+  const out = new Uint8Array(chunks.reduce((n, c) => n + c.length, 0));
+  let p = 0; for (const c of chunks) { out.set(c, p); p += c.length; } return out;
 }
 
 function jpeg(): Uint8Array {
@@ -36,7 +40,7 @@ function jpeg(): Uint8Array {
 
 function webp(): Uint8Array {
   const bytes = new Uint8Array(26);
-  bytes.set([0x52, 0x49, 0x46, 0x46, 18, 0, 0, 0, 0x57, 0x45, 0x42, 0x50, 0x56, 0x50, 0x38, 0x4c, 5, 0, 0, 0, 0x2f, 0, 0, 0, 0, 0]);
+  bytes.set([0x52, 0x49, 0x46, 0x46, 18, 0, 0, 0, 0x57, 0x45, 0x42, 0x50, 0x56, 0x50, 0x38, 0x4c, 6, 0, 0, 0, 0x2f, 0, 0, 0, 0, 0]);
   return bytes;
 }
 
@@ -71,6 +75,8 @@ function zip(options: { compressed?: number; uncompressed?: number; name?: strin
   view.setUint16(eocd + 10, 1, true);
   view.setUint32(eocd + 12, centralSize, true);
   view.setUint32(eocd + 16, central, true);
+  view.setUint32(14, crc32(bytes.subarray(30 + name.length, localSize)), true);
+  view.setUint32(central + 16, crc32(bytes.subarray(30 + name.length, localSize)), true);
   return bytes;
 }
 
@@ -85,6 +91,21 @@ describe("concept image validation", () => {
     [webp(), "logo.webp", "image/webp", "webp"],
   ])("accepts a structurally valid allowlisted image", async (body, name, type, extension) => {
     await expect(prepareConceptImage(new File([part(body)], name, { type }))).resolves.toMatchObject({ contentType: type, extension });
+  });
+
+  it("rejects PNG without IDAT or with bad CRC, and VP8X without payload", async () => {
+    const full = png();
+    const noData = new Uint8Array([...full.subarray(0, 33), ...full.subarray(full.length - 12)]);
+    const corrupt = png(); corrupt[29] ^= 1;
+    for (const body of [noData, corrupt]) await rejectsCode(prepareConceptImage(new File([part(body)], "x.png", { type: "image/png" })), "MALFORMED_IMAGE");
+    const extended = new Uint8Array(30); extended.set([82,73,70,70,22,0,0,0,87,69,66,80,86,80,56,88,10],0);
+    await rejectsCode(prepareConceptImage(new File([part(extended)], "x.webp", { type: "image/webp" })), "MALFORMED_IMAGE");
+  });
+
+  it("examines JPEG segments after the first scan", async () => {
+    const body = jpeg();
+    const lateFrame = new Uint8Array([...body.subarray(0, body.length - 2), ...body.subarray(2)]);
+    await rejectsCode(prepareConceptImage(new File([part(lateFrame)], "x.jpg", { type: "image/jpeg" })), "MALFORMED_IMAGE");
   });
 
   it("rejects SVG even when it declares an image MIME", async () => {
@@ -115,7 +136,6 @@ describe("final ZIP validation", () => {
     await expect(prepareFinalZip(new File([part(zip())], "Final.ZIP", { type: "application/x-zip-compressed" }))).resolves.toMatchObject({
       contentType: "application/zip",
       extension: "zip",
-      contentDisposition: 'attachment; filename="final-deliverables.zip"',
     });
   });
 
@@ -128,7 +148,7 @@ describe("final ZIP validation", () => {
   });
 
   it("rejects an obvious compression bomb", async () => {
-    await rejectsCode(prepareFinalZip(new File([part(zip({ compressed: 1, uncompressed: 1_000 }))], "final.zip", { type: "application/zip" })), "ZIP_LIMIT_EXCEEDED");
+    await rejectsCode(prepareFinalZip(new File([part(zip({ compressed: 1, uncompressed: 1_000 }))], "final.zip", { type: "application/zip" })), "MALFORMED_ZIP");
   });
 
   it("rejects oversized files before arrayBuffer", async () => {

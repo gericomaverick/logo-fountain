@@ -1,14 +1,17 @@
+import { conceptUploadDigest, findConceptUploadRequest, UploadReplayMismatch } from "@/lib/concept-upload-request";
 import { randomUUID } from "node:crypto";
 import { prepareConceptImage, UploadValidationError } from "@/lib/upload-validation";
 import { jsonError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
-import { createSignedConceptAssetUrl, uploadConceptAsset } from "@/lib/supabase/storage";
+import { createSignedConceptAssetUrl, deleteStoredFiles, uploadConceptAsset } from "@/lib/supabase/storage";
 import { logAudit } from "@/lib/audit";
 import { applyTransition } from "@/lib/project-state-machine";
 import { requireAdmin, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { createProjectSystemMessage } from "@/lib/system-messages";
 import { notifyClientConceptReady } from "@/lib/project-lifecycle-email";
 import { ConceptEntitlementError, consumeConceptEntitlement } from "@/lib/concept-entitlement";
+
+class SafeConceptPublicationAbort extends Error {}
 
 export const runtime = "nodejs";
 
@@ -169,6 +172,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     if (!(fileEntry instanceof File) || fileEntry.size <= 0) return jsonError("Image file is required", 400, { nextStep: "Upload an image file." }, "FILE_REQUIRED");
 
+    const requestKey = formData.get("requestKey");
+    if (typeof requestKey !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestKey)) return jsonError("A stable UUID v4 requestKey is required", 400, undefined, "REQUEST_KEY_REQUIRED");
+    const prepared = await prepareConceptImage(fileEntry);
+    const digest = conceptUploadDigest([projectId, uploadMode, requestedConceptId, requestedConceptNumber, notes, assetNotes, prepared.contentType], prepared.bytes);
+    const replay = await findConceptUploadRequest(prisma, projectId, requestKey, digest);
+    if (replay) return Response.json({ ok: true, ...replay as object, replayed: true });
+
     const project = await prisma.project.findUnique({ where: { id: projectId }, select: { id: true, status: true, updatedAt: true } });
     if (!project) return jsonError("Project not found", 404, { nextStep: "Check the project link." }, "PROJECT_NOT_FOUND");
 
@@ -201,7 +211,19 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     }
 
     if (!conceptId) throw new Error("CONCEPT_ID_REQUIRED");
-    const prepared = await prepareConceptImage(fileEntry);
+    if (uploadMode === "concept" || (uploadMode === "replace" && existingConcept?.status === "draft")) {
+      const entitlement = await prisma.projectEntitlement.findFirst({ where: { projectId, key: "concepts" } });
+      if (!entitlement) throw new ConceptEntitlementError("CONCEPTS_ENTITLEMENT_MISSING");
+      if (entitlement.limitInt !== null && entitlement.consumedInt + entitlement.reservedInt >= entitlement.limitInt) throw new ConceptEntitlementError("CONCEPT_ENTITLEMENT_EXHAUSTED");
+    }
+    if (uploadMode === "revision") {
+      const pending = await prisma.revisionRequest.count({ where: { projectId, conceptId, status: { not: "delivered" } } });
+      if (!pending) throw new SafeConceptPublicationAbort("NO_PENDING_REVISION_REQUESTS");
+      const entitlement = await prisma.projectEntitlement.findFirst({ where: { projectId, key: "revisions" } });
+      if (!entitlement) throw new SafeConceptPublicationAbort("REVISIONS_ENTITLEMENT_MISSING");
+      if (entitlement.reservedInt < pending) throw new SafeConceptPublicationAbort("INSUFFICIENT_REVISION_RESERVATION");
+      if (entitlement.limitInt !== null && entitlement.consumedInt + pending > entitlement.limitInt) throw new SafeConceptPublicationAbort("REVISION_LIMIT_EXCEEDED");
+    }
     const existingFiles = await prisma.fileAsset.findMany({
       where: { projectId, kind: "concept", OR: [{ path: { startsWith: `${projectId}/${conceptId}/v` } }, { path: { startsWith: `${projectId}/${conceptId}.` } }] },
       select: { path: true },
@@ -216,84 +238,114 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const bucketPath = `${projectId}/${conceptId}/v${maxVersion + 1}.${randomUUID()}.${prepared.extension}`;
     const upload = await uploadConceptAsset({ bucketPath, upload: prepared, upsert: false });
 
-    const result = await prisma.$transaction(async (tx) => {
-      const guard = await tx.project.updateMany({
-        where: { id: projectId, status: project.status, updatedAt: project.updatedAt },
-        data: { updatedAt: new Date() },
-      });
-      if (guard.count !== 1) throw new Error("CONCEPT_PUBLICATION_CONFLICT");
-      const currentProject = await tx.project.findUnique({ where: { id: projectId }, select: { status: true } });
-      if (!currentProject) throw new Error("PROJECT_NOT_FOUND");
-      const allowedStatuses = uploadMode === "revision"
-        ? ["REVISIONS_IN_PROGRESS", "CONCEPTS_READY"]
-        : ["BRIEF_SUBMITTED", "IN_DESIGN", "CONCEPTS_READY"];
-      if (!allowedStatuses.includes(currentProject.status)) throw new Error("INVALID_PROJECT_STATUS_TRANSITION");
+    let result;
+    try {
+      result = await prisma.$transaction(async (tx) => {
+        // Serialize equal logical requests, including concurrent submissions. The
+        // project-version fence also serializes different keys against lifecycle.
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${projectId + ":" + requestKey}, 0))`;
+        const receipt = await findConceptUploadRequest(tx, projectId, requestKey, digest);
+        if (receipt) return receipt as unknown as { concept: { id: string; number: number; status: string; notes: string | null }; projectStatus: string };
 
-      let concept: { id: string; number: number; status: string; notes: string | null };
-      let entitlement = null;
-      if (uploadMode === "concept") {
-        entitlement = await consumeConceptEntitlement(tx, projectId);
-        concept = await tx.concept.create({
-          data: { id: conceptId, projectId, number: conceptNumber, status: CONCEPT_STATUS_PUBLISHED, notes },
-          select: { id: true, number: true, status: true, notes: true },
+        const guard = await tx.project.updateMany({
+          where: { id: projectId, status: project.status, updatedAt: project.updatedAt },
+          data: { updatedAt: new Date() },
         });
-      } else {
-        const current = await tx.concept.findFirst({ where: { id: conceptId, projectId }, select: { id: true, number: true, status: true, notes: true } });
-        if (!current) throw new Error("CONCEPT_NOT_FOUND");
-        if (uploadMode === "replace") {
-          if (!['draft', 'published'].includes(current.status)) throw new Error("CONCEPT_NOT_REPLACEABLE");
-          if (current.status === "draft") entitlement = await consumeConceptEntitlement(tx, projectId);
-          const changed = await tx.concept.updateMany({ where: { id: conceptId, projectId, status: current.status }, data: { notes, status: CONCEPT_STATUS_PUBLISHED } });
-          if (changed.count !== 1) throw new Error("CONCEPT_PUBLICATION_CONFLICT");
-          concept = { ...current, notes, status: CONCEPT_STATUS_PUBLISHED };
+        if (guard.count !== 1) throw new SafeConceptPublicationAbort("CONCEPT_PUBLICATION_CONFLICT");
+        const currentProject = await tx.project.findUnique({ where: { id: projectId }, select: { status: true } });
+        if (!currentProject) throw new SafeConceptPublicationAbort("PROJECT_NOT_FOUND");
+        const allowedStatuses = uploadMode === "revision"
+          ? ["REVISIONS_IN_PROGRESS", "CONCEPTS_READY"]
+          : ["BRIEF_SUBMITTED", "IN_DESIGN", "CONCEPTS_READY"];
+        if (!allowedStatuses.includes(currentProject.status)) throw new SafeConceptPublicationAbort("INVALID_PROJECT_STATUS_TRANSITION");
+
+        let concept: { id: string; number: number; status: string; notes: string | null };
+        let entitlement = null;
+        if (uploadMode === "concept") {
+          entitlement = await consumeConceptEntitlement(tx, projectId);
+          concept = await tx.concept.create({
+            data: { id: conceptId, projectId, number: conceptNumber, status: CONCEPT_STATUS_PUBLISHED, notes },
+            select: { id: true, number: true, status: true, notes: true },
+          });
         } else {
-          if (current.status !== "published") throw new Error("CONCEPT_NOT_REVISIONABLE");
-          concept = current;
+          const current = await tx.concept.findFirst({ where: { id: conceptId, projectId }, select: { id: true, number: true, status: true, notes: true } });
+          if (!current) throw new SafeConceptPublicationAbort("CONCEPT_NOT_FOUND");
+          if (uploadMode === "replace") {
+            if (!['draft', 'published'].includes(current.status)) throw new SafeConceptPublicationAbort("CONCEPT_NOT_REPLACEABLE");
+            if (current.status === "draft") entitlement = await consumeConceptEntitlement(tx, projectId);
+            const changed = await tx.concept.updateMany({ where: { id: conceptId, projectId, status: current.status }, data: { notes, status: CONCEPT_STATUS_PUBLISHED } });
+            if (changed.count !== 1) throw new SafeConceptPublicationAbort("CONCEPT_PUBLICATION_CONFLICT");
+            concept = { ...current, notes, status: CONCEPT_STATUS_PUBLISHED };
+          } else {
+            if (current.status !== "published") throw new SafeConceptPublicationAbort("CONCEPT_NOT_REVISIONABLE");
+            concept = current;
+          }
         }
-      }
 
-      if (entitlement) {
-        await logAudit(tx, { projectId, actorId: user.id, type: "entitlement_consumed", payload: { key: "concepts", after: entitlement, reason: "admin_concept_publish", conceptId: concept.id, conceptNumber: concept.number } });
-      }
+        if (entitlement) {
+          await logAudit(tx, { projectId, actorId: user.id, type: "entitlement_consumed", payload: { key: "concepts", after: entitlement, reason: "admin_concept_publish", conceptId: concept.id, conceptNumber: concept.number } });
+        }
 
-      let deliveredCount = 0;
-      if (uploadMode === "revision") {
-        const pendingCount = await tx.revisionRequest.count({ where: { projectId, conceptId: concept.id, status: { not: "delivered" } } });
-        if (pendingCount <= 0) throw new Error("NO_PENDING_REVISION_REQUESTS");
-        const revisionsEntitlement = await tx.projectEntitlement.findFirst({ where: { projectId, key: "revisions" }, select: { id: true, limitInt: true, consumedInt: true, reservedInt: true } });
-        if (!revisionsEntitlement) throw new Error("REVISIONS_ENTITLEMENT_MISSING");
-        const consumed = Math.max(revisionsEntitlement.consumedInt ?? 0, 0);
-        const reserved = Math.max(revisionsEntitlement.reservedInt ?? 0, 0);
-        if (reserved < pendingCount) throw new Error("INSUFFICIENT_REVISION_RESERVATION");
-        if (revisionsEntitlement.limitInt !== null && consumed + pendingCount > revisionsEntitlement.limitInt) throw new Error("REVISION_LIMIT_EXCEEDED");
-        const delivered = await tx.revisionRequest.updateMany({ where: { projectId, conceptId: concept.id, status: { not: "delivered" } }, data: { status: "delivered" } });
-        deliveredCount = delivered.count;
-        await tx.$executeRaw`
-          UPDATE "ProjectEntitlement"
-          SET "reservedInt" = GREATEST(COALESCE("reservedInt", 0) - ${deliveredCount}, 0),
-              "consumedInt" = COALESCE("consumedInt", 0) + ${deliveredCount}, "updatedAt" = NOW()
-          WHERE "projectId" = ${projectId}::uuid AND "key" = 'revisions'
-        `;
-      }
+        let deliveredCount = 0;
+        if (uploadMode === "revision") {
+          const pendingCount = await tx.revisionRequest.count({ where: { projectId, conceptId: concept.id, status: { not: "delivered" } } });
+          if (pendingCount <= 0) throw new SafeConceptPublicationAbort("NO_PENDING_REVISION_REQUESTS");
+          const revisionsEntitlement = await tx.projectEntitlement.findFirst({ where: { projectId, key: "revisions" }, select: { id: true, limitInt: true, consumedInt: true, reservedInt: true } });
+          if (!revisionsEntitlement) throw new SafeConceptPublicationAbort("REVISIONS_ENTITLEMENT_MISSING");
+          const consumed = Math.max(revisionsEntitlement.consumedInt ?? 0, 0);
+          const reserved = Math.max(revisionsEntitlement.reservedInt ?? 0, 0);
+          if (reserved < pendingCount) throw new SafeConceptPublicationAbort("INSUFFICIENT_REVISION_RESERVATION");
+          if (revisionsEntitlement.limitInt !== null && consumed + pendingCount > revisionsEntitlement.limitInt) throw new SafeConceptPublicationAbort("REVISION_LIMIT_EXCEEDED");
+          const delivered = await tx.revisionRequest.updateMany({ where: { projectId, conceptId: concept.id, status: { not: "delivered" } }, data: { status: "delivered" } });
+          deliveredCount = delivered.count;
+          await tx.$executeRaw`
+            UPDATE "ProjectEntitlement"
+            SET "reservedInt" = GREATEST(COALESCE("reservedInt", 0) - ${deliveredCount}, 0),
+                "consumedInt" = COALESCE("consumedInt", 0) + ${deliveredCount}, "updatedAt" = NOW()
+            WHERE "projectId" = ${projectId}::uuid AND "key" = 'revisions'
+          `;
+        }
 
-      await tx.fileAsset.create({ data: { projectId, kind: "concept", bucket: upload.bucket, path: upload.path, mime: upload.mime, size: upload.size, notes: assetNotes, uploadedBy: user.id } });
-      const otherVisible = await tx.concept.count({ where: { projectId, status: { in: ["published", "approved"] }, id: { not: concept.id } } });
-      const shouldSetConceptsReady = uploadMode === "revision" || otherVisible === 0;
-      if (shouldSetConceptsReady && currentProject.status !== PROJECT_STATUS_CONCEPTS_READY) {
-        const transition = applyTransition(currentProject.status, PROJECT_STATUS_CONCEPTS_READY);
-        if (!transition.ok) throw new Error("INVALID_PROJECT_STATUS_TRANSITION");
-        await tx.project.update({ where: { id: projectId }, data: { status: PROJECT_STATUS_CONCEPTS_READY } });
-        await logAudit(tx, { projectId, actorId: user.id, type: "state_changed", payload: { previousStatus: currentProject.status, nextStatus: PROJECT_STATUS_CONCEPTS_READY } });
-      }
+        await tx.fileAsset.create({ data: { projectId, kind: "concept", bucket: upload.bucket, path: upload.path, mime: upload.mime, size: upload.size, notes: assetNotes, uploadedBy: user.id } });
+        const otherVisible = await tx.concept.count({ where: { projectId, status: { in: ["published", "approved"] }, id: { not: concept.id } } });
+        const shouldSetConceptsReady = uploadMode === "revision" || otherVisible === 0;
+        if (shouldSetConceptsReady && currentProject.status !== PROJECT_STATUS_CONCEPTS_READY) {
+          const transition = applyTransition(currentProject.status, PROJECT_STATUS_CONCEPTS_READY);
+          if (!transition.ok) throw new SafeConceptPublicationAbort("INVALID_PROJECT_STATUS_TRANSITION");
+          await tx.project.update({ where: { id: projectId }, data: { status: PROJECT_STATUS_CONCEPTS_READY } });
+          await logAudit(tx, { projectId, actorId: user.id, type: "state_changed", payload: { previousStatus: currentProject.status, nextStatus: PROJECT_STATUS_CONCEPTS_READY } });
+        }
 
-      await logAudit(tx, { projectId, actorId: user.id, type: uploadMode === "revision" ? "concept_revision_uploaded" : "concept_uploaded", payload: { conceptId: concept.id, conceptNumber: concept.number, filePath: upload.path, published: true, uploadMode, deliveredRevisionRequests: deliveredCount } });
-      await createProjectSystemMessage(tx, { projectId, fallbackUserId: user.id, body: uploadMode === "revision" ? `Revision delivered for Concept ${concept.number}.` : `Concept ${concept.number} is ready for review.` });
-      return { concept, projectStatus: shouldSetConceptsReady ? PROJECT_STATUS_CONCEPTS_READY : currentProject.status };
+        await logAudit(tx, { projectId, actorId: user.id, type: uploadMode === "revision" ? "concept_revision_uploaded" : "concept_uploaded", payload: { conceptId: concept.id, conceptNumber: concept.number, filePath: upload.path, published: true, uploadMode, deliveredRevisionRequests: deliveredCount } });
+        await createProjectSystemMessage(tx, { projectId, fallbackUserId: user.id, body: uploadMode === "revision" ? `Revision delivered for Concept ${concept.number}.` : `Concept ${concept.number} is ready for review.` });
+        const result = { concept, projectStatus: shouldSetConceptsReady ? PROJECT_STATUS_CONCEPTS_READY : currentProject.status };
+        await logAudit(tx, { projectId, actorId: user.id, type: "concept_upload_request", payload: { requestKey, digest, result, object: { bucket: upload.bucket, path: upload.path } } });
+        return result;
     }, { isolationLevel: "Serializable", maxWait: 2_000, timeout: 5_000 });
 
-    if (uploadMode !== "revision") await notifyClientConceptReady(projectId, result.concept.id);
-    return Response.json({ ok: true, concept: result.concept, projectStatus: result.projectStatus });
+    } catch (error) {
+      // A timeout can follow commit. An absent immediate read never proves
+      // rollback. Retain bytes and keep the same request key on every retry.
+      const recovered = await findConceptUploadRequest(prisma, projectId, requestKey, digest).catch(error => { if (error instanceof UploadReplayMismatch) throw error; return null; });
+      if (recovered) return Response.json({ ok: true, ...recovered as object, recovered: true });
+      if (error instanceof UploadReplayMismatch) throw error;
+      if (error instanceof SafeConceptPublicationAbort || error instanceof ConceptEntitlementError) {
+        // These are explicit callback aborts, not inferred DB rollbacks.
+        const cleanup = await deleteStoredFiles([{ bucket: upload.bucket, path: upload.path }]).catch(() => null);
+        if (!cleanup || cleanup.deleted !== 1) return jsonError("Publication aborted; new object retained after cleanup failure", 500,
+          { requestKey, uploadedObjectRetained: true, uploadedObject: { bucket: upload.bucket, path: upload.path } }, "CONCEPT_UPLOAD_CLEANUP_FAILED");
+        throw error;
+      }
+      return jsonError("Publication outcome is unconfirmed; retry with the same requestKey", 409,
+        { requestKey, uploadedObjectRetained: true, uploadedObject: { bucket: upload.bucket, path: upload.path } }, "CONCEPT_PUBLICATION_UNCONFIRMED");
+    }
+    // Notification failure cannot turn a committed publication into a retryable
+    // creation error. The durable receipt remains the source of truth.
+    let notificationWarning: string | undefined;
+    if (uploadMode !== "revision") await notifyClientConceptReady(projectId, result.concept.id).catch(() => { notificationWarning = "Publication committed; concept-ready notification failed. Do not republish to retry email."; });
+    return Response.json({ ok: true, concept: result.concept, projectStatus: result.projectStatus, ...(notificationWarning ? { notificationWarning, committed: true } : {}) });
   } catch (error) {
+    if (error instanceof UploadReplayMismatch) return jsonError(error.message, 409, undefined, "REQUEST_KEY_MISMATCH");
     if (error instanceof UploadValidationError) return jsonError(error.message, 400, undefined, error.code);
     if (error instanceof ConceptEntitlementError) {
       const missing = error.code === "CONCEPTS_ENTITLEMENT_MISSING";

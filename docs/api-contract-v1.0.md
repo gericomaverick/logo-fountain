@@ -96,15 +96,15 @@ Request:
 List projects by status.
 
 ### POST `/api/admin/projects/:projectId/status`
-This generic endpoint is restricted to exceptional `ON_HOLD` and `CANCELLED` transitions and always requires a non-empty `reason`. Normal lifecycle progression is rejected with `DOMAIN_ACTION_REQUIRED`; callers must use the concept, revision, approval, final-publication, and final-download domain actions so their preconditions cannot be bypassed.
+This generic endpoint is restricted to exceptional `ON_HOLD` and `CANCELLED` transitions plus guarded `RESUME` to the recorded pre-hold phase and always requires a non-empty `reason`. Normal lifecycle progression is rejected with `DOMAIN_ACTION_REQUIRED`; callers must use the concept, revision, approval, final-publication, and final-download domain actions so their preconditions cannot be bypassed.
 
 Request:
 ```json
-{ "status": "ON_HOLD|CANCELLED", "reason": "specific operational reason" }
+{ "status": "ON_HOLD|CANCELLED|RESUME", "reason": "specific operational reason" }
 ```
 
 ### POST `/api/admin/projects/:projectId/concepts`
-Uploads and immediately publishes a concept image. First publication and one unit of the `concepts` entitlement commit in the same serializable transaction. A missing row returns `CONCEPTS_ENTITLEMENT_MISSING`; a finite exhausted row returns `CONCEPT_ENTITLEMENT_EXHAUSTED`; `limitInt: null` is unlimited. Replacements consume only when they first publish a draft; retries/replacements of an already-published concept do not consume again. Concurrent claims use one conditional database update, so a final finite slot cannot be oversubscribed. Storage upload precedes publication and a failed transaction can therefore leave inactive storage bytes, but never active unentitled concept metadata.
+Uploads and immediately publishes a concept image. Multipart callers must send a stable UUID v4 `requestKey`, reusing it for retries of identical action/target/notes/bytes. A durable atomic audit receipt returns the original result after response loss; changed content under the same key returns `REQUEST_KEY_MISMATCH`. An unconfirmed outcome retains the unique immutable object and returns `CONCEPT_PUBLICATION_UNCONFIRMED`; retry the same key, not a new logical creation. See [combined hardening policy](upload-lifecycle-hardening.md) for limits, compatibility restrictions and residual validation guarantees. First publication and one unit of the `concepts` entitlement commit in the same serializable transaction. A missing row returns `CONCEPTS_ENTITLEMENT_MISSING`; a finite exhausted row returns `CONCEPT_ENTITLEMENT_EXHAUSTED`; `limitInt: null` is unlimited. Replacements consume only when they first publish a draft; retries/replacements of an already-published concept do not consume again. Concurrent claims use one conditional database update, so a final finite slot cannot be oversubscribed. Storage upload precedes publication and a failed transaction can therefore leave inactive storage bytes, but never active unentitled concept metadata.
 
 `POST /api/admin/projects/:projectId/concepts/:conceptId/publish` applies the same atomic, first-publish-only entitlement rules to draft publication and is idempotent for an already-published concept.
 
@@ -115,7 +115,7 @@ Upload a final deliverable set to a new immutable/versioned storage path, then t
 Admin-only notification retry for the already-current final publication. The request supplies the snapshot's current asset ID and project `updatedAt`; a bounded serializable transaction conditionally revalidates eligible state, approval, project version, and deterministic newest asset immediately before dispatch. It then sends only the final-ready notification using an asset-scoped sent marker. It never uploads, republishes, or deletes storage objects. The provider call cannot be atomic with the DB transaction, so a narrow post-validation state-change race remains documented rather than being treated as impossible.
 
 ### PATCH `/api/admin/projects/:projectId/entitlements`
-Overrides concept and/or revision limits. `reason` is mandatory (maximum 500 characters), is validated server-side, and is included in the `entitlement_limit_overridden` audit event.
+Overrides only supplied concept and/or revision limits. Null means unlimited, including creation of a previously missing row; omitted fields are unchanged. Usage distinguishes `unlimited` and `configured` explicitly. `reason` is mandatory (maximum 500 characters), is validated server-side, and is included in the `entitlement_limit_overridden` audit event.
 
 Request:
 ```json

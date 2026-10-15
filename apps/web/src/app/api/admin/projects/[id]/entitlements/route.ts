@@ -61,8 +61,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       const previousConceptLimit = before.find((entry) => entry.key === "concepts")?.limitInt ?? null;
       const previousRevisionLimit = before.find((entry) => entry.key === "revisions")?.limitInt ?? null;
 
-      const hasConceptUpdate = payload.concepts !== undefined && previousConceptLimit !== concepts;
-      const hasRevisionUpdate = payload.revisions !== undefined && previousRevisionLimit !== revisions;
+      const hasConceptUpdate = payload.concepts !== undefined && (!before.some(e => e.key === "concepts") || previousConceptLimit !== concepts);
+      const hasRevisionUpdate = payload.revisions !== undefined && (!before.some(e => e.key === "revisions") || previousRevisionLimit !== revisions);
 
       if (hasConceptUpdate) {
         await tx.projectEntitlement.upsert({
