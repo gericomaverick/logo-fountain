@@ -69,7 +69,7 @@ describe("POST /api/stripe/webhook", () => {
     mocks.notifyAdminNewProject.mockResolvedValue({ status: "sent" });
     mocks.prisma.auditEvent.findFirst.mockResolvedValue(null);
     mocks.prisma.auditEvent.create.mockResolvedValue({ id: "audit-email" });
-    mocks.ensureAccessProvisioning.mockResolvedValue({ userId: "user-1", existed: false });
+    mocks.ensureAccessProvisioning.mockResolvedValue({ userId: "user-1", existed: false, needsSetup: true });
     mocks.prisma.stripeEvent.create.mockResolvedValue(undefined);
     mocks.prisma.stripeEvent.updateMany.mockResolvedValue({ count: 1 });
     mocks.prisma.stripeEvent.deleteMany.mockResolvedValue({ count: 1 });
@@ -264,7 +264,7 @@ describe("POST /api/stripe/webhook", () => {
       firstName: "Buyer",
       lastName: "Name",
     });
-    mocks.ensureAccessProvisioning.mockResolvedValueOnce({ userId: "user-1", existed: true });
+    mocks.ensureAccessProvisioning.mockResolvedValueOnce({ userId: "user-1", existed: true, needsSetup: false });
 
     const res = await POST(webhookRequest());
     const body = await res.json();
@@ -277,6 +277,30 @@ describe("POST /api/stripe/webhook", () => {
       projectId: "project-1",
       flow: "signin",
     });
+  });
+
+  it("retry after a failed first setup email sends SETUP again while no password exists", async () => {
+    mocks.constructEvent.mockReturnValue({
+      id: "evt_setup_retry",
+      type: "checkout.session.completed",
+      created: 1700000000,
+      data: { object: { id: "cs_setup_retry" } },
+    });
+    mocks.fulfillCheckoutSession.mockResolvedValue({
+      deduped: true,
+      projectId: "project-1",
+      orderId: "order-1",
+      clientId: "client-1",
+      purchaserEmail: "buyer@example.com",
+      firstName: "Buyer",
+      lastName: "Name",
+    });
+    // The identity row already exists (first attempt created it), but setup was never completed.
+    mocks.ensureAccessProvisioning.mockResolvedValueOnce({ userId: "user-1", existed: true, needsSetup: true });
+
+    const res = await POST(webhookRequest());
+    expect(res.status).toBe(200);
+    expect(mocks.generateAndSendMagicLinkEmail).toHaveBeenCalledWith(expect.objectContaining({ flow: "setup" }));
   });
 
   it("deterministically handles concurrent duplicate deliveries for same event/session", async () => {

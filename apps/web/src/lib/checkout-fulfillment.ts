@@ -439,7 +439,7 @@ export async function ensureAccessProvisioning(
   clientId: string,
   purchaserEmail: string,
   checkoutName?: Pick<CheckoutName, "firstName" | "lastName">,
-): Promise<{ userId: string; existed: boolean }> {
+): Promise<{ userId: string; existed: boolean; needsSetup: boolean }> {
   const email = normalizeEmail(purchaserEmail);
   if (!email) throw new Error("Purchaser email required");
   const firstName = normalizeText(checkoutName?.firstName);
@@ -459,6 +459,9 @@ export async function ensureAccessProvisioning(
       update: { ...(firstName !== null ? { firstName } : {}), ...(lastName !== null ? { lastName } : {}), ...(fullName !== null ? { fullName } : {}) },
     });
     await tx.clientMembership.createMany({ data: [{ clientId, userId: user.id, role: "owner" }], skipDuplicates: true });
-    return { userId: user.id, existed: Boolean(existing) };
+    // Durable state, not "row existed on this attempt": a customer who has never
+    // set a password still needs setup after a failed first email and a retry.
+    const credential = await tx.authAccount.findFirst({ where: { userId: user.id, providerId: "credential", password: { not: null } }, select: { id: true } });
+    return { userId: user.id, existed: Boolean(existing), needsSetup: !credential };
   });
 }

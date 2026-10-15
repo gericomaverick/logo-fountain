@@ -152,6 +152,7 @@ export async function POST(req: Request) {
 
     let provisionedUserId: string | null = null;
     let isReturningCustomer = false;
+    let needsSetup = false;
     if (fulfillment.purchaserEmail) {
       const provisioning = await ensureAccessProvisioning(fulfillment.clientId, fulfillment.purchaserEmail, {
         firstName: fulfillment.firstName,
@@ -159,6 +160,7 @@ export async function POST(req: Request) {
       });
       provisionedUserId = provisioning.userId;
       isReturningCustomer = provisioning.existed;
+      needsSetup = provisioning.needsSetup;
     }
 
     if (fulfillment.purchaserEmail) {
@@ -173,9 +175,10 @@ export async function POST(req: Request) {
           purchaserEmail: fulfillment.purchaserEmail,
           request: req,
           projectId: fulfillment.projectId,
-          // Only trusted provisioning may select setup. Public endpoints always
-          // fall back to sign-in so a leaked Session ID cannot change a password.
-          flow: isReturningCustomer ? "signin" : "setup",
+          // Only trusted provisioning may select setup, from durable credential
+          // state (requestAuthLink re-checks it under the user's fence). Public
+          // endpoints always use sign-in so a leaked Session ID cannot set a password.
+          flow: needsSetup ? "setup" : "signin",
         });
         if (sendResult.skipped) {
           if (process.env.NODE_ENV === "production") throw new Error("Required checkout customer email was skipped");

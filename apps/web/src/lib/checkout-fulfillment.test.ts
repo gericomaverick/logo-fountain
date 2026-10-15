@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => {
     projectOrder: { create: vi.fn(), findFirst: vi.fn() },
     $executeRaw: vi.fn(),
     authUser: { findUnique: vi.fn(), create: vi.fn() },
+    authAccount: { findFirst: vi.fn() },
     profile: { upsert: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
     clientMembership: { createMany: vi.fn() },
   };
@@ -104,7 +105,8 @@ describe("fulfillCheckoutSession", () => {
     mocks.tx.projectOrder.findFirst.mockResolvedValue({ id: "paid" });
     mocks.tx.authUser.findUnique.mockResolvedValue(null);
     mocks.tx.authUser.create.mockResolvedValue({ id: "stable-user" });
-    await ensureAccessProvisioning("client-1", " BUYER@example.com ");
+    mocks.tx.authAccount.findFirst.mockResolvedValue(null);
+    expect(await ensureAccessProvisioning("client-1", " BUYER@example.com ")).toMatchObject({ existed: false, needsSetup: true });
     expect(mocks.tx.authUser.create).toHaveBeenCalledWith({ data: { email: "buyer@example.com", name: "buyer@example.com", emailVerified: false } });
     expect(mocks.tx.clientMembership.createMany).toHaveBeenCalledWith({ data: [{ clientId: "client-1", userId: "stable-user", role: "owner" }], skipDuplicates: true });
     mocks.tx.projectOrder.findFirst.mockResolvedValue(null);

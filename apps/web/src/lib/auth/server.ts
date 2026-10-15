@@ -6,19 +6,26 @@ import type { Prisma, PrismaClient } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getSecuritySensitivePublicOrigin } from "@/lib/request-origin";
 import { safeAuthNextPath } from "./safe-next";
-import { sendAuthEmail } from "./mail";
 import { createHash } from "node:crypto";
 
 export const proofHash = (token: string) => createHash("sha256").update(token).digest("hex");
 export const SESSION_SECONDS = 7 * 24 * 3600;
 export type AuthDatabase = PrismaClient | Prisma.TransactionClient;
+// Emails are queued here inside the fenced transaction and sent only AFTER it
+// commits (requestAuthLink), so Postmark latency never holds the lock or a
+// pooled connection.
+export type AuthEmail = { email: string; link: string; kind: "setup" | "reset" | "signin"; tokenHash: string };
 
 // A transaction-bound instance uses the exact same supported adapter and options,
 // but does not start nested Prisma transactions: the caller owns the atomic unit.
-export function createAuth(db: AuthDatabase = prisma, transactionBound = false) {
+export function createAuth(db: AuthDatabase = prisma, transactionBound = false, outbox?: AuthEmail[]) {
   const baseURL = getSecuritySensitivePublicOrigin();
   const secret = process.env.BETTER_AUTH_SECRET;
   if (!secret || secret.length < 32) throw new Error("BETTER_AUTH_SECRET must contain at least 32 random characters");
+  function queue(message: AuthEmail) {
+    if (!outbox) throw new Error("Authentication email must be issued through requestAuthLink");
+    outbox.push(message);
+  }
   async function recordProof(userId: string, token: string, kind: string) {
     const user = await db.authUser.findUniqueOrThrow({ where: { id: userId } });
     await db.authProof.create({ data: { tokenHash: proofHash(token), userId, kind, credentialVersion: user.credentialVersion, expiresAt: new Date(Date.now() + 3600000) } });
@@ -43,7 +50,7 @@ export function createAuth(db: AuthDatabase = prisma, transactionBound = false) 
         await recordProof(user.id, token, kind);
         const link = new URL(kind === "setup" ? "/set-password" : "/reset-password", baseURL);
         link.hash = new URLSearchParams({ token, next: safeAuthNextPath(callback.searchParams.get("next")) }).toString();
-        await sendAuthEmail(user.email, link.toString(), kind);
+        queue({ email: user.email, link: link.toString(), kind, tokenHash: proofHash(token) });
       },
     },
     plugins: [magicLink({
@@ -54,7 +61,7 @@ export function createAuth(db: AuthDatabase = prisma, transactionBound = false) 
         const callback = new URL(new URL(url).searchParams.get("callbackURL") || "/dashboard", baseURL);
         const link = new URL("/auth/callback", baseURL);
         link.hash = new URLSearchParams({ token, next: safeAuthNextPath(callback.pathname + callback.search) }).toString();
-        await sendAuthEmail(email, link.toString(), "signin");
+        queue({ email, link: link.toString(), kind: "signin", tokenHash: proofHash(token) });
       },
     })],
   });

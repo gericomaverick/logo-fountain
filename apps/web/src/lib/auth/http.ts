@@ -1,6 +1,7 @@
 import { AuthFailure } from "./errors";
 import { rejectUntrustedMutationOrigin } from "@/lib/request-origin";
 import { consumeAuthLimit } from "./rate-limit";
+import { trustedClientAddress } from "./client-address";
 
 export function authJson(body: unknown, status = 200, native?: Response) {
   const headers = new Headers({ "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" });
@@ -34,6 +35,5 @@ export async function authMutation(req: Request, run: (body: Record<string, unkn
 }
 export const text = (value: unknown) => typeof value === "string" ? value : "";
 export async function allowAuthAttempt(req: Request, identity: string) {
-  const address = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
-  return consumeAuthLimit(new URL(req.url).pathname, address, identity.toLowerCase());
+  return consumeAuthLimit(new URL(req.url).pathname, trustedClientAddress(req.headers), identity.toLowerCase());
 }
