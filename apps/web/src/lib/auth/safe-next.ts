@@ -14,15 +14,15 @@ function hasSafePathShape(value: string): boolean {
 /**
  * Accept only an application-relative path for post-auth navigation.
  *
- * Each encoded representation is checked as well as the raw value. This keeps
+ * Only the pathname is decoded and checked; query and fragment data are preserved. This keeps
  * values such as /%2fexample.com, /%5cexample.com, encoded control characters,
  * and double-encoded variants from becoming unsafe after another layer decodes
  * them. The original (not additionally decoded) path is returned on success.
  */
 export function safeAuthNextPath(raw: string | null | undefined, fallback = DEFAULT_AUTH_DESTINATION): string {
-  if (!raw || !hasSafePathShape(raw)) return fallback;
+  if (!raw || !hasSafePathShape(raw.split(/[?#]/, 1)[0])) return fallback;
 
-  let decoded = raw;
+  let decoded = raw.split(/[?#]/, 1)[0];
   // Decode once to inspect normal encoding, then continue only while a nested
   // encoding can become a slash, backslash, control byte, or another encoded
   // layer. Successful nested decoding shortens the value, so raw.length is a

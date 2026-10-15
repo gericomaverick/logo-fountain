@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import ts from "typescript";
 
 import { describe, expect, it } from "vitest";
 
@@ -81,16 +82,36 @@ describe("API route auth guards", () => {
 
   for (const file of routeFiles) {
     const rel = relative(file);
-    const content = fs.readFileSync(file, "utf8");
-    const mutates = /export async function (?:POST|PUT|PATCH|DELETE)\b/.test(content);
-    if (!mutates || MUTATION_ORIGIN_EXEMPTIONS[rel]) continue;
-
-    it(`${rel} enforces canonical Origin for mutations`, () => {
-      expect(
-        content,
-        `${rel} mutates state without the shared canonical Origin guard. ` +
-          "If it is genuinely public and cookie-independent, document and allowlist it deliberately.",
-      ).toMatch(/rejectUntrustedMutationOrigin\s*\(/);
+    if (MUTATION_ORIGIN_EXEMPTIONS[rel]) continue;
+    it(`${rel} guards each mutation before other work`, () => {
+      const source = ts.createSourceFile(file, fs.readFileSync(file, "utf8"), ts.ScriptTarget.Latest, true);
+      for (const statement of source.statements) {
+        // Require the explicit handler form: alternate export syntax must get
+        // deliberate review rather than silently escaping guard discovery.
+        if (ts.isExportDeclaration(statement) && statement.exportClause) {
+          expect(statement.exportClause.getText(source)).not.toMatch(/\b(?:POST|PUT|PATCH|DELETE)\b/);
+        }
+        if (ts.isVariableStatement(statement) && statement.modifiers?.some(m => m.kind === ts.SyntaxKind.ExportKeyword)) {
+          for (const declaration of statement.declarationList.declarations) {
+            expect(declaration.name.getText(source)).not.toMatch(/^(?:POST|PUT|PATCH|DELETE)$/);
+          }
+        }
+        if (!ts.isFunctionDeclaration(statement) || !statement.name ||
+          !/^(?:POST|PUT|PATCH|DELETE)$/.test(statement.name.text)) continue;
+        const [guard, reject] = statement.body?.statements ?? [];
+        expect(guard && ts.isVariableStatement(guard), `${rel}: guard must be first`).toBe(true);
+        if (!guard || !ts.isVariableStatement(guard)) continue;
+        const declaration = guard.declarationList.declarations[0];
+        const call = declaration.initializer;
+        expect(call && ts.isCallExpression(call) && call.expression.getText(source) === "rejectUntrustedMutationOrigin").toBe(true);
+        if (!call || !ts.isCallExpression(call)) continue;
+        expect(call.arguments[0]?.getText(source)).toBe(statement.parameters[0]?.name.getText(source));
+        expect(reject && ts.isIfStatement(reject), `${rel}: must return rejected response`).toBe(true);
+        if (!reject || !ts.isIfStatement(reject)) continue;
+        expect(reject.expression.getText(source)).toBe(declaration.name.getText(source));
+        const returned = ts.isBlock(reject.thenStatement) ? reject.thenStatement.statements[0] : reject.thenStatement;
+        expect(ts.isReturnStatement(returned) && returned.expression?.getText(source)).toBe(declaration.name.getText(source));
+      }
     });
   }
 

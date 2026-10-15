@@ -68,8 +68,8 @@ describe("POST /api/auth/forgot-password", () => {
 
     const res = await POST(request({ host: "evil.example", "x-forwarded-host": "evil.example" }));
 
-    expect(res.status).toBe(403);
-    expect((await res.json()).error.code).toBe("INVALID_ORIGIN");
+    expect(res.status).toBe(503);
+    expect((await res.json()).error.code).toBe("PUBLIC_SITE_URL_REQUIRED");
     expect(mocks.resetPasswordForEmail).not.toHaveBeenCalled();
   });
 });

@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import path from "path";
 
+// Report-only currently means manual browser-console diagnostics; no collector is configured.
 const isDevelopment = process.env.NODE_ENV === "development";
 const contentSecurityPolicy = [
   "default-src 'self'",

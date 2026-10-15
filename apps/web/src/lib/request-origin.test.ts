@@ -200,3 +200,39 @@ describe("getPublicSiteOrigin", () => {
     expect(getPublicSiteOrigin(req)).toBe("https://192.168.1.18:3000");
   });
 });
+
+
+describe("mutation provenance fallback contract", () => {
+  const request = (headers: Record<string, string>) => new Request("https://internal.example/api/profile", { method: "PUT", headers });
+
+  it("accepts an independently canonical Referer only when Origin is absent", () => {
+    vi.stubEnv("PUBLIC_SITE_URL", "https://app.example.com");
+    expect(rejectUntrustedMutationOrigin(request({ referer: "https://app.example.com/settings?tab=profile" }))).toBeNull();
+    for (const origin of ["null", "https://evil.example", "", "https://app.example.com/path"]) {
+      expect(rejectUntrustedMutationOrigin(request({ origin, referer: "https://app.example.com/settings" }))?.status).toBe(403);
+    }
+  });
+
+  it.each([
+    {},
+    { referer: "https://alias.example/settings" },
+    { referer: "https://app.example.com.evil.example/settings" },
+    { referer: "https://user@app.example.com/settings" },
+    { referer: "https://app.example.com@evil.example/settings" },
+    { referer: "/settings" },
+    { referer: "https://app.example.com/settings#fragment" },
+    { referer: "not a URL" },
+    { "sec-fetch-site": "same-origin", host: "app.example.com", "x-forwarded-host": "app.example.com" },
+  ])("fails closed for unverified provenance %j", (headers) => {
+    vi.stubEnv("PUBLIC_SITE_URL", "https://app.example.com");
+    expect(rejectUntrustedMutationOrigin(request(headers as Record<string, string>))?.status).toBe(403);
+  });
+
+  it.each(["", "invalid", "http://app.example.com", "https://user@app.example.com", "file:///tmp/site"])("distinguishes configuration failure %j", async (value) => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("PUBLIC_SITE_URL", value);
+    const response = rejectUntrustedMutationOrigin(request({ origin: "https://app.example.com" }));
+    expect(response?.status).toBe(503);
+    expect((await response?.json()).error.code).toBe("PUBLIC_SITE_URL_REQUIRED");
+  });
+});

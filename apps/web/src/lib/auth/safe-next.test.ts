@@ -11,6 +11,17 @@ describe("safeAuthNextPath", () => {
   });
 
   it.each([
+    "/project/p1?note=%5C",
+    "/project/p1#example%5Ctext",
+    "/project/p1?value=%2525",
+    "/project/p1?return=https://evil.example/a#//evil.example",
+    "/project/p1?note=\\literal#fragment",
+  ])("preserves local query and fragment data %j", (value) => {
+    expect(safeAuthNextPath(value)).toBe(value);
+    expect(new URL(safeAuthNextPath(value), "https://app.example").origin).toBe("https://app.example");
+  });
+
+  it.each([
     null,
     "",
     "https://evil.example/path",

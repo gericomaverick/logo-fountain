@@ -105,3 +105,11 @@ Next-step notes (2026-03-04):
 - [x] Harden final downloads against state/approval/asset races, move client download mutation to POST, and restore admin on-demand downloads without snapshot URLs.
 - [x] Fence and renew Stripe event claims and make post-fulfillment customer/admin email retries durable-audit-aware.
 - Merge note: keep the checkout-security commit separate for now; integrate it after this branch, resolving any webhook route/test overlap while retaining claim fencing and durable notification retry behavior.
+
+### Security critic follow-up (c40cc40)
+- [x] Fail visibly on logout/provider errors and verify the cookie session is gone before navigating.
+- [x] Define canonical missing-Origin Referer fallback; never override explicit Origin; separate configuration 503 from provenance 403.
+- [x] Validate auth-next pathname without rejecting legitimate query/fragment data.
+- [x] Describe CSP report-only honestly as manual console observation (no collector or retained reports).
+- [x] Strengthen per-handler mutation guard regression checks and add focused behavioral tests.
+- [ ] Before release: non-live browser/provider and TLS-edge verification described in `apps/web/docs/security-boundaries.md`; configure edge HSTS and distributed rate limiting separately.
