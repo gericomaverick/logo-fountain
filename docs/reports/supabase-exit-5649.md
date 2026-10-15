@@ -2,8 +2,8 @@
 
 ## Summary
 - Isolated branch `workbench/supabase-exit-5649`, starting at `ef4190d1be1f752e072e28e89255d98fd61ed4a2`; earlier remediation refs remain intact.
-- Stage 0 research gate satisfied before implementation; R2 and portable **core** PostgreSQL stages are implemented/tested. Full exit is **incomplete and not release-ready**.
-- Selected Better Auth **1.7.10** (not installed/integrated yet); AWS S3 client/presigner **3.1152.0** installed for private R2.
+- **Code exit complete on this branch (final state: see "Final validation" below).** R2, portable PostgreSQL and Better Auth stages are implemented and tested locally; no active Supabase runtime import, package, config or script remains. Release still requires the owner-run gates listed at the end.
+- Better Auth **1.7.10** integrated through its supported Prisma adapter; AWS S3 client/presigner **3.1152.0** for private R2.
 - Disposable data allows a fresh installation, not deletion or migration of any live resources.
 - Preserve app-layer tenant authorization; do not claim PostgreSQL RLS protects the new runtime.
 - No new owner policy decisions identified. Atomic auth fencing and real PostgreSQL tests are implementation gates, not optional follow-ups.
@@ -107,7 +107,7 @@ Production webpack build PASS with explicit non-live placeholder credentials and
 
 Installed web dependency audit remains **9 high / 0 critical, moderate, low**, same residual advisory roots as prior remediation; no forced resolution, override, broad upgrade or lock deletion. Site lock untouched. Evidence logs and audit JSON are under `/tmp/supabase-exit-5649/`.
 
-### Mandatory remaining work / release blockers
+### Mandatory remaining work at that checkpoint (superseded; items 1-3 done, see "Final validation")
 
 1. Implement Better Auth 1.7.10 with supported transactional Prisma adapter, UUID User/Profile relationship, normalized atomic checkout provisioning, controlled auth endpoints/UI, Postmark delivery and token/session policy. Remove Supabase auth/provisioning/scripts/dependencies/CSP/config only once replacement is implemented and verified. Current Supabase auth, service-role and public auth configuration **still remain**.
 2. Per-user credential fencing must cover distinct reset tokens, reset/change, login/reset, first credential proof, replay and rollback without catch-all bypass. Add auth portable schema/migration; one-time operator bootstrap must require verified ownership and never runtime email allowlisting.
@@ -123,3 +123,43 @@ Supersedes the intermediate checkpoint's unfinished-auth inventory. Installed ex
 Only reviewed app routes exist: login, magic-link request/POST verify, forgot-password, proof-only setup/reset, current-password change, logout and minimal session verification. No native catch-all/sign-up/set-password/change-email/credential bypass. Uses supported native server APIs; each credential/proof/session transition is bound to one Prisma transaction client through the supported adapter with nested adapter transaction disabled. The PostgreSQL **transaction-level** identity advisory fence, proof epoch check, native consume/password write/revocation, epoch bump/all-proof invalidation and audit are the same transaction/connection. Native change's rotated session is also deleted and never returned. This avoids detached-lock failure windows, catch-all bypass and distinct-token/reset-change/login-reset races. Unknown/failed email deliveries return indistinguishable public bodies; tokens only go to Postmark, never public response links or browser storage. Fragment proof is removed from history before use and sent by canonical-provenance JSON POST. Setup/recovery and magic proof lifetime is one hour/single use; no sliding refresh/cache; DB sessions and application check enforce seven-day absolute cap. Payment provisioning atomically preserves normalized UUID identity/Profile/membership and does not verify mailbox or grant admin.
 
 Focused units **179 PASS**, typecheck and lint zero warnings PASS. Real isolated PostgreSQL run `auth-pg-1`: fresh migrations + zero schema drift + **14/14 PASS** (6 core, 8 auth). Auth cases exercise 12-way paid provisioning, native setup/hash/login, stored token secrecy, seven-day absolute/no refresh, six-way magic replay, mailbox-vs-first-credential distinction, expiry/distinct resets/magic invalidation, reset/change, login/reset, rollback after real native mutation, two-session revocation and real owner-only one-shot bootstrap CLI. All bootstrap/migration tests target only the owned throwaway cluster. No live bootstrap/migration/email occurred. Final authenticated browser/HTTP, full regression/static/build/audit and documentation cleanup remain next, not yet claimed complete.
+
+## Final validation (HEAD after this section's commit)
+
+Work after resuming from an interruption: the tree was clean at `1ced73f` (auth stage already committed). Commit `1ced73f` included edits made after its last test run, and these were re-verified first. Follow-ups:
+
+- `4b93744`: password change without a session now returns 401. `requireUser()` threw inside the wrapper and surfaced as a generic 400.
+- `a3cfb73`: a wrong current password now maps to `CURRENT_PASSWORD_INVALID`. The settings UI states that all sessions ended and routes to sign-in. Adds the authenticated golden path.
+- `bf83829`: auth runbook (including the operator bootstrap procedure), test-runbook section, and live docs rewritten. Supabase-era operational docs moved to `docs/archive/` and `apps/web/docs/archive/` with a do-not-follow banner.
+
+**Authenticated golden path** (`PG_GOLDEN_PATH=1 npm run test:postgres`, run `golden-1`): fresh throwaway PG18.4 cluster, distinct roles, migrate, zero drift, real-PG **14/14**. The runner then starts its own `next dev` on a random loopback port, with runtime credentials only and no mail transport, and runs Playwright **5/5**:
+
+1. Paid purchaser setup link → set password → sign in → own project 200, another tenant's project denied, `/admin` denied, setup link replay refused, fragment removed from the URL. Session cookie is HttpOnly and SameSite=Lax.
+2. Settings: wrong current password rejected and session kept. A correct change ends this session and a second browser's session; the old password fails, the new one works; logout is verified.
+3. A recovery link revokes an existing session in another browser.
+4. A magic-link GET consumes nothing; the explicit confirm signs in; replay is refused; it grants no password.
+5. The bootstrapped admin reaches `/admin` with `isAdmin:true`; hostile-origin login/logout POSTs return 403.
+
+Links come from the test process's captured mail. The server has no bearer-return path, and its log contains no token. Server, cluster and fixture were removed, with no leftover processes.
+
+**Full sequential validation (no shared queue exists; run directly, one at a time):**
+
+- Full unit suite: **94 files / 605 passed**. The 14 skipped are the opt-in real-PG suites run above.
+- Typecheck and lint (0 warnings) pass.
+- `security:check` passes. A temporary client-file probe importing server auth was correctly flagged, then removed.
+- Webpack production build passes with placeholder `STRIPE_SECRET_KEY` and loopback `DATABASE_URL`, with no connection. The build lists only the eight controlled `/api/auth/*` routes and no catch-all.
+- Public browser suite **6/6**.
+- `npm audit`: **9 high**, the same roots as before (Prisma CLI / ESLint tooling chain); Better Auth adds none.
+- Primary checkout diff and untracked set unchanged; earlier refs present; base is an ancestor; `apps/site` untouched.
+
+**Not covered by any run here:**
+
+- Stripe webhook HTTP route (signature → fulfillment) against real PG; fulfillment was exercised by direct call, including 12-way provisioning contention.
+- Concurrent webhook retries over HTTP.
+- Live Postmark delivery; mail was mocked in tests.
+- Production-mode (`next start`, https) auth cookies; the golden path ran `next dev` over http loopback, so `Secure`/`__Secure-` cookie behaviour is unverified.
+- Any live database, R2 bucket or bootstrap.
+
+Observed, pre-existing since the base commit: a non-admin opening `/admin` logs a thrown `RouteAuthError` from `admin/page.tsx` while the layout redirects. It fails closed, but it is log noise.
+
+**Owner-run release gates (unchanged, not performed):** provision the PostgreSQL roles/database and deploy the baseline, run the one-time admin bootstrap on the live database, set `BETTER_AUTH_SECRET`/Postmark/R2 secrets, do the live R2 acceptance and restore drill, configure the proxy to strip forwarding headers, then merge and deploy. Existing Supabase users/data are **not migrated**: this is a fresh installation, so current customers would need setup links after cutover.
