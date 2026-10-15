@@ -1,3 +1,5 @@
+> **Archived (Supabase exit, branch `workbench/supabase-exit-5649`).** Describes the retired Supabase Auth/Storage stack and scripts that no longer exist. Kept for history only; do not follow. Current auth operations: `apps/web/docs/auth-runbook.md`.
+
 # Supabase / Database Security Runbook
 
 Use this checklist before Vercel deploys and after schema changes.

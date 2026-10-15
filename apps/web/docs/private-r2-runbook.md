@@ -1,6 +1,6 @@
 # Private R2 operations (5649)
 
-This is a configuration/acceptance plan, **not evidence of a configured or tested live bucket**. No Cloudflare resource operations are authorized by this change. Supabase Auth/DB exit is a separate incomplete stage: this R2 change alone does not complete the exit.
+This is a configuration/acceptance plan, **not evidence of a configured or tested live bucket**. No Cloudflare resource operations are authorized by this change. The auth/database side of the exit is covered by `ops/postgres/README.md` and `docs/auth-runbook.md`.
 
 ## Configuration and least privilege
 

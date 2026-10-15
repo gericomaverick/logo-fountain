@@ -1,9 +1,10 @@
 # Hardening notes
 
-## Supabase/database security
+## Database and auth security
 
-- See `docs/supabase-security-runbook.md` for pre-deploy checks and SQL verification steps.
-- RLS/grant hardening migration: `prisma/migrations/20260317130500_harden_public_schema_rls/migration.sql`.
+- Portable PostgreSQL roles, grants and preflight: `ops/postgres/README.md`. Tenancy is enforced in app code, not RLS.
+- Auth lifecycle, sessions and one-time admin bootstrap: `docs/auth-runbook.md`.
+- The retired Supabase runbook and RLS migration are archived (`docs/archive/`, `prisma/archive/supabase-migrations/`).
 
 
 ## Refresh strategy (current)

@@ -107,7 +107,7 @@ Next-step notes (2026-03-04):
 - Brief editor now shows a live draft-status chip (saving/saved timestamp) and adds a non-intrusive unload guard when there are unsubmitted changes.
 - Regression sweep completed with targeted wizard tests + lint + typecheck; no blocking issues found in edit/back/next/review/submit paths.
 - Copy/navigation wording normalized across client/admin project surfaces (project overview/messages terminology, consistent link tone, mobile-safe link wrapping).
-- Local tester ops note added: `docs/local-lan-redirect-testing.md`.
+- Local tester ops note added: `docs/archive/local-lan-redirect-testing.md` (archived: Supabase-era).
 
 Upload hardening note (2026-03-06):
 - Concept images and final ZIPs now use bounded, allowlisted server-side validation (type/name/signature/structure), immutable object paths, canonical storage metadata, and pre-upload lifecycle/entitlement checks.

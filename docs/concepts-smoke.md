@@ -1,8 +1,8 @@
 # Concepts P0 smoke test
 
 ## Preconditions
-- App running with valid Supabase + DB env vars.
-- Storage bucket exists in Supabase: `concepts`.
+- App running with valid auth (`BETTER_AUTH_SECRET`, `PUBLIC_SITE_URL`) + DB env.
+- Private R2 bucket configured for `concepts` (see `apps/web/docs/private-r2-runbook.md`).
 - Test project exists and is in `IN_DESIGN` status.
 - Test user is admin (allowlist or `profiles.is_admin=true`).
 

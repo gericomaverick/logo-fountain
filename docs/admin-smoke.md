@@ -4,9 +4,7 @@
 
 - App running locally (`npm run dev` in `apps/web`).
 - Test user is signed in.
-- Admin access is enabled via either:
-  - `profiles.isAdmin = true` for that user id, or
-  - `ADMIN_EMAILS` env var contains the user email (comma-separated).
+- Admin access comes only from `Profile.isAdmin = true`, set once by the operator bootstrap (`apps/web/docs/auth-runbook.md`). No environment variable grants admin.
 
 ## 1) Verify admin queue read endpoint
 

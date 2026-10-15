@@ -13,7 +13,7 @@
 
 ## Notes
 
-- Delivery uses existing Postmark env config (`POSTMARK_SERVER_TOKEN`, `POSTMARK_FROM`) and existing `ADMIN_EMAILS` allowlist for admin recipients.
+- Delivery uses existing Postmark env config (`POSTMARK_SERVER_TOKEN`, `POSTMARK_FROM`) and `ADMIN_NOTIFICATION_EMAILS` for admin notification recipients (recipients only; it grants no admin access).
 - Templates are transactional, branded HTML + text fallback, with CTA links routed to client/admin project destinations.
 - Dedupe markers are stored as `AuditEvent.type` entries under each project.
 - Final-ready markers are asset-scoped so a genuinely new replacement asset can produce a new notification while retries for the same immutable publication return `already_sent`.

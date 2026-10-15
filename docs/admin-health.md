@@ -11,18 +11,18 @@ Use this preflight before handoff, after deploys, or when admin flows fail.
 ### Checks included
 
 1. **Env vars present**
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `BETTER_AUTH_SECRET`
+   - `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_CONCEPTS_BUCKET`, `R2_FINAL_DELIVERABLES_BUCKET`
+   - `POSTMARK_SERVER_TOKEN`, `POSTMARK_FROM`, `PUBLIC_SITE_URL`
    - `STRIPE_SECRET_KEY`
    - `STRIPE_WEBHOOK_SECRET`
-   - `ADMIN_EMAILS`
+   - `ADMIN_NOTIFICATION_EMAILS` (notification recipients only; grants no access)
 2. **Database connectivity**
    - Runs `SELECT 1` via Prisma.
 3. **Stripe connectivity**
    - Calls Stripe `accounts.retrieve()` with `STRIPE_SECRET_KEY`.
-4. **Supabase Storage buckets**
-   - Lists buckets with admin client and verifies:
+4. **Private R2 buckets**
+   - Sends a bucket HEAD with the scoped server credentials and verifies:
      - `concepts`
      - `final-deliverables`
 
@@ -44,7 +44,7 @@ Use this preflight before handoff, after deploys, or when admin flows fail.
 - **Stripe connectivity failed**
   - Confirm `STRIPE_SECRET_KEY` is valid for the intended account and environment.
 - **Bucket missing**
-  - Create missing bucket in Supabase Dashboard → Storage.
+  - Bucket is never created automatically; follow `apps/web/docs/private-r2-runbook.md` (owner-run).
 
 ## Example response shape
 

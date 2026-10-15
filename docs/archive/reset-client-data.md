@@ -1,3 +1,5 @@
+> **Archived (Supabase exit, branch `workbench/supabase-exit-5649`).** Describes the retired Supabase Auth/Storage stack and scripts that no longer exist. Kept for history only; do not follow. Current auth operations: `apps/web/docs/auth-runbook.md`.
+
 # Logo Fountain — Resetting Development Client Data
 
 Use the `apps/web/scripts/reset-client-data.mjs` helper whenever you need to wipe all client-facing information from the shared Supabase/Postgres stack while keeping the admin account(s) untouched.

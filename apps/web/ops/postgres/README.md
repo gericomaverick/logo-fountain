@@ -1,6 +1,6 @@
 # Portable PostgreSQL core — staged, not a completed auth exit
 
-No live provisioning/migrations/deletion have been authorized or run. Supabase Auth remains in this intermediate branch. The portable baseline has no Better Auth models yet and must **not** be deployed as the finished exit.
+No live provisioning/migrations/deletion have been authorized or run. The fresh portable baseline now includes the Better Auth tables (`AuthUser`/`AuthSession`/`AuthAccount`/`AuthVerification`), hashed epoch-bound `AuthProof`, shared `AuthRateLimit`, operator-only `AuthAdminBootstrap` and the owner-only admin-flag trigger. Deploying it is an owner-run release step; see `docs/auth-runbook.md` for the one-time admin bootstrap.
 
 ## Fresh database only
 

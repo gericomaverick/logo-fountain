@@ -5,7 +5,7 @@ Quick verification checklist for the audit trail hardening step.
 ## Prereqs
 
 - Migrations applied (`npm run db:migrate` or your normal Prisma workflow).
-- API running with valid Supabase + DB env.
+- API running with valid auth (`BETTER_AUTH_SECRET`, `PUBLIC_SITE_URL`) + DB env.
 
 ## Smoke flow
 
