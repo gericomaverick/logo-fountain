@@ -3,12 +3,15 @@ import { logAudit } from "@/lib/audit";
 import { requireAdmin, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { prisma } from "@/lib/prisma";
 import { deleteStoredFiles } from "@/lib/supabase/storage";
+import { rejectUntrustedMutationOrigin } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
 
 type Body = { confirm?: unknown; mode?: unknown; clearMessages?: unknown };
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const originError = rejectUntrustedMutationOrigin(req);
+  if (originError) return originError;
   try {
     const user = await requireUser();
     await requireAdmin(user);

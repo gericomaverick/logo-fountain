@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { AuthShell } from "@/components/auth-shell";
 import loginImage from "@/img/image-panel-1.png";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { safeAuthNextPath } from "@/lib/auth/safe-next";
 import { hasValidationErrors, toErrorList, validateEmail, validateLogin, ValidationErrors } from "@/lib/auth/validation";
 
 type LoginErrors = ValidationErrors<"email" | "password">;
@@ -16,8 +17,7 @@ export default function LoginPage() {
 
   const nextPath = (() => {
     if (typeof window === "undefined") return "/dashboard";
-    const rawNext = new URLSearchParams(window.location.search).get("next") || "/dashboard";
-    return rawNext.startsWith("/") ? rawNext : "/dashboard";
+    return safeAuthNextPath(new URLSearchParams(window.location.search).get("next"));
   })();
 
   const [email, setEmail] = useState("");

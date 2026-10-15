@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { jsonError } from "@/lib/api-error";
+import { rejectUntrustedMutationOrigin } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
 
@@ -47,6 +48,8 @@ export async function GET() {
 }
 
 export async function PUT(req: Request) {
+  const originError = rejectUntrustedMutationOrigin(req);
+  if (originError) return originError;
   try {
     const user = await requireUser();
 

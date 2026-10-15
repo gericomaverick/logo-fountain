@@ -106,12 +106,28 @@ describe("/api/admin/projects/[id]/concepts", () => {
     expect(mocks.prisma.projectReadState.findMany).not.toHaveBeenCalled();
   });
 
+  it("rejects a cross-origin multipart upload before authentication or storage I/O", async () => {
+    const formData = new FormData();
+    formData.set("file", new File([new Uint8Array([1])], "concept.png", { type: "image/png" }));
+
+    const res = await POST(new Request("http://localhost", {
+      method: "POST",
+      headers: { origin: "https://evil.example" },
+      body: formData,
+    }), { params: Promise.resolve({ id: "p1" }) });
+
+    expect(res.status).toBe(403);
+    expect((await res.json()).error.code).toBe("INVALID_ORIGIN");
+    expect(mocks.requireUser).not.toHaveBeenCalled();
+    expect(mocks.uploadConceptAsset).not.toHaveBeenCalled();
+  });
+
   it("POST accepts first concept upload from BRIEF_SUBMITTED and transitions to CONCEPTS_READY", async () => {
     const formData = new FormData();
     formData.set("file", new File([new Uint8Array([1, 2, 3])], "concept.png", { type: "image/png" }));
     formData.set("notes", "Primary concept explainer");
 
-    const res = await POST(new Request("http://localhost", { method: "POST", body: formData }), {
+    const res = await POST(new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "POST", body: formData }), {
       params: Promise.resolve({ id: "p1" }),
     });
 
@@ -153,7 +169,7 @@ describe("/api/admin/projects/[id]/concepts", () => {
     formData.set("uploadMode", "revision");
     formData.set("conceptId", "c1");
 
-    const res = await POST(new Request("http://localhost", { method: "POST", body: formData }), {
+    const res = await POST(new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "POST", body: formData }), {
       params: Promise.resolve({ id: "p1" }),
     });
     const payload = await res.json().catch(() => null);
@@ -183,7 +199,7 @@ describe("/api/admin/projects/[id]/concepts", () => {
     formData.set("uploadMode", "revision");
     formData.set("conceptId", "c1");
 
-    const res = await POST(new Request("http://localhost", { method: "POST", body: formData }), {
+    const res = await POST(new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "POST", body: formData }), {
       params: Promise.resolve({ id: "p1" }),
     });
     const payload = await res.json();

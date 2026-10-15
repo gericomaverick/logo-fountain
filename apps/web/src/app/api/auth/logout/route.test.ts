@@ -19,7 +19,10 @@ describe("POST /api/auth/logout", () => {
   });
 
   it("signs the user out and returns ok", async () => {
-    const res = await POST();
+    const res = await POST(new Request("http://localhost/api/auth/logout", {
+      method: "POST",
+      headers: { origin: "http://localhost" },
+    }));
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true });

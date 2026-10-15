@@ -45,7 +45,7 @@ describe("PATCH /api/admin/projects/[id]/entitlements", () => {
   it("rejects unauthorised admin override attempts", async () => {
     mocks.requireAdmin.mockRejectedValueOnce(new Error("Forbidden"));
 
-    const res = await PATCH(new Request("http://localhost", { method: "PATCH", body: JSON.stringify({ concepts: 4 }) }), {
+    const res = await PATCH(new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "PATCH", body: JSON.stringify({ concepts: 4 }) }), {
       params: Promise.resolve({ id: "p1" }),
     });
 
@@ -55,7 +55,7 @@ describe("PATCH /api/admin/projects/[id]/entitlements", () => {
   });
 
   it("validates integer limits", async () => {
-    const res = await PATCH(new Request("http://localhost", { method: "PATCH", body: JSON.stringify({ concepts: "abc" }) }), {
+    const res = await PATCH(new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "PATCH", body: JSON.stringify({ concepts: "abc" }) }), {
       params: Promise.resolve({ id: "p1" }),
     });
 
@@ -83,7 +83,7 @@ describe("PATCH /api/admin/projects/[id]/entitlements", () => {
         { key: "revisions", limitInt: 4, consumedInt: 1, reservedInt: 1 },
       ]);
 
-    const first = await PATCH(new Request("http://localhost", { method: "PATCH", body: JSON.stringify({ revisions: 3 }) }), {
+    const first = await PATCH(new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "PATCH", body: JSON.stringify({ revisions: 3 }) }), {
       params: Promise.resolve({ id: "p1" }),
     });
     const firstBody = await first.json();
@@ -92,7 +92,7 @@ describe("PATCH /api/admin/projects/[id]/entitlements", () => {
     expect(firstBody.changed).toBe(true);
     expect(firstBody.entitlementUsage.revisions).toEqual({ limit: 3, consumed: 1, reserved: 1, remaining: 1 });
 
-    const second = await PATCH(new Request("http://localhost", { method: "PATCH", body: JSON.stringify({ revisions: 4 }) }), {
+    const second = await PATCH(new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "PATCH", body: JSON.stringify({ revisions: 4 }) }), {
       params: Promise.resolve({ id: "p1" }),
     });
     const secondBody = await second.json();
@@ -116,7 +116,7 @@ describe("PATCH /api/admin/projects/[id]/entitlements", () => {
         { key: "revisions", limitInt: 2, consumedInt: 1, reservedInt: 1 },
       ]);
 
-    const res = await PATCH(new Request("http://localhost", { method: "PATCH", body: JSON.stringify({ concepts: 3, revisions: 2 }) }), {
+    const res = await PATCH(new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "PATCH", body: JSON.stringify({ concepts: 3, revisions: 2 }) }), {
       params: Promise.resolve({ id: "p1" }),
     });
     const body = await res.json();

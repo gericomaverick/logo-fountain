@@ -48,7 +48,7 @@ describe("POST /api/admin/projects/[id]/concepts/[conceptId]/publish", () => {
   });
 
   it("triggers client concept-ready email after publish", async () => {
-    const res = await POST(new Request("http://localhost", { method: "POST" }), {
+    const res = await POST(new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "POST" }), {
       params: Promise.resolve({ id: "p1", conceptId: "c1" }),
     });
 

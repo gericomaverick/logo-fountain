@@ -75,7 +75,7 @@ describe("/api/profile", () => {
   it("PUT trims names, updates fullName, and preserves omitted fields", async () => {
     const req = new Request("http://localhost/api/profile", {
       method: "PUT",
-      headers: { "content-type": "application/json" },
+      headers: { origin: "http://localhost", "content-type": "application/json" },
       body: JSON.stringify({ firstName: "  Grace  " }),
     });
 
@@ -92,14 +92,14 @@ describe("/api/profile", () => {
   });
 
   it("PUT rejects invalid JSON and non-string name fields", async () => {
-    const invalidJson = await PUT(new Request("http://localhost/api/profile", { method: "PUT", body: "{nope" }));
+    const invalidJson = await PUT(new Request("http://localhost/api/profile", { headers: { origin: "http://localhost" }, method: "PUT", body: "{nope" }));
     expect(invalidJson.status).toBe(400);
     expect((await invalidJson.json()).error.code).toBe("INVALID_JSON");
 
     const invalidName = await PUT(
       new Request("http://localhost/api/profile", {
         method: "PUT",
-        headers: { "content-type": "application/json" },
+        headers: { origin: "http://localhost", "content-type": "application/json" },
         body: JSON.stringify({ firstName: 123 }),
       }),
     );

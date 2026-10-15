@@ -5,13 +5,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { AuthShell } from "@/components/auth-shell";
+import { safeAuthNextPath } from "@/lib/auth/safe-next";
 import { ensureBrowserSupabaseSession } from "@/lib/auth/session";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-
-function safeNextPath(raw: string | null): string {
-  if (!raw) return "/dashboard";
-  return raw.startsWith("/") ? raw : "/dashboard";
-}
 
 function getNextProjectId(nextPath: string): string | null {
   const match = /^\/project\/([^/?#]+)/.exec(nextPath);
@@ -44,7 +40,7 @@ export default function AuthCallbackPage() {
     void (async () => {
       try {
         const search = new URLSearchParams(window.location.search);
-        const next = safeNextPath(search.get("next"));
+        const next = safeAuthNextPath(search.get("next"));
         const projectId = getNextProjectId(next);
         const loginRecoveryUrl = `/login?next=${encodeURIComponent(next)}`;
 

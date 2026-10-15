@@ -5,7 +5,7 @@ import { requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { buildFinalDeliverableFilename } from "@/lib/final-deliverable-filename";
 import { applyTransition } from "@/lib/project-state-machine";
 import { logAudit } from "@/lib/audit";
-import { hasCanonicalSameOrigin } from "@/lib/request-origin";
+import { rejectUntrustedMutationOrigin } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
 
@@ -24,10 +24,9 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const originError = rejectUntrustedMutationOrigin(req);
+  if (originError) return originError;
   try {
-    if (!hasCanonicalSameOrigin(req)) {
-      return jsonError("Cross-origin final download request rejected", 403, undefined, "INVALID_REQUEST_ORIGIN");
-    }
     const user = await requireUser();
     const { id } = await params;
 

@@ -47,7 +47,7 @@ function zipFile() { return new File(["zip"], "final.zip", { type: "application/
 function request(file: File | null = zipFile()) {
   const form = new FormData();
   if (file) form.set("file", file);
-  return POST(new Request("http://localhost/api/admin/projects/p1/finals", { method: "POST", body: form }), {
+  return POST(new Request("http://localhost/api/admin/projects/p1/finals", { headers: { origin: "https://app.example.com" }, method: "POST", body: form }), {
     params: Promise.resolve({ id: "p1" }),
   });
 }
@@ -61,6 +61,7 @@ describe("POST /api/admin/projects/[id]/finals", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubEnv("NODE_ENV", "test");
+    vi.stubEnv("PUBLIC_SITE_URL", "https://app.example.com");
     mocks.requireUser.mockResolvedValue({ id: "admin-1" });
     mocks.requireAdmin.mockResolvedValue(undefined);
     mocks.prisma.project.findUnique.mockResolvedValue({ id: "p1", status: "FINAL_FILES_READY", updatedAt });

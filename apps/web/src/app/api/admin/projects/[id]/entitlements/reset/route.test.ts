@@ -42,7 +42,7 @@ import { POST } from "./route";
 
 function postReset(id: string, body: unknown) {
   return POST(
-    new Request("http://localhost", { method: "POST", body: JSON.stringify(body) }),
+    new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "POST", body: JSON.stringify(body) }),
     { params: Promise.resolve({ id }) },
   );
 }

@@ -64,7 +64,7 @@ describe("POST /api/projects/[id]/approve", () => {
     const req = new Request("http://localhost", {
       method: "POST",
       body: JSON.stringify({ conceptId: "c1" }),
-      headers: { "Content-Type": "application/json" },
+      headers: { origin: "http://localhost", "Content-Type": "application/json" },
     });
 
     const res = await POST(req, { params: Promise.resolve({ id: "p1" }) });

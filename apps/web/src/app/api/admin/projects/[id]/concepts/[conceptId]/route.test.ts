@@ -49,7 +49,7 @@ vi.mock("@/lib/audit", () => ({ logAudit: mocks.logAudit }));
 import { DELETE } from "./route";
 
 function deleteConcept(id: string, conceptId: string) {
-  return DELETE(new Request("http://localhost", { method: "DELETE" }), {
+  return DELETE(new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "DELETE" }), {
     params: Promise.resolve({ id, conceptId }),
   });
 }

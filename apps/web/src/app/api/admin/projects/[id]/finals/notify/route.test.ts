@@ -38,7 +38,7 @@ const projectUpdatedAt = "2026-03-05T10:00:00.000Z";
 function request(body: Record<string, unknown> = { assetId: "asset-new", projectUpdatedAt }) {
   return POST(new Request("http://localhost/api/admin/projects/p1/finals/notify", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { origin: "http://localhost", "Content-Type": "application/json" },
     body: JSON.stringify(body),
   }), { params: Promise.resolve({ id: "p1" }) });
 }

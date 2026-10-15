@@ -63,7 +63,7 @@ describe("POST /api/admin/projects/[id]/revision-requests/[rid]/delivered", () =
   it("logs state_changed with the true previous status", async () => {
     const req = new Request("http://localhost", {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: { origin: "http://localhost", "content-type": "application/json" },
       body: JSON.stringify({ setConceptsReady: true }),
     });
 
@@ -78,7 +78,7 @@ describe("POST /api/admin/projects/[id]/revision-requests/[rid]/delivered", () =
   it("rejects delivery when no reserved revision entitlement remains", async () => {
     mocks.prisma.projectEntitlement.findFirst.mockResolvedValue({ id: "ent-r", limitInt: 2, consumedInt: 0, reservedInt: 0 });
 
-    const req = new Request("http://localhost", { method: "POST" });
+    const req = new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "POST" });
     const res = await POST(req, { params: Promise.resolve({ id: "p1", rid: "rev-1" }) });
     const payload = await res.json();
 

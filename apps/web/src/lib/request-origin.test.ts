@@ -5,6 +5,8 @@ import {
   getPublicSiteOrigin,
   getRequestOrigin,
   getSecuritySensitivePublicOrigin,
+  hasCanonicalSameOrigin,
+  rejectUntrustedMutationOrigin,
 } from "./request-origin";
 
 const ORIGINAL_ENV = {
@@ -139,6 +141,34 @@ describe("getSecuritySensitivePublicOrigin", () => {
     expect(getSecuritySensitivePublicOrigin(local)).toBe("http://127.0.0.1:3100");
 
     expect(() => getSecuritySensitivePublicOrigin(new Request("https://evil.example/path"))).toThrow(/PUBLIC_SITE_URL/i);
+  });
+});
+
+describe("canonical mutation Origin validation", () => {
+  it("accepts only the exact configured canonical origin", () => {
+    process.env.PUBLIC_SITE_URL = "https://app.example.com/path";
+    const request = (origin?: string) => new Request("https://internal.example/api/profile", {
+      method: "PUT",
+      headers: origin ? { origin } : undefined,
+    });
+
+    expect(hasCanonicalSameOrigin(request("https://app.example.com"))).toBe(true);
+    expect(rejectUntrustedMutationOrigin(request("https://app.example.com"))).toBeNull();
+
+    for (const origin of [
+      undefined,
+      "null",
+      "https://evil.example",
+      "https://app.example.com.evil.example",
+      "https://user@app.example.com",
+      "https://app.example.com/path",
+      "https://app.example.com?query=1",
+      "https://app.example.com\\@evil.example",
+      "https://app.example.com%00.evil.example",
+    ]) {
+      expect(hasCanonicalSameOrigin(request(origin))).toBe(false);
+      expect(rejectUntrustedMutationOrigin(request(origin))?.status).toBe(403);
+    }
   });
 });
 

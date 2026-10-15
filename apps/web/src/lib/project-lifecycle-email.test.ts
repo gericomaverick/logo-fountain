@@ -150,6 +150,29 @@ describe("project lifecycle emails", () => {
     expect(payload.To).toBe("owner@example.com");
   });
 
+  it("escapes hostile client names and brief answers in admin HTML", async () => {
+    mocks.findProject.mockResolvedValueOnce({
+      id: "p1",
+      client: {
+        name: "Fallback",
+        billingEmail: "client@example.com",
+        memberships: [{
+          role: "owner",
+          user: { email: "owner@example.com", firstName: "<script>alert(1)</script>", lastName: "O'Reilly", fullName: null },
+        }],
+      },
+      briefs: [{ answers: { brandName: '</p><img src=x onerror="alert(2)">' } }],
+    });
+
+    await notifyAdminNewProject("p1");
+
+    const payload = JSON.parse(mocks.fetch.mock.calls[0][1].body as string);
+    expect(payload.HtmlBody).not.toContain("<script>");
+    expect(payload.HtmlBody).not.toContain("<img src=x");
+    expect(payload.HtmlBody).toContain("&lt;script&gt;alert(1)&lt;/script&gt; O&#39;Reilly");
+    expect(payload.HtmlBody).toContain("&lt;/p&gt;&lt;img src=x onerror=&quot;alert(2)&quot;&gt;");
+  });
+
   it("prefers brief brand name over client record name in admin emails", async () => {
     mocks.findProject.mockResolvedValueOnce({
       id: "p1",

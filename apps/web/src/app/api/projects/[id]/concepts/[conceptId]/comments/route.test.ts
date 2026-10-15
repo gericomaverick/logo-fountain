@@ -46,7 +46,7 @@ describe("/api/projects/[id]/concepts/[conceptId]/comments", () => {
   });
 
   it("POST validates body", async () => {
-    const res = await POST(new Request("http://localhost", { method: "POST", body: JSON.stringify({ body: "" }) }), {
+    const res = await POST(new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "POST", body: JSON.stringify({ body: "" }) }), {
       params: Promise.resolve({ id: "p1", conceptId: "c1" }),
     });
 
@@ -58,7 +58,7 @@ describe("/api/projects/[id]/concepts/[conceptId]/comments", () => {
   it("POST allows member when admin check fails with 403", async () => {
     mocks.requireAdmin.mockRejectedValueOnce(new RouteAuthError("Forbidden", 403, "FORBIDDEN"));
 
-    const res = await POST(new Request("http://localhost", { method: "POST", body: JSON.stringify({ body: "Concept notes" }) }), {
+    const res = await POST(new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "POST", body: JSON.stringify({ body: "Concept notes" }) }), {
       params: Promise.resolve({ id: "p1", conceptId: "c1" }),
     });
 

@@ -24,6 +24,14 @@ const PUBLIC_ROUTES: Record<string, string> = {
   "auth/session/route.ts": "Reports the caller's own session state; no data exposure.",
 };
 
+// Public server-to-server or possession-token POSTs do not rely on browser
+// cookies, so CSRF Origin enforcement is not their authentication boundary.
+const MUTATION_ORIGIN_EXEMPTIONS: Record<string, string> = {
+  "stripe/webhook/route.ts": "Stripe signature authenticates the exact raw body.",
+  "checkout/magic-link/route.ts": "Public post-checkout possession-token flow; independently rate limited.",
+  "checkout/resend-magic-link/route.ts": "Public post-checkout possession-token flow; independently rate limited.",
+};
+
 function findRouteFiles(dir: string): string[] {
   const results: string[] = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -68,6 +76,21 @@ describe("API route auth guards", () => {
         `${rel} has no auth guard (requireUser or supabase.auth.getUser). ` +
           "If this route is intentionally public, add it to PUBLIC_ROUTES with a reason.",
       ).toBe(true);
+    });
+  }
+
+  for (const file of routeFiles) {
+    const rel = relative(file);
+    const content = fs.readFileSync(file, "utf8");
+    const mutates = /export async function (?:POST|PUT|PATCH|DELETE)\b/.test(content);
+    if (!mutates || MUTATION_ORIGIN_EXEMPTIONS[rel]) continue;
+
+    it(`${rel} enforces canonical Origin for mutations`, () => {
+      expect(
+        content,
+        `${rel} mutates state without the shared canonical Origin guard. ` +
+          "If it is genuinely public and cookie-independent, document and allowlist it deliberately.",
+      ).toMatch(/rejectUntrustedMutationOrigin\s*\(/);
     });
   }
 

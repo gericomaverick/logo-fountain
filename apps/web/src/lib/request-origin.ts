@@ -65,13 +65,26 @@ function isSafeLocalOrigin(origin: URL): boolean {
  */
 export function hasCanonicalSameOrigin(req: Request): boolean {
   const supplied = req.headers.get("origin");
-  if (!supplied) return false;
+  if (!supplied || supplied === "null" || /[\u0000-\u001f\u007f]/.test(supplied)) return false;
 
   try {
-    return new URL(supplied).origin === getSecuritySensitivePublicOrigin(req);
+    const parsed = new URL(supplied);
+    // Origin is an origin serialization, never a URL with credentials, path,
+    // query, or fragment. Requiring the canonical serialization also rejects
+    // ambiguous values that a permissive URL parser might otherwise normalize.
+    if (supplied !== parsed.origin || parsed.username || parsed.password) return false;
+    return parsed.origin === getSecuritySensitivePublicOrigin(req);
   } catch {
     return false;
   }
+}
+
+export function rejectUntrustedMutationOrigin(req: Request): Response | null {
+  if (hasCanonicalSameOrigin(req)) return null;
+  return Response.json(
+    { error: { code: "INVALID_ORIGIN", message: "Request origin is not allowed." } },
+    { status: 403 },
+  );
 }
 
 export function getSecuritySensitivePublicOrigin(req?: Request): string {

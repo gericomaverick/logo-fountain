@@ -62,7 +62,7 @@ describe("POST /api/projects/[id]/messages", () => {
   });
 
   it("returns jsonError shape for invalid body", async () => {
-    const req = new Request("http://localhost", { method: "POST", body: JSON.stringify({ body: "" }) });
+    const req = new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "POST", body: JSON.stringify({ body: "" }) });
     const res = await POST(req, { params: Promise.resolve({ id: "p1" }) });
 
     expect(res.status).toBe(400);
@@ -76,7 +76,7 @@ describe("POST /api/projects/[id]/messages", () => {
   });
 
   it("upserts profile with isAdmin=true for admin sender", async () => {
-    const req = new Request("http://localhost", { method: "POST", body: JSON.stringify({ body: "Hello" }) });
+    const req = new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "POST", body: JSON.stringify({ body: "Hello" }) });
     const res = await POST(req, { params: Promise.resolve({ id: "p1" }) });
 
     expect(res.status).toBe(201);

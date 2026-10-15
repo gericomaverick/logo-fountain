@@ -84,6 +84,15 @@ Step 4 notes:
 - [x] Admin overview polish: verify final visual consistency of gradient, metadata rows, and hierarchy across breakpoints.
 - [x] Ops: document WSL2 LAN testing + Stripe/Supabase redirect configuration for local testers.
 
+### Application security hardening
+- [x] Escape dynamic transactional email HTML and strictly validate CTA URLs.
+- [x] Centralize post-auth `next` validation across login, callback, and password setup.
+- [x] Apply app security headers with a compatibility-staged CSP policy.
+- [x] Require the canonical Origin on cookie-authenticated mutations, including multipart admin uploads.
+
+Security notes:
+- Boundary decisions, webhook/public exemptions, staged CSP rollout, edge-owned HSTS, and the remaining distributed edge-rate-limit requirement are documented in `apps/web/docs/security-boundaries.md`.
+
 Next-step notes (2026-03-04):
 - Brief editor now shows a live draft-status chip (saving/saved timestamp) and adds a non-intrusive unload guard when there are unsubmitted changes.
 - Regression sweep completed with targeted wizard tests + lint + typecheck; no blocking issues found in edit/back/next/review/submit paths.

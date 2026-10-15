@@ -3,6 +3,7 @@ import { logAudit } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { computeEntitlementUsage } from "@/lib/entitlements";
+import { rejectUntrustedMutationOrigin } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
 
@@ -17,6 +18,8 @@ function parseLimit(value: unknown): number | null | undefined {
 }
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const originError = rejectUntrustedMutationOrigin(req);
+  if (originError) return originError;
   try {
     const user = await requireUser();
     await requireAdmin(user);

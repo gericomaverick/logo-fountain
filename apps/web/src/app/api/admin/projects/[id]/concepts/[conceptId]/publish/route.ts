@@ -5,6 +5,7 @@ import { applyTransition } from "@/lib/project-state-machine";
 import { logAudit } from "@/lib/audit";
 import { createProjectSystemMessage } from "@/lib/system-messages";
 import { notifyClientConceptReady } from "@/lib/project-lifecycle-email";
+import { rejectUntrustedMutationOrigin } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
 
@@ -12,11 +13,13 @@ const PROJECT_STATUS_CONCEPTS_READY = "CONCEPTS_READY";
 const CONCEPT_STATUS_PUBLISHED = "published";
 
 export async function POST(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string; conceptId: string }> },
 ) {
+  const originError = rejectUntrustedMutationOrigin(req);
+  if (originError) return originError;
   try {
-  const user = await requireUser();
+    const user = await requireUser();
   await requireAdmin(user);
 
   const { id: projectId, conceptId } = await params;

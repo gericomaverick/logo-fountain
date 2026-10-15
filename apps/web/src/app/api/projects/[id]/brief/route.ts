@@ -5,6 +5,7 @@ import { logAudit } from "@/lib/audit";
 import { RouteAuthError, requireAdmin, requireProjectMembership, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { createProjectSystemMessage } from "@/lib/system-messages";
 import { validateBriefSubmission } from "@/lib/brief";
+import { rejectUntrustedMutationOrigin } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
 const PROJECT_STATUS_BRIEF_SUBMITTED = "BRIEF_SUBMITTED";
@@ -50,6 +51,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 }
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const originError = rejectUntrustedMutationOrigin(req);
+  if (originError) return originError;
   try {
     const user = await requireUser();
     const { id } = await params;
