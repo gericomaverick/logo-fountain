@@ -161,3 +161,10 @@ Upload hardening note (2026-03-06):
 - [x] Install reviewed Next 16.4.1 / React 19.2.9 / Prisma 7.10.0 / Vitest 4.1.11; compatible transitive fixes and supported Vite 7.3.7 peer. Preserve compatible lint checks with original config/hooks versions. Clean `npm ci`, full `npm ls --all`, 88 files / 557 units, typecheck, lint (0 warnings), webpack build (31 pages), owned-port 45230 E2E (6/6) all pass, sequential direct execution (documented queue script absent).
 - [x] Web audit 39 → 9: **0 critical / 9 high / 0 moderate / 0 low**; omit-dev 22 → 4 high. Remaining Braces lint chain and Prisma-pinned DeepmergeTS/MySQL2 are explicitly triaged, not waived or hidden. Report: `docs/reports/dependency-remediation-5230.md`; original advisory inventory in companion TSV. No source behavior changes, forced overrides, disabled checks, live services or primary-worktree edits.
 - [ ] Follow upstream-supported Prisma/Braces/Next-lint fixes for the 9 residual high package nodes; separately authorize marketing remediation (independent lock unchanged at 17, including 1 critical). Revisit MySQL2 before any MySQL adoption. See report for applicability and exact evidence/reproduction.
+
+## Supabase exit (5649)
+- [x] Isolated child branch from `ef4190d1be1f752e072e28e89255d98fd61ed4a2`; Stage 0 registry/package-source/official-doc compatibility and architecture report before large implementation: `docs/reports/supabase-exit-5649.md`.
+- [ ] Portable fresh PostgreSQL lineage, archived history, separate runtime/migration roles and pre-migration stale-target guard.
+- [ ] Private R2 AWS SDK adapter, immutable writes, safe <=1h signed downloads and preserved publication/receipt recovery.
+- [ ] Better Auth 1.7.10 integration, fenced recovery/session lifecycle, UUID identity, verified operator-only one-time admin bootstrap, checkout provisioning, no Supabase runtime/config dependencies.
+- [ ] Real disposable PostgreSQL migrations/least-privilege/auth/lifecycle/concurrency integrations; sequential full units/static/build/owned-browser validation; live R2 acceptance documented as untested.
