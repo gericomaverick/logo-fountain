@@ -565,9 +565,10 @@ export default function AdminProjectPage() {
                   <input
                     className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm"
                     type="file"
-                    accept=".zip,application/zip"
+                    accept=".zip,application/zip,application/x-zip-compressed"
                     onChange={(event) => setFinalZipFile(event.target.files?.[0] ?? null)}
                   />
+                  <span className="text-xs text-neutral-500">Standard ZIP only; 100 MB compressed / 500 MB expanded maximum.</span>
                 </label>
                 <button className="portal-btn-primary justify-center bg-violet-700 text-white hover:bg-violet-800 disabled:opacity-60" type="submit" disabled={busy || !finalZipFile}>
                   {busy ? "Uploading…" : "Upload and publish"}

@@ -229,7 +229,8 @@ export default function AdminProjectConceptsPage() {
             </p>
 
             <label className="mt-4 block text-sm font-medium">Asset file</label>
-            <input className="mt-1 block" type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+            <input className="mt-1 block" type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+            <p className="mt-1 text-xs text-neutral-600">PNG, JPEG, or WebP only; 10 MB maximum.</p>
 
             <label className="mt-4 block text-sm font-medium">Notes</label>
             <textarea className="mt-1 portal-field px-2 py-1" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />

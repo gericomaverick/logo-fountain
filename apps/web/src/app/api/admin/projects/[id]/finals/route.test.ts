@@ -4,14 +4,17 @@ const mocks = vi.hoisted(() => {
   class RouteAuthError extends Error {
     constructor(public status: number, public code: string, message: string) { super(message); }
   }
+  class UploadValidationError extends Error {
+    constructor(public code: string, message: string) { super(message); }
+  }
   const tx = {
     fileAsset: { findFirst: vi.fn(), create: vi.fn() },
     project: { updateMany: vi.fn() },
   };
   return {
-    RouteAuthError,
+    RouteAuthError, UploadValidationError,
     requireUser: vi.fn(), requireAdmin: vi.fn(), applyTransition: vi.fn(),
-    uploadFinalDeliverable: vi.fn(), deleteStoredFiles: vi.fn(), logAudit: vi.fn(),
+    uploadFinalDeliverable: vi.fn(), deleteStoredFiles: vi.fn(), prepareFinalZip: vi.fn(), logAudit: vi.fn(),
     createProjectSystemMessage: vi.fn(), notifyClientFinalDeliverablesReady: vi.fn(), tx,
     prisma: {
       project: { findUnique: vi.fn() },
@@ -34,6 +37,10 @@ vi.mock("@/lib/project-state-machine", () => ({ applyTransition: mocks.applyTran
 vi.mock("@/lib/supabase/storage", () => ({
   uploadFinalDeliverable: mocks.uploadFinalDeliverable,
   deleteStoredFiles: mocks.deleteStoredFiles,
+}));
+vi.mock("@/lib/upload-validation", () => ({
+  prepareFinalZip: mocks.prepareFinalZip,
+  UploadValidationError: mocks.UploadValidationError,
 }));
 vi.mock("@/lib/audit", () => ({ logAudit: mocks.logAudit }));
 vi.mock("@/lib/system-messages", () => ({ createProjectSystemMessage: mocks.createProjectSystemMessage }));
@@ -67,6 +74,7 @@ describe("POST /api/admin/projects/[id]/finals", () => {
     mocks.prisma.concept.count.mockResolvedValue(1);
     mocks.prisma.fileAsset.findFirst.mockResolvedValue(null);
     mocks.applyTransition.mockReturnValue({ ok: true });
+    mocks.prepareFinalZip.mockResolvedValue({ bytes: new Uint8Array([1]), extension: "zip", contentType: "application/zip", contentDisposition: "attachment", size: 1 });
     mocks.uploadFinalDeliverable.mockResolvedValue(newUpload);
     mocks.deleteStoredFiles.mockResolvedValue({ attempted: 1, deleted: 1, failures: [] });
     mocks.tx.project.updateMany.mockResolvedValue({ count: 1 });
@@ -89,8 +97,9 @@ describe("POST /api/admin/projects/[id]/finals", () => {
     expect((await request()).status).toBe(404);
   });
 
-  it("rejects missing and non-ZIP files", async () => {
+  it("rejects missing and invalid files before storage", async () => {
     expect((await request(null)).status).toBe(400);
+    mocks.prepareFinalZip.mockRejectedValueOnce(new mocks.UploadValidationError("INVALID_FILE_TYPE", "Use a ZIP"));
     expect((await request(new File(["x"], "logo.png", { type: "image/png" }))).status).toBe(400);
     expect(mocks.uploadFinalDeliverable).not.toHaveBeenCalled();
   });
@@ -123,7 +132,7 @@ describe("POST /api/admin/projects/[id]/finals", () => {
     expect(mocks.createProjectSystemMessage).not.toHaveBeenCalled();
   });
 
-  it("retains the new object when immediate verification reports no published row", async () => {
+  it("cleans the newly uploaded unpublished object after a known-safe optimistic conflict", async () => {
     mocks.tx.project.updateMany.mockResolvedValueOnce({ count: 0 });
 
     const response = await request();
@@ -131,32 +140,20 @@ describe("POST /api/admin/projects/[id]/finals", () => {
     expect(response.status).toBe(409);
     expect(mocks.tx.fileAsset.create).not.toHaveBeenCalled();
     expect(mocks.logAudit).not.toHaveBeenCalled();
-    expect(mocks.prisma.fileAsset.findFirst).toHaveBeenCalledWith({
-      where: { projectId: "p1", kind: "final_zip", bucket: newUpload.bucket, path: newUpload.path },
-      select: {
-        id: true,
-        kind: true,
-        path: true,
-        project: {
-          select: {
-            id: true,
-            status: true,
-            fileAssets: {
-              where: { kind: "final_zip" },
-              orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-              take: 1,
-              select: { id: true },
-            },
-          },
-        },
-      },
-    });
-    expect(mocks.deleteStoredFiles).not.toHaveBeenCalled();
+    expect(mocks.prisma.fileAsset.findFirst).not.toHaveBeenCalled();
+    expect(mocks.deleteStoredFiles).toHaveBeenCalledWith([{ bucket: newUpload.bucket, path: newUpload.path }]);
     await expect(response.json()).resolves.toMatchObject({
       code: "FINAL_PUBLICATION_CONFLICT",
-      uploadedObjectRetained: true,
-      uploadedObject: { bucket: newUpload.bucket, path: newUpload.path },
+      uploadedObjectRetained: false,
+      cleanup: { attempted: 1, deleted: 1, failed: false },
     });
+  });
+
+  it("reports retention when known-safe conflict cleanup fails", async () => {
+    mocks.tx.project.updateMany.mockResolvedValueOnce({ count: 0 });
+    mocks.deleteStoredFiles.mockResolvedValueOnce({ attempted: 1, deleted: 0, failures: [{ bucket: newUpload.bucket, message: "down" }] });
+    const response = await request();
+    await expect(response.json()).resolves.toMatchObject({ uploadedObjectRetained: true, cleanup: { failed: true } });
   });
 
   it("treats committed-then-thrown transactions as committed without deleting storage", async () => {
@@ -202,8 +199,8 @@ describe("POST /api/admin/projects/[id]/finals", () => {
     expect(mocks.notifyClientFinalDeliverablesReady).not.toHaveBeenCalled();
   });
 
-  it("fails safe without deleting when publication verification itself fails", async () => {
-    mocks.tx.project.updateMany.mockResolvedValueOnce({ count: 0 });
+  it("fails safe without deleting when an ambiguous publication cannot be verified", async () => {
+    mocks.prisma.$transaction.mockRejectedValueOnce(new Error("connection lost"));
     mocks.prisma.fileAsset.findFirst.mockRejectedValueOnce(new Error("database unavailable"));
 
     const response = await request();

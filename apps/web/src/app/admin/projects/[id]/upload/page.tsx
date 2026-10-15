@@ -116,7 +116,8 @@ export default function AdminProjectUploadPage() {
             </p>
 
             <label className="mt-4 block text-sm font-medium">Asset file</label>
-            <input className="mt-1 block" type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+            <input className="mt-1 block" type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+            <p className="mt-1 text-xs text-neutral-600">PNG, JPEG, or WebP only; 10 MB maximum.</p>
 
             <label className="mt-4 block text-sm font-medium">Description / explainer</label>
             <p className="mt-1 text-xs text-neutral-600">Shown to the client on the concept page. You can use multiple lines.</p>

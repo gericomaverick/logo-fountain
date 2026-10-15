@@ -3,50 +3,31 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import type { PreparedUpload } from "@/lib/upload-validation";
 
 export const SUPABASE_STORAGE_BUCKET_CONCEPTS = "concepts";
 export const SUPABASE_STORAGE_BUCKET_FINAL_DELIVERABLES = "final-deliverables";
 
 type UploadConceptAssetInput = {
   bucketPath: string;
-  file: File;
+  upload: PreparedUpload;
   upsert?: boolean;
 };
 
 type UploadFinalDeliverableInput = {
   projectId: string;
-  file: File;
+  upload: PreparedUpload;
 };
 
-export function inferExtension(file: File): string {
-  const namePart = file.name.split(".").pop()?.trim().toLowerCase();
-  if (namePart && /^[a-z0-9]+$/.test(namePart)) return namePart;
-
-  switch (file.type) {
-    case "image/jpeg":
-      return "jpg";
-    case "image/png":
-      return "png";
-    case "image/webp":
-      return "webp";
-    case "image/gif":
-      return "gif";
-    case "application/zip":
-    case "application/x-zip-compressed":
-      return "zip";
-    default:
-      return "bin";
-  }
-}
-
-export async function uploadConceptAsset({ bucketPath, file, upsert = true }: UploadConceptAssetInput) {
-  const bytes = new Uint8Array(await file.arrayBuffer());
+export async function uploadConceptAsset({ bucketPath, upload, upsert = true }: UploadConceptAssetInput) {
   const admin = createSupabaseAdminClient();
 
   const { error } = await admin.storage
     .from(SUPABASE_STORAGE_BUCKET_CONCEPTS)
-    .upload(bucketPath, bytes, {
-      contentType: file.type || "application/octet-stream",
+    .upload(bucketPath, upload.bytes, {
+      contentType: upload.contentType,
+      cacheControl: "3600",
+      metadata: { contentDisposition: upload.contentDisposition },
       upsert,
     });
 
@@ -57,24 +38,24 @@ export async function uploadConceptAsset({ bucketPath, file, upsert = true }: Up
   return {
     bucket: SUPABASE_STORAGE_BUCKET_CONCEPTS,
     path: bucketPath,
-    mime: file.type || "application/octet-stream",
-    size: file.size,
+    mime: upload.contentType,
+    size: upload.size,
   };
 }
 
-export async function uploadFinalDeliverable({ projectId, file }: UploadFinalDeliverableInput) {
-  const ext = inferExtension(file);
+export async function uploadFinalDeliverable({ projectId, upload }: UploadFinalDeliverableInput) {
   // Final objects are immutable. Replacements publish a fresh database record
   // pointing at a fresh object; an authorization race can never expose changed
   // bytes through an already-authorized path.
-  const path = `${projectId}/finals/${randomUUID()}.${ext}`;
-  const bytes = new Uint8Array(await file.arrayBuffer());
+  const path = `${projectId}/finals/${randomUUID()}.${upload.extension}`;
   const admin = createSupabaseAdminClient();
 
   const { error } = await admin.storage
     .from(SUPABASE_STORAGE_BUCKET_FINAL_DELIVERABLES)
-    .upload(path, bytes, {
-      contentType: file.type || "application/octet-stream",
+    .upload(path, upload.bytes, {
+      contentType: upload.contentType,
+      cacheControl: "3600",
+      metadata: { contentDisposition: upload.contentDisposition },
       upsert: false,
     });
 
@@ -85,8 +66,8 @@ export async function uploadFinalDeliverable({ projectId, file }: UploadFinalDel
   return {
     bucket: SUPABASE_STORAGE_BUCKET_FINAL_DELIVERABLES,
     path,
-    mime: file.type || "application/octet-stream",
-    size: file.size,
+    mime: upload.contentType,
+    size: upload.size,
   };
 }
 

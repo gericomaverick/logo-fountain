@@ -90,6 +90,10 @@ Next-step notes (2026-03-04):
 - Copy/navigation wording normalized across client/admin project surfaces (project overview/messages terminology, consistent link tone, mobile-safe link wrapping).
 - Local tester ops note added: `docs/local-lan-redirect-testing.md`.
 
+Upload hardening note (2026-03-06):
+- Concept images and final ZIPs now use bounded, allowlisted server-side validation (type/name/signature/structure), immutable object paths, canonical storage metadata, and pre-upload lifecycle/entitlement checks.
+- Known-safe publication conflicts clean only the newly uploaded unpublished object; ambiguous database outcomes retain immutable bytes for operational review.
+
 ## Emergency reliability and delivery hardening (2026-10-14)
 - [x] Make Stripe checkout webhook event claims retry-safe after transient failures while preserving concurrent duplicate exclusion.
 - [x] Gate final-deliverable readiness on approval plus persisted `FINAL_FILES_READY`/`DELIVERED`, and issue signed download URLs only from guarded client/admin endpoints.

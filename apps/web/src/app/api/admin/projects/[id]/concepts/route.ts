@@ -1,6 +1,9 @@
+import { randomUUID } from "node:crypto";
+
 import { jsonError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
-import { createSignedConceptAssetUrl, inferExtension, uploadConceptAsset } from "@/lib/supabase/storage";
+import { createSignedConceptAssetUrl, deleteStoredFiles, uploadConceptAsset } from "@/lib/supabase/storage";
+import { prepareConceptImage, UploadValidationError } from "@/lib/upload-validation";
 import { logAudit } from "@/lib/audit";
 import { applyTransition } from "@/lib/project-state-machine";
 import { requireAdmin, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
@@ -155,7 +158,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     await requireAdmin(user);
 
     const { id: projectId } = await params;
-    const project = await prisma.project.findUnique({ where: { id: projectId }, select: { id: true, status: true } });
+    const project = await prisma.project.findUnique({ where: { id: projectId }, select: { id: true, status: true, updatedAt: true } });
     if (!project) return jsonError("Project not found", 404, { nextStep: "Check the project link." }, "PROJECT_NOT_FOUND");
 
     const formData = await req.formData();
@@ -167,136 +170,106 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const assetNotes = parseNotes(formData.get("assetNotes"));
     const uploadMode = parseUploadMode(formData.get("uploadMode"));
 
-    if (!(fileEntry instanceof File) || fileEntry.size <= 0) return jsonError("Image file is required", 400, { nextStep: "Upload an image file." }, "FILE_REQUIRED");
-    if (!fileEntry.type.startsWith("image/")) return jsonError("Only image uploads are supported", 400, { nextStep: "Upload a PNG/JPEG/WebP image." }, "INVALID_FILE_TYPE");
+    if (!(fileEntry instanceof File) || fileEntry.size <= 0) return jsonError("Image file is required", 400, { nextStep: "Upload a PNG/JPEG/WebP image." }, "FILE_REQUIRED");
 
-    let concept: { id: string; number: number; status: string; notes: string | null } | null = null;
-    let shouldConsumeEntitlement = false;
+    let concept: { id: string; number: number; status: string; notes: string | null };
+    const shouldConsumeEntitlement = uploadMode === "concept";
 
     if (uploadMode === "revision") {
-      if (!conceptId) {
-        return jsonError("conceptId is required for revision uploads", 400, { nextStep: "Use Upload revision on a specific concept." }, "CONCEPT_ID_REQUIRED");
-      }
-
+      if (!conceptId) return jsonError("conceptId is required for revision uploads", 400, { nextStep: "Use Upload revision on a specific concept." }, "CONCEPT_ID_REQUIRED");
       const existingConcept = await prisma.concept.findFirst({
         where: { id: conceptId, projectId },
         select: { id: true, number: true, status: true, notes: true },
       });
+      if (!existingConcept) return jsonError("Concept not found", 404, { nextStep: "Refresh and pick a valid concept." }, "CONCEPT_NOT_FOUND");
+      concept = { ...existingConcept, status: CONCEPT_STATUS_PUBLISHED };
 
-      if (!existingConcept) {
-        return jsonError("Concept not found", 404, { nextStep: "Refresh and pick a valid concept." }, "CONCEPT_NOT_FOUND");
-      }
-
-      concept = await prisma.concept.update({
-        where: { id: existingConcept.id },
-        data: { status: CONCEPT_STATUS_PUBLISHED },
+      // Fail cheap before reading or storing the body. Transaction checks below
+      // repeat these conditions to close races.
+      const [pendingCount, entitlement] = await Promise.all([
+        prisma.revisionRequest.count({ where: { projectId, conceptId, status: { not: "delivered" } } }),
+        prisma.projectEntitlement.findFirst({ where: { projectId, key: "revisions" }, select: { limitInt: true, consumedInt: true, reservedInt: true } }),
+      ]);
+      if (pendingCount <= 0) return jsonError("No pending revision request found for this concept", 400, undefined, "NO_PENDING_REVISION_REQUESTS");
+      if (!entitlement) return jsonError("Revisions entitlement not configured", 400, undefined, "REVISIONS_ENTITLEMENT_MISSING");
+      if ((entitlement.reservedInt ?? 0) < pendingCount) return jsonError("Revision upload exceeds reserved revisions", 400, undefined, "INSUFFICIENT_REVISION_RESERVATION");
+      if (entitlement.limitInt != null && (entitlement.consumedInt ?? 0) + pendingCount > entitlement.limitInt) return jsonError("Revision upload exceeds revision entitlement", 400, undefined, "REVISION_LIMIT_EXCEEDED");
+    } else if (uploadMode === "replace") {
+      if (!requestedConceptNumber) return jsonError("Valid conceptNumber is required for replace uploads", 400, undefined, "INVALID_CONCEPT_NUMBER");
+      const existingConcept = await prisma.concept.findUnique({
+        where: { projectId_number: { projectId, number: requestedConceptNumber } },
         select: { id: true, number: true, status: true, notes: true },
       });
+      if (!existingConcept) return jsonError("Concept not found", 404, undefined, "CONCEPT_NOT_FOUND");
+      concept = { ...existingConcept, notes, status: CONCEPT_STATUS_PUBLISHED };
     } else {
-      if (uploadMode === "replace") {
-        if (!requestedConceptNumber) {
-          return jsonError("Valid conceptNumber is required for replace uploads", 400, { nextStep: "Pick an existing concept number to replace." }, "INVALID_CONCEPT_NUMBER");
-        }
-
-        const existingConcept = await prisma.concept.findUnique({
-          where: { projectId_number: { projectId, number: requestedConceptNumber } },
-          select: { id: true, status: true },
-        });
-
-        if (!existingConcept) {
-          return jsonError("Concept not found", 404, { nextStep: "Pick an existing concept number or use Upload concept to create a new one." }, "CONCEPT_NOT_FOUND");
-        }
-
-        concept = await prisma.concept.update({
-          where: { id: existingConcept.id },
-          data: { notes, status: CONCEPT_STATUS_PUBLISHED },
-          select: { id: true, number: true, status: true, notes: true },
-        });
-      } else {
-        const latest = await prisma.concept.aggregate({ where: { projectId }, _max: { number: true } });
-        const nextConceptNumber = Math.max((latest._max.number ?? 0) + 1, 1);
-
-        concept = await prisma.concept.create({
-          data: { projectId, number: nextConceptNumber, status: CONCEPT_STATUS_PUBLISHED, notes },
-          select: { id: true, number: true, status: true, notes: true },
-        });
-
-        shouldConsumeEntitlement = true;
-      }
+      const [latest, entitlement] = await Promise.all([
+        prisma.concept.aggregate({ where: { projectId }, _max: { number: true } }),
+        prisma.projectEntitlement.findFirst({ where: { projectId, key: "concepts" }, select: { limitInt: true, consumedInt: true } }),
+      ]);
+      if (!entitlement) return jsonError("Concept entitlement not configured", 400, undefined, "CONCEPT_ENTITLEMENT_MISSING");
+      if (entitlement.limitInt != null && entitlement.consumedInt >= entitlement.limitInt) return jsonError("Concept entitlement exhausted", 400, undefined, "CONCEPT_ENTITLEMENT_EXHAUSTED");
+      concept = { id: randomUUID(), number: Math.max((latest._max.number ?? 0) + 1, 1), status: CONCEPT_STATUS_PUBLISHED, notes };
     }
-
-    const ext = inferExtension(fileEntry);
-
-    let bucketPath = `${projectId}/${concept.id}.${ext}`;
-    let upsert = true;
-
-    if (uploadMode === "revision") {
-      const existingFiles = await prisma.fileAsset.findMany({
-        where: {
-          projectId,
-          kind: "concept",
-          OR: [
-            { path: { startsWith: `${projectId}/${concept.id}/v` } },
-            { path: { startsWith: `${projectId}/${concept.id}.` } },
-          ],
-        },
-        select: { path: true },
-      });
-
-      let maxVersion = 0;
-      for (const file of existingFiles) {
-        const match = file.path.match(/\/v(\d+)\./);
-        if (match?.[1]) {
-          const parsed = Number.parseInt(match[1], 10);
-          if (Number.isFinite(parsed)) maxVersion = Math.max(maxVersion, parsed);
-          continue;
-        }
-        // Legacy single-file path counts as version 1.
-        maxVersion = Math.max(maxVersion, 1);
-      }
-
-      const nextVersion = Math.max(maxVersion + 1, 2);
-      bucketPath = `${projectId}/${concept.id}/v${nextVersion}.${ext}`;
-      upsert = false;
-    }
-
-    const upload = await uploadConceptAsset({ bucketPath, file: fileEntry, upsert });
 
     const alreadyPublishedCount = await prisma.concept.count({
-      where: {
-        projectId,
-        status: CONCEPT_STATUS_PUBLISHED,
-        id: { not: concept.id },
-      },
+      where: { projectId, status: CONCEPT_STATUS_PUBLISHED, id: { not: concept.id } },
     });
-
     const shouldSetConceptsReady = uploadMode === "revision" || (alreadyPublishedCount === 0 && project.status !== PROJECT_STATUS_CONCEPTS_READY);
     if (shouldSetConceptsReady && project.status !== PROJECT_STATUS_CONCEPTS_READY) {
       const transition = applyTransition(project.status, PROJECT_STATUS_CONCEPTS_READY);
-      if (!transition.ok) {
-        return jsonError(
-          `Invalid transition from ${project.status} to ${PROJECT_STATUS_CONCEPTS_READY}`,
-          400,
-          { allowed: transition.allowed },
-          "INVALID_PROJECT_STATUS_TRANSITION",
-        );
-      }
+      if (!transition.ok) return jsonError(`Invalid transition from ${project.status} to ${PROJECT_STATUS_CONCEPTS_READY}`, 400, { allowed: transition.allowed }, "INVALID_PROJECT_STATUS_TRANSITION");
     }
 
-    const result = await prisma.$transaction(async (tx) => {
+    let prepared;
+    try {
+      prepared = await prepareConceptImage(fileEntry);
+    } catch (error) {
+      if (error instanceof UploadValidationError) return jsonError(error.message, 400, undefined, error.code);
+      throw error;
+    }
+
+    const existingFiles = await prisma.fileAsset.findMany({
+      where: { projectId, kind: "concept", OR: [{ path: { startsWith: `${projectId}/${concept.id}/v` } }, { path: { startsWith: `${projectId}/${concept.id}.` } }] },
+      select: { path: true },
+    });
+    let maxVersion = 0;
+    for (const file of existingFiles) {
+      const match = file.path.match(/\/v(\d+)\./);
+      maxVersion = Math.max(maxVersion, match?.[1] ? Number.parseInt(match[1], 10) : 1);
+    }
+    const bucketPath = `${projectId}/${concept.id}/v${maxVersion + 1}.${prepared.extension}`;
+    const upload = await uploadConceptAsset({ bucketPath, upload: prepared, upsert: false });
+
+    let result;
+    try {
+      result = await prisma.$transaction(async (tx) => {
+      // Repeat mutable lifecycle/entitlement/revision checks before making
+      // publication metadata visible. Deliberate failures are known rollbacks.
+      const projectGuard = await tx.project.updateMany({
+        where: { id: projectId, status: project.status, updatedAt: project.updatedAt },
+        data: {
+          status: shouldSetConceptsReady ? PROJECT_STATUS_CONCEPTS_READY : project.status,
+          updatedAt: new Date(),
+        },
+      });
+      if (projectGuard.count !== 1) throw new Error("PROJECT_STATE_CHANGED");
+
       if (shouldConsumeEntitlement) {
         const before = await tx.projectEntitlement.findFirst({
           where: { projectId, key: "concepts" },
           select: { id: true, limitInt: true, consumedInt: true },
         });
 
-        await tx.$executeRaw`
+        const changed = await tx.$executeRaw`
           UPDATE "ProjectEntitlement"
           SET "consumedInt" = COALESCE("consumedInt", 0) + 1,
               "updatedAt" = NOW()
           WHERE "projectId" = ${projectId}::uuid
             AND "key" = 'concepts'
+            AND ("limitInt" IS NULL OR COALESCE("consumedInt", 0) < "limitInt")
         `;
+        if (changed !== 1) throw new Error("CONCEPT_ENTITLEMENT_EXHAUSTED");
 
         const after = await tx.projectEntitlement.findFirst({
           where: { projectId, key: "concepts" },
@@ -315,6 +288,17 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
             conceptId: concept.id,
             conceptNumber: concept.number,
           },
+        });
+      }
+
+      if (uploadMode === "concept") {
+        await tx.concept.create({
+          data: { id: concept.id, projectId, number: concept.number, status: concept.status, notes: concept.notes },
+        });
+      } else {
+        await tx.concept.update({
+          where: { id: concept.id },
+          data: { status: CONCEPT_STATUS_PUBLISHED, ...(uploadMode === "replace" ? { notes } : {}) },
         });
       }
 
@@ -402,11 +386,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       });
 
       if (shouldSetConceptsReady && project.status !== PROJECT_STATUS_CONCEPTS_READY) {
-        await tx.project.update({
-          where: { id: projectId },
-          data: { status: PROJECT_STATUS_CONCEPTS_READY },
-        });
-
         await logAudit(tx, {
           projectId,
           actorId: user.id,
@@ -416,7 +395,32 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       }
 
       return { projectStatus: shouldSetConceptsReady ? PROJECT_STATUS_CONCEPTS_READY : project.status };
-    });
+      });
+    } catch (transactionError) {
+      const knownSafeCodes = new Set([
+        "NO_PENDING_REVISION_REQUESTS",
+        "REVISIONS_ENTITLEMENT_MISSING",
+        "INSUFFICIENT_REVISION_RESERVATION",
+        "REVISION_LIMIT_EXCEEDED",
+        "CONCEPT_ENTITLEMENT_EXHAUSTED",
+        "PROJECT_STATE_CHANGED",
+      ]);
+      if (transactionError instanceof Error && knownSafeCodes.has(transactionError.message)) {
+        const cleanup = await deleteStoredFiles([{ bucket: upload.bucket, path: upload.path }])
+          .catch(() => ({ attempted: 1, deleted: 0, failures: [{ bucket: upload.bucket, message: "cleanup unavailable" }] }));
+        if (cleanup.deleted !== 1 || cleanup.failures.length > 0) {
+          return jsonError(
+            "Concept was not published, but its newly uploaded object could not be removed",
+            500,
+            { uploadedObjectRetained: true, uploadedObject: { bucket: upload.bucket, path: upload.path } },
+            "CONCEPT_UPLOAD_CLEANUP_FAILED",
+          );
+        }
+      }
+      // Unknown transaction outcomes intentionally retain immutable bytes: the
+      // commit may have succeeded even if the client observed a timeout.
+      throw transactionError;
+    }
 
     if (uploadMode !== "revision") {
       await notifyClientConceptReady(projectId, concept.id);
@@ -435,6 +439,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     }
     if (error instanceof Error && error.message === "REVISION_LIMIT_EXCEEDED") {
       return jsonError("Revision upload exceeds revision entitlement", 400, { nextStep: "Increase revision entitlement or reduce pending deliveries." }, "REVISION_LIMIT_EXCEEDED");
+    }
+    if (error instanceof Error && error.message === "CONCEPT_ENTITLEMENT_EXHAUSTED") {
+      return jsonError("Concept entitlement exhausted", 400, { nextStep: "Increase the concept entitlement before uploading." }, "CONCEPT_ENTITLEMENT_EXHAUSTED");
+    }
+    if (error instanceof Error && error.message === "PROJECT_STATE_CHANGED") {
+      return jsonError("Project state changed before concept publication", 409, { nextStep: "Refresh the project before retrying." }, "CONCEPT_PUBLICATION_CONFLICT");
     }
     return toRouteErrorResponse(error);
   }
