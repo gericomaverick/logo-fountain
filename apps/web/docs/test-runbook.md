@@ -35,3 +35,14 @@ npm run lint
 ```
 
 Result: 167 tests passed in 7 files; typecheck passed; lint had 0 errors and 2 existing warnings. No build, full-suite, browser, live-provider, or edge checks were run for this follow-up. See `security-boundaries.md` for required pre-release verification and the manual-console-only CSP observation contract.
+
+## Owner-approved final session verification fix
+
+From `apps/web`, through the shared queue:
+
+```bash
+npm run test -- src/app/api/auth/session/route.test.ts src/lib/auth/logout.test.ts
+npm run typecheck
+```
+
+Result: 15 tests passed in 2 files; typecheck passed. No other tests, lint, build, browser, provider, or live operations were run for this final fix.

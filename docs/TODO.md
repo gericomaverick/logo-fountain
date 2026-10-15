@@ -113,3 +113,7 @@ Next-step notes (2026-03-04):
 - [x] Describe CSP report-only honestly as manual console observation (no collector or retained reports).
 - [x] Strengthen per-handler mutation guard regression checks and add focused behavioral tests.
 - [ ] Before release: non-live browser/provider and TLS-edge verification described in `apps/web/docs/security-boundaries.md`; configure edge HSTS and distributed rate limiting separately.
+
+### Owner-approved final session verification fix (dd471f5)
+- [x] Only documented Supabase missing-session results produce `authenticated:false`; unexpected returned/thrown verification failures are sanitized non-success responses.
+- [x] Cover real session handler absence/user/provider/network/throw behavior and logout helper non-success verification regression.

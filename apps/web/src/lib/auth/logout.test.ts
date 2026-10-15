@@ -18,6 +18,17 @@ describe("logout confirmation", () => {
     await expect(logoutAndVerifySession()).rejects.toThrow(/session may still be active/);
   });
 
+  it("cannot confirm logout when session verification returns non-success", async () => {
+    const fetcher = vi.fn().mockResolvedValueOnce(Response.json({ ok: true }))
+      // Even an authenticated:false payload must not override failed verification.
+      .mockResolvedValueOnce(Response.json({ authenticated: false, error: {
+        code: "SESSION_VERIFICATION_UNAVAILABLE",
+      } }, { status: 503 }));
+    vi.stubGlobal("fetch", fetcher);
+    await expect(logoutAndVerifySession()).rejects.toThrow("Could not confirm sign-out. Please retry.");
+    expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
   it("propagates network failure", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
     await expect(logoutAndVerifySession()).rejects.toThrow("offline");
