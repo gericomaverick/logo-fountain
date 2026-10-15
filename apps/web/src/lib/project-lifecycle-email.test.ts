@@ -31,7 +31,7 @@ import {
 const ORIGINAL_ENV = {
   POSTMARK_SERVER_TOKEN: process.env.POSTMARK_SERVER_TOKEN,
   POSTMARK_FROM: process.env.POSTMARK_FROM,
-  ADMIN_EMAILS: process.env.ADMIN_EMAILS,
+  ADMIN_NOTIFICATION_EMAILS: process.env.ADMIN_NOTIFICATION_EMAILS,
   PUBLIC_SITE_URL: process.env.PUBLIC_SITE_URL,
 };
 
@@ -47,7 +47,7 @@ describe("project lifecycle emails", () => {
     vi.clearAllMocks();
     process.env.POSTMARK_SERVER_TOKEN = "pm-token";
     process.env.POSTMARK_FROM = "noreply@logofountain.com";
-    process.env.ADMIN_EMAILS = "admin1@example.com,admin2@example.com";
+    process.env.ADMIN_NOTIFICATION_EMAILS = "admin1@example.com,admin2@example.com";
     process.env.PUBLIC_SITE_URL = "https://app.logofountain.test";
 
     mocks.findAudit.mockResolvedValue(null);
@@ -108,7 +108,7 @@ describe("project lifecycle emails", () => {
     expect(mocks.createAudit).not.toHaveBeenCalled();
   });
 
-  it("routes admin notifications to ADMIN_EMAILS and includes project and client context", async () => {
+  it("routes admin notifications to ADMIN_NOTIFICATION_EMAILS and includes project and client context", async () => {
     await notifyAdminNewProject("p1");
     await notifyAdminMessageFromProject("p1", "m1");
     await notifyAdminFeedbackOnConcept("p1", "r1");

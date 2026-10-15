@@ -6,7 +6,7 @@ import { ProjectStatusBadge } from "@/components/project-status-badge";
 import { deriveProjectBadgeState, type AdminSectionKey } from "@/lib/admin-dashboard";
 import { computeLatestConceptActivityAt } from "@/lib/concept-activity";
 import { prisma } from "@/lib/prisma";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth/current-user";
 import { requireAdmin } from "@/lib/auth/require";
 import { deriveDisplayProjectStatus, deriveOverviewBadgeStatus } from "@/lib/project-status";
 import { extractBrandNameFromBriefAnswers, getProjectDisplayTitle } from "@/lib/project-display-name";
@@ -205,10 +205,7 @@ function AdminSection({
 }
 
 export default async function AdminHomePage() {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   if (!user) {
     return (

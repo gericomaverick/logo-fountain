@@ -72,7 +72,7 @@ export async function POST(req: Request, { params }: RouteParams) {
       create: {
         id: auth.user.id,
         email: auth.user.email ?? "",
-        fullName: auth.user.user_metadata?.full_name ?? null,
+        fullName: auth.user.name ?? null,
         isAdmin: auth.admin,
       },
       update: {

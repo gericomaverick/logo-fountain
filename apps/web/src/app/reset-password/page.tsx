@@ -1,19 +1,20 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 import { AuthShell } from "@/components/auth-shell";
 import resetImage from "@/img/image-panel-4.png";
 import { hasValidationErrors, toErrorList, validatePasswordReset, ValidationErrors } from "@/lib/auth/validation";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { postAuth, takeMailboxProof } from "@/lib/auth/client";
 
 type PasswordErrors = ValidationErrors<"password" | "confirm">;
 
 export default function ResetPasswordPage() {
   const router = useRouter();
-  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
+  const proof = useRef<{ token: string; next: string | null } | null>(null);
+  useEffect(() => { proof.current ??= takeMailboxProof(); }, []);
 
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -36,14 +37,14 @@ export default function ResetPasswordPage() {
     setBusy(true);
 
     try {
-      const { error } = await supabase.auth.updateUser({ password });
+      const { error } = await postAuth("reset-password", { token: proof.current?.token, newPassword: password });
       if (error) {
-        setStatus(`We couldn’t update your password. ${error.message}`);
+        setStatus(`We couldn’t update your password. ${error}`);
         return;
       }
 
       setStatus("Password updated. Redirecting…");
-      router.replace("/dashboard");
+      router.replace("/login?password=updated");
       router.refresh();
     } finally {
       setBusy(false);

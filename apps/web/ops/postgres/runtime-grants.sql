@@ -13,3 +13,6 @@ DO $$ BEGIN
     REVOKE ALL ON TABLE public._prisma_migrations FROM lf_runtime;
   END IF;
 END $$;
+-- Operator bootstrap state is never accessible to runtime. Future migrations
+-- adding operator tables MUST explicitly revoke their default runtime grants.
+REVOKE ALL ON TABLE "AuthAdminBootstrap" FROM lf_runtime;

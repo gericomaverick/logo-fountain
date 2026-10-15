@@ -19,6 +19,7 @@ describe.skipIf(!enabled)("real isolated PostgreSQL portable core", () => {
   const clientId = randomUUID();
   const projectId = randomUUID();
   beforeAll(async () => {
+    await prisma.authUser.create({ data: { id: profileId, email: "verified-fixture@example.invalid", name: "Fixture", emailVerified: true } });
     await prisma.profile.create({ data: { id: profileId, email: "verified-fixture@example.invalid" } });
     await prisma.client.create({ data: { id: clientId, name: "Isolated test", slug: randomUUID() } });
     await prisma.project.create({ data: { id: projectId, clientId, status: "awaiting_concepts", packageCode: "test" } });

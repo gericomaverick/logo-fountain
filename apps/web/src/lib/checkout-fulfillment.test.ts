@@ -2,10 +2,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => {
   const tx = {
-    client: { create: vi.fn() },
+    client: { create: vi.fn(), findUnique: vi.fn() },
     project: { create: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
     projectEntitlement: { createMany: vi.fn(), findUnique: vi.fn(), create: vi.fn(), update: vi.fn(), upsert: vi.fn(), updateMany: vi.fn() },
-    projectOrder: { create: vi.fn() },
+    projectOrder: { create: vi.fn(), findFirst: vi.fn() },
+    $executeRaw: vi.fn(),
+    authUser: { findUnique: vi.fn(), create: vi.fn() },
     profile: { upsert: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
     clientMembership: { createMany: vi.fn() },
   };
@@ -13,9 +15,6 @@ const mocks = vi.hoisted(() => {
   return {
     listLineItems: vi.fn(),
     logAudit: vi.fn(),
-    createUser: vi.fn(),
-    listUsers: vi.fn(),
-    inviteUserByEmail: vi.fn(),
     prisma: {
       projectOrder: { findUnique: vi.fn(), findFirst: vi.fn() },
       $transaction: vi.fn(async (fn: (trx: typeof tx) => unknown) => fn(tx)),
@@ -26,17 +25,6 @@ const mocks = vi.hoisted(() => {
 
 vi.mock("@/lib/audit", () => ({ logAudit: mocks.logAudit }));
 vi.mock("@/lib/prisma", () => ({ prisma: mocks.prisma }));
-vi.mock("@/lib/supabase/admin", () => ({
-  createSupabaseAdminClient: () => ({
-    auth: {
-      admin: {
-        createUser: mocks.createUser,
-        listUsers: mocks.listUsers,
-        inviteUserByEmail: mocks.inviteUserByEmail,
-      },
-    },
-  }),
-}));
 vi.mock("@/lib/stripe", () => ({
   PRICE_ID_TO_PACKAGE: { price_essential: "essential" },
   stripe: {
@@ -111,18 +99,16 @@ describe("fulfillCheckoutSession", () => {
     expect(mocks.logAudit).not.toHaveBeenCalled();
   });
 
-  it("pins fallback invitation redirects to the canonical public origin", async () => {
-    process.env.PUBLIC_SITE_URL = "https://app.example.com";
-    mocks.createUser.mockResolvedValueOnce({ data: { user: null }, error: { message: "already registered" } });
-    mocks.listUsers.mockResolvedValueOnce({ data: { users: [] }, error: null });
-    mocks.inviteUserByEmail.mockResolvedValueOnce({ data: { user: { id: "user-invited" } }, error: null });
-
-    await ensureAccessProvisioning("client-1", "buyer@example.com");
-
-    expect(mocks.inviteUserByEmail).toHaveBeenCalledWith("buyer@example.com", {
-      redirectTo: "https://app.example.com/auth/callback?next=%2Fdashboard",
-    });
-    delete process.env.PUBLIC_SITE_URL;
+  it("provisions an unverified stable UUID identity only for an already paid matching client", async () => {
+    mocks.tx.client.findUnique.mockResolvedValue({ billingEmail: "buyer@example.com" });
+    mocks.tx.projectOrder.findFirst.mockResolvedValue({ id: "paid" });
+    mocks.tx.authUser.findUnique.mockResolvedValue(null);
+    mocks.tx.authUser.create.mockResolvedValue({ id: "stable-user" });
+    await ensureAccessProvisioning("client-1", " BUYER@example.com ");
+    expect(mocks.tx.authUser.create).toHaveBeenCalledWith({ data: { email: "buyer@example.com", name: "buyer@example.com", emailVerified: false } });
+    expect(mocks.tx.clientMembership.createMany).toHaveBeenCalledWith({ data: [{ clientId: "client-1", userId: "stable-user", role: "owner" }], skipDuplicates: true });
+    mocks.tx.projectOrder.findFirst.mockResolvedValue(null);
+    await expect(ensureAccessProvisioning("client-1", "buyer@example.com")).rejects.toThrow("Verified paid");
   });
 
   it("returns deduped result immediately when order already exists", async () => {

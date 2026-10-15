@@ -3,13 +3,10 @@ import { redirect } from "next/navigation";
 
 import { PageShell } from "@/components/page-shell";
 import { isAdminUser } from "@/lib/auth/admin";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth/current-user";
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   if (!user || !(await isAdminUser(user))) {
     redirect(`/login?next=${encodeURIComponent("/admin")}`);

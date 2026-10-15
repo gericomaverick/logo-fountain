@@ -1,9 +1,8 @@
-import type { User } from "@supabase/supabase-js";
+import { getCurrentUser, type User } from "./current-user";
 
 import { jsonError } from "@/lib/api-error";
 import { isAdminUser } from "@/lib/auth/admin";
 import { prisma } from "@/lib/prisma";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export class RouteAuthError extends Error {
   status: number;
@@ -28,10 +27,7 @@ export function toRouteErrorResponse(error: unknown): Response {
 }
 
 export async function requireUser(): Promise<User> {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   if (!user) {
     throw new RouteAuthError("Unauthorized", 401, "UNAUTHORIZED", {

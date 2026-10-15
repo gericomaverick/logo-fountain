@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { HeaderNav } from "@/components/header-nav";
 import { PageShell } from "@/components/page-shell";
 import { prisma } from "@/lib/prisma";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth/current-user";
 import { parseBriefAnswers, type BriefAnswers } from "@/lib/brief";
 
 import { BriefForm } from "./brief-form";
@@ -23,10 +23,7 @@ type ParsedBrief = {
 export default async function ProjectBriefPage({ params }: ProjectBriefPageProps) {
   const { id } = await params;
 
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   if (!user) {
     redirect("/login");

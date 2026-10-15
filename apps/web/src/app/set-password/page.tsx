@@ -1,61 +1,26 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import { AuthShell } from "@/components/auth-shell";
-import resetImage from "@/img/image-panel-2.png";
-import { safeAuthNextPath } from "@/lib/auth/safe-next";
-import { ensureBrowserSupabaseSession } from "@/lib/auth/session";
+import resetImage from "@/img/image-panel-4.png";
 import { hasValidationErrors, toErrorList, validatePasswordReset, ValidationErrors } from "@/lib/auth/validation";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { postAuth, takeMailboxProof } from "@/lib/auth/client";
 
 type PasswordErrors = ValidationErrors<"password" | "confirm">;
 
-function safeNextPath(): string {
-  if (typeof window === "undefined") return "/dashboard";
-  return safeAuthNextPath(new URLSearchParams(window.location.search).get("next"));
-}
-
 export default function SetPasswordPage() {
   const router = useRouter();
-  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
-
-  const nextPath = safeNextPath();
+  const proof = useRef<{ token: string; next: string | null } | null>(null);
+  useEffect(() => { proof.current ??= takeMailboxProof(); }, []);
 
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [fieldErrors, setFieldErrors] = useState<PasswordErrors>({});
   const [status, setStatus] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [authState, setAuthState] = useState<"checking" | "ready" | "error">("checking");
-  const isSessionReady = authState === "ready";
-
-  useEffect(() => {
-    let cancelled = false;
-
-    void (async () => {
-      const result = await ensureBrowserSupabaseSession(supabase);
-      if (cancelled) return;
-
-      if (result.status === "signed-in") {
-        setAuthState("ready");
-        setStatus(null);
-        return;
-      }
-
-      setAuthState("error");
-      if (result.status === "missing") {
-        setStatus("Your sign-in link is missing or expired. Request a new one to continue.");
-      } else {
-        setStatus(`We couldn’t sign you in automatically. ${result.message}`);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [supabase]);
+  const [busy, setBusy] = useState(false);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -69,29 +34,21 @@ export default function SetPasswordPage() {
       return;
     }
 
-    if (!isSessionReady) {
-      setStatus(authState === "checking" ? "Hold on while we verify your sign-in link." : "You need to sign in before setting a password.");
-      return;
+    setBusy(true);
+
+    try {
+      const { error } = await postAuth("reset-password", { token: proof.current?.token, newPassword: password });
+      if (error) {
+        setStatus(`We couldn’t update your password. ${error}`);
+        return;
+      }
+
+      setStatus("Password updated. Redirecting…");
+      router.replace("/login?password=updated");
+      router.refresh();
+    } finally {
+      setBusy(false);
     }
-
-    setIsSubmitting(true);
-
-    const { data, error } = await supabase.auth.updateUser({ password });
-
-    setIsSubmitting(false);
-
-    if (error) {
-      setStatus(`We couldn’t save your password. ${error.message}`);
-      return;
-    }
-
-    if (!data.user) {
-      setStatus("You need to sign in before setting a password.");
-      return;
-    }
-
-    router.push(nextPath);
-    router.refresh();
   }
 
   const summaryErrors = toErrorList(fieldErrors);
@@ -99,11 +56,11 @@ export default function SetPasswordPage() {
   return (
     <AuthShell
       title="Set your password"
-      subtitle="For security, you’ll sign in with this password next time."
+      subtitle="Use your single-use email link to set up your account, then sign in."
       sideImageSrc={resetImage}
-      sideImageAlt="Gradient illustration representing account setup"
-      sideTitle="One last step"
-      sideDescription="Set your password now and future sign-ins will be faster."
+      sideImageAlt="Abstract security-inspired gradient illustration"
+      sideTitle="Create a strong new password"
+      sideDescription="Use at least 8 characters and avoid reusing old passwords."
     >
       {summaryErrors.length > 0 ? (
         <div className="mb-4 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800" role="alert" aria-live="assertive">
@@ -116,22 +73,16 @@ export default function SetPasswordPage() {
         </div>
       ) : null}
 
-      {authState === "checking" ? (
-        <p className="mb-4 text-sm text-neutral-600" aria-live="polite">Hang tight — we’re verifying your sign-in link…</p>
-      ) : null}
-
       <form className="space-y-4" onSubmit={onSubmit} noValidate>
         <div>
-          <label className="mb-1 block text-sm" htmlFor="password">
-            New password
-          </label>
+          <label className="mb-1 block text-sm" htmlFor="password">New password</label>
           <input
             id="password"
             type="password"
             autoComplete="new-password"
             required
             value={password}
-            onChange={(event) => setPassword(event.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
             aria-invalid={Boolean(fieldErrors.password)}
             aria-describedby={fieldErrors.password ? "password-error" : undefined}
             className={`w-full rounded border px-3 py-2 transition focus:outline-none focus:ring-2 ${
@@ -144,16 +95,14 @@ export default function SetPasswordPage() {
         </div>
 
         <div>
-          <label className="mb-1 block text-sm" htmlFor="confirm">
-            Confirm password
-          </label>
+          <label className="mb-1 block text-sm" htmlFor="confirm">Confirm new password</label>
           <input
             id="confirm"
             type="password"
             autoComplete="new-password"
             required
             value={confirm}
-            onChange={(event) => setConfirm(event.target.value)}
+            onChange={(e) => setConfirm(e.target.value)}
             aria-invalid={Boolean(fieldErrors.confirm)}
             aria-describedby={fieldErrors.confirm ? "confirm-error" : undefined}
             className={`w-full rounded border px-3 py-2 transition focus:outline-none focus:ring-2 ${
@@ -165,16 +114,20 @@ export default function SetPasswordPage() {
           {fieldErrors.confirm ? <p id="confirm-error" className="mt-2 text-sm font-medium text-red-700" role="alert">{fieldErrors.confirm}</p> : null}
         </div>
 
-        <button
-          type="submit"
-          disabled={!isSessionReady || isSubmitting}
-          className="w-full rounded bg-black px-4 py-2 text-white disabled:opacity-60"
-        >
-          {isSubmitting ? "Saving..." : "Save password"}
+        <button type="submit" disabled={busy} className="w-full rounded bg-black px-4 py-2 text-white disabled:opacity-60">
+          {busy ? "Saving…" : "Update password"}
         </button>
       </form>
 
-      {status ? <p className="mt-4 text-sm text-red-700" role="status" aria-live="polite">{status}</p> : null}
+      {status ? (
+        <p className={`mt-4 text-sm ${status.startsWith("Password updated") ? "text-green-700" : "text-red-700"}`} role="status" aria-live="polite">
+          {status}
+        </p>
+      ) : null}
+
+      <p className="mt-6 text-sm text-neutral-600">
+        <Link className="underline" href="/login">Back to sign in</Link>
+      </p>
     </AuthShell>
   );
 }

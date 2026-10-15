@@ -19,6 +19,7 @@ model Profile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  authUser          AuthUser @relation(fields: [id], references: [id], onDelete: Restrict)
   memberships       ClientMembership[]
   createdBriefs     ProjectBrief[]
   uploadedFiles     FileAsset[]
@@ -275,4 +276,82 @@ model StripeEvent {
   type        String
   createdAt   DateTime
   processedAt DateTime?
+}
+
+
+// Better Auth supported Prisma adapter models. Provider IDs/tokens are text,
+// identity/session/account primary IDs are stable UUIDs.
+model AuthUser {
+  id                String @id @default(uuid()) @db.Uuid
+  name              String
+  email             String @unique
+  emailVerified     Boolean @default(false)
+  image             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  credentialVersion Int @default(0)
+  profile           Profile?
+  sessions          AuthSession[]
+  accounts          AuthAccount[]
+  proofs            AuthProof[]
+}
+model AuthSession {
+  id        String @id @default(uuid()) @db.Uuid
+  expiresAt DateTime
+  token     String @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String @db.Uuid
+  user      AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+}
+model AuthAccount {
+  id                    String @id @default(uuid()) @db.Uuid
+  accountId             String
+  providerId            String
+  userId                String @db.Uuid
+  user                  AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  @@unique([providerId, accountId])
+  @@index([userId])
+}
+model AuthVerification {
+  id         String @id @default(uuid()) @db.Uuid
+  identifier String @unique
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+// Additional app proof fence: never a plaintext bearer token, never a session.
+model AuthProof {
+  tokenHash         String @id @db.Char(64)
+  userId            String @db.Uuid
+  user              AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind              String
+  credentialVersion Int
+  expiresAt         DateTime
+  @@index([userId])
+}
+model AuthAdminBootstrap {
+  id        Int @id
+  userId    String @db.Uuid
+  createdAt DateTime @default(now())
+}
+
+model AuthRateLimit {
+  key         String @id @db.Char(64)
+  hits        Int
+  windowStart DateTime
+  @@index([windowStart])
 }

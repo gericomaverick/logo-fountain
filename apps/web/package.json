@@ -16,18 +16,16 @@
     "security:check": "node scripts/security-check.mjs",
     "predeploy:check": "npm run security:check && npm run lint && npm run typecheck",
     "local:run": "node scripts/local-run.mjs",
-    "seed:admin": "node scripts/seed-admin.mjs",
-    "reset:client-data": "node scripts/reset-client-data.mjs",
     "test:postgres": "node scripts/isolated-postgres-test.mjs",
-    "db:migrate": "prisma migrate deploy"
+    "db:migrate": "prisma migrate deploy",
+    "bootstrap:admin": "node scripts/bootstrap-admin.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1152.0",
     "@aws-sdk/s3-request-presigner": "3.1152.0",
     "@prisma/adapter-pg": "7.10.0",
     "@prisma/client": "7.10.0",
-    "@supabase/ssr": "^0.8.0",
-    "@supabase/supabase-js": "^2.98.0",
+    "better-auth": "1.7.10",
     "next": "16.4.1",
     "pg": "^8.19.0",
     "prisma": "7.10.0",

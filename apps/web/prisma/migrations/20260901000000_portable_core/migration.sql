@@ -208,6 +208,94 @@ CREATE TABLE "StripeEvent" (
     CONSTRAINT "StripeEvent_pkey" PRIMARY KEY ("eventId")
 );
 
+-- CreateTable
+CREATE TABLE "AuthUser" (
+    "id" UUID NOT NULL,
+    "name" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "emailVerified" BOOLEAN NOT NULL DEFAULT false,
+    "image" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "credentialVersion" INTEGER NOT NULL DEFAULT 0,
+
+    CONSTRAINT "AuthUser_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "AuthSession" (
+    "id" UUID NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "token" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "ipAddress" TEXT,
+    "userAgent" TEXT,
+    "userId" UUID NOT NULL,
+
+    CONSTRAINT "AuthSession_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "AuthAccount" (
+    "id" UUID NOT NULL,
+    "accountId" TEXT NOT NULL,
+    "providerId" TEXT NOT NULL,
+    "userId" UUID NOT NULL,
+    "accessToken" TEXT,
+    "refreshToken" TEXT,
+    "idToken" TEXT,
+    "accessTokenExpiresAt" TIMESTAMP(3),
+    "refreshTokenExpiresAt" TIMESTAMP(3),
+    "scope" TEXT,
+    "password" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "AuthAccount_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "AuthVerification" (
+    "id" UUID NOT NULL,
+    "identifier" TEXT NOT NULL,
+    "value" TEXT NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "AuthVerification_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "AuthProof" (
+    "tokenHash" CHAR(64) NOT NULL,
+    "userId" UUID NOT NULL,
+    "kind" TEXT NOT NULL,
+    "credentialVersion" INTEGER NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "AuthProof_pkey" PRIMARY KEY ("tokenHash")
+);
+
+-- CreateTable
+CREATE TABLE "AuthAdminBootstrap" (
+    "id" INTEGER NOT NULL,
+    "userId" UUID NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "AuthAdminBootstrap_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "AuthRateLimit" (
+    "key" CHAR(64) NOT NULL,
+    "hits" INTEGER NOT NULL,
+    "windowStart" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "AuthRateLimit_pkey" PRIMARY KEY ("key")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Profile_email_key" ON "Profile"("email");
 
@@ -319,6 +407,33 @@ CREATE INDEX "ProjectReadState_projectId_idx" ON "ProjectReadState"("projectId")
 -- CreateIndex
 CREATE UNIQUE INDEX "ProjectReadState_userId_projectId_key" ON "ProjectReadState"("userId", "projectId");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "AuthUser_email_key" ON "AuthUser"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "AuthSession_token_key" ON "AuthSession"("token");
+
+-- CreateIndex
+CREATE INDEX "AuthSession_userId_idx" ON "AuthSession"("userId");
+
+-- CreateIndex
+CREATE INDEX "AuthAccount_userId_idx" ON "AuthAccount"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "AuthAccount_providerId_accountId_key" ON "AuthAccount"("providerId", "accountId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "AuthVerification_identifier_key" ON "AuthVerification"("identifier");
+
+-- CreateIndex
+CREATE INDEX "AuthProof_userId_idx" ON "AuthProof"("userId");
+
+-- CreateIndex
+CREATE INDEX "AuthRateLimit_windowStart_idx" ON "AuthRateLimit"("windowStart");
+
+-- AddForeignKey
+ALTER TABLE "Profile" ADD CONSTRAINT "Profile_id_fkey" FOREIGN KEY ("id") REFERENCES "AuthUser"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
 -- AddForeignKey
 ALTER TABLE "ClientMembership" ADD CONSTRAINT "ClientMembership_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "Client"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -394,3 +509,30 @@ ALTER TABLE "ProjectReadState" ADD CONSTRAINT "ProjectReadState_userId_fkey" FOR
 -- AddForeignKey
 ALTER TABLE "ProjectReadState" ADD CONSTRAINT "ProjectReadState_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
+-- AddForeignKey
+ALTER TABLE "AuthSession" ADD CONSTRAINT "AuthSession_userId_fkey" FOREIGN KEY ("userId") REFERENCES "AuthUser"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AuthAccount" ADD CONSTRAINT "AuthAccount_userId_fkey" FOREIGN KEY ("userId") REFERENCES "AuthUser"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AuthProof" ADD CONSTRAINT "AuthProof_userId_fkey" FOREIGN KEY ("userId") REFERENCES "AuthUser"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+
+-- Provider-independent normalized identity invariant; no email-change surface.
+ALTER TABLE "AuthUser" ADD CONSTRAINT "AuthUser_normalized_email" CHECK (email = lower(btrim(email)));
+ALTER TABLE "Profile" ADD CONSTRAINT "Profile_normalized_email" CHECK (email = lower(btrim(email)));
+-- Only the actual migration/table owner may create/promote/demote admin flags.
+-- Runtime DML remains sufficient for provisioning ordinary false-default profiles.
+CREATE FUNCTION protect_operator_admin_flag() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  IF (TG_OP = 'INSERT' AND NEW."isAdmin") OR
+     (TG_OP = 'UPDATE' AND NEW."isAdmin" IS DISTINCT FROM OLD."isAdmin") THEN
+    IF current_user <> pg_get_userbyid((SELECT relowner FROM pg_class WHERE oid=TG_RELID)) THEN
+      RAISE EXCEPTION 'operator-owned admin flag';
+    END IF;
+  END IF;
+  RETURN NEW;
+END $$;
+CREATE TRIGGER protect_operator_admin_flag BEFORE INSERT OR UPDATE ON "Profile"
+FOR EACH ROW EXECUTE FUNCTION protect_operator_admin_flag();

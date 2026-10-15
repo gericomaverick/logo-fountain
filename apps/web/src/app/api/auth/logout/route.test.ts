@@ -1,54 +1,28 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
-const mocks = vi.hoisted(() => ({
-  signOut: vi.fn(),
-}));
-
-vi.mock("@/lib/supabase/server", () => ({
-  createSupabaseServerClient: async () => ({
-    auth: { signOut: mocks.signOut },
-  }),
-}));
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
+const mocks = vi.hoisted(() => ({ link: vi.fn(), login: vi.fn(), change: vi.fn(), reset: vi.fn(), magic: vi.fn(), session: vi.fn(), signOut: vi.fn(), admin: vi.fn(), limit: vi.fn(), require: vi.fn() }));
+vi.mock("@/lib/auth/service", () => ({ requestAuthLink: mocks.link, login: mocks.login, changeCredential: mocks.change, resetCredential: mocks.reset, verifyMagic: mocks.magic, sessionFromHeaders: mocks.session }));
+vi.mock("@/lib/auth/server", () => ({ getAuth: () => ({ api: { signOut: mocks.signOut } }) }));
+vi.mock("@/lib/auth/rate-limit", () => ({ consumeAuthLimit: mocks.limit }));
+vi.mock("@/lib/auth/require", () => ({ requireUser: mocks.require }));
+vi.mock("@/lib/auth/admin", () => ({ isAdminUser: mocks.admin }));
 import { POST } from "./route";
+const req = (body: unknown = {}, origin = "https://app.example.test") => new Request("https://internal.invalid/api/auth/logout", { method: "POST", headers: { origin, "content-type": "application/json" }, body: JSON.stringify(body) });
+beforeEach(() => { vi.resetAllMocks(); process.env.PUBLIC_SITE_URL = "https://app.example.test"; mocks.limit.mockResolvedValue(true); mocks.signOut.mockResolvedValue(new Response("{}")); });
 
-afterEach(() => vi.unstubAllEnvs());
-
-describe("POST /api/auth/logout", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    vi.stubEnv("PUBLIC_SITE_URL", "http://localhost");
-    mocks.signOut.mockResolvedValue({ error: null });
-  });
-
-  it("signs the user out and returns ok", async () => {
-    const res = await POST(new Request("http://localhost/api/auth/logout", {
-      method: "POST",
-      headers: { origin: "http://localhost" },
-    }));
-
-    expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ ok: true });
-    expect(mocks.signOut).toHaveBeenCalledTimes(1);
-  });
-  it.each(["error", "throw"])("does not claim success on provider %s", async (failure) => {
-    if (failure === "throw") mocks.signOut.mockRejectedValue(new Error("provider unavailable"));
-    else mocks.signOut.mockResolvedValue({ error: { message: "provider unavailable" } });
-    const res = await POST(new Request("http://localhost/api/auth/logout", { method: "POST", headers: { origin: "http://localhost" } }));
-    expect(res.status).toBe(502);
-    expect((await res.json()).error.code).toBe("LOGOUT_FAILED");
-  });
-
-  it("rejects hostile provenance before sign-out", async () => {
-    const res = await POST(new Request("http://localhost/api/auth/logout", { method: "POST", headers: { origin: "https://evil.example", referer: "http://localhost/settings" } }));
-    expect(res.status).toBe(403);
+describe("logout controlled boundary", () => {
+  it("rejects hostile or missing provenance before auth work", async () => {
+    expect((await POST(req({}, "https://evil.invalid"))).status).toBe(403);
+    const absent = req(); absent.headers.delete("origin");
+    expect((await POST(absent)).status).toBe(403);
     expect(mocks.signOut).not.toHaveBeenCalled();
+    expect(mocks.limit).not.toHaveBeenCalled();
   });
-
-  it("supports the canonical missing-Origin Referer fallback", async () => {
-    const res = await POST(new Request("http://localhost/api/auth/logout", { method: "POST", headers: { referer: "http://localhost/settings" } }));
-    expect(res.status).toBe(200);
-    expect(mocks.signOut).toHaveBeenCalledOnce();
+  it("copies only native clearing cookies and fails closed", async () => {
+    mocks.signOut.mockResolvedValueOnce(new Response("provider-token", { headers: { "set-cookie": "session=; Max-Age=0" } }));
+    const response = await POST(req());
+    expect(response.headers.get("set-cookie")).toContain("Max-Age=0");
+    expect(await response.text()).toBe('{"ok":true}');
+    mocks.signOut.mockRejectedValueOnce(new Error("secret-provider-bearer"));
+    expect((await POST(req())).status).toBe(503);
   });
-
 });

@@ -14,7 +14,7 @@ export type LifecycleEmailResult =
   | { status: "skipped"; reason: "not_configured" | "missing_recipient" };
 
 function getAdminEmails(): string[] {
-  return (process.env.ADMIN_EMAILS ?? "")
+  return (process.env.ADMIN_NOTIFICATION_EMAILS ?? "")
     .split(",")
     .map((email) => email.trim().toLowerCase())
     .filter(Boolean);

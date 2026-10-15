@@ -32,12 +32,10 @@ for (const rel of envFiles) {
     }
   }
 
-  const serviceRole = env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (serviceRole) {
-    for (const [key, value] of env.entries()) {
-      if (key.startsWith("NEXT_PUBLIC_") && value && value === serviceRole) {
-        issues.push(`${rel}: NEXT_PUBLIC value for ${key} matches SUPABASE_SERVICE_ROLE_KEY`);
-      }
+  for (const privateKey of ["BETTER_AUTH_SECRET", "DATABASE_URL", "DIRECT_URL", "R2_SECRET_ACCESS_KEY", "POSTMARK_SERVER_TOKEN", "STRIPE_SECRET_KEY"]) {
+    const secret = env.get(privateKey);
+    for (const [key, value] of env) {
+      if (secret && key.startsWith("NEXT_PUBLIC_") && value === secret) issues.push(`${rel}: public ${key} duplicates private ${privateKey}`);
     }
   }
 }
@@ -54,13 +52,13 @@ function walk(dir) {
 
     const file = fs.readFileSync(full, "utf8");
     if (file.includes('"use client"') || file.includes("'use client'")) {
-      if (file.includes("@/lib/supabase/admin") || file.includes("createSupabaseAdminClient")) {
-        issues.push(`${path.relative(root, full)}: client file must not import/use Supabase admin client`);
+      if (/from ["\'](?:@\/lib\/(?:auth\/(?:server|service|fence|mail)|prisma)|better-auth(?:\/|["\']))/.test(file)) {
+        issues.push(`${path.relative(root, full)}: client file must not import server auth/database implementation`);
       }
     }
 
-    if (file.includes("process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY")) {
-      issues.push(`${path.relative(root, full)}: references NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY`);
+    if (/process\.env\.NEXT_PUBLIC_(?:BETTER_AUTH_SECRET|DATABASE_URL|DIRECT_URL|R2_SECRET_ACCESS_KEY|POSTMARK_SERVER_TOKEN|STRIPE_SECRET_KEY)/.test(file)) {
+      issues.push(`${path.relative(root, full)}: private credential referenced through public environment`);
     }
   }
 }
@@ -73,4 +71,4 @@ if (issues.length > 0) {
   process.exit(1);
 }
 
-console.log("Security check passed: no public service-role leakage patterns detected.");
+console.log("Security check passed: no public private-credential leakage patterns detected.");

@@ -1,18 +1,13 @@
-import { NextResponse } from "next/server";
-
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getAuth } from "@/lib/auth/server";
+import { authJson } from "@/lib/auth/http";
 import { rejectUntrustedMutationOrigin } from "@/lib/request-origin";
-
+export const runtime = "nodejs";
 export async function POST(req: Request) {
-  const originError = rejectUntrustedMutationOrigin(req);
-  if (originError) return originError;
-  const supabase = await createSupabaseServerClient();
+  const origin = rejectUntrustedMutationOrigin(req);
+  if (origin) return origin;
   try {
-    const { error } = await supabase.auth.signOut();
-    if (error) return NextResponse.json({ error: { code: "LOGOUT_FAILED", message: "Could not sign out. Please retry." } }, { status: 502 });
-  } catch {
-    return NextResponse.json({ error: { code: "LOGOUT_FAILED", message: "Could not sign out. Please retry." } }, { status: 502 });
-  }
-
-  return NextResponse.json({ ok: true });
+    const result = await getAuth().api.signOut({ headers: req.headers, asResponse: true });
+    if (!result.ok) throw new Error("signout failed");
+    return authJson({ ok: true }, 200, result);
+  } catch { return authJson({ error: { code: "LOGOUT_FAILED", message: "Could not sign out. Please retry." } }, 503); }
 }

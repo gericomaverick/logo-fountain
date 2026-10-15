@@ -14,7 +14,7 @@ test.describe("launch-critical public and account recovery flows", () => {
     await expect(page.getByLabel("Password")).toHaveAttribute("aria-invalid", "true");
   });
 
-  test("forgot password validates email before calling Supabase", async ({ page }) => {
+  test("forgot password validates email before requesting email", async ({ page }) => {
     await page.goto("/forgot-password");
 
     await expect(page.getByRole("heading", { name: "Reset your password" })).toBeVisible();

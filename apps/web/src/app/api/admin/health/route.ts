@@ -74,9 +74,7 @@ export async function GET() {
     await requireAdmin(user);
 
     const checks: CheckResult[] = [
-      envCheck("NEXT_PUBLIC_SUPABASE_URL", "Supabase URL"),
-      envCheck("NEXT_PUBLIC_SUPABASE_ANON_KEY", "Supabase anon key"),
-      envCheck("SUPABASE_SERVICE_ROLE_KEY", "Supabase service role key"),
+      envCheck("BETTER_AUTH_SECRET", "Authentication secret"),
       envCheck("R2_ACCOUNT_ID"),
       envCheck("R2_ACCESS_KEY_ID"),
       envCheck("R2_SECRET_ACCESS_KEY"),
@@ -87,7 +85,7 @@ export async function GET() {
       envCheck("POSTMARK_SERVER_TOKEN", "Postmark server token"),
       envCheck("POSTMARK_FROM", "Postmark sender"),
       publicSiteUrlCheck(),
-      envCheck("ADMIN_EMAILS", "Admin emails allowlist"),
+      envCheck("ADMIN_NOTIFICATION_EMAILS", "Admin notification recipients (not authorization)"),
     ];
 
     checks.push({

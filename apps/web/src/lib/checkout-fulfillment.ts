@@ -2,9 +2,7 @@ import type Stripe from "stripe";
 
 import { logAudit } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
-import { getSecuritySensitivePublicOrigin } from "@/lib/request-origin";
 import { PRICE_ID_TO_PACKAGE, stripe, type PackageCode } from "@/lib/stripe";
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const ORDER_STATUS_FULFILLED = "FULFILLED";
 export const ORDER_STATUS_NEEDS_CONTACT = "NEEDS_CONTACT";
@@ -436,94 +434,31 @@ export function isUniqueViolation(error: unknown): boolean {
   return typeof error === "object" && error !== null && "code" in error && (error as { code?: string }).code === "P2002";
 }
 
-async function resolveOrCreateAuthUserId(email: string): Promise<{ userId: string; existed: boolean }> {
-  const supabaseAdmin = createSupabaseAdminClient();
-
-  const createResult = await supabaseAdmin.auth.admin.createUser({
-    email,
-    email_confirm: true,
-  });
-
-  if (createResult.data.user?.id) {
-    return { userId: createResult.data.user.id, existed: false };
-  }
-
-  const message = (createResult.error?.message || "").toLowerCase();
-  if (!message.includes("already")) {
-    throw new Error(createResult.error?.message || "Failed to create Supabase auth user");
-  }
-
-  let page = 1;
-  while (page <= 10) {
-    const listed = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 200 });
-    if (listed.error) throw new Error(listed.error.message || "Failed to list Supabase users");
-
-    const existing = listed.data.users.find((u) => normalizeEmail(u.email) === email);
-    if (existing?.id) return { userId: existing.id, existed: true };
-
-    if (listed.data.users.length < 200) break;
-    page += 1;
-  }
-
-  const callback = new URL("/auth/callback", getSecuritySensitivePublicOrigin());
-  callback.searchParams.set("next", "/dashboard");
-  const invited = await supabaseAdmin.auth.admin.inviteUserByEmail(email, { redirectTo: callback.toString() });
-  if (invited.error || !invited.data.user?.id) {
-    throw new Error(invited.error?.message || "Failed to invite Supabase auth user");
-  }
-
-  return { userId: invited.data.user.id, existed: false };
-}
-
+// Internal-only trusted paid fulfillment boundary; no public provisioning API.
 export async function ensureAccessProvisioning(
   clientId: string,
   purchaserEmail: string,
   checkoutName?: Pick<CheckoutName, "firstName" | "lastName">,
 ): Promise<{ userId: string; existed: boolean }> {
-  const { userId, existed } = await resolveOrCreateAuthUserId(purchaserEmail);
+  const email = normalizeEmail(purchaserEmail);
+  if (!email) throw new Error("Purchaser email required");
   const firstName = normalizeText(checkoutName?.firstName);
   const lastName = normalizeText(checkoutName?.lastName);
   const fullName = normalizeText([firstName, lastName].filter(Boolean).join(" "));
-
-  await prisma.$transaction(async (tx) => {
-    try {
-      await tx.profile.upsert({
-        where: { id: userId },
-        create: {
-          id: userId,
-          email: purchaserEmail,
-          fullName,
-          firstName,
-          lastName,
-        },
-        update: {
-          email: purchaserEmail,
-          ...(firstName !== null ? { firstName } : {}),
-          ...(lastName !== null ? { lastName } : {}),
-          ...(fullName !== null ? { fullName } : {}),
-        },
-      });
-    } catch (error) {
-      if (!isUniqueViolation(error)) throw error;
-
-      const byEmail = await tx.profile.findUnique({ where: { email: purchaserEmail } });
-      if (!byEmail) throw error;
-
-      await tx.profile.update({
-        where: { id: byEmail.id },
-        data: {
-          ...(firstName !== null ? { firstName } : {}),
-          ...(lastName !== null ? { lastName } : {}),
-          ...(fullName !== null ? { fullName } : {}),
-        },
-      });
-    }
-
-    await tx.clientMembership.createMany({
-      data: [{ clientId, userId, role: "owner" }],
-      skipDuplicates: true,
+  return prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${"provision:" + email}, 0))`;
+    const client = await tx.client.findUnique({ where: { id: clientId } });
+    const order = await tx.projectOrder.findFirst({ where: { clientId, status: ORDER_STATUS_FULFILLED } });
+    if (!client || normalizeEmail(client.billingEmail) !== email || !order) throw new Error("Verified paid client required before access provisioning");
+    const existing = await tx.authUser.findUnique({ where: { email } });
+    // Payment is NOT mailbox proof. Never promote emailVerified/admin here.
+    const user = existing ?? await tx.authUser.create({ data: { email, name: fullName || email, emailVerified: false } });
+    await tx.profile.upsert({
+      where: { id: user.id },
+      create: { id: user.id, email, fullName, firstName, lastName },
+      update: { ...(firstName !== null ? { firstName } : {}), ...(lastName !== null ? { lastName } : {}), ...(fullName !== null ? { fullName } : {}) },
     });
+    await tx.clientMembership.createMany({ data: [{ clientId, userId: user.id, role: "owner" }], skipDuplicates: true });
+    return { userId: user.id, existed: Boolean(existing) };
   });
-
-  return { userId, existed };
 }

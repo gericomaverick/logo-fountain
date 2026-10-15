@@ -1,24 +1,8 @@
 import type { Prisma } from "../generated/prisma/client";
 
-function getAdminEmailAllowlist(): string[] {
-  return (process.env.ADMIN_EMAILS ?? "")
-    .split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean);
-}
-
 async function getSystemSenderId(tx: Prisma.TransactionClient, fallbackUserId: string): Promise<string> {
   const adminByFlag = await tx.profile.findFirst({ where: { isAdmin: true }, select: { id: true } });
   if (adminByFlag?.id) return adminByFlag.id;
-
-  const adminEmails = getAdminEmailAllowlist();
-  if (adminEmails.length > 0) {
-    const adminByEmail = await tx.profile.findFirst({
-      where: { email: { in: adminEmails } },
-      select: { id: true },
-    });
-    if (adminByEmail?.id) return adminByEmail.id;
-  }
 
   return fallbackUserId;
 }

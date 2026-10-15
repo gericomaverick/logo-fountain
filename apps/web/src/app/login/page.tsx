@@ -1,11 +1,11 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { AuthShell } from "@/components/auth-shell";
 import loginImage from "@/img/image-panel-1.png";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { postAuth } from "@/lib/auth/client";
 import { safeAuthNextPath } from "@/lib/auth/safe-next";
 import { hasValidationErrors, toErrorList, validateEmail, validateLogin, ValidationErrors } from "@/lib/auth/validation";
 
@@ -13,7 +13,6 @@ type LoginErrors = ValidationErrors<"email" | "password">;
 
 export default function LoginPage() {
   const router = useRouter();
-  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 
   const nextPath = (() => {
     if (typeof window === "undefined") return "/dashboard";
@@ -23,20 +22,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fieldErrors, setFieldErrors] = useState<LoginErrors>({});
-  const [status, setStatus] = useState<string | null>(() => {
-    if (typeof window === "undefined") return null;
-    const hash = window.location.hash;
-    if (!hash || hash.length < 2) return null;
-
-    const params = new URLSearchParams(hash.slice(1));
-    const description = params.get("error_description");
-    const code = params.get("error_code");
-
-    if (!description) return null;
-
-    const message = code ? `${description} (${code})` : description;
-    return message.replace(/\+/g, " ");
-  });
+  const [status, setStatus] = useState<string | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -52,15 +38,12 @@ export default function LoginPage() {
 
     setIsSubmitting(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { error } = await postAuth("login", { email, password });
 
     setIsSubmitting(false);
 
     if (error) {
-      setStatus(`We couldn’t sign you in. ${error.message}`);
+      setStatus(`We couldn’t sign you in. ${error}`);
       return;
     }
 
@@ -81,24 +64,16 @@ export default function LoginPage() {
     setIsSubmitting(true);
     setStatus(null);
 
-    const callbackUrl = new URL("/auth/callback", window.location.origin);
-    callbackUrl.searchParams.set("next", nextPath);
-
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: callbackUrl.toString(),
-      },
-    });
+    const { error } = await postAuth("magic-link", { email, next: nextPath });
 
     setIsSubmitting(false);
 
     if (error) {
-      setStatus(`We couldn’t send the magic link. ${error.message}`);
+      setStatus(`We couldn’t send the magic link. ${error}`);
       return;
     }
 
-    setStatus("Magic link sent. Check your inbox.");
+    setStatus("If that account exists, a magic link has been sent. Check your inbox.");
   }
 
   const summaryErrors = toErrorList(fieldErrors);

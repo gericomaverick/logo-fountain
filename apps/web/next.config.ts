@@ -13,7 +13,7 @@ const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com",
+  "connect-src 'self' https://api.stripe.com",
   "frame-src https://js.stripe.com https://hooks.stripe.com https://checkout.stripe.com",
   "worker-src 'self' blob:",
   "manifest-src 'self'",
@@ -21,7 +21,7 @@ const contentSecurityPolicy = [
 
 const securityHeaders = [
   // Staged as report-only until production telemetry confirms that Next,
-  // Supabase, Stripe, and deployed asset hosts are all represented.
+  // auth, Stripe, and deployed asset hosts are all represented.
   { key: "Content-Security-Policy-Report-Only", value: contentSecurityPolicy },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
@@ -38,7 +38,10 @@ const nextConfig: NextConfig = {
     root: path.resolve(__dirname),
   },
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      { source: "/:path(auth/callback|set-password|reset-password)", headers: [{ key: "Referrer-Policy", value: "no-referrer" }, { key: "Cache-Control", value: "no-store" }] },
+    ];
   },
 };
 

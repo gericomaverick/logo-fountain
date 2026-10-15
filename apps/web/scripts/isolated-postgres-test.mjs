@@ -29,7 +29,7 @@ const port = reservation.address().port;
 await new Promise((yes, no) => reservation.close((e) => e ? no(e) : yes()));
 const database = "lf_exit_test";
 const makeUrl = (user, db = database) => `postgresql://${user}:${password}@127.0.0.1:${port}/${db}`;
-const env = { ...process.env, ...(process.env.POSTGRES_TEST_LIB ? { LD_LIBRARY_PATH: process.env.POSTGRES_TEST_LIB } : {}), DATABASE_URL: makeUrl("lf_runtime"), DIRECT_URL: makeUrl("lf_migration"), PG_INTEGRATION_URL: makeUrl("lf_runtime"), RUN_PG_INTEGRATION: "1" };
+const env = { ...process.env, ...(process.env.POSTGRES_TEST_LIB ? { LD_LIBRARY_PATH: process.env.POSTGRES_TEST_LIB } : {}), DATABASE_URL: makeUrl("lf_runtime"), DIRECT_URL: makeUrl("lf_migration"), PG_INTEGRATION_URL: makeUrl("lf_runtime"), RUN_PG_INTEGRATION: "1", BETTER_AUTH_SECRET: randomBytes(32).toString("hex"), PUBLIC_SITE_URL: "https://127.0.0.1:45231", POSTMARK_SERVER_TOKEN: "isolated-test-placeholder", POSTMARK_FROM: "isolated@example.invalid" };
 function run(command, args, name) {
   const result = spawnSync(command, args, { cwd: process.cwd(), env, encoding: "utf8", timeout: 120000 });
   const output = `${result.stdout || ""}\n${result.stderr || ""}\n${result.error ? String(result.error) : ""}`.replaceAll(password, "[redacted]");
@@ -70,7 +70,7 @@ try {
     await migration.query(await readFile("ops/postgres/runtime-grants.sql", "utf8"));
   } finally { await migration.end(); }
   await run("./node_modules/.bin/prisma", ["migrate", "diff", "--from-config-datasource", "--to-schema", "prisma/schema.prisma", "--exit-code"], "schema-drift");
-  await run("./node_modules/.bin/vitest", ["run", "src/lib/postgres.integration.test.ts"], "postgres-integration");
+  await run("./node_modules/.bin/vitest", ["run", "src/lib/postgres.integration.test.ts", "src/lib/auth.postgres.integration.test.ts"], "postgres-integration");
 } finally {
   if (started) await run(join(bin, "pg_ctl"), ["-D", data, "-w", "-m", "fast", "stop"], "stop");
   initialized = false;

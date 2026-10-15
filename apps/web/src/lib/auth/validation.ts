@@ -28,7 +28,7 @@ export function validateLogin(email: string, password: string): ValidationErrors
 }
 
 export const PASSWORD_MIN_LENGTH = 8;
-// bcrypt (used by Supabase Auth) silently truncates input beyond 72 bytes, so a
+// Preserve the existing 72-byte application password policy (Better Auth uses scrypt); a
 // longer password would not fully count. Reject it rather than mislead the user.
 export const PASSWORD_MAX_BYTES = 72;
 

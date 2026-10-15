@@ -51,9 +51,7 @@ vi.mock("stripe", () => ({
 import { GET } from "./route";
 
 const ENV_KEYS = [
-  "NEXT_PUBLIC_SUPABASE_URL",
-  "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-  "SUPABASE_SERVICE_ROLE_KEY",
+  "BETTER_AUTH_SECRET",
   "R2_ACCOUNT_ID",
   "R2_ACCESS_KEY_ID",
   "R2_SECRET_ACCESS_KEY",
@@ -64,7 +62,7 @@ const ENV_KEYS = [
   "POSTMARK_SERVER_TOKEN",
   "POSTMARK_FROM",
   "PUBLIC_SITE_URL",
-  "ADMIN_EMAILS",
+  "ADMIN_NOTIFICATION_EMAILS",
 ] as const;
 
 const originalEnv: Record<string, string | undefined> = {};

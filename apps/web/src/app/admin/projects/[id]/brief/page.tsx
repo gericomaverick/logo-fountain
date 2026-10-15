@@ -7,7 +7,7 @@ import { PageShell } from "@/components/page-shell";
 import { requireAdmin } from "@/lib/auth/require";
 import { parseBriefAnswers, briefSections } from "@/lib/brief";
 import { prisma } from "@/lib/prisma";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth/current-user";
 
 type AdminProjectBriefPageProps = {
   params: Promise<{ id: string }>;
@@ -20,10 +20,7 @@ function dateLabel(value: Date): string {
 export default async function AdminProjectBriefPage({ params }: AdminProjectBriefPageProps) {
   const { id: projectId } = await params;
 
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   if (!user) redirect("/login");
   await requireAdmin(user);

@@ -1,114 +1,22 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
-const mocks = vi.hoisted(() => ({ generateLink: vi.fn() }));
-
-vi.mock("server-only", () => ({}));
-vi.mock("@/lib/supabase/admin", () => ({
-  createSupabaseAdminClient: () => ({
-    auth: { admin: { generateLink: mocks.generateLink } },
-  }),
-}));
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
+const link = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/auth/service", () => ({ requestAuthLink: link }));
 import { generateAndSendMagicLinkEmail } from "./magic-link-email";
-
-const originalEnv = {
-  PUBLIC_SITE_URL: process.env.PUBLIC_SITE_URL,
-  POSTMARK_SERVER_TOKEN: process.env.POSTMARK_SERVER_TOKEN,
-  POSTMARK_FROM: process.env.POSTMARK_FROM,
-};
-
-function hostileRequest() {
-  return new Request("https://internal.example.test/api/checkout/magic-link", {
-    headers: {
-      host: "evil.example",
-      "x-forwarded-host": "evil.example",
-      "x-forwarded-proto": "http",
-    },
-  });
-}
-
-describe("generateAndSendMagicLinkEmail", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    process.env.PUBLIC_SITE_URL = "https://app.example.com";
-    process.env.POSTMARK_SERVER_TOKEN = "test-token";
-    process.env.POSTMARK_FROM = "noreply@example.com";
-    mocks.generateLink.mockResolvedValue({
-      error: null,
-      data: { properties: { action_link: "https://auth.example.com/secret-bearer-link" } },
-    });
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true }));
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
-    for (const [key, value] of Object.entries(originalEnv)) {
-      if (value === undefined) delete process.env[key];
-      else process.env[key] = value;
-    }
-  });
-
-  it("uses canonical password setup only when trusted provisioning explicitly selects setup", async () => {
-    const result = await generateAndSendMagicLinkEmail({
-      purchaserEmail: "new@example.com",
-      request: hostileRequest(),
-      projectId: "project-new",
-      flow: "setup",
-    });
-
-    expect(mocks.generateLink).toHaveBeenCalledWith({
-      type: "magiclink",
-      email: "new@example.com",
-      options: {
-        redirectTo: "https://app.example.com/auth/callback?next=%2Fset-password%3Fnext%3D%252Fproject%252Fproject-new",
-      },
-    });
+beforeEach(() => { vi.clearAllMocks(); process.env.PUBLIC_SITE_URL="https://app.example.test"; process.env.POSTMARK_SERVER_TOKEN="test"; process.env.POSTMARK_FROM="test@example.invalid"; });
+describe("trusted checkout email dispatch", () => {
+  it("selects setup only from the internal trusted provisioning result and returns no bearer", async () => {
+    const result = await generateAndSendMagicLinkEmail({ purchaserEmail: "buyer@example.invalid", projectId: "project-1", flow: "setup" });
+    expect(link).toHaveBeenCalledWith("buyer@example.invalid", "setup", "/project/project-1", undefined);
     expect(result).toEqual({ skipped: false });
-    expect(result).not.toHaveProperty("actionLink");
   });
-
-  it("routes existing-account links directly through sign-in without password setup", async () => {
-    await generateAndSendMagicLinkEmail({
-      purchaserEmail: "admin@example.com",
-      request: hostileRequest(),
-      projectId: "project-existing",
-      flow: "signin",
-    });
-
-    expect(mocks.generateLink).toHaveBeenCalledWith({
-      type: "magiclink",
-      email: "admin@example.com",
-      options: {
-        redirectTo: "https://app.example.com/auth/callback?next=%2Fproject%2Fproject-existing",
-      },
-    });
-  });
-
-  it("does not generate a credential when canonical origin or email delivery is unavailable", async () => {
+  it("does not trust forwarded host and has no local-origin override", async () => {
     delete process.env.PUBLIC_SITE_URL;
-    vi.stubEnv("NODE_ENV", "production");
-
-    await expect(
-      generateAndSendMagicLinkEmail({ purchaserEmail: "buyer@example.com", request: hostileRequest() }),
-    ).rejects.toMatchObject({ code: "PUBLIC_SITE_URL_REQUIRED" });
-    expect(mocks.generateLink).not.toHaveBeenCalled();
-
-    vi.unstubAllEnvs();
-    process.env.PUBLIC_SITE_URL = "https://app.example.com";
-    delete process.env.POSTMARK_SERVER_TOKEN;
-    await expect(
-      generateAndSendMagicLinkEmail({ purchaserEmail: "buyer@example.com", request: hostileRequest() }),
-    ).resolves.toMatchObject({ skipped: true });
-    expect(mocks.generateLink).not.toHaveBeenCalled();
+    await expect(generateAndSendMagicLinkEmail({ purchaserEmail: "buyer@example.invalid", request: new Request("https://internal.invalid", { headers: { "x-forwarded-host": "evil.invalid" } }) })).rejects.toThrow();
+    expect(link).not.toHaveBeenCalled();
   });
-
-  it("never reads a provider failure body that could echo the bearer URL", async () => {
-    const text = vi.fn().mockResolvedValue("https://auth.example.com/secret-bearer-link");
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 500, text }));
-
-    await expect(
-      generateAndSendMagicLinkEmail({ purchaserEmail: "buyer@example.com", request: hostileRequest() }),
-    ).rejects.toThrow("Authentication email delivery failed (500)");
-    expect(text).not.toHaveBeenCalled();
+  it("fails safely when email transport is not configured", async () => {
+    delete process.env.POSTMARK_SERVER_TOKEN;
+    expect((await generateAndSendMagicLinkEmail({ purchaserEmail: "buyer@example.invalid" })).skipped).toBe(true);
+    expect(link).not.toHaveBeenCalled();
   });
 });

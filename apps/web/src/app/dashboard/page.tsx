@@ -7,7 +7,7 @@ import { isAdminUser } from "@/lib/auth/admin";
 import { ProjectStatusBadge } from "@/components/project-status-badge";
 import { type ProjectState } from "@/lib/project-state-machine";
 import { prisma } from "@/lib/prisma";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth/current-user";
 import { deriveDisplayProjectStatus, deriveOverviewBadgeStatus } from "@/lib/project-status";
 import { extractBrandNameFromBriefAnswers, getProjectDisplayTitle } from "@/lib/project-display-name";
 import { NON_SYSTEM_MESSAGE_FILTER } from "@/lib/message-kind";
@@ -165,10 +165,7 @@ function DashboardSection({ section, projects }: { section: DashboardSectionKey;
 }
 
 export default async function DashboardPage() {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   if (!user) {
     redirect("/login");

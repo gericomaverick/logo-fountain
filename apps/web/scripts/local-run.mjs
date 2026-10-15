@@ -17,9 +17,8 @@ function requireEnv(name) {
 }
 
 // Required to boot app.
-requireEnv("NEXT_PUBLIC_SUPABASE_URL");
-requireEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY");
-requireEnv("SUPABASE_SERVICE_ROLE_KEY");
+requireEnv("BETTER_AUTH_SECRET");
+requireEnv("DATABASE_URL");
 requireEnv("STRIPE_SECRET_KEY");
 
 const port = process.env.PORT || "3000";

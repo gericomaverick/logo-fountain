@@ -15,7 +15,7 @@ test("root redirects unauthenticated visitors to login", async ({ page }) => {
 test("auth callback never carries a protocol-relative next target into recovery", async ({ page }) => {
   await page.goto("/auth/callback?next=%2F%2Fevil.example%2Fsteal");
 
-  const recovery = page.getByRole("link", { name: "Request a new magic link" });
+  const recovery = page.getByRole("link", { name: "Request a fresh magic link" });
   await expect(recovery).toBeVisible();
-  await expect(recovery).toHaveAttribute("href", "/login?next=%2Fdashboard");
+  await expect(recovery).toHaveAttribute("href", "/login");
 });
