@@ -6,7 +6,7 @@ import { computeEntitlementUsage } from "@/lib/entitlements";
 
 export const runtime = "nodejs";
 
-type Body = { concepts?: unknown; revisions?: unknown };
+type Body = { concepts?: unknown; revisions?: unknown; reason?: unknown };
 
 function parseLimit(value: unknown): number | null | undefined {
   if (value === undefined) return undefined;
@@ -28,6 +28,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
     const concepts = parseLimit(payload.concepts);
     const revisions = parseLimit(payload.revisions);
+    const reason = typeof payload.reason === "string" ? payload.reason.trim() : "";
 
     if (payload.concepts !== undefined && concepts === undefined) {
       return jsonError("Invalid concepts limit", 400, { nextStep: "Use an integer between 0 and 1000, or null." }, "INVALID_CONCEPTS_LIMIT");
@@ -38,6 +39,12 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
     if (payload.concepts === undefined && payload.revisions === undefined) {
       return jsonError("No entitlement updates provided", 400, { nextStep: "Provide concepts and/or revisions." }, "MISSING_LIMITS");
+    }
+    if (!reason) {
+      return jsonError("Entitlement override reason is required", 400, { nextStep: "Describe why the package entitlement is being changed." }, "OVERRIDE_REASON_REQUIRED");
+    }
+    if (reason.length > 500) {
+      return jsonError("Entitlement override reason is too long", 400, { nextStep: "Use 500 characters or fewer." }, "OVERRIDE_REASON_TOO_LONG");
     }
 
     const { id } = await params;
@@ -90,6 +97,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
               concepts: hasConceptUpdate,
               revisions: hasRevisionUpdate,
             },
+            reason,
           },
         });
       }

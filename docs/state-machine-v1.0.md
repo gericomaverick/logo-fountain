@@ -44,8 +44,9 @@ Each transition lists: **From → To**, who can trigger, and required preconditi
 
 ### Concepts
 - `IN_DESIGN` → `CONCEPTS_READY`
-  - Trigger: Admin
-  - Preconditions: ≥1 concept uploaded and published
+  - Trigger: Admin concept publication domain action
+  - Preconditions: ≥1 concept uploaded; a `concepts` entitlement row exists; a finite entitlement has remaining capacity (null limit is unlimited)
+  - Atomicity: first publication and entitlement consumption commit in one serializable transaction; already-published retries do not consume; concurrent final-slot claims cannot both succeed
 
 ### Revisions loop
 - `CONCEPTS_READY` → `REVISIONS_IN_PROGRESS`
@@ -74,17 +75,25 @@ Each transition lists: **From → To**, who can trigger, and required preconditi
   - Preconditions: finals exist
 
 ### Exceptional
-- any → `ON_HOLD`
-  - Trigger: Admin
+- any permitted state → `ON_HOLD`
+  - Trigger: constrained Admin status action
   - Preconditions: reason required
 
 - `ON_HOLD` → prior state
   - Trigger: Admin
   - Preconditions: reason required
 
-- any → `CANCELLED`
-  - Trigger: Admin
+- any permitted state → `CANCELLED`
+  - Trigger: constrained Admin status action
   - Preconditions: reason required
+
+The generic Admin status action cannot enter concepts/revisions/approval/finals/delivery states. Those transitions are owned by domain actions that enforce their records and preconditions.
+
+### Clean-slate reset
+- Trigger: Admin with explicit clean-slate confirmation
+- Serializes against final publication with a project status/version guard.
+- Removes active concepts, revision requests/comments, concept asset rows, and final publication (`final_zip`) rows; resets both consumed and reserved concept/revision usage.
+- Retains immutable final storage bytes and audits their exact paths so issued signed URLs can expire; deleted publication rows ensure those objects cannot become active later.
 
 - any → `REFUNDED`
   - Trigger: ServiceRole (refund webhook) + Admin policy

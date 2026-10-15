@@ -95,14 +95,18 @@ Request:
 ### GET `/api/admin/projects?status=...`
 List projects by status.
 
-### POST `/api/admin/projects/:projectId/state`
+### POST `/api/admin/projects/:projectId/status`
+This generic endpoint is restricted to exceptional `ON_HOLD` and `CANCELLED` transitions and always requires a non-empty `reason`. Normal lifecycle progression is rejected with `DOMAIN_ACTION_REQUIRED`; callers must use the concept, revision, approval, final-publication, and final-download domain actions so their preconditions cannot be bypassed.
+
 Request:
 ```json
-{ "to": "IN_PROGRESS|CONCEPTS_READY|FINAL_READY|DELIVERED", "reason": "optional" }
+{ "status": "ON_HOLD|CANCELLED", "reason": "specific operational reason" }
 ```
 
 ### POST `/api/admin/projects/:projectId/concepts`
-Upload metadata for a concept (file handled separately).
+Uploads and immediately publishes a concept image. First publication and one unit of the `concepts` entitlement commit in the same serializable transaction. A missing row returns `CONCEPTS_ENTITLEMENT_MISSING`; a finite exhausted row returns `CONCEPT_ENTITLEMENT_EXHAUSTED`; `limitInt: null` is unlimited. Replacements consume only when they first publish a draft; retries/replacements of an already-published concept do not consume again. Concurrent claims use one conditional database update, so a final finite slot cannot be oversubscribed. Storage upload precedes publication and a failed transaction can therefore leave inactive storage bytes, but never active unentitled concept metadata.
+
+`POST /api/admin/projects/:projectId/concepts/:conceptId/publish` applies the same atomic, first-publish-only entitlement rules to draft publication and is idempotent for an already-published concept.
 
 ### POST `/api/admin/projects/:projectId/finals`
 Upload a final deliverable set to a new immutable/versioned storage path, then transactionally publish the new exact asset record under project-status and approval guards. The active final is always the newest row by `createdAt DESC, id DESC`. Superseded `FileAsset` rows and storage objects are retained indefinitely so already-issued one-hour signed URLs remain valid; this is intentionally unbounded emergency retention pending a future policy. After a publication transaction exception, the exact new project/kind/bucket/path is queried to recover a committed outcome. A found row is treated as committed. An absent result returns a conflict but still retains the immutable object because an immediate absence cannot conclusively prove rollback; verification failure likewise retains it and returns `FINAL_PUBLICATION_OUTCOME_UNKNOWN` with `committed: "unknown"`. Possible untracked/orphan objects are the intentional fail-safe tradeoff and require future audited housekeeping. If final-ready client email cannot be sent, the response is an actionable `502`/`503` partial failure with `committed: true`; the admin retries notification through `POST /api/admin/projects/:projectId/finals/notify` without republishing bytes.
@@ -110,11 +114,18 @@ Upload a final deliverable set to a new immutable/versioned storage path, then t
 ### POST `/api/admin/projects/:projectId/finals/notify`
 Admin-only notification retry for the already-current final publication. The request supplies the snapshot's current asset ID and project `updatedAt`; a bounded serializable transaction conditionally revalidates eligible state, approval, project version, and deterministic newest asset immediately before dispatch. It then sends only the final-ready notification using an asset-scoped sent marker. It never uploads, republishes, or deletes storage objects. The provider call cannot be atomic with the DB transaction, so a narrow post-validation state-change race remains documented rather than being treated as impossible.
 
-### POST `/api/admin/projects/:projectId/override-entitlements`
+### PATCH `/api/admin/projects/:projectId/entitlements`
+Overrides concept and/or revision limits. `reason` is mandatory (maximum 500 characters), is validated server-side, and is included in the `entitlement_limit_overridden` audit event.
+
 Request:
 ```json
-{ "key": "revisions", "delta": 1, "reason": "goodwill" }
+{ "concepts": 4, "revisions": 3, "reason": "goodwill extension approved by operations" }
 ```
+
+`POST /api/admin/projects/:projectId/entitlements/reset` is disabled because independently rewinding usage can make counters disagree with active concepts/revisions. Use the guarded clean-slate reset when a full lifecycle reset is intended.
+
+### POST `/api/admin/projects/:projectId/reset`
+A confirmed `clean-slate` reset serializes against final publication, removes concepts, revisions, comments, concept publication assets, and all `final_zip` publication rows from active database state, and resets both `consumedInt` and `reservedInt`. Immutable final storage objects are not deleted: their bucket/path pairs are recorded in the reset audit event so existing signed URLs can expire naturally. Since their `FileAsset` publication rows are deleted under the project version guard, retained old finals cannot later be selected as active.
 
 ---
 

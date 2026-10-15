@@ -155,6 +155,7 @@ export default function AdminProjectPage() {
   const [reprocessSessionId, setReprocessSessionId] = useState("");
   const [conceptLimit, setConceptLimit] = useState("");
   const [revisionLimit, setRevisionLimit] = useState("");
+  const [entitlementOverrideReason, setEntitlementOverrideReason] = useState("");
   const [entitlementsDirty, setEntitlementsDirty] = useState(false);
   const [finalZipFile, setFinalZipFile] = useState<File | null>(null);
   const [invoices, setInvoices] = useState<ProjectInvoice[]>([]);
@@ -213,6 +214,11 @@ export default function AdminProjectPage() {
       setError("Entitlement limits must be integers (or blank for null).");
       return;
     }
+    const reason = entitlementOverrideReason.trim();
+    if (!reason) {
+      setError("A reason is required for every entitlement override.");
+      return;
+    }
 
     setBusy(true);
     setError(null);
@@ -220,7 +226,7 @@ export default function AdminProjectPage() {
     const response = await fetch(`/api/admin/projects/${projectId}/entitlements`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ concepts, revisions }),
+      body: JSON.stringify({ concepts, revisions, reason }),
     });
 
     const payload = await response.json().catch(() => null);
@@ -229,6 +235,7 @@ export default function AdminProjectPage() {
       setError(readError(payload, "Failed to update entitlements"));
     } else {
       setEntitlementsDirty(false);
+      setEntitlementOverrideReason("");
       await refresh(projectId);
     }
 
@@ -445,47 +452,21 @@ export default function AdminProjectPage() {
                 <input className="rounded border border-neutral-300 bg-white px-2 py-1" value={revisionLimit} onChange={(e) => { setRevisionLimit(e.target.value); setEntitlementsDirty(true); }} placeholder="e.g. 2" inputMode="numeric" />
               </label>
             </div>
+            <label className="mt-3 flex flex-col gap-1">
+              <span className="text-xs text-neutral-600">Reason (required and recorded in the audit trail)</span>
+              <textarea
+                className="rounded border border-neutral-300 bg-white px-2 py-1"
+                value={entitlementOverrideReason}
+                onChange={(e) => { setEntitlementOverrideReason(e.target.value); setEntitlementsDirty(true); }}
+                maxLength={500}
+                placeholder="Why is this package entitlement changing?"
+                rows={2}
+                required
+              />
+            </label>
             <div className="mt-3 flex flex-wrap gap-2">
-              <button className="rounded border border-neutral-300 bg-white px-3 py-1" type="button" disabled={busy} onClick={() => void saveEntitlementOverrides()}>
+              <button className="rounded border border-neutral-300 bg-white px-3 py-1" type="button" disabled={busy || !entitlementOverrideReason.trim()} onClick={() => void saveEntitlementOverrides()}>
                 Save entitlement override
-              </button>
-              <button
-                className="rounded border border-neutral-300 bg-white px-3 py-1"
-                type="button"
-                disabled={busy}
-                onClick={() => {
-                  if (!window.confirm("Reset concepts used to 0? This is for testing only.")) return;
-                  void runAction(
-                    () =>
-                      fetch(`/api/admin/projects/${projectId}/entitlements/reset`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ key: "concepts" }),
-                      }),
-                    "Failed to reset concepts usage",
-                  );
-                }}
-              >
-                Reset concepts used → 0
-              </button>
-              <button
-                className="rounded border border-neutral-300 bg-white px-3 py-1 text-rose-700"
-                type="button"
-                disabled={busy}
-                onClick={() => {
-                  if (!window.confirm("Reset revisions used to 0? This is for testing only.")) return;
-                  void runAction(
-                    () =>
-                      fetch(`/api/admin/projects/${projectId}/entitlements/reset`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ key: "revisions", confirm: true }),
-                      }),
-                    "Failed to reset revisions usage",
-                  );
-                }}
-              >
-                Reset revisions used → 0
               </button>
               <button
                 className="rounded border border-rose-300 bg-rose-50 px-3 py-1 font-medium text-rose-700"

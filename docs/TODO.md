@@ -76,6 +76,16 @@ Step 4 notes:
 - Use subagents for implementation.
 - After each step: update this file and commit the change.
 
+## Lifecycle integrity hardening (2026-10-15)
+- [x] Atomically enforce concept entitlements on immediate-create, draft-publish, and draft-replacement paths (missing, exhausted, unlimited, retry/first-publish-only, and concurrent-slot behavior).
+- [x] Make clean-slate reset remove active final publication rows, reset consumed and reserved usage, retain/audit immutable final storage paths, and serialize against final publication.
+- [x] Restrict generic Admin status mutation to reasoned hold/cancel exceptions; lifecycle progression remains in domain routes.
+- [x] Require and audit entitlement override reasons in API and Admin UI; disable incoherent standalone usage rewinds.
+
+Lifecycle-integrity notes:
+- Concept publication is guarded by a conditional entitlement update in the same serializable database transaction as concept metadata and project state. Storage may leave inactive orphan bytes after a transaction conflict, but cannot expose an unentitled concept.
+- Clean-slate reset intentionally retains final storage objects so already-issued signed URLs survive to expiry, while deleting all `final_zip` database rows so retained objects are no longer selectable.
+
 ## Next steps (post-dashboard)
 - [x] Marketing: add pricing cards to homepage (HYROS style) and ensure pricing routes/CTAs connect to Stripe checkout correctly.
 - [x] Brief UX: make brief read-only view feel more document-like (typography, section framing, paper feel, version navigation clarity).
