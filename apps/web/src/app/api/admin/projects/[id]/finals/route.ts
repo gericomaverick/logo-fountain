@@ -2,7 +2,7 @@ import { jsonError } from "@/lib/api-error";
 import { requireAdmin, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { prisma } from "@/lib/prisma";
 import { applyTransition } from "@/lib/project-state-machine";
-import { uploadFinalDeliverable } from "@/lib/supabase/storage";
+import { uploadFinalDeliverable } from "@/lib/storage/r2";
 import { prepareFinalZip, UploadValidationError } from "@/lib/upload-validation";
 import { logAudit } from "@/lib/audit";
 import { createProjectSystemMessage } from "@/lib/system-messages";

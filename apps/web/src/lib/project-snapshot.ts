@@ -1,6 +1,6 @@
 import { buildTimeline, type ProjectState, PROJECT_STATES, PROJECT_STATE_LABELS, PRIMARY_CTA_BY_STATE } from "@/lib/project-state-machine";
 import { prisma } from "@/lib/prisma";
-import { createSignedConceptAssetUrl } from "@/lib/supabase/storage";
+import { createSignedConceptAssetUrl } from "@/lib/storage/r2";
 import { computeEntitlementUsage } from "@/lib/entitlements";
 import { computeLatestConceptActivityAt, maxDate } from "@/lib/concept-activity";
 import { parseBriefAnswers } from "@/lib/brief";

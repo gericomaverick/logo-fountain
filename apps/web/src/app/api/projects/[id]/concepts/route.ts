@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { createSignedConceptAssetUrl } from "@/lib/supabase/storage";
+import { createSignedConceptAssetUrl } from "@/lib/storage/r2";
 import { RouteAuthError, requireAdmin, requireProjectMembership, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 
 export const runtime = "nodejs";

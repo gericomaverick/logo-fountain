@@ -2,7 +2,7 @@ import { jsonError } from "@/lib/api-error";
 import { requireAdmin, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { buildFinalDeliverableFilename } from "@/lib/final-deliverable-filename";
 import { prisma } from "@/lib/prisma";
-import { createSignedFinalDeliverableUrl } from "@/lib/supabase/storage";
+import { createSignedFinalDeliverableUrl } from "@/lib/storage/r2";
 import { rejectUntrustedMutationOrigin } from "@/lib/request-origin";
 
 export const runtime = "nodejs";

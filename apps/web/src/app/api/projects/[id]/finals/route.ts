@@ -1,6 +1,6 @@
 import { jsonError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
-import { createSignedFinalDeliverableUrl } from "@/lib/supabase/storage";
+import { createSignedFinalDeliverableUrl } from "@/lib/storage/r2";
 import { requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { buildFinalDeliverableFilename } from "@/lib/final-deliverable-filename";
 import { applyTransition } from "@/lib/project-state-machine";

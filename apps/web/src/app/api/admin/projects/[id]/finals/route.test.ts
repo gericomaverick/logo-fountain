@@ -34,7 +34,7 @@ vi.mock("@/lib/auth/require", () => ({
 }));
 vi.mock("@/lib/prisma", () => ({ prisma: mocks.prisma }));
 vi.mock("@/lib/project-state-machine", () => ({ applyTransition: mocks.applyTransition }));
-vi.mock("@/lib/supabase/storage", () => ({
+vi.mock("@/lib/storage/r2", () => ({
   uploadFinalDeliverable: mocks.uploadFinalDeliverable,
   deleteStoredFiles: mocks.deleteStoredFiles,
 }));

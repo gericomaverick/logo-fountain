@@ -2,7 +2,6 @@ import { jsonError } from "@/lib/api-error";
 import { logAudit } from "@/lib/audit";
 import { requireAdmin, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { prisma } from "@/lib/prisma";
-import { deleteStoredFiles } from "@/lib/supabase/storage";
 import { rejectUntrustedMutationOrigin } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
@@ -87,6 +86,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
           entitlementsReset: ["concepts", "revisions"],
           entitlementFieldsReset: ["consumedInt", "reservedInt"],
           retainedFinalStorageObjects: retainedFinalAssets.map(({ bucket, path }) => ({ bucket, path })),
+          retainedConceptStorageObjects: conceptAssets.map(({ bucket, path }) => ({ bucket, path })),
           retainedFinalReason: "allow_pre_reset_signed_urls_to_expire_without_reactivating_publication_records",
         },
       });
@@ -106,7 +106,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       };
     }, { isolationLevel: "Serializable", maxWait: 2_000, timeout: 5_000 });
 
-    const storageCleanup = await deleteStoredFiles(result.conceptAssets.map(({ bucket, path }) => ({ bucket, path })));
+    // Reset publication metadata only. Retain immutable concept bytes as well:
+    // issued URLs and durable upload receipts must not become dangling capabilities.
+    const storageCleanup = { attempted: 0, deleted: 0, failures: [] };
+
     return Response.json({
       ok: true,
       projectId,
@@ -114,6 +117,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       clearMessages,
       nextStatus: result.nextStatus,
       retainedFinalStorageObjects: result.retainedFinalStorageObjects,
+      retainedConceptStorageObjects: result.conceptAssets.map(({ bucket, path }) => ({ bucket, path })),
       deleted: result.deleted,
       storageCleanup,
     });

@@ -17,7 +17,7 @@ vi.mock("@/lib/auth/require", () => ({
 }));
 vi.mock("@/lib/prisma", () => ({ prisma: mocks.prisma }));
 vi.mock("@/lib/final-deliverable-filename", () => ({ buildFinalDeliverableFilename: mocks.buildFinalDeliverableFilename }));
-vi.mock("@/lib/supabase/storage", () => ({ createSignedFinalDeliverableUrl: mocks.createSignedFinalDeliverableUrl }));
+vi.mock("@/lib/storage/r2", () => ({ createSignedFinalDeliverableUrl: mocks.createSignedFinalDeliverableUrl }));
 
 import { POST } from "./route";
 

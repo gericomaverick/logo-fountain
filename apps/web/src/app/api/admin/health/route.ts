@@ -3,11 +3,11 @@ import Stripe from "stripe";
 import { requireAdmin, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { prisma } from "@/lib/prisma";
 import { STRIPE_PLACEHOLDER_PRICE_IDS } from "@/lib/stripe";
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { checkPrivateStorageHealth } from "@/lib/storage/r2";
 import {
-  SUPABASE_STORAGE_BUCKET_CONCEPTS,
-  SUPABASE_STORAGE_BUCKET_FINAL_DELIVERABLES,
-} from "@/lib/supabase/storage";
+  STORAGE_BUCKET_CONCEPTS,
+  STORAGE_BUCKET_FINAL_DELIVERABLES,
+} from "@/lib/storage/r2";
 
 export const runtime = "nodejs";
 
@@ -77,6 +77,11 @@ export async function GET() {
       envCheck("NEXT_PUBLIC_SUPABASE_URL", "Supabase URL"),
       envCheck("NEXT_PUBLIC_SUPABASE_ANON_KEY", "Supabase anon key"),
       envCheck("SUPABASE_SERVICE_ROLE_KEY", "Supabase service role key"),
+      envCheck("R2_ACCOUNT_ID"),
+      envCheck("R2_ACCESS_KEY_ID"),
+      envCheck("R2_SECRET_ACCESS_KEY"),
+      envCheck("R2_CONCEPTS_BUCKET"),
+      envCheck("R2_FINAL_DELIVERABLES_BUCKET"),
       envCheck("STRIPE_SECRET_KEY", "Stripe secret key"),
       envCheck("STRIPE_WEBHOOK_SECRET", "Stripe webhook secret"),
       envCheck("POSTMARK_SERVER_TOKEN", "Postmark server token"),
@@ -158,49 +163,19 @@ export async function GET() {
       });
     }
 
-    if (envPresent("NEXT_PUBLIC_SUPABASE_URL") && envPresent("SUPABASE_SERVICE_ROLE_KEY")) {
-      try {
-        const admin = createSupabaseAdminClient();
-        const { data, error } = await admin.storage.listBuckets();
-
-        if (error) throw error;
-
-        const bucketNames = new Set((data ?? []).map((bucket) => bucket.name));
-        const requiredBuckets = [SUPABASE_STORAGE_BUCKET_CONCEPTS, SUPABASE_STORAGE_BUCKET_FINAL_DELIVERABLES];
-
-        for (const bucketName of requiredBuckets) {
-          const exists = bucketNames.has(bucketName);
-          checks.push({
-            key: `supabase:bucket:${bucketName}`,
-            label: `Supabase bucket: ${bucketName}`,
-            passed: exists,
-            summary: exists ? "Exists" : "Missing",
-            nextStep: exists
-              ? "No action needed."
-              : `Create bucket '${bucketName}' in Supabase Storage (Dashboard → Storage).`,
-          });
-        }
-      } catch (error) {
-        for (const bucketName of [SUPABASE_STORAGE_BUCKET_CONCEPTS, SUPABASE_STORAGE_BUCKET_FINAL_DELIVERABLES]) {
-          checks.push({
-            key: `supabase:bucket:${bucketName}`,
-            label: `Supabase bucket: ${bucketName}`,
-            passed: false,
-            summary: `Failed to verify: ${formatError(error)}`,
-            nextStep: "Check SUPABASE_SERVICE_ROLE_KEY permissions and Supabase API reachability.",
-          });
-        }
-      }
-    } else {
-      for (const bucketName of [SUPABASE_STORAGE_BUCKET_CONCEPTS, SUPABASE_STORAGE_BUCKET_FINAL_DELIVERABLES]) {
-        checks.push({
-          key: `supabase:bucket:${bucketName}`,
-          label: `Supabase bucket: ${bucketName}`,
-          passed: false,
-          summary: "Skipped (missing Supabase env vars)",
-          nextStep: "Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to run this check.",
-        });
-      }
+    try {
+      const results = await checkPrivateStorageHealth();
+      for (const result of results) checks.push({
+        key: `r2:bucket:${result.bucket}`, label: `Private R2 bucket: ${result.bucket}`,
+        passed: result.passed,
+        summary: result.passed ? "Private storage reachable" : "Private storage check failed",
+        nextStep: result.passed ? "No action needed." : "Verify private bucket configuration and scoped credentials; no bucket is created automatically.",
+      });
+    } catch {
+      for (const bucket of [STORAGE_BUCKET_CONCEPTS, STORAGE_BUCKET_FINAL_DELIVERABLES]) checks.push({
+        key: `r2:bucket:${bucket}`, label: `Private R2 bucket: ${bucket}`, passed: false,
+        summary: "Private storage configuration unavailable", nextStep: "Configure R2 server-only variables and private buckets.",
+      });
     }
 
     const failedCount = checks.filter((check) => !check.passed).length;

@@ -28,7 +28,7 @@ vi.mock("@/lib/prisma", () => ({ prisma: { $transaction: mocks.transaction } }))
 vi.mock("@/lib/project-lifecycle-email", () => ({
   notifyClientFinalDeliverablesReady: mocks.notifyClientFinalDeliverablesReady,
 }));
-vi.mock("@/lib/supabase/storage", () => {
+vi.mock("@/lib/storage/r2", () => {
   throw new Error("notification-only endpoint must not import storage");
 });
 

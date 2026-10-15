@@ -39,7 +39,7 @@ vi.mock("@/lib/auth/require", () => ({
 }));
 
 vi.mock("@/lib/prisma", () => ({ prisma: mocks.prisma }));
-vi.mock("@/lib/supabase/storage", () => ({ createSignedConceptAssetUrl: mocks.createSignedConceptAssetUrl }));
+vi.mock("@/lib/storage/r2", () => ({ createSignedConceptAssetUrl: mocks.createSignedConceptAssetUrl }));
 
 import { GET } from "./route";
 

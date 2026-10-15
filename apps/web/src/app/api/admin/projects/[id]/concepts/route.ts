@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { prepareConceptImage, UploadValidationError } from "@/lib/upload-validation";
 import { jsonError } from "@/lib/api-error";
 import { prisma } from "@/lib/prisma";
-import { createSignedConceptAssetUrl, deleteStoredFiles, uploadConceptAsset } from "@/lib/supabase/storage";
+import { createSignedConceptAssetUrl, deleteStoredFiles, uploadConceptAsset } from "@/lib/storage/r2";
 import { logAudit } from "@/lib/audit";
 import { applyTransition } from "@/lib/project-state-machine";
 import { requireAdmin, requireUser, toRouteErrorResponse } from "@/lib/auth/require";

@@ -17,7 +17,7 @@ const mocks = vi.hoisted(() => {
     requireUser: vi.fn(),
     requireAdmin: vi.fn(),
     accountsRetrieve: vi.fn(),
-    listBuckets: vi.fn(),
+    checkPrivateStorageHealth: vi.fn(),
     prisma: {
       $queryRaw: vi.fn(),
     },
@@ -38,10 +38,9 @@ vi.mock("@/lib/auth/require", () => ({
 
 vi.mock("@/lib/prisma", () => ({ prisma: mocks.prisma }));
 vi.mock("@/lib/stripe", () => ({ STRIPE_PLACEHOLDER_PRICE_IDS: [] }));
-vi.mock("@/lib/supabase/admin", () => ({
-  createSupabaseAdminClient: () => ({
-    storage: { listBuckets: mocks.listBuckets },
-  }),
+vi.mock("@/lib/storage/r2", () => ({
+  checkPrivateStorageHealth: mocks.checkPrivateStorageHealth,
+  STORAGE_BUCKET_CONCEPTS: "concepts", STORAGE_BUCKET_FINAL_DELIVERABLES: "final-deliverables",
 }));
 vi.mock("stripe", () => ({
   default: class StripeMock {
@@ -55,6 +54,11 @@ const ENV_KEYS = [
   "NEXT_PUBLIC_SUPABASE_URL",
   "NEXT_PUBLIC_SUPABASE_ANON_KEY",
   "SUPABASE_SERVICE_ROLE_KEY",
+  "R2_ACCOUNT_ID",
+  "R2_ACCESS_KEY_ID",
+  "R2_SECRET_ACCESS_KEY",
+  "R2_CONCEPTS_BUCKET",
+  "R2_FINAL_DELIVERABLES_BUCKET",
   "STRIPE_SECRET_KEY",
   "STRIPE_WEBHOOK_SECRET",
   "POSTMARK_SERVER_TOKEN",
@@ -75,10 +79,7 @@ describe("GET /api/admin/health", () => {
     mocks.requireAdmin.mockResolvedValue(undefined);
     mocks.prisma.$queryRaw.mockResolvedValue([{ "?column?": 1 }]);
     mocks.accountsRetrieve.mockResolvedValue({ id: "acct_123" });
-    mocks.listBuckets.mockResolvedValue({
-      data: [{ name: "concepts" }, { name: "final-deliverables" }],
-      error: null,
-    });
+    mocks.checkPrivateStorageHealth.mockResolvedValue([{ bucket: "concepts", passed: true }, { bucket: "final-deliverables", passed: true }]);
   });
 
   afterEach(() => {
@@ -143,6 +144,7 @@ describe("GET /api/admin/health", () => {
       delete process.env[key];
     }
     mocks.prisma.$queryRaw.mockRejectedValue(new Error("connection refused"));
+    mocks.checkPrivateStorageHealth.mockRejectedValue(new Error("unavailable"));
 
     const res = await GET();
     const body = await res.json();
@@ -157,6 +159,6 @@ describe("GET /api/admin/health", () => {
     expect(byKey.get("env:PUBLIC_SITE_URL")).toBe(false);
     expect(byKey.get("db:connectivity")).toBe(false);
     expect(byKey.get("stripe:connectivity")).toBe(false);
-    expect(byKey.get("supabase:bucket:concepts")).toBe(false);
+    expect(byKey.get("r2:bucket:concepts")).toBe(false);
   });
 });

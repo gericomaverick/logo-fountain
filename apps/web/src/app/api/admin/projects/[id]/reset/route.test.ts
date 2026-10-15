@@ -28,7 +28,7 @@ vi.mock("@/lib/auth/require", () => ({
 }));
 
 vi.mock("@/lib/prisma", () => ({ prisma: mocks.prisma }));
-vi.mock("@/lib/supabase/storage", () => ({ deleteStoredFiles: mocks.deleteStoredFiles }));
+vi.mock("@/lib/storage/r2", () => ({ deleteStoredFiles: mocks.deleteStoredFiles }));
 vi.mock("@/lib/audit", () => ({ logAudit: mocks.logAudit }));
 
 import { POST } from "./route";
@@ -143,7 +143,9 @@ describe("POST /api/admin/projects/[id]/reset", () => {
       }),
     );
     expect(body.retainedFinalStorageObjects).toEqual([{ bucket: "finals", path: "p1/finals/old.zip" }]);
-    expect(mocks.deleteStoredFiles).toHaveBeenCalledWith([{ bucket: "concepts", path: "p1/c1.png" }]);
+    expect(mocks.deleteStoredFiles).not.toHaveBeenCalled();
+    expect(body.retainedConceptStorageObjects).toEqual([{ bucket: "concepts", path: "p1/c1.png" }]);
+    expect(body.storageCleanup).toEqual({ attempted: 0, deleted: 0, failures: [] });
     expect(mocks.logAudit).toHaveBeenCalledWith(mocks.tx, expect.objectContaining({
       payload: expect.objectContaining({ retainedFinalStorageObjects: [{ bucket: "finals", path: "p1/finals/old.zip" }] }),
     }));

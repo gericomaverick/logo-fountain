@@ -41,7 +41,7 @@ vi.mock("@/lib/auth/require", () => ({
   toRouteErrorResponse: mocks.toRouteErrorResponse,
 }));
 vi.mock("@/lib/prisma", () => ({ prisma: mocks.prisma }));
-vi.mock("@/lib/supabase/storage", () => ({
+vi.mock("@/lib/storage/r2", () => ({
   uploadConceptAsset: mocks.uploadConceptAsset,
   deleteStoredFiles: mocks.deleteStoredFiles,
   createSignedConceptAssetUrl: mocks.createSignedConceptAssetUrl,
