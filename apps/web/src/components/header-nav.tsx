@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { logoutAndVerifySession } from "@/lib/auth/logout";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -68,7 +69,7 @@ export function HeaderNav() {
       <nav className="mx-auto flex w-full max-w-[1160px] items-center justify-between gap-3 px-6 py-3 text-sm md:px-10">
         <div className="flex items-center gap-4">
           <Link href="/dashboard" className="flex flex-row items-center gap-2 font-semibold text-neutral-900 transition-opacity hover:opacity-80">
-            <img src="/img/logo.svg" alt="Logo Fountain" className="h-5 w-auto" />
+            <Image src="/img/logo.svg" alt="Logo Fountain" width={410} height={386} unoptimized className="h-5 w-auto" />
             Logo Fountain
           </Link>
           <Link className="portal-link no-underline" href="/dashboard">Dashboard</Link>

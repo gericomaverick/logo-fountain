@@ -148,3 +148,10 @@ Upload hardening note (2026-03-06):
 - [x] Resolved overlapping concept publication and disabled usage-reset routes/tests semantically; all mutation guards precede other work. Finals preserve approved no-deletion-after-any-transaction-exception policy.
 - [x] Polling consults current per-field dirty refs after snapshot retrieval, preserving edited limits while refreshing untouched fields; regression covers a pre-edit captured poll callback.
 - [x] Validation: 87 files / 555 unit tests, typecheck, lint (0 errors / 1 existing warning), webpack placeholder build (31 pages), owned-port Playwright (6/6). Read-only audit: 39 affected packages (3 critical / 26 high / 8 moderate / 2 low); dependency remediation needs separate approval. Detailed report: `docs/reports/consolidated-integration-5230.md`. No primary-worktree edits, original emergency ref changes, dependency installs, lockfile changes, live services, migrations, main merge/push or deployment.
+
+## App image efficiency follow-up (after consolidated report)
+- [x] Convert header logo to `next/image`, preserve 20px CSS height and real SVG 410:386 aspect; explicitly bypass unnecessary SVG optimization.
+- [x] Correct auth logo aspect (36px CSS height unchanged); remove non-LCP logo preloads and unconditional preload for mobile-hidden auth artwork; bound artwork `sizes` to its desktop half-column / 1152px shell cap.
+- [x] Inspect all seven signed concept preview `<img>` usages and Next image configuration; keep private expiring URLs direct, without new optimizer allowlists/cache or provider transformations. Marketing untouched.
+- [x] Focused tests: 2 files / 5 tests; typecheck; lint 0 errors / 0 warnings; webpack placeholder build 31 pages. No broad unit/browser rerun or measured bandwidth/LCP claim. Queue CLI remains absent; sequential direct validation.
+- [x] Report: `docs/reports/app-image-efficiency-5230.md`. Existing dependency audit remains separate triage; no automatic fixes or dependency/lockfile changes.

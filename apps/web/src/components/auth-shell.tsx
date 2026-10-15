@@ -27,13 +27,14 @@ export function AuthShell({
       <div className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-6xl items-center justify-center sm:min-h-[calc(100vh-4rem)]">
         <section className="w-full overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-lg shadow-neutral-900/5 lg:grid lg:grid-cols-12">
           <aside className="relative hidden min-h-full border-r border-neutral-200 bg-neutral-950 text-white lg:col-span-6 lg:block">
+            {/* Half of the 1152px shell, with 24px outer gutters; hidden below lg.
+                Keep default lazy loading instead of preloading artwork hidden on mobile. */}
             {sideImageSrc ? (
               <Image
                 src={sideImageSrc}
                 alt={sideImageAlt ?? ""}
                 fill
-                priority
-                sizes="(min-width: 1280px) 50vw, (min-width: 1024px) 48vw, 100vw"
+                sizes="(min-width: 1200px) 576px, (min-width: 1024px) calc(50vw - 24px), 0px"
                 className="object-cover"
               />
             ) : null}
@@ -46,7 +47,7 @@ export function AuthShell({
           <div className="lg:col-span-6">
             <div className="mx-auto w-full max-w-lg px-6 py-7 sm:px-8 sm:py-8 lg:px-10 lg:py-9">
               <div className="mb-5 flex items-center justify-center sm:mb-6">
-                <Image src="/img/logo.svg" alt="Logo Fountain" width={156} height={36} className="h-9 w-auto" priority />
+                <Image src="/img/logo.svg" alt="Logo Fountain" width={410} height={386} unoptimized className="h-9 w-auto" />
               </div>
 
               <div>
