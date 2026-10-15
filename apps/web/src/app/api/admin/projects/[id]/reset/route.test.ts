@@ -74,7 +74,7 @@ describe("POST /api/admin/projects/[id]/reset", () => {
     const res = await POST(
       new Request("http://localhost/api/admin/projects/p1/reset", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { origin: "http://localhost", "content-type": "application/json" },
         body: JSON.stringify({ confirm: true, mode: "clean-slate" }),
       }),
       { params: Promise.resolve({ id: "p1" }) },
@@ -89,7 +89,7 @@ describe("POST /api/admin/projects/[id]/reset", () => {
     const res = await POST(
       new Request("http://localhost/api/admin/projects/p1/reset", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { origin: "http://localhost", "content-type": "application/json" },
         body: JSON.stringify({ confirm: true }),
       }),
       { params: Promise.resolve({ id: "p1" }) },
@@ -119,7 +119,7 @@ describe("POST /api/admin/projects/[id]/reset", () => {
     const res = await POST(
       new Request("http://localhost/api/admin/projects/p1/reset", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { origin: "http://localhost", "content-type": "application/json" },
         body: JSON.stringify({ confirm: true, mode: "clean-slate" }),
       }),
       { params: Promise.resolve({ id: "p1" }) },

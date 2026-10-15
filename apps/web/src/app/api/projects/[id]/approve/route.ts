@@ -4,6 +4,7 @@ import { applyTransition } from "@/lib/project-state-machine";
 import { logAudit } from "@/lib/audit";
 import { requireProjectMembership, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { notifyAdminConceptApproved, notifyClientConceptApproved } from "@/lib/project-lifecycle-email";
+import { rejectUntrustedMutationOrigin } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
 
@@ -31,6 +32,8 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const originError = rejectUntrustedMutationOrigin(req);
+  if (originError) return originError;
   try {
     const user = await requireUser();
 

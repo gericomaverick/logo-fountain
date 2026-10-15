@@ -3,6 +3,7 @@ import { logAudit } from "@/lib/audit";
 import { jsonError } from "@/lib/api-error";
 import { RouteAuthError, requireAdmin, requireProjectMembership, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { notifyAdminMessageFromProject, notifyClientNewMessage } from "@/lib/project-lifecycle-email";
+import { rejectUntrustedMutationOrigin } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
 
@@ -56,6 +57,8 @@ export async function GET(_req: Request, { params }: RouteParams) {
 }
 
 export async function POST(req: Request, { params }: RouteParams) {
+  const originError = rejectUntrustedMutationOrigin(req);
+  if (originError) return originError;
   try {
     const { id } = await params;
     const auth = await authorizeProjectAccess(id);

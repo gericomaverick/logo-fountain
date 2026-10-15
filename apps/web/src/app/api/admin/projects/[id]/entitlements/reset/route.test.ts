@@ -17,12 +17,12 @@ describe("standalone entitlement usage reset", () => {
 
   it("still requires an authenticated admin", async () => {
     mocks.requireAdmin.mockRejectedValueOnce(new Error("Forbidden"));
-    const res = await POST(new Request("http://localhost", { method: "POST" }), { params: Promise.resolve({ id: "p1" }) });
+    const res = await POST(new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "POST" }), { params: Promise.resolve({ id: "p1" }) });
     expect(res.status).toBe(403);
   });
 
   it("is disabled so counters cannot diverge from active lifecycle records", async () => {
-    const res = await POST(new Request("http://localhost", { method: "POST" }), { params: Promise.resolve({ id: "p1" }) });
+    const res = await POST(new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "POST" }), { params: Promise.resolve({ id: "p1" }) });
     expect(res.status).toBe(409);
     await expect(res.json()).resolves.toMatchObject({ error: { code: "ENTITLEMENT_USAGE_RESET_DISABLED" } });
   });

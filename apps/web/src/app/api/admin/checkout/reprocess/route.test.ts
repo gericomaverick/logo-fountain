@@ -57,7 +57,7 @@ describe("POST /api/admin/checkout/reprocess", () => {
     const res = await POST(
       new Request("http://localhost/api/admin/checkout/reprocess", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { origin: "http://localhost", "content-type": "application/json" },
         body: JSON.stringify({ session_id: "cs_test" }),
       }),
     );
@@ -71,7 +71,7 @@ describe("POST /api/admin/checkout/reprocess", () => {
     const res = await POST(
       new Request("http://localhost/api/admin/checkout/reprocess", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { origin: "http://localhost", "content-type": "application/json" },
         body: JSON.stringify({}),
       }),
     );
@@ -95,7 +95,7 @@ describe("POST /api/admin/checkout/reprocess", () => {
     const res = await POST(
       new Request("http://localhost/api/admin/checkout/reprocess", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { origin: "http://localhost", "content-type": "application/json" },
         body: JSON.stringify({ session_id: "cs_ok" }),
       }),
     );
@@ -116,7 +116,7 @@ describe("POST /api/admin/checkout/reprocess", () => {
     const res = await POST(
       new Request("http://localhost/api/admin/checkout/reprocess", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { origin: "http://localhost", "content-type": "application/json" },
         body: JSON.stringify({ session_id: "cs_unpaid" }),
       }),
     );
@@ -140,7 +140,7 @@ describe("POST /api/admin/checkout/reprocess", () => {
     const res = await POST(
       new Request("http://localhost/api/admin/checkout/reprocess", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { origin: "http://localhost", "content-type": "application/json" },
         body: JSON.stringify({ session_id: "cs_ok" }),
       }),
     );

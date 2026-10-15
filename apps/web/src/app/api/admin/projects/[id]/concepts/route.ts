@@ -9,6 +9,7 @@ import { applyTransition } from "@/lib/project-state-machine";
 import { requireAdmin, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { createProjectSystemMessage } from "@/lib/system-messages";
 import { notifyClientConceptReady } from "@/lib/project-lifecycle-email";
+import { rejectUntrustedMutationOrigin } from "@/lib/request-origin";
 import { ConceptEntitlementError, consumeConceptEntitlement } from "@/lib/concept-entitlement";
 
 class SafeConceptPublicationAbort extends Error {}
@@ -156,6 +157,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 }
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const originError = rejectUntrustedMutationOrigin(req);
+  if (originError) return originError;
   try {
     const user = await requireUser();
     await requireAdmin(user);

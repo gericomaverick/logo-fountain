@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import ts from "typescript";
 
 import { describe, expect, it } from "vitest";
 
@@ -22,6 +23,14 @@ const PUBLIC_ROUTES: Record<string, string> = {
   "auth/forgot-password/route.ts": "Password recovery must be public; response is uniform and requests are rate limited.",
   "auth/logout/route.ts": "Clears the caller's own session cookie; no data exposure.",
   "auth/session/route.ts": "Reports the caller's own session state; no data exposure.",
+};
+
+// Public server-to-server or possession-token POSTs do not rely on browser
+// cookies, so CSRF Origin enforcement is not their authentication boundary.
+const MUTATION_ORIGIN_EXEMPTIONS: Record<string, string> = {
+  "stripe/webhook/route.ts": "Stripe signature authenticates the exact raw body.",
+  "checkout/magic-link/route.ts": "Public post-checkout possession-token flow; independently rate limited.",
+  "checkout/resend-magic-link/route.ts": "Public post-checkout possession-token flow; independently rate limited.",
 };
 
 function findRouteFiles(dir: string): string[] {
@@ -68,6 +77,41 @@ describe("API route auth guards", () => {
         `${rel} has no auth guard (requireUser or supabase.auth.getUser). ` +
           "If this route is intentionally public, add it to PUBLIC_ROUTES with a reason.",
       ).toBe(true);
+    });
+  }
+
+  for (const file of routeFiles) {
+    const rel = relative(file);
+    if (MUTATION_ORIGIN_EXEMPTIONS[rel]) continue;
+    it(`${rel} guards each mutation before other work`, () => {
+      const source = ts.createSourceFile(file, fs.readFileSync(file, "utf8"), ts.ScriptTarget.Latest, true);
+      for (const statement of source.statements) {
+        // Require the explicit handler form: alternate export syntax must get
+        // deliberate review rather than silently escaping guard discovery.
+        if (ts.isExportDeclaration(statement) && statement.exportClause) {
+          expect(statement.exportClause.getText(source)).not.toMatch(/\b(?:POST|PUT|PATCH|DELETE)\b/);
+        }
+        if (ts.isVariableStatement(statement) && statement.modifiers?.some(m => m.kind === ts.SyntaxKind.ExportKeyword)) {
+          for (const declaration of statement.declarationList.declarations) {
+            expect(declaration.name.getText(source)).not.toMatch(/^(?:POST|PUT|PATCH|DELETE)$/);
+          }
+        }
+        if (!ts.isFunctionDeclaration(statement) || !statement.name ||
+          !/^(?:POST|PUT|PATCH|DELETE)$/.test(statement.name.text)) continue;
+        const [guard, reject] = statement.body?.statements ?? [];
+        expect(guard && ts.isVariableStatement(guard), `${rel}: guard must be first`).toBe(true);
+        if (!guard || !ts.isVariableStatement(guard)) continue;
+        const declaration = guard.declarationList.declarations[0];
+        const call = declaration.initializer;
+        expect(call && ts.isCallExpression(call) && call.expression.getText(source) === "rejectUntrustedMutationOrigin").toBe(true);
+        if (!call || !ts.isCallExpression(call)) continue;
+        expect(call.arguments[0]?.getText(source)).toBe(statement.parameters[0]?.name.getText(source));
+        expect(reject && ts.isIfStatement(reject), `${rel}: must return rejected response`).toBe(true);
+        if (!reject || !ts.isIfStatement(reject)) continue;
+        expect(reject.expression.getText(source)).toBe(declaration.name.getText(source));
+        const returned = ts.isBlock(reject.thenStatement) ? reject.thenStatement.statements[0] : reject.thenStatement;
+        expect(ts.isReturnStatement(returned) && returned.expression?.getText(source)).toBe(declaration.name.getText(source));
+      }
     });
   }
 

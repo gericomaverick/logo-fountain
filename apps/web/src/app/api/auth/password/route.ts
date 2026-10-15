@@ -6,6 +6,7 @@ import { verifyUserPassword } from "@/lib/auth/verify-password";
 import { prisma } from "@/lib/prisma";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { rejectUntrustedMutationOrigin } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
 
@@ -15,6 +16,8 @@ type ChangePasswordBody = {
 };
 
 export async function POST(req: Request) {
+  const originError = rejectUntrustedMutationOrigin(req);
+  if (originError) return originError;
   try {
     const user = await requireUser();
 

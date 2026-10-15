@@ -1,6 +1,7 @@
 import { jsonError } from "@/lib/api-error";
 import { RouteAuthError, requireAdmin, requireProjectMembership, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { prisma } from "@/lib/prisma";
+import { rejectUntrustedMutationOrigin } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
 
@@ -59,6 +60,8 @@ export async function GET(_req: Request, { params }: RouteParams) {
 }
 
 export async function POST(req: Request, { params }: RouteParams) {
+  const originError = rejectUntrustedMutationOrigin(req);
+  if (originError) return originError;
   try {
     const { id, conceptId } = await params;
     const auth = await authorizeProjectAccess(id);

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { applyTransition, canTransition } from "@/lib/project-state-machine";
 import { logAudit } from "@/lib/audit";
 import { requireAdmin, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
+import { rejectUntrustedMutationOrigin } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
 
@@ -17,6 +18,8 @@ function parseBody(body: unknown): { status: string | null; reason: string | nul
 }
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const originError = rejectUntrustedMutationOrigin(req);
+  if (originError) return originError;
   try {
     const user = await requireUser();
     await requireAdmin(user);

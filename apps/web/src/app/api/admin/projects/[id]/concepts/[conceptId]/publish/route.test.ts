@@ -25,7 +25,7 @@ vi.mock("@/lib/project-lifecycle-email", () => ({ notifyClientConceptReady: mock
 import { POST } from "./route";
 
 function publish() {
-  return POST(new Request("http://localhost", { method: "POST" }), { params: Promise.resolve({ id: "p1", conceptId: "c1" }) });
+  return POST(new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "POST" }), { params: Promise.resolve({ id: "p1", conceptId: "c1" }) });
 }
 
 describe("POST concept publish entitlement integrity", () => {

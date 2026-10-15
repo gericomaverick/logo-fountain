@@ -3,6 +3,7 @@ import { getRequestOrigin } from "@/lib/request-origin";
 import { requireProjectMembership, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { prisma } from "@/lib/prisma";
 import { stripe, UPSELL_PRICE_TO_ACTION, type PackageCode, type UpsellAction } from "@/lib/stripe";
+import { rejectUntrustedMutationOrigin } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
 
@@ -43,6 +44,8 @@ function parsePackageCode(value: unknown): PackageCode | null {
 }
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const originError = rejectUntrustedMutationOrigin(req);
+  if (originError) return originError;
   try {
     const user = await requireUser();
     const { id: projectId } = await params;

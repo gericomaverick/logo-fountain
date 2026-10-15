@@ -46,7 +46,7 @@ describe("PATCH /api/admin/projects/[id]/entitlements", () => {
   it("rejects unauthorised admin override attempts", async () => {
     mocks.requireAdmin.mockRejectedValueOnce(new Error("Forbidden"));
 
-    const res = await PATCH(new Request("http://localhost", { method: "PATCH", body: JSON.stringify({ concepts: 4, reason: "Customer goodwill" }) }), {
+    const res = await PATCH(new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "PATCH", body: JSON.stringify({ concepts: 4, reason: "Customer goodwill" }) }), {
       params: Promise.resolve({ id: "p1" }),
     });
 
@@ -56,7 +56,7 @@ describe("PATCH /api/admin/projects/[id]/entitlements", () => {
   });
 
   it("validates integer limits", async () => {
-    const res = await PATCH(new Request("http://localhost", { method: "PATCH", body: JSON.stringify({ concepts: "abc" }) }), {
+    const res = await PATCH(new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "PATCH", body: JSON.stringify({ concepts: "abc" }) }), {
       params: Promise.resolve({ id: "p1" }),
     });
 
@@ -66,7 +66,7 @@ describe("PATCH /api/admin/projects/[id]/entitlements", () => {
   });
 
   it("requires a reason before applying an override", async () => {
-    const res = await PATCH(new Request("http://localhost", { method: "PATCH", body: JSON.stringify({ concepts: 4 }) }), {
+    const res = await PATCH(new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "PATCH", body: JSON.stringify({ concepts: 4 }) }), {
       params: Promise.resolve({ id: "p1" }),
     });
     expect(res.status).toBe(400);
@@ -93,7 +93,7 @@ describe("PATCH /api/admin/projects/[id]/entitlements", () => {
         { key: "revisions", limitInt: 4, consumedInt: 1, reservedInt: 1 },
       ]);
 
-    const first = await PATCH(new Request("http://localhost", { method: "PATCH", body: JSON.stringify({ revisions: 3, reason: "Purchased manual extension" }) }), {
+    const first = await PATCH(new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "PATCH", body: JSON.stringify({ revisions: 3, reason: "Purchased manual extension" }) }), {
       params: Promise.resolve({ id: "p1" }),
     });
     const firstBody = await first.json();
@@ -102,7 +102,7 @@ describe("PATCH /api/admin/projects/[id]/entitlements", () => {
     expect(firstBody.changed).toBe(true);
     expect(firstBody.entitlementUsage.revisions).toMatchObject({ limit: 3, consumed: 1, reserved: 1, remaining: 1 });
 
-    const second = await PATCH(new Request("http://localhost", { method: "PATCH", body: JSON.stringify({ revisions: 4, reason: "Further scoped work agreed" }) }), {
+    const second = await PATCH(new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "PATCH", body: JSON.stringify({ revisions: 4, reason: "Further scoped work agreed" }) }), {
       params: Promise.resolve({ id: "p1" }),
     });
     const secondBody = await second.json();
@@ -129,7 +129,7 @@ describe("PATCH /api/admin/projects/[id]/entitlements", () => {
         { key: "revisions", limitInt: 2, consumedInt: 1, reservedInt: 1 },
       ]);
 
-    const res = await PATCH(new Request("http://localhost", { method: "PATCH", body: JSON.stringify({ concepts: 3, revisions: 2, reason: "Confirm existing limits" }) }), {
+    const res = await PATCH(new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "PATCH", body: JSON.stringify({ concepts: 3, revisions: 2, reason: "Confirm existing limits" }) }), {
       params: Promise.resolve({ id: "p1" }),
     });
     const body = await res.json();

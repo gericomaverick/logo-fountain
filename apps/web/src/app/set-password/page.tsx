@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { AuthShell } from "@/components/auth-shell";
 import resetImage from "@/img/image-panel-2.png";
+import { safeAuthNextPath } from "@/lib/auth/safe-next";
 import { ensureBrowserSupabaseSession } from "@/lib/auth/session";
 import { hasValidationErrors, toErrorList, validatePasswordReset, ValidationErrors } from "@/lib/auth/validation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -13,8 +14,7 @@ type PasswordErrors = ValidationErrors<"password" | "confirm">;
 
 function safeNextPath(): string {
   if (typeof window === "undefined") return "/dashboard";
-  const rawNext = new URLSearchParams(window.location.search).get("next") || "/dashboard";
-  return rawNext.startsWith("/") ? rawNext : "/dashboard";
+  return safeAuthNextPath(new URLSearchParams(window.location.search).get("next"));
 }
 
 export default function SetPasswordPage() {

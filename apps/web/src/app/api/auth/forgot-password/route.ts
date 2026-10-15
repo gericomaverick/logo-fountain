@@ -2,10 +2,13 @@ import { jsonError } from "@/lib/api-error";
 import { consumeForgotPasswordLimit } from "@/lib/forgot-password-rate-limit";
 import { getSecuritySensitivePublicOrigin } from "@/lib/request-origin";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { rejectUntrustedMutationOrigin } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
+  const originError = rejectUntrustedMutationOrigin(req);
+  if (originError) return originError;
   const payload = (await req.json().catch(() => null)) as { email?: unknown } | null;
   const email = typeof payload?.email === "string" ? payload.email.trim().toLowerCase() : "";
   if (!email || !email.includes("@")) {

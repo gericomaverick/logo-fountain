@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+
+import { refreshOverrideInputs } from "@/lib/admin-override-inputs";
 
 import { ProjectTimeline } from "@/app/project-timeline";
 import { FeatureNoticeCard } from "@/components/feature-notice-card";
@@ -158,7 +160,7 @@ export default function AdminProjectPage() {
   const [conceptLimit, setConceptLimit] = useState("");
   const [revisionLimit, setRevisionLimit] = useState("");
   const [entitlementOverrideReason, setEntitlementOverrideReason] = useState("");
-  const [entitlementsDirty, setEntitlementsDirty] = useState(false);
+  const overrideDirty = useRef({ concepts: false, revisions: false });
   const [finalZipFile, setFinalZipFile] = useState<File | null>(null);
   const [invoices, setInvoices] = useState<ProjectInvoice[]>([]);
   const [invoiceError, setInvoiceError] = useState<string | null>(null);
@@ -181,9 +183,8 @@ export default function AdminProjectPage() {
     setInvoices(Array.isArray(invoicesPayload?.invoices) ? invoicesPayload.invoices : []);
     setInvoiceError(invoicesResponse.ok ? null : readError(invoicesPayload, "Failed to load invoices"));
 
-    if (nextSnapshot && !entitlementsDirty) {
-      setConceptLimit(nextSnapshot.entitlementUsage?.concepts?.unlimited ? "" : String(nextSnapshot.entitlementUsage?.concepts?.limit ?? ""));
-      setRevisionLimit(nextSnapshot.entitlementUsage?.revisions?.unlimited ? "" : String(nextSnapshot.entitlementUsage?.revisions?.limit ?? ""));
+    if (nextSnapshot) {
+      refreshOverrideInputs(overrideDirty, nextSnapshot.entitlementUsage, setConceptLimit, setRevisionLimit);
     }
   }
 
@@ -236,7 +237,7 @@ export default function AdminProjectPage() {
     if (!response.ok) {
       setError(readError(payload, "Failed to update entitlements"));
     } else {
-      setEntitlementsDirty(false);
+      overrideDirty.current = { concepts: false, revisions: false };
       setConceptDirty(false);
       setRevisionDirty(false);
       setEntitlementOverrideReason("");
@@ -457,11 +458,11 @@ export default function AdminProjectPage() {
             <div className="mt-2 grid gap-3 sm:grid-cols-2">
               <label className="flex flex-col gap-1">
                 <span className="text-xs text-neutral-600">Concept limit</span>
-                <input className="rounded border border-neutral-300 bg-white px-2 py-1" value={conceptLimit} onChange={(e) => { setConceptLimit(e.target.value); setConceptDirty(true); setEntitlementsDirty(true); }} placeholder="e.g. 3" inputMode="numeric" />
+                <input className="rounded border border-neutral-300 bg-white px-2 py-1" value={conceptLimit} onChange={(e) => { setConceptLimit(e.target.value); setConceptDirty(true); overrideDirty.current.concepts = true; }} placeholder="e.g. 3" inputMode="numeric" />
               </label>
               <label className="flex flex-col gap-1">
                 <span className="text-xs text-neutral-600">Revision limit</span>
-                <input className="rounded border border-neutral-300 bg-white px-2 py-1" value={revisionLimit} onChange={(e) => { setRevisionLimit(e.target.value); setRevisionDirty(true); setEntitlementsDirty(true); }} placeholder="e.g. 2" inputMode="numeric" />
+                <input className="rounded border border-neutral-300 bg-white px-2 py-1" value={revisionLimit} onChange={(e) => { setRevisionLimit(e.target.value); setRevisionDirty(true); overrideDirty.current.revisions = true; }} placeholder="e.g. 2" inputMode="numeric" />
               </label>
             </div>
             <label className="mt-3 flex flex-col gap-1">

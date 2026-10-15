@@ -54,7 +54,7 @@ function zipFile() { return new File(["zip"], "final.zip", { type: "application/
 function request(file: File | null = zipFile()) {
   const form = new FormData();
   if (file) form.set("file", file);
-  return POST(new Request("http://localhost/api/admin/projects/p1/finals", { method: "POST", body: form }), {
+  return POST(new Request("http://localhost/api/admin/projects/p1/finals", { headers: { origin: "https://app.example.com" }, method: "POST", body: form }), {
     params: Promise.resolve({ id: "p1" }),
   });
 }
@@ -68,6 +68,7 @@ describe("POST /api/admin/projects/[id]/finals", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubEnv("NODE_ENV", "test");
+    vi.stubEnv("PUBLIC_SITE_URL", "https://app.example.com");
     mocks.requireUser.mockResolvedValue({ id: "admin-1" });
     mocks.requireAdmin.mockResolvedValue(undefined);
     mocks.prisma.project.findUnique.mockResolvedValue({ id: "p1", status: "FINAL_FILES_READY", updatedAt });
@@ -132,7 +133,7 @@ describe("POST /api/admin/projects/[id]/finals", () => {
     expect(mocks.createProjectSystemMessage).not.toHaveBeenCalled();
   });
 
-  it("cleans the newly uploaded unpublished object after a known-safe optimistic conflict", async () => {
+  it("retains the newly uploaded object after a typed optimistic conflict", async () => {
     mocks.tx.project.updateMany.mockResolvedValueOnce({ count: 0 });
 
     const response = await request();
@@ -140,20 +141,11 @@ describe("POST /api/admin/projects/[id]/finals", () => {
     expect(response.status).toBe(409);
     expect(mocks.tx.fileAsset.create).not.toHaveBeenCalled();
     expect(mocks.logAudit).not.toHaveBeenCalled();
-    expect(mocks.prisma.fileAsset.findFirst).not.toHaveBeenCalled();
-    expect(mocks.deleteStoredFiles).toHaveBeenCalledWith([{ bucket: newUpload.bucket, path: newUpload.path }]);
+    expect(mocks.prisma.fileAsset.findFirst).toHaveBeenCalled();
+    expect(mocks.deleteStoredFiles).not.toHaveBeenCalled();
     await expect(response.json()).resolves.toMatchObject({
-      code: "FINAL_PUBLICATION_CONFLICT",
-      uploadedObjectRetained: false,
-      cleanup: { attempted: 1, deleted: 1, failed: false },
+      code: "FINAL_PUBLICATION_CONFLICT", uploadedObjectRetained: true,
     });
-  });
-
-  it("reports retention when known-safe conflict cleanup fails", async () => {
-    mocks.tx.project.updateMany.mockResolvedValueOnce({ count: 0 });
-    mocks.deleteStoredFiles.mockResolvedValueOnce({ attempted: 1, deleted: 0, failures: [{ bucket: newUpload.bucket, message: "down" }] });
-    const response = await request();
-    await expect(response.json()).resolves.toMatchObject({ uploadedObjectRetained: true, cleanup: { failed: true } });
   });
 
   it("treats committed-then-thrown transactions as committed without deleting storage", async () => {

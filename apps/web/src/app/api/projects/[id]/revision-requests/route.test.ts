@@ -69,7 +69,7 @@ describe("POST /api/projects/[id]/revision-requests", () => {
     const req = new Request("http://localhost", {
       method: "POST",
       body: JSON.stringify({ body: "Please tweak spacing" }),
-      headers: { "Content-Type": "application/json" },
+      headers: { origin: "http://localhost", "Content-Type": "application/json" },
     });
 
     const res = await POST(req, { params: Promise.resolve({ id: "p1" }) });
@@ -89,7 +89,7 @@ describe("POST /api/projects/[id]/revision-requests", () => {
     const req = new Request("http://localhost", {
       method: "POST",
       body: JSON.stringify({ body: "Please adjust typography", conceptId: "c2" }),
-      headers: { "Content-Type": "application/json" },
+      headers: { origin: "http://localhost", "Content-Type": "application/json" },
     });
 
     const res = await POST(req, { params: Promise.resolve({ id: "p1" }) });
@@ -119,7 +119,7 @@ describe("POST /api/projects/[id]/revision-requests", () => {
     const req = new Request("http://localhost", {
       method: "POST",
       body: JSON.stringify({ body: "Please explore another direction", conceptId: "c3" }),
-      headers: { "Content-Type": "application/json" },
+      headers: { origin: "http://localhost", "Content-Type": "application/json" },
     });
 
     mocks.prisma.concept.findFirst.mockResolvedValue({ id: "c3" });

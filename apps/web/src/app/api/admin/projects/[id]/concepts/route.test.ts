@@ -126,13 +126,29 @@ describe("/api/admin/projects/[id]/concepts", () => {
     expect(mocks.prisma.projectReadState.findMany).not.toHaveBeenCalled();
   });
 
+  it("rejects a cross-origin multipart upload before authentication or storage I/O", async () => {
+    const formData = new FormData();
+    formData.set("file", new File([new Uint8Array([1])], "concept.png", { type: "image/png" }));
+
+    const res = await POST(new Request("http://localhost", {
+      method: "POST",
+      headers: { origin: "https://evil.example" },
+      body: formData,
+    }), { params: Promise.resolve({ id: "p1" }) });
+
+    expect(res.status).toBe(403);
+    expect((await res.json()).error.code).toBe("INVALID_ORIGIN");
+    expect(mocks.requireUser).not.toHaveBeenCalled();
+    expect(mocks.uploadConceptAsset).not.toHaveBeenCalled();
+  });
+
   it("POST accepts first concept upload from BRIEF_SUBMITTED and transitions to CONCEPTS_READY", async () => {
     const formData = new FormData();
     formData.set("requestKey", "11111111-1111-4111-8111-111111111111");
     formData.set("file", new File([new Uint8Array([1, 2, 3])], "concept.png", { type: "image/png" }));
     formData.set("notes", "Primary concept explainer");
 
-    const res = await POST(new Request("http://localhost", { method: "POST", body: formData }), {
+    const res = await POST(new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "POST", body: formData }), {
       params: Promise.resolve({ id: "p1" }),
     });
 
@@ -169,7 +185,7 @@ describe("/api/admin/projects/[id]/concepts", () => {
     const formData = new FormData();
     formData.set("requestKey", "11111111-1111-4111-8111-111111111111");
     formData.set("file", new File([new Uint8Array([1])], "concept.png", { type: "image/png" }));
-    const res = await POST(new Request("http://localhost", { method: "POST", body: formData }), {
+    const res = await POST(new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "POST", body: formData }), {
       params: Promise.resolve({ id: "p1" }),
     });
     expect(res.status).toBe(400);
@@ -192,7 +208,7 @@ describe("/api/admin/projects/[id]/concepts", () => {
     formData.set("uploadMode", "revision");
     formData.set("conceptId", "c1");
 
-    const res = await POST(new Request("http://localhost", { method: "POST", body: formData }), {
+    const res = await POST(new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "POST", body: formData }), {
       params: Promise.resolve({ id: "p1" }),
     });
     const payload = await res.json().catch(() => null);
@@ -224,7 +240,7 @@ describe("/api/admin/projects/[id]/concepts", () => {
     formData.set("uploadMode", "revision");
     formData.set("conceptId", "c1");
 
-    const res = await POST(new Request("http://localhost", { method: "POST", body: formData }), {
+    const res = await POST(new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "POST", body: formData }), {
       params: Promise.resolve({ id: "p1" }),
     });
     const payload = await res.json();
@@ -237,7 +253,7 @@ describe("/api/admin/projects/[id]/concepts", () => {
     const form = new FormData(); form.set("requestKey", key); form.set("uploadMode", mode);
     form.set("file", new File([new Uint8Array(data)], "x.png", {type:"image/png"}));
     if (mode === "replace") form.set("conceptNumber", "1");
-    return POST(new Request("http://localhost",{method:"POST",body:form}),{params:Promise.resolve({id:"p1"})});
+    return POST(new Request("http://localhost",{headers:{origin:"http://localhost"},method:"POST",body:form}),{params:Promise.resolve({id:"p1"})});
   }
 
   it("response-loss replay returns the durable result without another upload or consumption", async () => {

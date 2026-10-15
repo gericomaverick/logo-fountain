@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { logoutAndVerifySession } from "@/lib/auth/logout";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -19,6 +20,7 @@ export function HeaderNav() {
   const [session, setSession] = useState<SessionPayload>({ authenticated: false });
   const [loading, setLoading] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [logoutError, setLogoutError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -48,11 +50,16 @@ export function HeaderNav() {
   async function logout() {
     setLoggingOut(true);
 
+    setLogoutError(null);
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
-    } finally {
+      await logoutAndVerifySession();
+      setSession({ authenticated: false });
       router.push("/login");
       router.refresh();
+    } catch {
+      setLogoutError("Sign-out could not be confirmed. Your session may still be active. Please retry.");
+    } finally {
+      setLoggingOut(false);
     }
   }
 
@@ -71,6 +78,7 @@ export function HeaderNav() {
         </div>
 
         <div className="flex items-center gap-3">
+          {logoutError ? <span role="alert">{logoutError}</span> : null}
           {session.authenticated ? (
             <>
               <span className="text-neutral-600">{session.email ?? "Signed in"}</span>

@@ -2,11 +2,12 @@ import { jsonError } from "@/lib/api-error";
 import { requireAdmin, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { prisma } from "@/lib/prisma";
 import { applyTransition } from "@/lib/project-state-machine";
-import { deleteStoredFiles, uploadFinalDeliverable } from "@/lib/supabase/storage";
+import { uploadFinalDeliverable } from "@/lib/supabase/storage";
 import { prepareFinalZip, UploadValidationError } from "@/lib/upload-validation";
 import { logAudit } from "@/lib/audit";
 import { createProjectSystemMessage } from "@/lib/system-messages";
 import { notifyClientFinalDeliverablesReady } from "@/lib/project-lifecycle-email";
+import { rejectUntrustedMutationOrigin } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
 
@@ -23,6 +24,8 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const originError = rejectUntrustedMutationOrigin(req);
+  if (originError) return originError;
   try {
     const user = await requireUser();
     await requireAdmin(user);
@@ -153,20 +156,8 @@ export async function POST(
         }
         return { asset, project: { id: project.id, status: targetStatus }, previousAsset };
       }, { isolationLevel: "Serializable", maxWait: 2_000, timeout: 5_000 });
-    } catch (transactionError) {
-      if (transactionError instanceof KnownSafePublicationConflict) {
-        // The optimistic guard performed no write and the callback deliberately
-        // aborted, so this object is known to be unpublished and is safe to remove.
-        const cleanup = await deleteStoredFiles([{ bucket: upload.bucket, path: upload.path }]).catch(() => ({ attempted: 1, deleted: 0, failures: [{ bucket: upload.bucket, message: "cleanup unavailable" }] }));
-        return Response.json({
-          error: "Project state changed before final publication",
-          code: "FINAL_PUBLICATION_CONFLICT",
-          uploadedObjectRetained: cleanup.deleted !== 1,
-          cleanup: { attempted: cleanup.attempted, deleted: cleanup.deleted, failed: cleanup.failures.length > 0 },
-        }, { status: 409 });
-      }
-      // Other transaction errors do not prove rollback: the database may have
-      // committed before the client observed a connection/timeout failure.
+    } catch {
+      // All transaction exceptions retain immutable bytes, even typed callback aborts.
       try {
         const verifiedAsset = await prisma.fileAsset.findFirst({
           where: {

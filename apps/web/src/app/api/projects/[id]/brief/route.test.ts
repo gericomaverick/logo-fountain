@@ -66,7 +66,7 @@ describe("POST /api/projects/[id]/brief", () => {
   it("transitions AWAITING_BRIEF -> BRIEF_SUBMITTED and logs transition once", async () => {
     mocks.prisma.project.findUnique.mockResolvedValue({ id: "p1", status: "AWAITING_BRIEF" });
 
-    const req = new Request("http://localhost", {
+    const req = new Request("http://localhost", { headers: { origin: "http://localhost" },
       method: "POST",
       body: JSON.stringify(validPayload),
     });
@@ -91,7 +91,7 @@ describe("POST /api/projects/[id]/brief", () => {
   it("rejects re-submissions after the brief is already submitted", async () => {
     mocks.prisma.project.findUnique.mockResolvedValue({ id: "p1", status: "BRIEF_SUBMITTED" });
 
-    const req = new Request("http://localhost", {
+    const req = new Request("http://localhost", { headers: { origin: "http://localhost" },
       method: "POST",
       body: JSON.stringify(validPayload),
     });
@@ -104,7 +104,7 @@ describe("POST /api/projects/[id]/brief", () => {
   });
 
   it("rejects payloads missing required fields", async () => {
-    const req = new Request("http://localhost", {
+    const req = new Request("http://localhost", { headers: { origin: "http://localhost" },
       method: "POST",
       body: JSON.stringify({ brandName: "Acme", industry: "SaaS" }),
     });
@@ -119,7 +119,7 @@ describe("POST /api/projects/[id]/brief", () => {
   it("drops legacy deadline field from persisted payload", async () => {
     mocks.prisma.project.findUnique.mockResolvedValue({ id: "p1", status: "AWAITING_BRIEF" });
 
-    const req = new Request("http://localhost", {
+    const req = new Request("http://localhost", { headers: { origin: "http://localhost" },
       method: "POST",
       body: JSON.stringify({ ...validPayload, deadlineOrLaunch: "2026-10-10" }),
     });

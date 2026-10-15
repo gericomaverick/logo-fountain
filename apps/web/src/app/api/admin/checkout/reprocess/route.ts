@@ -6,10 +6,13 @@ import {
   ORDER_STATUS_NEEDS_CONTACT,
 } from "@/lib/checkout-fulfillment";
 import { stripe } from "@/lib/stripe";
+import { rejectUntrustedMutationOrigin } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
+  const originError = rejectUntrustedMutationOrigin(req);
+  if (originError) return originError;
   try {
     const user = await requireUser();
     await requireAdmin(user);

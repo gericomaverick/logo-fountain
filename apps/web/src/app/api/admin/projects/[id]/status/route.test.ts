@@ -19,7 +19,7 @@ vi.mock("@/lib/audit", () => ({ logAudit: mocks.logAudit }));
 import { POST } from "./route";
 
 function postStatus(body: unknown) {
-  return POST(new Request("http://localhost", { method: "POST", body: JSON.stringify(body) }), { params: Promise.resolve({ id: "p1" }) });
+  return POST(new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "POST", body: JSON.stringify(body) }), { params: Promise.resolve({ id: "p1" }) });
 }
 
 describe("constrained admin status mutation", () => {

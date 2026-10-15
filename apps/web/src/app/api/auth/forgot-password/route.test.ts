@@ -14,7 +14,7 @@ const originalPublicSiteUrl = process.env.PUBLIC_SITE_URL;
 function request(headers?: HeadersInit) {
   return new Request("https://internal.example.test/api/auth/forgot-password", {
     method: "POST",
-    headers: { "content-type": "application/json", ...headers },
+    headers: { origin: "https://app.example.com", "content-type": "application/json", ...headers },
     body: JSON.stringify({ email: "Buyer@Example.com" }),
   });
 }
@@ -69,7 +69,7 @@ describe("POST /api/auth/forgot-password", () => {
     const res = await POST(request({ host: "evil.example", "x-forwarded-host": "evil.example" }));
 
     expect(res.status).toBe(503);
-    expect((await res.json()).error.code).toBe("RECOVERY_UNAVAILABLE");
+    expect((await res.json()).error.code).toBe("PUBLIC_SITE_URL_REQUIRED");
     expect(mocks.resetPasswordForEmail).not.toHaveBeenCalled();
   });
 });

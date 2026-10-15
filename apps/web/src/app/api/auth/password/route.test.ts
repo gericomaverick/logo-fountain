@@ -31,7 +31,7 @@ import { POST } from "./route";
 function request(body: unknown, raw = false) {
   return new Request("http://localhost/api/auth/password", {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { origin: "http://localhost", "content-type": "application/json" },
     body: raw ? (body as string) : JSON.stringify(body),
   });
 }

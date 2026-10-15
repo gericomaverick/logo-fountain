@@ -46,7 +46,7 @@ describe("POST /api/projects/[id]/read-state", () => {
   });
 
   it("rejects invalid area", async () => {
-    const req = new Request("http://localhost", { method: "POST", body: JSON.stringify({ area: "other" }) });
+    const req = new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "POST", body: JSON.stringify({ area: "other" }) });
     const res = await POST(req, { params: Promise.resolve({ id: "p1" }) });
 
     expect(res.status).toBe(400);
@@ -55,7 +55,7 @@ describe("POST /api/projects/[id]/read-state", () => {
   });
 
   it("allows admin and writes messages seen time", async () => {
-    const req = new Request("http://localhost", { method: "POST", body: JSON.stringify({ area: "messages" }) });
+    const req = new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "POST", body: JSON.stringify({ area: "messages" }) });
     const res = await POST(req, { params: Promise.resolve({ id: "p1" }) });
 
     expect(res.status).toBe(200);
@@ -79,7 +79,7 @@ describe("POST /api/projects/[id]/read-state", () => {
   it("falls back to membership check for non-admin user", async () => {
     mocks.requireAdmin.mockRejectedValueOnce(new RouteAuthError("Forbidden", 403, "FORBIDDEN"));
 
-    const req = new Request("http://localhost", { method: "POST", body: JSON.stringify({ area: "concepts" }) });
+    const req = new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "POST", body: JSON.stringify({ area: "concepts" }) });
     await POST(req, { params: Promise.resolve({ id: "p1" }) });
 
     expect(mocks.requireProjectMembership).toHaveBeenCalledWith("u1", "p1");

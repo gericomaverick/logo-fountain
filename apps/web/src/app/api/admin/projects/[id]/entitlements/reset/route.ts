@@ -1,6 +1,8 @@
 import { jsonError } from "@/lib/api-error";
 import { requireAdmin, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 
+import { rejectUntrustedMutationOrigin } from "@/lib/request-origin";
+
 export const runtime = "nodejs";
 
 /**
@@ -9,7 +11,8 @@ export const runtime = "nodejs";
  * clean-slate reset, which removes active lifecycle records atomically.
  */
 export async function POST(req: Request, context: { params: Promise<{ id: string }> }) {
-  void req;
+  const originError = rejectUntrustedMutationOrigin(req);
+  if (originError) return originError;
   void context;
   try {
     const user = await requireUser();

@@ -40,7 +40,7 @@ describe("POST /api/projects/[id]/checkout/session", () => {
     const req = new Request("http://localhost/api/projects/p1/checkout/session", {
       method: "POST",
       body: JSON.stringify({ kind: "addon", addonKey: "extra_revision" }),
-      headers: { "content-type": "application/json" },
+      headers: { origin: "http://localhost", "content-type": "application/json" },
     });
 
     const res = await POST(req, { params: Promise.resolve({ id: "p1" }) });
@@ -59,7 +59,7 @@ describe("POST /api/projects/[id]/checkout/session", () => {
     const req = new Request("http://localhost/api/projects/p1/checkout/session", {
       method: "POST",
       body: JSON.stringify({ kind: "upgrade", toPackage: "professional" }),
-      headers: { "content-type": "application/json" },
+      headers: { origin: "http://localhost", "content-type": "application/json" },
     });
 
     const res = await POST(req, { params: Promise.resolve({ id: "p1" }) });

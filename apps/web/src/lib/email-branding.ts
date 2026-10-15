@@ -8,16 +8,35 @@ type BrandedEmailInput = {
   footer?: string;
 };
 
-function normalizeAbsoluteUrl(value: string | undefined): string | null {
-  if (!value) return null;
+function normalizeAbsoluteUrl(value: string | undefined, allowLoopbackHttp = false): string | null {
+  if (!value || /[\u0000-\u001f\u007f]/.test(value)) return null;
 
   try {
     const url = new URL(value);
-    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    const isLoopback = url.hostname === "localhost" || url.hostname === "127.0.0.1" || url.hostname === "[::1]";
+    if (url.username || url.password || (url.protocol !== "https:" && !(allowLoopbackHttp && url.protocol === "http:" && isLoopback))) {
+      return null;
+    }
     return url.toString();
   } catch {
     return null;
   }
+}
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  })[character]!);
+}
+
+function requireSafeCtaUrl(value: string): string {
+  const normalized = normalizeAbsoluteUrl(value, process.env.NODE_ENV !== "production");
+  if (!normalized) throw new TypeError("Transactional email CTA URL must be an absolute HTTPS URL");
+  return normalized;
 }
 
 function canUseRemoteLogo(origin: string): boolean {
@@ -50,8 +69,9 @@ export function renderBrandedEmail({ heading, intro, ctaLabel, ctaUrl, footer }:
   const logo = resolveEmailLogoUrl();
   const embeddedLogo = getEmbeddedLogoDataUri();
   const brandHeader = logo
-    ? `<img src="${logo}" alt="Logo Fountain" style="height:34px;display:block;"/>`
-    : `<img src="${embeddedLogo}" alt="Logo Fountain" style="height:34px;display:block;"/>`;
+    ? `<img src="${escapeHtml(logo)}" alt="Logo Fountain" style="height:34px;display:block;"/>`
+    : `<img src="${escapeHtml(embeddedLogo)}" alt="Logo Fountain" style="height:34px;display:block;"/>`;
+  const safeCtaUrl = requireSafeCtaUrl(ctaUrl);
 
   return [
     '<div style="background:#f8f7ff;padding:24px;font-family:Inter,Arial,sans-serif;color:#1d1330;">',
@@ -60,10 +80,10 @@ export function renderBrandedEmail({ heading, intro, ctaLabel, ctaUrl, footer }:
     brandHeader,
     "</div>",
     '<div style="padding:28px 24px;">',
-    `<h1 style="margin:0 0 12px;font-size:24px;line-height:1.3;color:#1d1330;">${heading}</h1>`,
-    `<p style="margin:0 0 18px;font-size:16px;line-height:1.6;color:#43355f;">${intro}</p>`,
-    `<a href="${ctaUrl}" style="display:inline-block;background:#5b38f0;color:#ffffff !important;text-decoration:none;font-weight:600;padding:12px 18px;border-radius:10px;">${ctaLabel}</a>`,
-    footer ? `<p style="margin:18px 0 0;font-size:13px;line-height:1.5;color:#6f6590;">${footer}</p>` : "",
+    `<h1 style="margin:0 0 12px;font-size:24px;line-height:1.3;color:#1d1330;">${escapeHtml(heading)}</h1>`,
+    `<p style="margin:0 0 18px;font-size:16px;line-height:1.6;color:#43355f;">${escapeHtml(intro)}</p>`,
+    `<a href="${escapeHtml(safeCtaUrl)}" style="display:inline-block;background:#5b38f0;color:#ffffff !important;text-decoration:none;font-weight:600;padding:12px 18px;border-radius:10px;">${escapeHtml(ctaLabel)}</a>`,
+    footer ? `<p style="margin:18px 0 0;font-size:13px;line-height:1.5;color:#6f6590;">${escapeHtml(footer)}</p>` : "",
     "</div>",
     "</div>",
     "</div>",

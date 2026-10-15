@@ -5,6 +5,7 @@ import { applyTransition } from "@/lib/project-state-machine";
 import { logAudit } from "@/lib/audit";
 import { createProjectSystemMessage } from "@/lib/system-messages";
 import { notifyClientConceptReady } from "@/lib/project-lifecycle-email";
+import { rejectUntrustedMutationOrigin } from "@/lib/request-origin";
 import { ConceptEntitlementError, consumeConceptEntitlement } from "@/lib/concept-entitlement";
 
 export const runtime = "nodejs";
@@ -19,9 +20,11 @@ function isTransactionConflict(error: unknown) {
 }
 
 export async function POST(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string; conceptId: string }> },
 ) {
+  const originError = rejectUntrustedMutationOrigin(req);
+  if (originError) return originError;
   try {
     const user = await requireUser();
     await requireAdmin(user);

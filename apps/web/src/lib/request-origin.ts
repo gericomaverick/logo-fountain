@@ -56,6 +56,55 @@ function isSafeLocalOrigin(origin: URL): boolean {
   );
 }
 
+function hasCanonicalProvenance(req: Request, canonical: string): boolean {
+  const supplied = req.headers.get("origin");
+  // An explicit Origin always takes precedence, including null/empty/hostile
+  // values. A Referer must never rescue a failed Origin check.
+  if (supplied !== null) {
+    try {
+      const parsed = new URL(supplied);
+      return supplied === parsed.origin && parsed.origin === canonical;
+    } catch {
+      return false;
+    }
+  }
+
+  const referer = req.headers.get("referer");
+  if (!referer || /[\u0000-\u001f\u007f\\]/.test(referer)) return false;
+  try {
+    const parsed = new URL(referer);
+    return referer.startsWith(`${canonical}/`) && parsed.origin === canonical &&
+      !parsed.username && !parsed.password && !parsed.hash;
+  } catch {
+    return false;
+  }
+}
+
+export function hasCanonicalSameOrigin(req: Request): boolean {
+  try {
+    return hasCanonicalProvenance(req, getSecuritySensitivePublicOrigin(req));
+  } catch {
+    return false;
+  }
+}
+
+export function rejectUntrustedMutationOrigin(req: Request): Response | null {
+  let canonical: string;
+  try {
+    canonical = getSecuritySensitivePublicOrigin(req);
+  } catch {
+    return Response.json(
+      { error: { code: "PUBLIC_SITE_URL_REQUIRED", message: "Request validation is temporarily unavailable." } },
+      { status: 503 },
+    );
+  }
+  if (hasCanonicalProvenance(req, canonical)) return null;
+  return Response.json(
+    { error: { code: "INVALID_ORIGIN", message: "Request origin is not allowed." } },
+    { status: 403 },
+  );
+}
+
 /**
  * Origin for auth and other bearer-bearing email links.
  *
@@ -63,19 +112,19 @@ function isSafeLocalOrigin(origin: URL): boolean {
  * Host and forwarded headers are never considered. Development may use the URL
  * the local server was directly invoked with, but only for loopback hosts.
  */
-export function hasCanonicalSameOrigin(req: Request): boolean {
-  const supplied = req.headers.get("origin");
-  if (!supplied) return false;
-
-  try {
-    return new URL(supplied).origin === getSecuritySensitivePublicOrigin(req);
-  } catch {
-    return false;
-  }
-}
-
 export function getSecuritySensitivePublicOrigin(req?: Request): string {
-  const configured = parseOrigin(process.env.PUBLIC_SITE_URL);
+  const configuredValue = process.env.PUBLIC_SITE_URL;
+  const configured = parseOrigin(configuredValue);
+  if (configuredValue) {
+    try {
+      const url = new URL(configuredValue);
+      if (!configured || !["http:", "https:"].includes(url.protocol) || url.username || url.password) {
+        throw new PublicSiteConfigurationError();
+      }
+    } catch {
+      throw new PublicSiteConfigurationError();
+    }
+  }
   if (configured) {
     const url = new URL(configured);
     if (process.env.NODE_ENV !== "production" || url.protocol === "https:") return configured;
