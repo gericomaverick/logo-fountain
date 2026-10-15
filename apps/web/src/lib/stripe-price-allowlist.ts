@@ -6,22 +6,23 @@ export type UpsellAction =
 
 export const PACKAGE_TO_PRICE_ID: Record<PackageCode, string> = {
   // docs/stripe-price-mapping-v1.0.md
-  essential: "price_1ScMRAFM0K9Qd7oX0tVHJuwB",
-  professional: "price_1ScMRpFM0K9Qd7oXxcBdr8ad",
-  complete: "price_1SwQmSFM0K9Qd7oX2CeIAJTa",
+  // Updated 2026-07-01: repriced to £349 / £795 / £1,495
+  essential: "price_1ToTEhFM0K9Qd7oXM0WRTWjd",
+  professional: "price_1ToTFQFM0K9Qd7oXmHYwoZAT",
+  complete: "price_1ToTGBFM0K9Qd7oX2D5r9Z6i",
 };
 
 export const UPSELL_PRICE_TO_ACTION: Record<string, UpsellAction> = {
-  // £49
-  price_1SzFmjFM0K9Qd7oX5SrRfRvx: { kind: "addon", addonKey: "extra_revision", revisionDelta: 1 },
-  // £180
-  price_1SzFgSFM0K9Qd7oXRfDHdiyO: {
+  // £95
+  price_1ToTbLFM0K9Qd7oXscIEu2Bt: { kind: "addon", addonKey: "extra_revision", revisionDelta: 1 },
+  // £495
+  price_1ToTXjFM0K9Qd7oXqfXEXy0x: {
     kind: "upgrade",
     fromPackage: "essential",
     toPackage: "professional",
   },
-  // £225
-  price_1SzFiqFM0K9Qd7oX5j6yP3C0: {
+  // £750
+  price_1ToTYMFM0K9Qd7oXBG8DOhY1: {
     kind: "upgrade",
     fromPackage: "professional",
     toPackage: "complete",
