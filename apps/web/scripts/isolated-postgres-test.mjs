@@ -1,7 +1,8 @@
 // Explicit opt-in, OWNED disposable PostgreSQL cluster only. Never connects to an
 // existing DATABASE_URL, never downloads/installs tooling, never starts a service.
 import { randomBytes } from "node:crypto";
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
+import { createWriteStream } from "node:fs";
 import { mkdtemp, writeFile, rm, access, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -27,11 +28,22 @@ const reservation = createServer();
 await new Promise((yes, no) => { reservation.once("error", no); reservation.listen(0, "127.0.0.1", yes); });
 const port = reservation.address().port;
 await new Promise((yes, no) => reservation.close((e) => e ? no(e) : yes()));
+// Optional authenticated golden path: an owned loopback app server and browser.
+const golden = process.env.PG_GOLDEN_PATH === "1";
+let appPort = 45231;
+if (golden) {
+  const appReservation = createServer();
+  await new Promise((yes, no) => { appReservation.once("error", no); appReservation.listen(0, "127.0.0.1", yes); });
+  appPort = appReservation.address().port;
+  await new Promise((yes, no) => appReservation.close((e) => e ? no(e) : yes()));
+}
+const appOrigin = golden ? `http://127.0.0.1:${appPort}` : "https://127.0.0.1:45231";
+const fixture = join(work, "mailbox-fixture.json");
 const database = "lf_exit_test";
 const makeUrl = (user, db = database) => `postgresql://${user}:${password}@127.0.0.1:${port}/${db}`;
-const env = { ...process.env, ...(process.env.POSTGRES_TEST_LIB ? { LD_LIBRARY_PATH: process.env.POSTGRES_TEST_LIB } : {}), DATABASE_URL: makeUrl("lf_runtime"), DIRECT_URL: makeUrl("lf_migration"), PG_INTEGRATION_URL: makeUrl("lf_runtime"), RUN_PG_INTEGRATION: "1", BETTER_AUTH_SECRET: randomBytes(32).toString("hex"), PUBLIC_SITE_URL: "https://127.0.0.1:45231", POSTMARK_SERVER_TOKEN: "isolated-test-placeholder", POSTMARK_FROM: "isolated@example.invalid" };
-function run(command, args, name) {
-  const result = spawnSync(command, args, { cwd: process.cwd(), env, encoding: "utf8", timeout: 120000 });
+const env = { ...process.env, ...(process.env.POSTGRES_TEST_LIB ? { LD_LIBRARY_PATH: process.env.POSTGRES_TEST_LIB } : {}), DATABASE_URL: makeUrl("lf_runtime"), DIRECT_URL: makeUrl("lf_migration"), PG_INTEGRATION_URL: makeUrl("lf_runtime"), RUN_PG_INTEGRATION: "1", BETTER_AUTH_SECRET: randomBytes(32).toString("hex"), PUBLIC_SITE_URL: appOrigin, ...(golden ? { AUTH_BROWSER_FIXTURE: fixture } : {}), POSTMARK_SERVER_TOKEN: "isolated-test-placeholder", POSTMARK_FROM: "isolated@example.invalid" };
+function run(command, args, name, runEnv = env, timeout = 120000) {
+  const result = spawnSync(command, args, { cwd: process.cwd(), env: runEnv, encoding: "utf8", timeout });
   const output = `${result.stdout || ""}\n${result.stderr || ""}\n${result.error ? String(result.error) : ""}`.replaceAll(password, "[redacted]");
   return writeFile(join(artifact, name + ".log"), output).then(() => {
     console.log(`${name}: ${result.status === 0 ? "PASS" : "FAIL"}`);
@@ -40,9 +52,13 @@ function run(command, args, name) {
 }
 let started = false;
 let initialized = false;
+let app = null;
+// The app server is a detached process group that THIS runner spawned; only it is signalled.
+const stopApp = () => { if (app && app.exitCode === null) { try { process.kill(-app.pid, "SIGTERM"); } catch { /* already gone */ } } };
 // Signal/abnormal-exit fallback targets ONLY our allocated cluster, never a PID
 // inferred from a shared service. Retain its files if normal cleanup is aborted.
 process.once("exit", () => {
+  stopApp();
   if (initialized) spawnSync(join(bin, "pg_ctl"), ["-D", data, "-w", "-m", "fast", "stop"], { env, stdio: "ignore", timeout: 30000 });
 });
 process.once("SIGINT", () => process.exit(130));
@@ -71,7 +87,28 @@ try {
   } finally { await migration.end(); }
   await run("./node_modules/.bin/prisma", ["migrate", "diff", "--from-config-datasource", "--to-schema", "prisma/schema.prisma", "--exit-code"], "schema-drift");
   await run("./node_modules/.bin/vitest", ["run", "src/lib/postgres.integration.test.ts", "src/lib/auth.postgres.integration.test.ts"], "postgres-integration");
+  if (golden) {
+    // Runtime-only server environment: no migration credentials, no mail transport
+    // (any email request fails closed to the generic response; nothing leaves the host).
+    const serverEnv = { ...env, NODE_ENV: "development", NEXT_TELEMETRY_DISABLED: "1" };
+    for (const key of ["DIRECT_URL", "PG_INTEGRATION_URL", "RUN_PG_INTEGRATION", "POSTMARK_SERVER_TOKEN", "POSTMARK_FROM", "AUTH_BROWSER_FIXTURE"]) delete serverEnv[key];
+    const serverLog = createWriteStream(join(artifact, "golden-app-server.log"));
+    app = spawn("./node_modules/.bin/next", ["dev", "--hostname", "127.0.0.1", "--port", String(appPort)], { cwd: process.cwd(), env: serverEnv, detached: true, stdio: ["ignore", "pipe", "pipe"] });
+    for (const stream of [app.stdout, app.stderr]) stream.on("data", (chunk) => serverLog.write(String(chunk).replaceAll(password, "[redacted]").replaceAll(env.BETTER_AUTH_SECRET, "[redacted]")));
+    let ready = false;
+    for (let i = 0; i < 180 && !ready && app.exitCode === null; i++) {
+      try { ready = (await fetch(`${appOrigin}/login`, { signal: AbortSignal.timeout(60000) })).ok; } catch { await new Promise((r) => setTimeout(r, 1000)); }
+    }
+    console.log(`golden-app-server: ${ready ? "READY" : "FAIL"}`);
+    if (!ready) throw new Error("golden app server did not become ready; see artifact log");
+    await run("./node_modules/.bin/playwright", ["test", "--config", "playwright.golden.config.ts", "--reporter=list"], "golden-browser", { ...env, GOLDEN_BASE_URL: appOrigin }, 900000);
+  }
 } finally {
+  if (app) {
+    stopApp();
+    await new Promise((r) => { if (app.exitCode !== null) r(); else { app.once("exit", r); setTimeout(() => { try { process.kill(-app.pid, "SIGKILL"); } catch { /* gone */ } r(); }, 15000); } });
+  }
+  await rm(fixture, { force: true });
   if (started) await run(join(bin, "pg_ctl"), ["-D", data, "-w", "-m", "fast", "stop"], "stop");
   initialized = false;
   // Only the directory allocated by THIS process is removed. If evidence is

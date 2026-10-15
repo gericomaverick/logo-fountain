@@ -98,6 +98,8 @@ describe.skipIf(!enabled)("real PostgreSQL Better Auth lifecycle and credential 
   it("reset/change race has one winner; all prior and natively rotated sessions are revoked", async () => {
     const p = await verified();
     const first = await auth.login(p.email, password, headers()), second = await auth.login(p.email, password, headers());
+    await expect(auth.changeCredential("Wrong-current-password-0", replacement, cookies(first))).rejects.toMatchObject({ code: "CURRENT_PASSWORD_INVALID" });
+    expect(await db.authSession.count({ where: { userId: p.userId } })).toBe(2);
     const proof = await link(p.email, "reset");
     const results = await Promise.allSettled([auth.changeCredential(password, replacement, cookies(first)), auth.resetCredential(proof, replacement + "R", headers())]);
     expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);

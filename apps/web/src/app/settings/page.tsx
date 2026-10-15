@@ -136,8 +136,9 @@ export default function SettingsPage() {
       setPasswordErrors({});
       setPasswordStatus({
         tone: "success",
-        message: "Password updated. Any other active sessions have been signed out.",
+        message: "Password updated. All sessions, including this one, have been signed out. Redirecting to sign in…",
       });
+      window.location.assign("/login?password=updated");
     } catch {
       setPasswordStatus({ tone: "error", message: "We couldn’t update your password. Please try again." });
     } finally {

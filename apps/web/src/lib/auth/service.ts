@@ -1,4 +1,5 @@
 import "server-only";
+import { isAPIError } from "better-auth/api";
 import { prisma } from "@/lib/prisma";
 import { createAuth, getAuth, proofHash, SESSION_SECONDS } from "./server";
 import { withCredentialFence } from "./fence";
@@ -78,7 +79,11 @@ export async function changeCredential(currentPassword: string, newPassword: str
     // Re-read the original session and reverify password UNDER the same fence.
     const current = await createAuth(tx, true).api.getSession({ headers, query: { disableCookieCache: true } });
     if (!current || current.session.id !== initial.session.id || !current.user.emailVerified || Date.now() >= new Date(current.session.createdAt).getTime() + SESSION_SECONDS * 1000) throw new AuthFailure(401, "UNAUTHORIZED");
-    await createAuth(tx, true).api.changePassword({ headers, body: { currentPassword, newPassword, revokeOtherSessions: true } });
+    await createAuth(tx, true).api.changePassword({ headers, body: { currentPassword, newPassword, revokeOtherSessions: true } }).catch((error: unknown) => {
+      // Caller is already authenticated; a specific code leaks no account existence.
+      if (isAPIError(error) && error.body?.code === "INVALID_PASSWORD") throw new AuthFailure(400, "CURRENT_PASSWORD_INVALID");
+      throw error;
+    });
     // Logout-after-change: discard the rotated cookie/token, revoke it too.
     await tx.authSession.deleteMany({ where: { userId: current.user.id } });
     await tx.authProof.deleteMany({ where: { userId: current.user.id } });
