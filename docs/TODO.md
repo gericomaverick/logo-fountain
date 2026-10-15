@@ -155,3 +155,7 @@ Upload hardening note (2026-03-06):
 - [x] Inspect all seven signed concept preview `<img>` usages and Next image configuration; keep private expiring URLs direct, without new optimizer allowlists/cache or provider transformations. Marketing untouched.
 - [x] Focused tests: 2 files / 5 tests; typecheck; lint 0 errors / 0 warnings; webpack placeholder build 31 pages. No broad unit/browser rerun or measured bandwidth/LCP claim. Queue CLI remains absent; sequential direct validation.
 - [x] Report: `docs/reports/app-image-efficiency-5230.md`. Existing dependency audit remains separate triage; no automatic fixes or dependency/lockfile changes.
+
+## Authorized dependency remediation (5230 child branch)
+- [x] Reproduce web (39 / omit-dev 22) and independent site (17) audits, inspect registry peers/engines and source chains; document explicit Vitest-only major rationale before installing.
+- [ ] Install reviewed Next/React/Prisma/Vitest updates, compatible vulnerable transitive refresh, clean-install integrity and sequential validation; record residual upstream pins and applicability in `docs/reports/dependency-remediation-5230.md`. Marketing remains audit-only; no forced overrides or automatic audit fixes.
