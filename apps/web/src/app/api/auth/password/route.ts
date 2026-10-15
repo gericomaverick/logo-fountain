@@ -1,11 +1,13 @@
 import { changeCredential } from "@/lib/auth/service";
 import { allowAuthAttempt, authJson, authMutation, text } from "@/lib/auth/http";
-import { requireUser } from "@/lib/auth/require";
+import { getCurrentUser } from "@/lib/auth/current-user";
+import { AuthFailure } from "@/lib/auth/errors";
 import { getAuth } from "@/lib/auth/server";
 export const runtime = "nodejs";
 export async function POST(req: Request) {
   return authMutation(req, async (body) => {
-    const user = await requireUser();
+    const user = await getCurrentUser();
+    if (!user) throw new AuthFailure(401, "UNAUTHORIZED");
     if (!(await allowAuthAttempt(req, user.id))) return authJson({ error: { code: "RATE_LIMITED" } }, 429);
     await changeCredential(text(body.currentPassword), text(body.newPassword), req.headers);
     const response = await getAuth().api.signOut({ headers: req.headers, asResponse: true });
