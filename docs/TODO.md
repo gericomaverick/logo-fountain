@@ -144,7 +144,7 @@ Upload hardening note (2026-03-06):
 - [x] Cover real session handler absence/user/provider/network/throw behavior and logout helper non-success verification regression.
 
 ## Consolidated integration (5230)
-- [x] New branch from approved `bfaac32`; merged upload/lifecycle `bf9be13` (parents `ad72064` / `0b05448`) and security through `c3faf6c`, preserving canonical provenance checks and transactional lifecycle/accounting/immutable upload guards.
+- [x] New branch from approved `bfaac32`; merged upload/lifecycle `0b05448 → ad72064 → bf9be13` and security through `c3faf6c`, preserving canonical provenance checks and transactional lifecycle/accounting/immutable upload guards.
 - [x] Resolved overlapping concept publication and disabled usage-reset routes/tests semantically; all mutation guards precede other work. Finals preserve approved no-deletion-after-any-transaction-exception policy.
 - [x] Polling consults current per-field dirty refs after snapshot retrieval, preserving edited limits while refreshing untouched fields; regression covers a pre-edit captured poll callback.
-- [ ] Validation and read-only dependency audit: results in consolidation report after consolidated run. No primary-worktree edits, original emergency ref changes, dependency installs, lockfile changes, live services, migrations, main merge/push or deployment.
+- [x] Validation: 87 files / 555 unit tests, typecheck, lint (0 errors / 1 existing warning), webpack placeholder build (31 pages), owned-port Playwright (6/6). Read-only audit: 39 affected packages (3 critical / 26 high / 8 moderate / 2 low); dependency remediation needs separate approval. Detailed report: `docs/reports/consolidated-integration-5230.md`. No primary-worktree edits, original emergency ref changes, dependency installs, lockfile changes, live services, migrations, main merge/push or deployment.

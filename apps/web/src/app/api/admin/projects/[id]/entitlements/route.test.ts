@@ -141,7 +141,7 @@ describe("PATCH /api/admin/projects/[id]/entitlements", () => {
   });
   it("creates a missing row as unlimited and audits the repair without touching revisions", async () => {
     mocks.tx.projectEntitlement.findMany.mockResolvedValueOnce([]).mockResolvedValueOnce([{key:"concepts",limitInt:null,consumedInt:0,reservedInt:0}]);
-    const res = await PATCH(new Request("http://localhost",{method:"PATCH",body:JSON.stringify({concepts:null,reason:"Repair missing configuration as unlimited"})}),{params:Promise.resolve({id:"p1"})});
+    const res = await PATCH(new Request("http://localhost",{headers:{origin:"http://localhost"},method:"PATCH",body:JSON.stringify({concepts:null,reason:"Repair missing configuration as unlimited"})}),{params:Promise.resolve({id:"p1"})});
     expect(res.status).toBe(200);
     expect((await res.json()).entitlementUsage.concepts.unlimited).toBe(true);
     expect(mocks.tx.projectEntitlement.upsert).toHaveBeenCalledTimes(1);

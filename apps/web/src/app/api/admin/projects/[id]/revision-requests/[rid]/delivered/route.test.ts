@@ -90,14 +90,14 @@ describe("POST /api/admin/projects/[id]/revision-requests/[rid]/delivered", () =
   });
   it("replay of delivered request does not convert another reservation", async () => {
     mocks.prisma.revisionRequest.findFirst.mockResolvedValue({ id: "rev-1", status: "delivered" });
-    const res = await POST(new Request("http://localhost", { method: "POST" }), { params: Promise.resolve({ id: "p1", rid: "rev-1" }) });
+    const res = await POST(new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "POST" }), { params: Promise.resolve({ id: "p1", rid: "rev-1" }) });
     expect(res.status).toBe(200);
     expect(mocks.prisma.$executeRaw).not.toHaveBeenCalled();
     expect(mocks.notifyClientRevisionReady).not.toHaveBeenCalled();
   });
   it("conditional claim loser cannot consume another reservation", async () => {
     mocks.prisma.revisionRequest.updateMany.mockResolvedValue({ count: 0 });
-    const res = await POST(new Request("http://localhost", { method: "POST" }), { params: Promise.resolve({ id: "p1", rid: "rev-1" }) });
+    const res = await POST(new Request("http://localhost", { headers: { origin: "http://localhost" }, method: "POST" }), { params: Promise.resolve({ id: "p1", rid: "rev-1" }) });
     expect(res.status).toBe(409);
     expect(mocks.prisma.$executeRaw).not.toHaveBeenCalled();
   });

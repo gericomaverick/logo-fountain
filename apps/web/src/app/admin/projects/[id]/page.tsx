@@ -470,7 +470,7 @@ export default function AdminProjectPage() {
               <textarea
                 className="rounded border border-neutral-300 bg-white px-2 py-1"
                 value={entitlementOverrideReason}
-                onChange={(e) => { setEntitlementOverrideReason(e.target.value); setEntitlementsDirty(true); }}
+                onChange={(e) => { setEntitlementOverrideReason(e.target.value); }}
                 maxLength={500}
                 placeholder="Why is this package entitlement changing?"
                 rows={2}
