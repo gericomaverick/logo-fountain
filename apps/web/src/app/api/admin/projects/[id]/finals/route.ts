@@ -2,7 +2,7 @@ import { jsonError } from "@/lib/api-error";
 import { requireAdmin, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { prisma } from "@/lib/prisma";
 import { applyTransition } from "@/lib/project-state-machine";
-import { deleteStoredFiles, uploadFinalDeliverable } from "@/lib/supabase/storage";
+import { uploadFinalDeliverable } from "@/lib/supabase/storage";
 import { logAudit } from "@/lib/audit";
 import { createProjectSystemMessage } from "@/lib/system-messages";
 import { notifyClientFinalDeliverablesReady } from "@/lib/project-lifecycle-email";
@@ -180,13 +180,15 @@ export async function POST(
             isCurrentPublication: verifiedAsset.project.fileAssets[0]?.id === verifiedAsset.id,
           };
         } else {
-          // Only an authoritative successful absence check permits deletion.
-          try {
-            await deleteStoredFiles([{ bucket: upload.bucket, path: upload.path }]);
-          } catch {
-            // Cleanup is best-effort and must never hide the publication conflict.
-          }
-          return Response.json({ error: "Project state changed before final publication; retry from the refreshed project" }, { status: 409 });
+          // Even an immediate absent-row result cannot prove a transaction will
+          // not become visible later. Retain immutable bytes fail-safe; this may
+          // create an orphan that requires future audited housekeeping.
+          return Response.json({
+            error: "Project state changed before final publication; the uploaded object was retained for safe operational review",
+            code: "FINAL_PUBLICATION_CONFLICT",
+            uploadedObjectRetained: true,
+            uploadedObject: { bucket: upload.bucket, path: upload.path },
+          }, { status: 409 });
         }
       } catch {
         // Outcome cannot be established. Retain the object because deleting it

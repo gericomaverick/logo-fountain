@@ -9,7 +9,11 @@ import { FeatureNoticeCard } from "@/components/feature-notice-card";
 import { HeaderNav } from "@/components/header-nav";
 import { PageShell } from "@/components/page-shell";
 import { ProjectStatusBadge } from "@/components/project-status-badge";
-import { resolveFinalPublicationUi, shouldOfferFinalNotificationRetry } from "@/lib/admin-final-publication";
+import {
+  resolveFinalNotificationRetryUi,
+  resolveFinalPublicationUi,
+  shouldOfferFinalNotificationRetry,
+} from "@/lib/admin-final-publication";
 import { getPendingFeedbackCountForLatestConcept } from "@/lib/project-hub";
 
 type EntitlementUsage = { limit: number; consumed: number; reserved?: number; remaining: number };
@@ -276,6 +280,8 @@ export default function AdminProjectPage() {
     if (!projectId || busy) return;
     setBusy(true);
     setError(null);
+    // Never carry a prior "live" success claim into a new guarded retry.
+    setFinalUploadSuccess(null);
     const res = await fetch(`/api/admin/projects/${projectId}/finals/notify`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -285,15 +291,10 @@ export default function AdminProjectPage() {
       }),
     });
     const payload = await res.json().catch(() => null);
-    if (res.ok) {
-      setFinalUploadSuccess(payload?.notification === "already_sent"
-        ? "Final deliverables are live; the client notification was already sent."
-        : "Final deliverables are live and the client notification was sent.");
-    } else {
-      setFinalUploadSuccess("Final deliverables are live and available to the client.");
-      setError(payload?.message ?? readError(payload, "Client notification failed"));
-    }
-    await refresh(projectId);
+    const outcome = resolveFinalNotificationRetryUi(res.status, res.ok, payload);
+    setFinalUploadSuccess(outcome.successMessage);
+    setError(outcome.errorMessage);
+    if (outcome.refreshProject) await refresh(projectId);
     setBusy(false);
   }
 

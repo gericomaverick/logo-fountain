@@ -123,7 +123,7 @@ describe("POST /api/admin/projects/[id]/finals", () => {
     expect(mocks.createProjectSystemMessage).not.toHaveBeenCalled();
   });
 
-  it("cleans up the new object only after an authoritative query proves publication is absent", async () => {
+  it("retains the new object when immediate verification reports no published row", async () => {
     mocks.tx.project.updateMany.mockResolvedValueOnce({ count: 0 });
 
     const response = await request();
@@ -151,9 +151,12 @@ describe("POST /api/admin/projects/[id]/finals", () => {
         },
       },
     });
-    expect(mocks.deleteStoredFiles).toHaveBeenCalledTimes(1);
-    expect(mocks.deleteStoredFiles).toHaveBeenCalledWith([{ bucket: newUpload.bucket, path: newUpload.path }]);
-    // Superseded immutable rows/objects are retained so issued signed URLs keep working.
+    expect(mocks.deleteStoredFiles).not.toHaveBeenCalled();
+    await expect(response.json()).resolves.toMatchObject({
+      code: "FINAL_PUBLICATION_CONFLICT",
+      uploadedObjectRetained: true,
+      uploadedObject: { bucket: newUpload.bucket, path: newUpload.path },
+    });
   });
 
   it("treats committed-then-thrown transactions as committed without deleting storage", async () => {
@@ -214,17 +217,6 @@ describe("POST /api/admin/projects/[id]/finals", () => {
       uploadedObject: { bucket: newUpload.bucket, path: newUpload.path },
     });
     expect(mocks.deleteStoredFiles).not.toHaveBeenCalled();
-  });
-
-  it("does not let failed unpublished-object cleanup obscure the publication conflict", async () => {
-    mocks.tx.project.updateMany.mockResolvedValueOnce({ count: 0 });
-    mocks.deleteStoredFiles.mockRejectedValueOnce(new Error("cleanup provider failed"));
-
-    const response = await request();
-    expect(response.status).toBe(409);
-    await expect(response.json()).resolves.toMatchObject({
-      error: "Project state changed before final publication; retry from the refreshed project",
-    });
   });
 
   it("validates an invalid repair before uploading", async () => {
