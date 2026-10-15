@@ -3,10 +3,10 @@ import { authJson, authProxyUnavailable } from "@/lib/auth/http";
 import { rejectUntrustedMutationOrigin } from "@/lib/request-origin";
 export const runtime = "nodejs";
 export async function POST(req: Request) {
-  const proxy = authProxyUnavailable(req);
-  if (proxy) return proxy;
   const origin = rejectUntrustedMutationOrigin(req);
   if (origin) return origin;
+  const proxy = authProxyUnavailable(req);
+  if (proxy) return proxy;
   try {
     const result = await getAuth().api.signOut({ headers: req.headers, asResponse: true });
     if (!result.ok) throw new Error("signout failed");
