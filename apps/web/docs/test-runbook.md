@@ -37,6 +37,10 @@ PG_GOLDEN_PATH=1 npm run test:postgres
 
 The runner creates its own throwaway cluster with distinct runtime/migration roles, applies the migrations and `ops/postgres/runtime-grants.sql`, checks zero schema drift, then runs `src/lib/postgres.integration.test.ts` and `src/lib/auth.postgres.integration.test.ts`. It refuses a `.env.local` and runs nothing as root. With `PG_GOLDEN_PATH=1` it also starts its own `next dev` on a random loopback port, with runtime-only DB credentials and no mail transport. It then runs `e2e-golden/` (`playwright.golden.config.ts`) using single-use links that the test process captured, and stops the server and cluster afterwards. Logs in the artifact directory have passwords and secrets redacted.
 
+## Persistent manual-testing DB (separate from the above disposable test runner)
+
+See `local-dev-pg-handoff.md` for explicit owner-run `init`, `start`, `seed`, `app`, `stop` and confirmed `reset` commands; named private localhost PG directory persists across stops. The requested admin and customer identities are **not** created by the automated test runner, and the separate owner-controlled seed action must be explicitly authorized. Provider-complete E2E requirements and the optional test-only R2 setup are documented there and in `private-r2-runbook.md`. No live mail or R2 is used by the default local server.
+
 ## Security critic follow-up validation
 
 Affected tests only (run through the shared validation queue, not alongside another team's run):

@@ -1,0 +1,48 @@
+# Owner-run persistent local PostgreSQL and manual app testing (5649)
+
+**Not automatically created or seeded.** This is separate from `npm run test:postgres`, which creates and deletes its *own* ephemeral cluster. Nothing here connects to Supabase or an existing `DATABASE_URL`. From `apps/web` in a clean isolated checkout of the handoff branch (never the dirty primary checkout), use user-local PostgreSQL binaries with `initdb`/`pg_ctl` and compatible share/lib directories, Node and installed project dependencies. Do not run as root. Ensure no app `.env`, `.env.local`, `.env.development*`, `.env.test*` or `.env.production*` files exist in `apps/web`: this helper refuses them because Next/Prisma can auto-load them even when the process environment is sanitized. Use only the private out-of-repo files described below. Reserve ports `127.0.0.1:45232` (database) and `127.0.0.1:45231` (app); do not expose them to a LAN. Never point Prisma at a live database or copy these files into production.
+
+## Create, keep, and restart your *manual-testing* DB
+
+The **named persistent data directory** is `~/.local/share/logo-fountain/dev-pg-5649/` (`data/` is the actual PG cluster). It contains mode-0600 private configuration, a marker and later the account handoff file. The directory is private (0700). `init` refuses ANY existing directory, generates random DB/auth secrets without printing them, initializes and starts a loopback-only plain PostgreSQL cluster, creates distinct `cluster_owner`, `lf_migration`, and DML-only `lf_runtime` roles and an empty `lf_local_dev` database. It does **not** migrate/seed or modify other databases. Use the **same paths** on later commands; local binaries must be PG-compatible with the created cluster.
+
+```bash
+cd apps/web
+export POSTGRES_TEST_BIN=/path/to/user-local/pg/bin
+export POSTGRES_TEST_SHARE=/path/to/user-local/pg/share/postgresql
+export POSTGRES_TEST_LIB=/path/to/user-local/pg/lib # if that distribution needs it
+node scripts/local-dev-pg.mjs init
+# After reboot or stop:
+node scripts/local-dev-pg.mjs start
+```
+
+Only **after** you have inspected the named directory, confirmed it is your newly allocated, disposable local cluster, and explicitly authorized those two test identities **in that local DB only**, run:
+
+```bash
+node scripts/local-dev-pg.mjs seed
+# Separate terminal, same checkout and PG binary env; foreground Next dev:
+node scripts/local-dev-pg.mjs app
+# Open the printed loopback login URL; Next output is suppressed to protect tokens.
+# If it fails to start, check port availability and local installation; don't enable verbose request logs.
+# To use your OWN PRIVATE TEST R2 buckets after following private-r2-runbook.md:
+node scripts/local-dev-pg.mjs app --with-r2
+```
+
+`seed` verifies the running cluster's actual `data_directory`, server address/port, ownership marker and DB roles/URLs before deploying Prisma migrations and runtime grants. It refuses a previously written handoff file. It runs the existing *trusted paid-session fulfillment and access-provisioning* fixture with mocked Stripe price lookup: one Essential project, paid **test** order, two entitlements and customer membership. Payment is synthetic; there is **no real charge or Stripe webhook**. It prepares `admin@example.test` as an initially unverified, non-admin identity, consumes a one-time mocked-mail setup proof to set a random high-entropy local password and verify it, then calls **only** the existing one-time migration-owner `bootstrap-admin.mjs` to grant admin. This is NOT an admin creation API or a runtime-role promotion. It provisions `customer@example.test` as a non-admin paid customer and captures a one-hour, single-use setup link via in-process mocked mail. Neither address receives an email. No Postmark token is passed; no email is sent. **Admin mailbox verification here is a synthetic local proof through the test-process mail mock; it does not establish real-world ownership of the mailbox and must never be copied to production.** If seed fails halfway, **stop** and inspect locally; do not blindly retry/erase data; bootstrap may already be consumed. Seek owner approval before resetting.
+
+Private credentials and setup link are written **only** to `~/.local/share/logo-fountain/dev-pg-5649/local-credentials.json` (0600). Open it in a private local editor or password manager, never paste its values into chat, a shell argument, a report, Git, screenshots or terminal/log output. Keep browser history/network captures private; the customer link contains a bearer fragment. The admin password is generated separately; it is **not** the customer password or link. At `http://127.0.0.1:45231/login` sign in as `admin@example.test` using the local admin password in the file; in a separate browser profile open the `customer.setupLink` in the private file, choose a new unique customer password at `http://127.0.0.1:45231/set-password`, then sign in as `customer@example.test` at `/login`. Project is at `http://127.0.0.1:45231/project/<customer.projectId>` (the ID is in that private file). Proofs expire in one hour and are single-use; with mail disabled, expired setup requires a separately approved local operator recovery procedure, not a public password-reset request.
+
+```bash
+node scripts/local-dev-pg.mjs stop       # stops only this marked cluster; PRESERVES all data and secrets
+node scripts/local-dev-pg.mjs start      # returns to same DB and accounts
+# DANGEROUS: only if YOU have identified this exact marked directory as disposable,
+# no app process is using it, and you intend to discard all local PG + account data:
+node scripts/local-dev-pg.mjs stop
+node scripts/local-dev-pg.mjs reset --confirm-disposable-local-data
+```
+
+`reset` requires both the ownership marker/private directory and explicit flag, refuses a running cluster and deletes **only** the named directory. It does not delete R2 bytes. Never run reset to resolve uncertainty about a target. `init` after reset creates *new* local accounts only if you then explicitly run `seed` again. Do not back up/share the credentials file without an owner-approved secure process.
+
+## Boundaries for provider-complete E2E
+
+Default `app` receives **only runtime PG credentials**, a generated Better Auth secret, canonical HTTP localhost origin and a non-working Stripe test placeholder. It does **not** receive migration credentials, R2 or Postmark credentials, inherited provider keys, or a live mail transport. Customer/admin sign-in and the synthetic paid project are usable locally; authenticated image upload/download will fail closed without real test-only R2 credentials. `app --with-r2` reads `r2-test.json` inside the private local directory (mode 0600) and uses **real** R2 test buckets/requests: this is NOT a mocked R2. See `private-r2-runbook.md` for manual setup and spending controls. Without a separately authorized *test-only* Stripe secret, publishable key, matching test price IDs, webhook signing secret and tunnel/CLI forwarding to `http://127.0.0.1:45231/api/stripe/webhook`, checkout is NOT a real provider E2E. The local helper deliberately does not inject Stripe or Postmark provider credentials. For an authorized provider E2E plan, configure a separate private server-only env file, test-only account/products/prices matching `src/lib/stripe-price-allowlist.ts`, forward *signed test-mode* events with `stripe listen --forward-to 127.0.0.1:45231/api/stripe/webhook` (the CLI's `whsec_...` test signing secret must match the server's `STRIPE_WEBHOOK_SECRET`), and verify paid sessions, retries and durable fulfillment; never put a Stripe live key or webhook signing secret in this handoff. Postmark requires an owner-approved test sender/domain + controlled recipient mailbox and server token; no sends to either requested address without separate explicit permission. Production HTTPS secure cookies/proxy chain, forwarding headers and actual deployed TLS are NOT exercised by localhost HTTP: verify those separately with the documented trusted proxy settings before release. See `auth-runbook.md`, `test-runbook.md`, `private-r2-runbook.md` and `ops/postgres/README.md` for gates; neither mocked mail nor a synthetic checkout is proof of true provider E2E.
