@@ -1,5 +1,6 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
+import { validatePostgresTarget } from "@/lib/database-target";
 
 import { PrismaClient } from "../generated/prisma/client";
 
@@ -11,6 +12,7 @@ function makePrismaClient() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error("Missing env var: DATABASE_URL");
 
+  validatePostgresTarget(connectionString, "DATABASE_URL");
   const pool = new Pool({ connectionString });
   const adapter = new PrismaPg(pool);
   return new PrismaClient({ adapter });

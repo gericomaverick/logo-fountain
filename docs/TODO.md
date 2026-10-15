@@ -164,7 +164,7 @@ Upload hardening note (2026-03-06):
 
 ## Supabase exit (5649)
 - [x] Isolated child branch from `ef4190d1be1f752e072e28e89255d98fd61ed4a2`; Stage 0 registry/package-source/official-doc compatibility and architecture report before large implementation: `docs/reports/supabase-exit-5649.md`.
-- [ ] Portable fresh PostgreSQL lineage, archived history, separate runtime/migration roles and pre-migration stale-target guard.
-- [ ] Private R2 AWS SDK adapter, immutable writes, safe <=1h signed downloads and preserved publication/receipt recovery.
+- [x] Portable **core** PostgreSQL lineage, byte-identical archived history, separate runtime/migration roles and stale-target guard; real isolated migrations/drift/role checks pass. Better Auth schema/migration remains part of the unchecked auth stage.
+- [x] Private R2 AWS SDK adapter, immutable writes, safe <=1h signed downloads and preserved publication/receipt recovery; SDK/protocol tests pass. Live Cloudflare acceptance **not run**; release remains blocked.
 - [ ] Better Auth 1.7.10 integration, fenced recovery/session lifecycle, UUID identity, verified operator-only one-time admin bootstrap, checkout provisioning, no Supabase runtime/config dependencies.
-- [ ] Real disposable PostgreSQL migrations/least-privilege/auth/lifecycle/concurrency integrations; sequential full units/static/build/owned-browser validation; live R2 acceptance documented as untested.
+- [ ] **Full-exit acceptance still blocked:** core disposable PG 6/6, staged regression 601 units, typecheck, lint 0 warnings, webpack build and owned-browser 6/6 pass; Better Auth + full PG auth/HTTP lifecycle/payment concurrency remain unimplemented/unrun. Repeat full sequential validation after auth replacement. Live R2 acceptance documented as untested.

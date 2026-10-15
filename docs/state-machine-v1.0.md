@@ -93,7 +93,7 @@ The generic Admin status action cannot enter concepts/revisions/approval/finals/
 - Trigger: Admin with explicit clean-slate confirmation
 - Serializes against final publication with a project status/version guard.
 - Removes active concepts, revision requests/comments, concept asset rows, and final publication (`final_zip`) rows; resets both consumed and reserved concept/revision usage.
-- Retains immutable final storage bytes and audits their exact paths so issued signed URLs can expire; deleted publication rows ensure those objects cannot become active later.
+- Retains immutable concept and final storage bytes and audits their exact paths so issued signed URLs/receipt-backed recovery keep their bytes; deleted publication rows ensure those objects cannot become active later.
 
 - any → `REFUNDED`
   - Trigger: ServiceRole (refund webhook) + Admin policy

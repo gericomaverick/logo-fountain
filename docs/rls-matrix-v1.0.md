@@ -1,5 +1,7 @@
 # Logo Fountain — RLS Matrix v1.0 (Supabase)
 
+> **5649 portable-core staging note:** this matrix describes the historical/aspirational Supabase design, not protection implemented by the fresh portable PostgreSQL lineage. Historical SQL is archived unchanged. The portable runtime relies on server app-layer tenant checks and restricted credentials, **not RLS**. Full Better Auth exit is still pending.
+
 **Date:** 2026-03-01
 
 Goal: table-by-table access rules. This is the pre-dev spec to implement as Postgres RLS policies (default deny).

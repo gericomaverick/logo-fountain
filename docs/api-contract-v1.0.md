@@ -125,7 +125,7 @@ Request:
 `POST /api/admin/projects/:projectId/entitlements/reset` is disabled because independently rewinding usage can make counters disagree with active concepts/revisions. Use the guarded clean-slate reset when a full lifecycle reset is intended.
 
 ### POST `/api/admin/projects/:projectId/reset`
-A confirmed `clean-slate` reset serializes against final publication, removes concepts, revisions, comments, concept publication assets, and all `final_zip` publication rows from active database state, and resets both `consumedInt` and `reservedInt`. Immutable final storage objects are not deleted: their bucket/path pairs are recorded in the reset audit event so existing signed URLs can expire naturally. Since their `FileAsset` publication rows are deleted under the project version guard, retained old finals cannot later be selected as active.
+A confirmed `clean-slate` reset serializes against final publication, removes concepts, revisions, comments, concept publication assets, and all `final_zip` publication rows from active database state, and resets both `consumedInt` and `reservedInt`. Immutable concept and final storage objects are not deleted: their bucket/path pairs are recorded in the reset audit event and returned as `retainedConceptStorageObjects` / `retainedFinalStorageObjects`, so existing signed URLs and durable upload receipts do not lose their bytes. Reset reports no storage deletion (`storageCleanup.attempted/deleted: 0`). Since their `FileAsset` publication rows are deleted under the project version guard, retained old finals cannot later be selected as active.
 
 ---
 

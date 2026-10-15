@@ -2,8 +2,8 @@
 
 ## Summary
 - Isolated branch `workbench/supabase-exit-5649`, starting at `ef4190d1be1f752e072e28e89255d98fd61ed4a2`; earlier remediation refs remain intact.
-- Stage 0 research complete; this section precedes implementation. The exit is **not yet implemented or release-ready**.
-- Select Better Auth **1.7.10**, its supported Prisma adapter, and AWS S3 client/presigner **3.1152.0** for private R2.
+- Stage 0 research gate satisfied before implementation; R2 and portable **core** PostgreSQL stages are implemented/tested. Full exit is **incomplete and not release-ready**.
+- Selected Better Auth **1.7.10** (not installed/integrated yet); AWS S3 client/presigner **3.1152.0** installed for private R2.
 - Disposable data allows a fresh installation, not deletion or migration of any live resources.
 - Preserve app-layer tenant authorization; do not claim PostgreSQL RLS protects the new runtime.
 - No new owner policy decisions identified. Atomic auth fencing and real PostgreSQL tests are implementation gates, not optional follow-ups.
@@ -89,3 +89,29 @@ Unresolved implementation gates: concrete auth fence/older-token invalidation an
 Implemented AWS SDK 3.1152.0 (only these two new direct dependencies installed so far), logical namespace mapping, private account endpoint, conditional immutable writes/integrity metadata, signed expiry/disposition checks, sanitized bucket HEAD health, confined cleanup and provider-neutral source imports. All publication, exact authorization, receipt and entitlement code paths remain in place. Extended clean-slate reset to retain **concept bytes as well as finals**, audit their references and expose retained references; deleting concept bytes immediately would break issued URLs/receipts. Existing reset safety assertions remain and now assert no storage deletion.
 
 Added private R2 operational/acceptance runbook and environment example. Focused validation: **3 files / 29 tests pass**, including real SDK serialization and SigV4 through a loopback HTTP conditional-write harness; typecheck passes. This is not live R2 acceptance. Supabase Auth and DB remain; full exit not complete. Shared queue still absent; checks executed directly and sequentially. Local PostgreSQL binary package acquired outside repo; initial loader failure was resolved by publisher-provided symlink hydration and user-local library path; server not yet started/tested at this checkpoint.
+
+## Stage 2 implementation: portable core lineage and isolated PostgreSQL
+
+Archived 14 historical SQL migrations plus lock **byte-for-byte**, verified with `git show` against the authorized base. Fresh schema-derived portable core baseline contains no Supabase roles/forced RLS; it is not presented as deployed history. Auth tables/migrations remain pending. Preflight validates both URLs before migrate/db/studio commands, requires exact same explicit target/distinct roles, blocks stale Supabase hosts, libpq routing/CLI URL overrides, duplicate schema parameters and runtime fallback. Runtime construction independently rejects malformed/old-provider targets. Syntactic URL checks do not prove DNS provenance or actual grants. Added manual least-privilege grants template and provisioning/backup boundaries; no live execution.
+
+A disposable **real PostgreSQL 18.4** cluster was initialized under an owned /tmp directory, bound only to loopback on a free port, authenticated with random SCRAM credentials and stopped/removed after each run. Separate non-superuser runtime and migration roles. Final evidence `/tmp/supabase-exit-5649/pg-run-4`: fresh `prisma migrate deploy` PASS, schema drift exit 0, **6 real PG integration tests PASS**, orderly stop PASS. Verified DDL/role creation/migration-history denial; 12 concurrent entitlement claims converge on one winner; 8 advisory-locked durable receipts converge and recover after simulated response loss after actual COMMIT; digest mismatch rejected; rollback restores entitlement/no receipt; paid-order session unique constraint admits one concurrent insert. This is core DB/helper coverage, not full upload HTTP/payment webhook/auth acceptance.
+
+Corrections during development (not hidden): first runner invocation used wrong working directory and failed before migration; runner now anchors its app working directory. First generated SQL was contaminated by dotenv informational stdout, causing an isolated migration syntax failure; config logging is now quiet, baseline regenerated and fresh migration/drift verified. First receipt assertion incorrectly compared JSON key order; replaced with structural equality, not weaker data checks. All those disposable clusters stopped, no migration history repaired or faked. Manual stale DIRECT_URL CLI probe exits 1 at config load, before a DB connection.
+
+
+## Staged validation and handoff (not full exit acceptance)
+
+Sequential direct runs; shared queue script checked again and still absent. Focused affected suite **6 files / 77 tests PASS**. Full regression suite **89 files / 601 tests PASS**, 1 opt-in PG file / 6 cases skipped there; those same 6 were run separately and **PASS** on real owned PostgreSQL. Final isolated runner execution `/tmp/supabase-exit-5649/pg-run-5` verifies the final guard/runner configuration and orderly stop. Typecheck PASS; lint with `--max-warnings 0` PASS. Removed an unused SDK test import flagged by the earlier lint run.
+
+Production webpack build PASS with explicit non-live placeholder credentials and loopback PostgreSQL URLs (not a connected service). First build stopped at the existing required STRIPE_SECRET_KEY check; supplied a test-format placeholder for the successful rerun. Owned production-server browser regression on **127.0.0.1:45230**, one worker, zero retries, no reuse: **6/6 PASS**, server termination confirmed. Combined build/browser tool call timed out before browser evidence; no owned process remained, and browser was run separately with adequate timeout. Temporary config removed. These are existing public/validation/recovery-navigation checks on the **still-Supabase auth UI**, not Better Auth or authenticated/provider acceptance.
+
+Installed web dependency audit remains **9 high / 0 critical, moderate, low**, same residual advisory roots as prior remediation; no forced resolution, override, broad upgrade or lock deletion. Site lock untouched. Evidence logs and audit JSON are under `/tmp/supabase-exit-5649/`.
+
+### Mandatory remaining work / release blockers
+
+1. Implement Better Auth 1.7.10 with supported transactional Prisma adapter, UUID User/Profile relationship, normalized atomic checkout provisioning, controlled auth endpoints/UI, Postmark delivery and token/session policy. Remove Supabase auth/provisioning/scripts/dependencies/CSP/config only once replacement is implemented and verified. Current Supabase auth, service-role and public auth configuration **still remain**.
+2. Per-user credential fencing must cover distinct reset tokens, reset/change, login/reset, first credential proof, replay and rollback without catch-all bypass. Add auth portable schema/migration; one-time operator bootstrap must require verified ownership and never runtime email allowlisting.
+3. Run real PostgreSQL auth and broader HTTP lifecycle/payment/webhook concurrency/authorization integrations, then repeat full sequential unit/static/build/owned-browser validation on the completed exit. Existing core helper tests do not satisfy those missing tests.
+4. Live R2 acceptance remains **NOT RUN**, exactly as the runbook's gate describes. Bucket provisioning/private policy, scoped credentials, backup restore drill and all infrastructure/cutover operations need separate owner authorization. No such operations occurred here.
+
+No new owner policy decision is requested at this intermediate checkpoint. Remaining auth design/implementation/testing is unfinished work, not an owner approval dependency. Do not merge/deploy this partial exit or describe it as completed.
