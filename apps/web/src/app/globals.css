@@ -1,14 +1,269 @@
 @import "tailwindcss";
 
+/* Dark mode follows the theme the person chose (or their system's), set on
+   <html data-theme> before first paint by /theme-init.js. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ── Tokens ───────────────────────────────────────────────────────────────
+   Every surface, line and text colour comes from here. Light and dark are
+   tuned separately rather than inverted. */
 :root {
-  --background: #ffffff;
-  --foreground: #0a0a0a;
-  --muted: #565656;
+  color-scheme: light;
+  --app-bg: #f3f3f5;
+  --panel: #ffffff;
+  --surface: #fafafb;
+  --surface-2: #f1f1f4;
+  --nav-active: #e5e5ea;
+  --line: #e6e6ea;
+  --line-strong: #d4d4da;
+  --fg: #18181c;
+  --fg-2: #5a5a66;
+  --fg-3: #8b8b96;
+  --accent: #5e6ad2;
+  --accent-hover: #4f5bc5;
+  --accent-soft: rgba(94, 106, 210, 0.1);
+  --accent-fg: #ffffff;
+  --danger: #d43f3f;
+  --danger-soft: rgba(212, 63, 63, 0.08);
+  --warning: #c27a0e;
+  --warning-soft: rgba(242, 153, 74, 0.12);
+  --success: #2f9e69;
+  --success-soft: rgba(76, 183, 130, 0.12);
+  --focus: rgba(94, 106, 210, 0.45);
+  --shadow-panel: 0 1px 2px rgba(16, 16, 24, 0.04);
+  --sidebar-w: 236px;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --app-bg: #0c0c0e;
+  --panel: #121215;
+  --surface: #17171b;
+  --surface-2: #1e1e23;
+  --nav-active: #1f1f25;
+  --line: #24242a;
+  --line-strong: #313138;
+  --fg: #ececf0;
+  --fg-2: #a3a3ae;
+  --fg-3: #6f6f7a;
+  --accent: #6670e0;
+  --accent-hover: #7880ea;
+  --accent-soft: rgba(102, 112, 224, 0.16);
+  --accent-fg: #ffffff;
+  --danger: #ef6b6b;
+  --danger-soft: rgba(235, 87, 87, 0.12);
+  --warning: #f2a65a;
+  --warning-soft: rgba(242, 153, 74, 0.14);
+  --success: #5cc493;
+  --success-soft: rgba(76, 183, 130, 0.14);
+  --focus: rgba(120, 128, 234, 0.55);
+  --shadow-panel: 0 0 0 1px rgba(255, 255, 255, 0.02);
+
+  /* Interim, for screens not yet moved onto the tokens: Tailwind's greys and
+     white flip, and its colour tints become translucent washes, so a page
+     written for light stays legible in dark. Remove once every screen uses
+     the tokens directly. */
+  --color-white: var(--panel);
+  --color-neutral-50: #17171b;
+  --color-neutral-100: #1e1e23;
+  --color-neutral-200: #2a2a31;
+  --color-neutral-300: #383840;
+  --color-neutral-400: #5c5c67;
+  --color-neutral-500: #81818c;
+  --color-neutral-600: #a3a3ae;
+  --color-neutral-700: #c0c0c9;
+  --color-neutral-800: #d8d8df;
+  --color-neutral-900: #ececf0;
+  --color-neutral-950: #f6f6f9;
+  --color-amber-50: rgba(242,153,74,0.08);
+  --color-amber-100: rgba(242,153,74,0.13);
+  --color-amber-200: rgba(242,153,74,0.22);
+  --color-amber-300: rgba(242,153,74,0.32);
+  --color-amber-400: rgb(242,153,74);
+  --color-amber-500: rgb(242,159,85);
+  --color-amber-600: rgb(243,166,97);
+  --color-amber-700: rgb(244,172,108);
+  --color-amber-800: rgb(245,179,120);
+  --color-amber-900: rgb(245,184,129);
+  --color-amber-950: rgb(246,188,137);
+  --color-orange-50: rgba(242,153,74,0.08);
+  --color-orange-100: rgba(242,153,74,0.13);
+  --color-orange-200: rgba(242,153,74,0.22);
+  --color-orange-300: rgba(242,153,74,0.32);
+  --color-orange-400: rgb(242,153,74);
+  --color-orange-500: rgb(242,159,85);
+  --color-orange-600: rgb(243,166,97);
+  --color-orange-700: rgb(244,172,108);
+  --color-orange-800: rgb(245,179,120);
+  --color-orange-900: rgb(245,184,129);
+  --color-orange-950: rgb(246,188,137);
+  --color-yellow-50: rgba(242,201,76,0.08);
+  --color-yellow-100: rgba(242,201,76,0.13);
+  --color-yellow-200: rgba(242,201,76,0.22);
+  --color-yellow-300: rgba(242,201,76,0.32);
+  --color-yellow-400: rgb(242,201,76);
+  --color-yellow-500: rgb(242,204,87);
+  --color-yellow-600: rgb(243,207,98);
+  --color-yellow-700: rgb(244,211,110);
+  --color-yellow-800: rgb(245,214,121);
+  --color-yellow-900: rgb(245,217,130);
+  --color-yellow-950: rgb(246,220,139);
+  --color-emerald-50: rgba(76,183,130,0.08);
+  --color-emerald-100: rgba(76,183,130,0.13);
+  --color-emerald-200: rgba(76,183,130,0.22);
+  --color-emerald-300: rgba(76,183,130,0.32);
+  --color-emerald-400: rgb(76,183,130);
+  --color-emerald-500: rgb(87,187,137);
+  --color-emerald-600: rgb(98,192,146);
+  --color-emerald-700: rgb(110,196,154);
+  --color-emerald-800: rgb(121,201,162);
+  --color-emerald-900: rgb(130,204,168);
+  --color-emerald-950: rgb(139,208,174);
+  --color-green-50: rgba(76,183,130,0.08);
+  --color-green-100: rgba(76,183,130,0.13);
+  --color-green-200: rgba(76,183,130,0.22);
+  --color-green-300: rgba(76,183,130,0.32);
+  --color-green-400: rgb(76,183,130);
+  --color-green-500: rgb(87,187,137);
+  --color-green-600: rgb(98,192,146);
+  --color-green-700: rgb(110,196,154);
+  --color-green-800: rgb(121,201,162);
+  --color-green-900: rgb(130,204,168);
+  --color-green-950: rgb(139,208,174);
+  --color-teal-50: rgba(38,181,206,0.08);
+  --color-teal-100: rgba(38,181,206,0.13);
+  --color-teal-200: rgba(38,181,206,0.22);
+  --color-teal-300: rgba(38,181,206,0.32);
+  --color-teal-400: rgb(38,181,206);
+  --color-teal-500: rgb(51,185,209);
+  --color-teal-600: rgb(65,190,212);
+  --color-teal-700: rgb(79,195,215);
+  --color-teal-800: rgb(93,199,218);
+  --color-teal-900: rgb(103,203,220);
+  --color-teal-950: rgb(114,207,223);
+  --color-cyan-50: rgba(38,181,206,0.08);
+  --color-cyan-100: rgba(38,181,206,0.13);
+  --color-cyan-200: rgba(38,181,206,0.22);
+  --color-cyan-300: rgba(38,181,206,0.32);
+  --color-cyan-400: rgb(38,181,206);
+  --color-cyan-500: rgb(51,185,209);
+  --color-cyan-600: rgb(65,190,212);
+  --color-cyan-700: rgb(79,195,215);
+  --color-cyan-800: rgb(93,199,218);
+  --color-cyan-900: rgb(103,203,220);
+  --color-cyan-950: rgb(114,207,223);
+  --color-sky-50: rgba(78,167,252,0.08);
+  --color-sky-100: rgba(78,167,252,0.13);
+  --color-sky-200: rgba(78,167,252,0.22);
+  --color-sky-300: rgba(78,167,252,0.32);
+  --color-sky-400: rgb(78,167,252);
+  --color-sky-500: rgb(89,172,252);
+  --color-sky-600: rgb(100,178,252);
+  --color-sky-700: rgb(111,183,252);
+  --color-sky-800: rgb(123,189,252);
+  --color-sky-900: rgb(131,193,252);
+  --color-sky-950: rgb(140,197,253);
+  --color-blue-50: rgba(78,167,252,0.08);
+  --color-blue-100: rgba(78,167,252,0.13);
+  --color-blue-200: rgba(78,167,252,0.22);
+  --color-blue-300: rgba(78,167,252,0.32);
+  --color-blue-400: rgb(78,167,252);
+  --color-blue-500: rgb(89,172,252);
+  --color-blue-600: rgb(100,178,252);
+  --color-blue-700: rgb(111,183,252);
+  --color-blue-800: rgb(123,189,252);
+  --color-blue-900: rgb(131,193,252);
+  --color-blue-950: rgb(140,197,253);
+  --color-indigo-50: rgba(126,134,234,0.08);
+  --color-indigo-100: rgba(126,134,234,0.13);
+  --color-indigo-200: rgba(126,134,234,0.22);
+  --color-indigo-300: rgba(126,134,234,0.32);
+  --color-indigo-400: rgb(126,134,234);
+  --color-indigo-500: rgb(134,141,235);
+  --color-indigo-600: rgb(142,149,236);
+  --color-indigo-700: rgb(150,157,238);
+  --color-indigo-800: rgb(159,164,239);
+  --color-indigo-900: rgb(165,170,240);
+  --color-indigo-950: rgb(171,176,241);
+  --color-violet-50: rgba(166,135,252,0.08);
+  --color-violet-100: rgba(166,135,252,0.13);
+  --color-violet-200: rgba(166,135,252,0.22);
+  --color-violet-300: rgba(166,135,252,0.32);
+  --color-violet-400: rgb(166,135,252);
+  --color-violet-500: rgb(171,142,252);
+  --color-violet-600: rgb(177,150,252);
+  --color-violet-700: rgb(183,158,252);
+  --color-violet-800: rgb(188,165,252);
+  --color-violet-900: rgb(193,171,252);
+  --color-violet-950: rgb(197,177,253);
+  --color-purple-50: rgba(187,135,252,0.08);
+  --color-purple-100: rgba(187,135,252,0.13);
+  --color-purple-200: rgba(187,135,252,0.22);
+  --color-purple-300: rgba(187,135,252,0.32);
+  --color-purple-400: rgb(187,135,252);
+  --color-purple-500: rgb(191,142,252);
+  --color-purple-600: rgb(195,150,252);
+  --color-purple-700: rgb(200,158,252);
+  --color-purple-800: rgb(204,165,252);
+  --color-purple-900: rgb(207,171,252);
+  --color-purple-950: rgb(210,177,253);
+  --color-fuchsia-50: rgba(214,120,230,0.08);
+  --color-fuchsia-100: rgba(214,120,230,0.13);
+  --color-fuchsia-200: rgba(214,120,230,0.22);
+  --color-fuchsia-300: rgba(214,120,230,0.32);
+  --color-fuchsia-400: rgb(214,120,230);
+  --color-fuchsia-500: rgb(216,128,231);
+  --color-fuchsia-600: rgb(219,137,233);
+  --color-fuchsia-700: rgb(221,145,234);
+  --color-fuchsia-800: rgb(224,154,236);
+  --color-fuchsia-900: rgb(226,161,237);
+  --color-fuchsia-950: rgb(228,167,238);
+  --color-rose-50: rgba(235,87,87,0.08);
+  --color-rose-100: rgba(235,87,87,0.13);
+  --color-rose-200: rgba(235,87,87,0.22);
+  --color-rose-300: rgba(235,87,87,0.32);
+  --color-rose-400: rgb(235,87,87);
+  --color-rose-500: rgb(236,97,97);
+  --color-rose-600: rgb(237,108,108);
+  --color-rose-700: rgb(238,119,119);
+  --color-rose-800: rgb(240,130,130);
+  --color-rose-900: rgb(241,138,138);
+  --color-rose-950: rgb(242,146,146);
+  --color-red-50: rgba(235,87,87,0.08);
+  --color-red-100: rgba(235,87,87,0.13);
+  --color-red-200: rgba(235,87,87,0.22);
+  --color-red-300: rgba(235,87,87,0.32);
+  --color-red-400: rgb(235,87,87);
+  --color-red-500: rgb(236,97,97);
+  --color-red-600: rgb(237,108,108);
+  --color-red-700: rgb(238,119,119);
+  --color-red-800: rgb(240,130,130);
+  --color-red-900: rgb(241,138,138);
+  --color-red-950: rgb(242,146,146);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--panel);
+  --color-foreground: var(--fg);
+  --color-app: var(--app-bg);
+  --color-panel: var(--panel);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-nav-active: var(--nav-active);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-fg: var(--fg);
+  --color-fg-2: var(--fg-2);
+  --color-fg-3: var(--fg-3);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
   --font-sans: var(--font-inter);
 }
 
@@ -16,48 +271,107 @@
   box-sizing: border-box;
 }
 
+html,
 body {
-  margin: 0;
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+  height: 100%;
 }
 
+body {
+  margin: 0;
+  background: var(--app-bg);
+  color: var(--fg);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  font-feature-settings: "cv11", "ss01";
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--accent-soft);
+}
 
 .text-muted {
-  color: var(--muted);
+  color: var(--fg-2);
+}
+
+/* ── App frame: sidebar and an inset main panel ─────────────────────────── */
+@layer components {
+  .app-frame {
+    display: grid;
+    grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+    height: 100dvh;
+    background: var(--app-bg);
+  }
+
+  .app-panel {
+    grid-column: 2;
+    margin: 8px 8px 8px 0;
+    min-width: 0;
+    overflow: auto;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--panel);
+    box-shadow: var(--shadow-panel);
+  }
+
+  @media (max-width: 767px) {
+    .app-frame {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+    .app-panel {
+      grid-column: 1;
+      margin: 0;
+      border-width: 1px 0 0;
+      border-radius: 0;
+    }
+  }
 }
 
 @layer components {
   .portal-page-title {
-    @apply text-3xl font-semibold tracking-tight text-neutral-900;
+    @apply text-[22px] font-semibold tracking-tight text-fg;
   }
 
   .portal-card {
-    @apply rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm shadow-neutral-200/50 transition-all duration-200;
+    @apply rounded-xl border border-line bg-panel p-5;
   }
 
   .portal-subcard {
-    @apply rounded-xl border border-neutral-200 bg-neutral-50 p-4;
+    @apply rounded-lg border border-line bg-surface p-4;
   }
 
   .portal-badge {
-    @apply inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold uppercase tracking-wide;
+    @apply inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium;
   }
 
   .portal-link {
-    @apply text-sm font-medium text-neutral-700 underline decoration-neutral-300 underline-offset-4 transition-colors hover:text-neutral-900 hover:decoration-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-300 focus-visible:ring-offset-2;
+    @apply text-[13px] font-medium text-fg-2 underline decoration-line-strong underline-offset-4 transition-colors hover:text-fg hover:decoration-fg-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-panel;
   }
 
   .portal-btn-primary {
-    @apply inline-flex items-center justify-center rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition-all duration-150 hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex h-8 items-center justify-center gap-1.5 rounded-md bg-accent px-3 text-[13px] font-medium text-[var(--accent-fg)] transition-colors duration-150 hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-panel disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .portal-btn-secondary {
-    @apply inline-flex items-center justify-center rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm font-medium text-neutral-800 transition-all duration-150 hover:border-neutral-400 hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-300 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex h-8 items-center justify-center gap-1.5 rounded-md border border-line-strong bg-surface px-3 text-[13px] font-medium text-fg transition-colors duration-150 hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-panel disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .portal-btn-ghost {
+    @apply inline-flex h-8 items-center justify-center gap-1.5 rounded-md px-2.5 text-[13px] font-medium text-fg-2 transition-colors duration-150 hover:bg-surface-2 hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .portal-btn-danger {
+    @apply inline-flex h-8 items-center justify-center gap-1.5 rounded-md border border-[color-mix(in_srgb,var(--danger)_35%,transparent)] bg-danger-soft px-3 text-[13px] font-medium text-danger transition-colors duration-150 hover:bg-[color-mix(in_srgb,var(--danger)_16%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .portal-field {
-    @apply w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm transition-colors placeholder:text-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-300 focus-visible:ring-offset-1;
+    @apply w-full rounded-md border border-line-strong bg-surface px-2.5 py-1.5 text-[13px] text-fg transition-colors placeholder:text-fg-3 hover:border-fg-3 focus-visible:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)];
+  }
+
+  /* A small uppercase-free section label, Linear style. */
+  .portal-label {
+    @apply text-[12px] font-medium text-fg-3;
   }
 }

@@ -9,7 +9,10 @@ import { refreshOverrideInputs } from "@/lib/admin-override-inputs";
 import { ProjectTimeline } from "@/app/project-timeline";
 import { FeatureNoticeCard } from "@/components/feature-notice-card";
 import { HeaderNav } from "@/components/header-nav";
+import { AlertIcon, CheckIcon, ChevronDownIcon, CopyIcon, DownloadIcon, FileTextIcon, HistoryIcon, ImageIcon, MessageIcon, UploadIcon } from "@/components/icons";
 import { PageShell } from "@/components/page-shell";
+import { EmptyLine, Meter, PageHeader, Property, Section } from "@/components/ui";
+import { getProjectDisplayTitle } from "@/lib/project-display-name";
 import { ProjectStatusBadge } from "@/components/project-status-badge";
 import {
   resolveFinalNotificationRetryUi,
@@ -91,10 +94,10 @@ function resolveUsage(usage: EntitlementUsage | undefined) {
 }
 
 function getConceptStatusMeta(status: string): { label: string; className: string } {
-  if (status === "approved") return { label: "Approved", className: "bg-emerald-100 text-emerald-900" };
-  if (status === "published") return { label: "Published", className: "bg-indigo-100 text-indigo-900" };
-  if (status === "archived") return { label: "Archived", className: "bg-neutral-200 text-neutral-700" };
-  return { label: status, className: "bg-neutral-100 text-neutral-700" };
+  if (status === "approved") return { label: "Approved", className: "bg-success-soft text-success" };
+  if (status === "published") return { label: "Published", className: "bg-accent-soft text-accent" };
+  if (status === "archived") return { label: "Archived", className: "bg-surface-2 text-fg-3" };
+  return { label: status, className: "bg-surface-2 text-fg-2" };
 }
 
 function getInvoiceAction(invoice: ProjectInvoice): { href: string | null; label: "Download PDF" | "View invoice" | "View receipt"; download: boolean } {
@@ -114,36 +117,43 @@ function getInvoiceAction(invoice: ProjectInvoice): { href: string | null; label
   return { href: null, label: "View invoice", download: false };
 }
 
-function EntitlementProgress({
-  label,
-  usage,
-  fillClassName,
-}: {
-  label: string;
-  usage: EntitlementUsage | undefined;
-  fillClassName: string;
-}) {
+function EntitlementProgress({ label, usage }: { label: string; usage: EntitlementUsage | undefined }) {
   const stats = resolveUsage(usage);
-  const [animatedRatio, setAnimatedRatio] = useState(stats.ratio);
-
-  useEffect(() => {
-    const next = stats.ratio;
-    const raf = requestAnimationFrame(() => setAnimatedRatio(next));
-    return () => cancelAnimationFrame(raf);
-  }, [stats.ratio]);
-
+  const summary = usage?.configured === false ? "Not configured" : usage?.unlimited ? `${stats.consumed} used · unlimited` : `${stats.allocated} of ${stats.limit}`;
   return (
-    <article className="rounded-xl border border-neutral-200 bg-white p-4 text-sm">
-      <div className="flex items-center justify-between gap-3">
-        <h3 className="font-semibold text-neutral-900">{label}</h3>
-        <p className="text-xs text-neutral-500">{usage?.configured === false ? "Not configured" : usage?.unlimited ? "Unlimited" : `${stats.remaining} left`}</p>
+    <div className="py-1.5">
+      <div className="flex items-center justify-between gap-3 text-[13px]">
+        <span className="text-fg-2">{label}</span>
+        <span className="text-fg">{summary}</span>
       </div>
-      <p className="mt-1 text-neutral-700">{usage?.unlimited ? `${stats.consumed} used (unlimited)` : `${stats.allocated} of ${stats.limit} allocated`}</p>
-      {stats.reserved > 0 ? <p className="mt-0.5 text-xs text-neutral-500">{stats.consumed} delivered · {stats.reserved} pending</p> : null}
-      <div className="mt-2 h-2 rounded-full bg-neutral-200">
-        <div className={`h-2 rounded-full transition-all duration-700 ease-out ${fillClassName}`} style={{ width: `${animatedRatio}%` }} />
+      <div className="mt-1.5">
+        <Meter ratio={stats.limit > 0 ? stats.allocated / stats.limit : 0} label={`${label} allocated`} />
       </div>
-    </article>
+      <p className="mt-1 text-[12px] text-fg-3">
+        {usage?.unlimited ? "No limit" : `${stats.remaining} left`}
+        {stats.reserved > 0 ? ` · ${stats.consumed} delivered, ${stats.reserved} pending` : ""}
+      </p>
+    </div>
+  );
+}
+
+function CopyId({ value }: { value: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      className="group inline-flex max-w-full items-center gap-1.5 rounded px-1 py-0.5 font-mono text-[12px] text-fg-2 hover:bg-surface-2 hover:text-fg"
+      title="Copy project ID"
+      onClick={() => {
+        void navigator.clipboard?.writeText(value).then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1500);
+        });
+      }}
+    >
+      <span className="truncate">{value}</span>
+      {copied ? <CheckIcon size={12} className="shrink-0 text-success" /> : <CopyIcon size={12} className="shrink-0 opacity-0 group-hover:opacity-100" />}
+    </button>
   );
 }
 
@@ -319,380 +329,342 @@ export default function AdminProjectPage() {
     [snapshot?.concepts],
   );
 
+  const overviewStatus = snapshot?.overviewStatus ?? snapshot?.status ?? "UNKNOWN";
+  const projectTitle = getProjectDisplayTitle({ projectId, brandName: null, audience: "admin" });
+  const outstanding = (snapshot?.revisionRequests ?? []).filter((r) => r.status !== "delivered");
+  const concepts = snapshot?.concepts ?? [];
+
   return (
     <PageShell>
       <HeaderNav />
-      <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
-        <p className="text-sm"><Link href="/admin" className="portal-link no-underline">← Back to dashboard</Link></p>
+      <PageHeader
+        crumbs={[{ label: "Queue", href: "/admin" }, { label: projectTitle }]}
+        actions={
+          <>
+            <Link className="portal-btn-ghost" href={`/admin/projects/${projectId}/messages`}>
+              <MessageIcon size={14} />
+              <span className="hidden sm:inline">Messages</span>
+            </Link>
+            <Link className="portal-btn-ghost" href={`/admin/projects/${projectId}/brief`}>
+              <FileTextIcon size={14} />
+              <span className="hidden sm:inline">Brief</span>
+            </Link>
+            <Link className="portal-btn-secondary" href={`/admin/projects/${projectId}/concepts`}>
+              <ImageIcon size={14} />
+              <span className="hidden sm:inline">Concepts manager</span>
+            </Link>
+            {hasApprovedConcept ? (
+              <a className="portal-btn-primary" href="#final-deliverables-upload">
+                <UploadIcon size={14} />
+                <span className="hidden sm:inline">Upload final deliverables</span>
+              </a>
+            ) : null}
+          </>
+        }
+      />
 
-        <section className="mt-3 portal-card">
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,360px)]">
-            <div className="rounded-2xl border border-neutral-200 bg-neutral-50/60 p-4">
-              <ProjectStatusBadge status={snapshot?.overviewStatus ?? snapshot?.status ?? "UNKNOWN"} />
-              <h1 className="mt-3 text-2xl font-semibold">Project Overview</h1>
-              <p className="mt-1 text-sm text-neutral-600">Operational overview and high-confidence controls for this project.</p>
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm">
-                  <p className="text-xs uppercase tracking-wide text-neutral-500">Client</p>
-                  <p className="mt-1 font-medium text-neutral-900">{snapshot?.clientContact?.fullName ?? "Name unavailable"}</p>
-                  <p className="mt-1 break-all text-neutral-700">{snapshot?.clientContact?.email ?? "Email unavailable"}</p>
-                </div>
-                <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-xs uppercase tracking-wide text-neutral-500">Audit trail</p>
-                      <p className="mt-1 font-medium text-neutral-900">{snapshot?.recentAuditEventsCount ?? 0} recent events</p>
-                    </div>
-                    <Link className="portal-link no-underline text-xs" href={`/admin/projects/${projectId}/audit`}>
-                      View trail
-                    </Link>
+      <div className="flex min-h-[calc(100%-3rem)] flex-col lg:flex-row">
+        <main className="min-w-0 flex-1 px-4 py-6 md:px-8 lg:py-8">
+          <div className="mx-auto max-w-[880px] space-y-8">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <ProjectStatusBadge status={overviewStatus} />
+                {snapshot?.primaryCta ? <span className="text-[12px] text-fg-3">Next: {snapshot.primaryCta}</span> : null}
+              </div>
+              <h1 className="mt-3 text-[24px] font-semibold tracking-tight text-fg">{projectTitle}</h1>
+              <p className="mt-1 text-[13px] text-fg-2">Operational overview and high-confidence controls for this project.</p>
+            </div>
+
+            {pendingFeedbackCount > 0 || snapshot?.stuck || error || snapshot?.status === "ON_HOLD" ? (
+              <div className="space-y-2">
+                {pendingFeedbackCount > 0 ? (
+                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[color-mix(in_srgb,var(--warning)_30%,transparent)] bg-warning-soft px-3 py-2.5 text-[13px] text-fg">
+                    <p>
+                      Latest concept has <span className="font-semibold">{pendingFeedbackCount}</span> pending feedback request{pendingFeedbackCount === 1 ? "" : "s"}.
+                    </p>
+                    <Link className="portal-btn-secondary h-7" href={`/admin/projects/${projectId}/concepts`}>Open concepts manager</Link>
                   </div>
-                  <p className="mt-2 text-xs text-neutral-500">Project ID: <span className="font-mono">{projectId}</span></p>
-                </div>
-              </div>
-              <div className="mt-3 grid gap-2 border-t border-neutral-200/80 pt-3 text-sm text-neutral-700 sm:grid-cols-2">
-                <div className="flex items-center gap-3">
-                  <p className="text-xs uppercase tracking-wide text-neutral-500">Created at</p>
-                  <p className="font-medium text-neutral-900">{formatDateTime(snapshot?.createdAt)}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <p className="text-xs uppercase tracking-wide text-neutral-500">Last updated</p>
-                  <p className="font-medium text-neutral-900">{formatDateTime(snapshot?.updatedAt)}</p>
-                </div>
-              </div>
-            </div>
-            <aside className="relative overflow-hidden rounded-2xl border border-violet-200/70 bg-gradient-to-br from-violet-50 via-indigo-50 to-teal-50 p-4 shadow-sm shadow-violet-200/30">
-              <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-gradient-to-br from-violet-200/30 via-sky-200/20 to-teal-200/15 blur-2xl" />
-              <div aria-hidden className="pointer-events-none absolute -bottom-20 left-8 h-40 w-40 rounded-full bg-gradient-to-tr from-teal-200/20 via-cyan-200/15 to-violet-200/20 blur-2xl" />
-              <div className="relative">
-                <p className="text-xs font-semibold uppercase tracking-wide text-violet-900">Quick actions</p>
-                <p className="mt-1 text-sm text-violet-950">Move fast on the most common admin workflows.</p>
-              </div>
-              <div className="relative mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1">
-                {hasApprovedConcept ? (
-                  <a className="portal-btn-primary justify-center border border-violet-500/80 bg-violet-600 text-white hover:bg-violet-700" href="#final-deliverables-upload">
-                    Upload final deliverables
-                  </a>
                 ) : null}
-                <Link className="portal-btn-secondary justify-center border-violet-300/80 bg-white/90 text-violet-900 hover:border-violet-400" href={`/admin/projects/${projectId}/messages`}>
-                  Open messages
-                </Link>
-                <Link className="portal-btn-secondary justify-center border-violet-300/80 bg-white/90 text-violet-900 hover:border-violet-400" href={`/admin/projects/${projectId}/brief`}>
-                  View brief
-                </Link>
-                <Link className="portal-btn-secondary justify-center border-violet-300/80 bg-white/90 text-violet-900 hover:border-violet-400" href={`/admin/projects/${projectId}/concepts`}>
-                  Concepts manager
-                </Link>
-                <Link className="portal-btn-secondary justify-center border-violet-300/80 bg-white/90 text-violet-900 hover:border-violet-400" href={`/admin/projects/${projectId}/audit`}>
-                  Audit trail
-                </Link>
-                <Link className="portal-btn-secondary justify-center border-violet-300/80 bg-white/90 text-violet-900 hover:border-violet-400" href={`/admin/projects/${projectId}/upload`}>
-                  Legacy upload
-                </Link>
+                {snapshot?.stuck ? (
+                  <p className="flex items-center gap-2 rounded-lg border border-[color-mix(in_srgb,var(--danger)_30%,transparent)] bg-danger-soft px-3 py-2.5 text-[13px] text-danger">
+                    <AlertIcon size={14} />
+                    Stuck: {snapshot.stuckReason ?? "Needs manual intervention."}
+                  </p>
+                ) : null}
+                {error ? <p className="rounded-lg bg-danger-soft px-3 py-2.5 text-[13px] text-danger" role="alert">{error}</p> : null}
+                {snapshot?.status === "ON_HOLD" ? (
+                  <div className="flex items-center justify-between gap-3 rounded-lg border border-line bg-surface px-3 py-2.5 text-[13px]">
+                    <span className="text-fg-2">This project is on hold.</span>
+                    <button className="portal-btn-secondary h-7" type="button" disabled={busy} onClick={() => {
+                      const reason = window.prompt("Reason for restoring the recorded pre-hold phase (no usage reset):");
+                      if (!reason?.trim()) return;
+                      void runAction(() => fetch(`/api/admin/projects/${projectId}/status`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "RESUME", reason }) }), "Cannot safely resume project");
+                    }}>Resume recorded phase</button>
+                  </div>
+                ) : null}
               </div>
-            </aside>
-          </div>
-
-          {pendingFeedbackCount > 0 ? (
-            <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-              <p>
-                Latest concept has <span className="font-semibold">{pendingFeedbackCount}</span> pending feedback request{pendingFeedbackCount === 1 ? "" : "s"}.{" "}
-                <Link className="portal-link no-underline" href={`/admin/projects/${projectId}/concepts`}>Open concepts manager</Link>
-              </p>
-            </div>
-          ) : null}
-
-          {snapshot?.status === "ON_HOLD" ? (
-            <button className="mt-4 rounded border px-3 py-2" type="button" disabled={busy} onClick={() => {
-              const reason = window.prompt("Reason for restoring the recorded pre-hold phase (no usage reset):");
-              if (!reason?.trim()) return;
-              void runAction(() => fetch(`/api/admin/projects/${projectId}/status`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "RESUME", reason }) }), "Cannot safely resume project");
-            }}>Resume recorded phase</button>
-          ) : null}
-
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <EntitlementProgress label="Concepts" usage={snapshot?.entitlementUsage?.concepts} fillClassName="bg-gradient-to-r from-indigo-600 to-sky-500" />
-            <EntitlementProgress label="Revisions" usage={snapshot?.entitlementUsage?.revisions} fillClassName="bg-gradient-to-r from-fuchsia-600 to-violet-500" />
-          </div>
-
-          <section className="mt-4 rounded-xl border border-neutral-200 bg-white p-4 text-sm">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-base font-semibold text-neutral-900">Project billing & invoices</h2>
-                <p className="mt-1 text-xs text-neutral-500">Invoice visibility is scoped to this project’s orders.</p>
-              </div>
-            </div>
-
-            {invoiceError ? <p className="mt-3 text-sm text-red-600">{invoiceError}</p> : null}
-
-            {!loading && !invoiceError && invoices.length === 0 ? (
-              <p className="mt-3 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-3 py-2 text-neutral-600">No invoice documents available for this project yet.</p>
             ) : null}
 
+            {outstanding.length > 0 ? (
+              <Section title="Outstanding revision requests" count={outstanding.length}>
+                <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line">
+                  {outstanding.map((r) => {
+                    const concept = snapshot?.concepts.find((c) => c.id === r.concept?.id) ?? null;
+                    return (
+                      <li key={r.id} className="flex gap-3 bg-panel p-3 text-[13px]">
+                        {concept?.imageUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img className="h-14 w-14 shrink-0 rounded-md border border-line object-cover" src={concept.imageUrl} alt={`Concept ${concept.number}`} />
+                        ) : (
+                          <div className="h-14 w-14 shrink-0 rounded-md border border-line bg-surface" aria-hidden />
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[12px] text-fg-3">{r.user.fullName ?? r.user.email} · {new Date(r.createdAt).toLocaleString("en-GB")} · concept #{concept?.number ?? "—"}</p>
+                          <p className="mt-1 whitespace-pre-wrap text-fg">{r.body}</p>
+                          <div className="mt-2 flex items-center gap-1.5">
+                            <button
+                              className="portal-btn-secondary h-7"
+                              disabled={busy}
+                              onClick={() =>
+                                void runAction(
+                                  () =>
+                                    fetch(`/api/admin/projects/${projectId}/revision-requests/${r.id}/delivered`, {
+                                      method: "POST",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ setConceptsReady: true }),
+                                    }),
+                                  "Failed to mark delivered",
+                                )
+                              }
+                            >
+                              Mark delivered
+                            </button>
+                            <Link className="portal-btn-ghost h-7" href={`/admin/projects/${projectId}/concepts`}>View concept #{concept?.number ?? "—"}</Link>
+                          </div>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </Section>
+            ) : null}
+
+            <Section
+              title="Concepts"
+              count={concepts.length}
+              actions={<Link className="portal-btn-ghost h-7" href={`/admin/projects/${projectId}/concepts`}>Open concepts manager</Link>}
+            >
+              {loading ? <p className="text-[13px] text-fg-3">Loading…</p> : null}
+              {!loading && concepts.length === 0 ? <EmptyLine>No concepts yet. Published concepts appear here once the client can see them.</EmptyLine> : null}
+              {concepts.length > 0 ? (
+                <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  {concepts.map((concept) => {
+                    const pendingRevisionCount = (snapshot?.revisionRequests ?? []).filter((r) => r.status !== "delivered" && r.concept?.id === concept.id).length;
+                    const conceptStatus = getConceptStatusMeta(concept.status);
+                    return (
+                      <li key={concept.id} className="overflow-hidden rounded-lg border border-line bg-panel text-[13px] transition-colors hover:border-line-strong">
+                        {concept.imageUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img className="aspect-[4/3] w-full bg-surface object-cover" src={concept.imageUrl} alt={`Concept ${concept.number}`} />
+                        ) : (
+                          <div className="aspect-[4/3] w-full bg-surface" aria-hidden />
+                        )}
+                        <div className="border-t border-line p-3">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="font-medium text-fg">Concept #{concept.number}</p>
+                            <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${conceptStatus.className}`}>{conceptStatus.label}</span>
+                          </div>
+                          {pendingRevisionCount > 0 ? (
+                            <p className="mt-1 text-[12px] text-warning">{pendingRevisionCount} pending revision request{pendingRevisionCount === 1 ? "" : "s"}</p>
+                          ) : null}
+                          <div className="mt-2 flex items-center gap-3 text-[12px]">
+                            <Link className="text-fg-2 hover:text-fg" href={`/project/${projectId}/concept/${concept.id}?from=admin`}>Open discussion</Link>
+                            <Link className="text-fg-2 hover:text-fg" href={`/admin/projects/${projectId}/concepts#concept-${concept.id}`}>Quick actions</Link>
+                          </div>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : null}
+            </Section>
+
+            <Section
+              id="final-deliverables-upload"
+              title="Final deliverables"
+              actions={
+                snapshot?.finalZip?.available ? (
+                  <button className="portal-btn-ghost h-7" type="button" disabled={busy} onClick={() => void downloadCurrentFinal()}>
+                    <DownloadIcon size={14} />
+                    Download current ZIP
+                  </button>
+                ) : null
+              }
+            >
+              {hasApprovedConcept ? (
+                <div className="space-y-3">
+                  {finalUploadSuccess ? (
+                    <FeatureNoticeCard variant="success" className="p-4" kicker="Upload complete" title="Final deliverables published" body={finalUploadSuccess} />
+                  ) : null}
+                  {snapshot?.finalZip?.available ? (
+                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[color-mix(in_srgb,var(--success)_30%,transparent)] bg-success-soft px-3 py-2.5 text-[13px] text-fg">
+                      <p>Current final ZIP is published and visible to the client.</p>
+                      {shouldOfferFinalNotificationRetry(snapshot) ? (
+                        <button className="portal-btn-secondary h-7" type="button" disabled={busy} onClick={() => void retryFinalNotification()}>
+                          {busy ? "Sending…" : "Send/retry client notification"}
+                        </button>
+                      ) : null}
+                    </div>
+                  ) : null}
+                  <form className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-3 sm:flex-row sm:items-end" onSubmit={uploadFinalDeliverable}>
+                    <label className="flex min-w-0 flex-1 flex-col gap-1.5 text-[13px]">
+                      <span className="font-medium text-fg">Final ZIP file</span>
+                      <input
+                        className="portal-field file:mr-3 file:rounded file:border-0 file:bg-surface-2 file:px-2 file:py-1 file:text-[12px] file:text-fg"
+                        type="file"
+                        accept=".zip,application/zip,application/x-zip-compressed"
+                        onChange={(event) => setFinalZipFile(event.target.files?.[0] ?? null)}
+                      />
+                      <span className="text-[12px] text-fg-3">Standard ZIP only; 100 MB compressed / 500 MB expanded maximum.</span>
+                    </label>
+                    <button className="portal-btn-primary" type="submit" disabled={busy || !finalZipFile}>
+                      {busy ? "Uploading…" : "Upload and publish"}
+                    </button>
+                  </form>
+                </div>
+              ) : (
+                <EmptyLine>Final upload unlocks after concept approval. Approve a concept first to enable final deliverables upload.</EmptyLine>
+              )}
+            </Section>
+
+            {snapshot?.stuck ? (
+              <Section title="Webhook recovery">
+                <div className="space-y-2 rounded-lg border border-[color-mix(in_srgb,var(--danger)_30%,transparent)] bg-danger-soft p-3 text-[13px]">
+                  <p className="text-fg-2">Use Stripe Checkout session id to retry idempotent fulfillment.</p>
+                  <input className="portal-field" placeholder="cs_test_..." value={reprocessSessionId} onChange={(e) => setReprocessSessionId(e.target.value)} />
+                  {snapshot.latestOrder?.stripeCheckoutSessionId ? <p className="text-[12px] text-fg-3">Latest order session: {snapshot.latestOrder.stripeCheckoutSessionId}</p> : null}
+                  <button className="portal-btn-secondary" type="button" disabled={busy || !reprocessSessionId.trim()} onClick={() => void runAction(() => fetch("/api/admin/checkout/reprocess", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ session_id: reprocessSessionId.trim() }) }), "Reprocess failed")}>
+                    Reprocess checkout session
+                  </button>
+                </div>
+              </Section>
+            ) : null}
+
+            {snapshot?.timeline ? <ProjectTimeline timeline={snapshot.timeline} /> : null}
+          </div>
+        </main>
+
+        <aside aria-label="Project properties" className="w-full shrink-0 border-t border-line px-4 py-6 lg:w-[320px] lg:border-l lg:border-t-0 lg:px-5 lg:py-8">
+          <dl>
+            <Property label="Status"><ProjectStatusBadge status={overviewStatus} /></Property>
+            <Property label="Client">{snapshot?.clientContact?.fullName ?? <span className="text-fg-3">Name unavailable</span>}</Property>
+            <Property label="Email">{snapshot?.clientContact?.email ? <span className="block truncate" title={snapshot.clientContact.email}>{snapshot.clientContact.email}</span> : <span className="text-fg-3">Email unavailable</span>}</Property>
+            <Property label="Order">{snapshot?.latestOrder ? snapshot.latestOrder.status.toLowerCase().replace(/_/g, " ") : <span className="text-fg-3">None</span>}</Property>
+            <Property label="Created">{formatDateTime(snapshot?.createdAt)}</Property>
+            <Property label="Updated">{formatDateTime(snapshot?.updatedAt)}</Property>
+            <Property label="Audit trail">
+              <Link className="inline-flex items-center gap-1 text-fg hover:underline" href={`/admin/projects/${projectId}/audit`}>
+                <HistoryIcon size={13} className="text-fg-3" />
+                {snapshot?.recentAuditEventsCount ?? 0} recent events
+              </Link>
+            </Property>
+            <Property label="Project ID"><CopyId value={projectId} /></Property>
+          </dl>
+
+          <div className="mt-6 border-t border-line pt-4">
+            <h3 className="portal-label mb-1">Allowances</h3>
+            <EntitlementProgress label="Concepts" usage={snapshot?.entitlementUsage?.concepts} />
+            <EntitlementProgress label="Revisions" usage={snapshot?.entitlementUsage?.revisions} />
+          </div>
+
+          <div className="mt-6 border-t border-line pt-4">
+            <h3 className="portal-label mb-2">Billing &amp; invoices</h3>
+            {invoiceError ? <p className="text-[13px] text-danger">{invoiceError}</p> : null}
+            {!loading && !invoiceError && invoices.length === 0 ? <p className="text-[13px] text-fg-3">No invoice documents available for this project yet.</p> : null}
             {!loading && invoices.length > 0 ? (
-              <ul className="mt-3 space-y-2">
+              <ul className="space-y-2">
                 {invoices.map((invoice) => {
                   const action = getInvoiceAction(invoice);
                   return (
-                    <li key={invoice.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-neutral-200 px-3 py-2">
-                      <div>
-                        <p className="font-medium text-neutral-900">{invoice.projectName}</p>
-                        <p className="text-xs text-neutral-600">{new Intl.NumberFormat("en-GB", { style: "currency", currency: invoice.currency.toUpperCase() }).format(invoice.amountCents / 100)} · {new Date(invoice.date).toLocaleDateString("en-GB")} · {invoice.status}</p>
+                    <li key={invoice.id} className="flex items-start justify-between gap-3 text-[13px]">
+                      <div className="min-w-0">
+                        <p className="text-fg">{new Intl.NumberFormat("en-GB", { style: "currency", currency: invoice.currency.toUpperCase() }).format(invoice.amountCents / 100)} <span className="text-fg-3">· {invoice.status}</span></p>
+                        <p className="text-[12px] text-fg-3">{new Date(invoice.date).toLocaleDateString("en-GB")}</p>
                       </div>
                       {action.href ? (
-                        <a className="portal-link no-underline" href={action.href} target="_blank" rel="noreferrer" download={action.download ? "invoice.pdf" : undefined}>
+                        <a className="shrink-0 text-[12px] text-fg-2 hover:text-fg" href={action.href} target="_blank" rel="noreferrer" download={action.download ? "invoice.pdf" : undefined}>
                           {action.label}
                         </a>
                       ) : (
-                        <span className="text-xs text-neutral-500">No document available</span>
+                        <span className="shrink-0 text-[12px] text-fg-3">No document</span>
                       )}
                     </li>
                   );
                 })}
               </ul>
             ) : null}
-          </section>
+          </div>
 
-          <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm">
-            <p className="text-xs uppercase tracking-wide text-neutral-500">Admin entitlement override</p>
-            <div className="mt-2 grid gap-3 sm:grid-cols-2">
+          <details className="group mt-6 border-t border-line pt-4">
+            <summary className="flex cursor-pointer list-none items-center justify-between text-[12px] font-medium text-fg-3 hover:text-fg">
+              Admin tools
+              <ChevronDownIcon size={14} className="transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="mt-3 space-y-3 text-[13px]">
+              <p className="text-[12px] text-fg-3">Admin entitlement override</p>
+              <div className="grid grid-cols-2 gap-2">
+                <label className="flex flex-col gap-1">
+                  <span className="text-[12px] text-fg-2">Concept limit</span>
+                  <input className="portal-field" value={conceptLimit} onChange={(e) => { setConceptLimit(e.target.value); setConceptDirty(true); overrideDirty.current.concepts = true; }} placeholder="e.g. 3" inputMode="numeric" />
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-[12px] text-fg-2">Revision limit</span>
+                  <input className="portal-field" value={revisionLimit} onChange={(e) => { setRevisionLimit(e.target.value); setRevisionDirty(true); overrideDirty.current.revisions = true; }} placeholder="e.g. 2" inputMode="numeric" />
+                </label>
+              </div>
               <label className="flex flex-col gap-1">
-                <span className="text-xs text-neutral-600">Concept limit</span>
-                <input className="rounded border border-neutral-300 bg-white px-2 py-1" value={conceptLimit} onChange={(e) => { setConceptLimit(e.target.value); setConceptDirty(true); overrideDirty.current.concepts = true; }} placeholder="e.g. 3" inputMode="numeric" />
+                <span className="text-[12px] text-fg-2">Reason (required and recorded in the audit trail)</span>
+                <textarea
+                  className="portal-field"
+                  value={entitlementOverrideReason}
+                  onChange={(e) => { setEntitlementOverrideReason(e.target.value); }}
+                  maxLength={500}
+                  placeholder="Why is this package entitlement changing?"
+                  rows={2}
+                  required
+                />
               </label>
-              <label className="flex flex-col gap-1">
-                <span className="text-xs text-neutral-600">Revision limit</span>
-                <input className="rounded border border-neutral-300 bg-white px-2 py-1" value={revisionLimit} onChange={(e) => { setRevisionLimit(e.target.value); setRevisionDirty(true); overrideDirty.current.revisions = true; }} placeholder="e.g. 2" inputMode="numeric" />
-              </label>
-            </div>
-            <label className="mt-3 flex flex-col gap-1">
-              <span className="text-xs text-neutral-600">Reason (required and recorded in the audit trail)</span>
-              <textarea
-                className="rounded border border-neutral-300 bg-white px-2 py-1"
-                value={entitlementOverrideReason}
-                onChange={(e) => { setEntitlementOverrideReason(e.target.value); }}
-                maxLength={500}
-                placeholder="Why is this package entitlement changing?"
-                rows={2}
-                required
-              />
-            </label>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <button className="rounded border border-neutral-300 bg-white px-3 py-1" type="button" disabled={busy || !entitlementOverrideReason.trim()} onClick={() => void saveEntitlementOverrides()}>
+              <button className="portal-btn-secondary w-full" type="button" disabled={busy || !entitlementOverrideReason.trim()} onClick={() => void saveEntitlementOverrides()}>
                 Save entitlement override
               </button>
-              <button
-                className="rounded border border-rose-300 bg-rose-50 px-3 py-1 font-medium text-rose-700"
-                type="button"
-                disabled={busy}
-                onClick={() => {
-                  if (!window.confirm("Full project reset? This deletes concepts, revisions, concept comments, and all non-system messages, and retires ALL final publication records. Stored files are retained; previously issued signed links remain valid until expiry. This is irreversible.")) return;
-                  if (!window.confirm("Final confirmation: reset this project to a clean-slate baseline?")) return;
-                  void runAction(
-                    () =>
-                      fetch(`/api/admin/projects/${projectId}/reset`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ confirm: true, mode: "clean-slate" }),
-                      }),
-                    "Failed to reset project",
-                  );
-                }}
-              >
-                Reset project (clean slate)
-              </button>
-            </div>
-          </div>
-
-          {hasApprovedConcept ? (
-            <section id="final-deliverables-upload" className="relative mt-4 overflow-hidden rounded-2xl border border-violet-200/70 bg-gradient-to-br from-white via-violet-50 to-indigo-50 p-5 shadow-sm shadow-violet-200/30">
-              <div aria-hidden className="pointer-events-none absolute -right-12 -top-14 h-36 w-36 rounded-full bg-gradient-to-br from-violet-300/25 to-indigo-200/20 blur-2xl" />
-              <div aria-hidden className="pointer-events-none absolute -bottom-14 left-10 h-32 w-32 rounded-full bg-gradient-to-tr from-indigo-200/15 to-fuchsia-200/20 blur-2xl" />
-
-              <div className="relative flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-violet-900">Final deliverables</p>
-                  <h2 className="mt-1 text-xl font-semibold text-neutral-900">Publish client-ready handoff files</h2>
-                  <p className="mt-1 max-w-2xl text-sm text-neutral-700">Upload the final ZIP package to make approved assets available in the client portal.</p>
-                </div>
-                {snapshot?.finalZip?.available ? (
-                  <button
-                    className="portal-btn-secondary border-violet-300/80 bg-white/95 text-violet-900 hover:border-violet-400 disabled:opacity-60"
-                    type="button"
-                    disabled={busy}
-                    onClick={() => void downloadCurrentFinal()}
-                  >
-                    Download current ZIP
-                  </button>
-                ) : null}
-              </div>
-
-              {finalUploadSuccess ? (
-                <FeatureNoticeCard
-                  variant="success"
-                  className="relative mt-4 p-4"
-                  kicker="Upload complete"
-                  title="Final deliverables published"
-                  body={finalUploadSuccess}
-                />
-              ) : null}
-
-              {snapshot?.finalZip?.available ? (
-                <div className="relative mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-                  <p>Current final ZIP is published and visible to the client.</p>
-                  {shouldOfferFinalNotificationRetry(snapshot) ? (
-                    <button
-                      className="rounded border border-emerald-400 bg-white px-3 py-1 font-medium text-emerald-900 disabled:opacity-60"
-                      type="button"
-                      disabled={busy}
-                      onClick={() => void retryFinalNotification()}
-                    >
-                      {busy ? "Sending…" : "Send/retry client notification"}
-                    </button>
-                  ) : null}
-                </div>
-              ) : null}
-
-              <form className="relative mt-4 grid gap-3 rounded-xl border border-violet-200/80 bg-white/90 p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center" onSubmit={uploadFinalDeliverable}>
-                <label className="flex flex-col gap-2 text-sm text-neutral-700">
-                  <span className="font-medium text-neutral-900">Final ZIP file</span>
-                  <input
-                    className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm"
-                    type="file"
-                    accept=".zip,application/zip,application/x-zip-compressed"
-                    onChange={(event) => setFinalZipFile(event.target.files?.[0] ?? null)}
-                  />
-                  <span className="text-xs text-neutral-500">Standard ZIP only; 100 MB compressed / 500 MB expanded maximum.</span>
-                </label>
-                <button className="portal-btn-primary justify-center bg-violet-700 text-white hover:bg-violet-800 disabled:opacity-60" type="submit" disabled={busy || !finalZipFile}>
-                  {busy ? "Uploading…" : "Upload and publish"}
+              <div className="border-t border-line pt-3">
+                <p className="mb-2 text-[12px] text-fg-3">Danger zone</p>
+                <button
+                  className="portal-btn-danger w-full"
+                  type="button"
+                  disabled={busy}
+                  onClick={() => {
+                    if (!window.confirm("Full project reset? This deletes concepts, revisions, concept comments, and all non-system messages, and retires ALL final publication records. Stored files are retained; previously issued signed links remain valid until expiry. This is irreversible.")) return;
+                    if (!window.confirm("Final confirmation: reset this project to a clean-slate baseline?")) return;
+                    void runAction(
+                      () =>
+                        fetch(`/api/admin/projects/${projectId}/reset`, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ confirm: true, mode: "clean-slate" }),
+                        }),
+                      "Failed to reset project",
+                    );
+                  }}
+                >
+                  Reset project (clean slate)
                 </button>
-              </form>
-            </section>
-          ) : (
-            <FeatureNoticeCard
-              variant="info"
-              className="mt-4 p-4"
-              kicker="Final deliverables"
-              title="Final upload unlocks after concept approval"
-              body="Approve a concept first to enable final deliverables upload in admin quick actions and project overview."
-            />
-          )}
-
-          {snapshot?.stuck ? (
-            <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">⚠ Stuck: {snapshot.stuckReason ?? "Needs manual intervention."}</p>
-          ) : null}
-          {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
-        </section>
-
-        {snapshot?.stuck ? (
-          <section className="mt-6 rounded border border-red-200 bg-red-50 p-4">
-            <h2 className="text-lg font-medium text-red-800">Webhook recovery</h2>
-            <p className="mt-1 text-sm text-red-700">Use Stripe Checkout session id to retry idempotent fulfillment.</p>
-            <input className="mt-2 w-full rounded border border-red-200 bg-white px-2 py-1 text-sm" placeholder="cs_test_..." value={reprocessSessionId} onChange={(e) => setReprocessSessionId(e.target.value)} />
-            {snapshot.latestOrder?.stripeCheckoutSessionId ? <p className="mt-1 text-xs text-red-700">Latest order session: {snapshot.latestOrder.stripeCheckoutSessionId}</p> : null}
-            <button className="mt-3 rounded border border-red-300 bg-white px-3 py-1 text-sm" type="button" disabled={busy || !reprocessSessionId.trim()} onClick={() => void runAction(() => fetch("/api/admin/checkout/reprocess", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ session_id: reprocessSessionId.trim() }) }), "Reprocess failed")}>
-              Reprocess checkout session
-            </button>
-          </section>
-        ) : null}
-
-        {(snapshot?.revisionRequests ?? []).some((r) => r.status !== "delivered") ? (
-          <section className="mt-3 portal-card">
-            <h2 className="text-lg font-medium">Outstanding revision requests</h2>
-            <p className="mt-1 text-sm text-neutral-600">Client feedback waiting for a designer response.</p>
-            <ul className="mt-4 space-y-3">
-              {(snapshot?.revisionRequests ?? [])
-                .filter((r) => r.status !== "delivered")
-                .map((r) => {
-                  const concept = snapshot?.concepts.find((c) => c.id === r.concept?.id) ?? null;
-                  return (
-                    <li key={r.id} className="rounded-xl border border-neutral-200 bg-white p-4 text-sm">
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                          <p className="text-xs text-neutral-500">{r.user.fullName ?? r.user.email} · {new Date(r.createdAt).toLocaleString()}</p>
-                          <p className="mt-2 whitespace-pre-wrap text-neutral-800">{r.body}</p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          {concept?.imageUrl ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img className="h-16 w-16 rounded-lg border border-neutral-200 object-cover" src={concept.imageUrl} alt={`Concept ${concept.number}`} />
-                          ) : (
-                            <div className="h-16 w-16 rounded-lg border border-neutral-200 bg-neutral-50" aria-hidden />
-                          )}
-                          <Link className="portal-link no-underline" href={`/admin/projects/${projectId}/concepts`}>
-                            View concept #{concept?.number ?? "—"}
-                          </Link>
-                        </div>
-                      </div>
-                      <button
-                        className="mt-3 rounded border border-neutral-300 px-2 py-1"
-                        disabled={busy}
-                        onClick={() =>
-                          void runAction(
-                            () =>
-                              fetch(`/api/admin/projects/${projectId}/revision-requests/${r.id}/delivered`, {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ setConceptsReady: true }),
-                              }),
-                            "Failed to mark delivered",
-                          )
-                        }
-                      >
-                        Mark delivered
-                      </button>
-                    </li>
-                  );
-                })}
-            </ul>
-          </section>
-        ) : null}
-
-        <section className="mt-3 portal-card">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-medium">Concepts</h2>
-              <p className="mt-1 text-sm text-neutral-600">Published concepts visible to the client.</p>
+              </div>
+              <Link className="block text-[12px] text-fg-3 hover:text-fg" href={`/admin/projects/${projectId}/upload`}>Legacy upload</Link>
             </div>
-            <Link className="portal-link no-underline" href={`/admin/projects/${projectId}/concepts`}>Open concepts manager + quick actions</Link>
-          </div>
-
-          {loading ? <p className="mt-3 text-sm text-neutral-600">Loading…</p> : null}
-          <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {(snapshot?.concepts ?? []).map((concept) => {
-              const pendingRevisionCount = (snapshot?.revisionRequests ?? []).filter((r) => r.status !== "delivered" && r.concept?.id === concept.id).length;
-              const conceptStatus = getConceptStatusMeta(concept.status);
-
-              return (
-                <li key={concept.id} className="rounded-xl border border-neutral-200 bg-white p-3 text-sm">
-                  {concept.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img className="h-36 w-full rounded-lg border border-neutral-200 object-cover" src={concept.imageUrl} alt={`Concept ${concept.number}`} />
-                  ) : (
-                    <div className="h-36 w-full rounded-lg border border-neutral-200 bg-neutral-50" aria-hidden />
-                  )}
-                  <div className="mt-3 flex items-center justify-between gap-2">
-                    <p className="font-medium">#{concept.number}</p>
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${conceptStatus.className}`}>{conceptStatus.label}</span>
-                  </div>
-                  {pendingRevisionCount > 0 ? (
-                    <p className="mt-2 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">{pendingRevisionCount} pending revision request{pendingRevisionCount === 1 ? "" : "s"}</p>
-                  ) : null}
-                  <div className="mt-2 flex items-center justify-between gap-2 text-xs">
-                    <Link className="portal-link no-underline" href={`/project/${projectId}/concept/${concept.id}?from=admin`}>Open discussion</Link>
-                    <Link className="portal-link no-underline" href={`/admin/projects/${projectId}/concepts#concept-${concept.id}`}>Quick actions</Link>
-                  </div>
-                </li>
-              );
-            })}
-            {!loading && (snapshot?.concepts?.length ?? 0) === 0 ? <li className="text-sm text-neutral-600">No concepts yet.</li> : null}
-          </ul>
-        </section>
-
-        {snapshot?.timeline ? <ProjectTimeline timeline={snapshot.timeline} primaryCta={snapshot.primaryCta} /> : null}
-
-      </main>
+          </details>
+        </aside>
+      </div>
     </PageShell>
   );
 }

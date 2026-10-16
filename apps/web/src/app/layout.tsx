@@ -27,7 +27,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={inter.variable}>
+    // The theme is set on <html> by /theme-init.js before React hydrates.
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
+      <head>
+        {/* eslint-disable-next-line @next/next/no-sync-scripts -- must run before first paint */}
+        <script src="/theme-init.js" />
+      </head>
       <body className="antialiased">
         <SafePerformanceMeasure />
         {children}

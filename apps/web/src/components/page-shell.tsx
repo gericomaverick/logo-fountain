@@ -1,7 +1,9 @@
 import { ComponentPropsWithoutRef, ReactNode } from "react";
 
+import { AppFrame } from "@/components/app-frame";
+
 export function PageShell({ children }: { children: ReactNode }) {
-  return <div className="min-h-screen bg-[#faf9f5]">{children}</div>;
+  return <AppFrame>{children}</AppFrame>;
 }
 
 export function Card({ children, className = "", ...props }: { children: ReactNode; className?: string } & ComponentPropsWithoutRef<"section">) {

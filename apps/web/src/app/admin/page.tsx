@@ -1,8 +1,10 @@
 import Link from "next/link";
 
 import { HeaderNav } from "@/components/header-nav";
-import { Card, PageShell, SubCard } from "@/components/page-shell";
-import { ProjectStatusBadge } from "@/components/project-status-badge";
+import { ActivityIcon, AlertIcon, ImageIcon, MessageIcon } from "@/components/icons";
+import { PageShell } from "@/components/page-shell";
+import { getProjectStatusLabel, StatusIcon } from "@/components/project-status-badge";
+import { PageHeader, relativeTime } from "@/components/ui";
 import { deriveProjectBadgeState, type AdminSectionKey } from "@/lib/admin-dashboard";
 import { computeLatestConceptActivityAt } from "@/lib/concept-activity";
 import { prisma } from "@/lib/prisma";
@@ -109,28 +111,35 @@ function compareByUrgency(a: AdminProjectRow, b: AdminProjectRow): number {
   return bLatest - aLatest;
 }
 
+function latestActivityAt(project: AdminProjectRow): Date {
+  return new Date(Math.max(project.updatedAt.getTime(), project.latestMessageAt?.getTime() ?? 0, project.latestConceptAt?.getTime() ?? 0));
+}
+
+const PACKAGE_LABELS: Record<string, string> = { essential: "Essential", professional: "Professional", complete: "Complete" };
+
 function AdminSection({
   title,
   description,
   projects,
+  now,
 }: {
   title: string;
   description: string;
   projects: AdminProjectRow[];
+  now: Date;
 }) {
   return (
-    <section className="mt-8">
-      <div className="mb-4">
-        <h2 className="text-xl font-semibold text-neutral-900">{title}</h2>
-        <p className="mt-1 text-sm text-neutral-600">{description}</p>
+    <section aria-label={title}>
+      <div className="sticky top-12 z-[5] flex h-9 items-center gap-2 border-b border-line bg-surface px-4 md:px-6" title={description}>
+        <h2 className="text-[13px] font-medium text-fg">{title}</h2>
+        <span className="text-[13px] text-fg-3">{projects.length}</span>
+        <span className="hidden truncate text-[12px] text-fg-3 lg:inline">· {description}</span>
       </div>
 
       {projects.length === 0 ? (
-        <SubCard>
-          <p className="text-sm text-neutral-600">No projects in this section.</p>
-        </SubCard>
+        <p className="border-b border-line px-4 py-3 text-[13px] text-fg-3 md:px-6">No projects in this section.</p>
       ) : (
-        <div className="space-y-4">
+        <ul>
           {projects.map((project) => {
             const latestOrder = project.orders[0] ?? null;
             const stuckReason = getStuckReason(latestOrder);
@@ -146,59 +155,71 @@ function AdminSection({
 
             const brandName = extractBrandNameFromBriefAnswers(project.latestBrief?.answers);
             const projectTitle = getProjectDisplayTitle({ projectId: project.id, brandName, audience: "admin" });
+            const activity = latestActivityAt(project);
+            const href = needsFeedback ? `/admin/projects/${project.id}/concepts#pending-feedback` : `/admin/projects/${project.id}`;
 
             return (
-              <Card key={project.id} className="mt-0">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <ProjectStatusBadge status={overviewStatus} />
-                    <h3 className="mt-3 text-base font-semibold text-neutral-900">{projectTitle}</h3>
-                    <p className="mt-1 text-sm text-neutral-600">
-                      Client: {clientName}
-                      {clientRecordMissing ? <span className="text-amber-700"> (record missing)</span> : null}
+              <li key={project.id} className="group relative flex min-h-11 items-center gap-3 border-b border-line px-4 py-2 transition-colors hover:bg-surface md:px-6">
+                {/* The whole row opens the project; the small links sit above it. */}
+                <Link href={href} className="absolute inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--focus)]" aria-label={needsFeedback ? `Resolve pending feedback: ${projectTitle}` : `Open ${projectTitle}`} />
+                <span title={getProjectStatusLabel(overviewStatus)}>
+                  <StatusIcon status={overviewStatus} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="flex min-w-0 items-center gap-2 text-[13px]">
+                    <span className="truncate font-medium text-fg">{projectTitle}</span>
+                    <span className="hidden shrink-0 text-fg-3 sm:inline">{getProjectStatusLabel(overviewStatus)}</span>
+                  </p>
+                  <p className="truncate text-[12px] text-fg-3">
+                    {clientName}
+                    {clientRecordMissing ? <span className="text-warning"> · client record missing (deleted after the project was created)</span> : null}
+                    {primaryClientContact ? <> · {primaryClientContact.name === primaryClientContact.email ? primaryClientContact.email : `${primaryClientContact.name} (${primaryClientContact.email})`}</> : null}
+                  </p>
+                  {stuckReason ? (
+                    <p className="mt-0.5 flex items-center gap-1 text-[12px] text-danger">
+                      <AlertIcon size={12} />
+                      {stuckReason}
                     </p>
-                    {clientRecordMissing ? (
-                      <p className="text-sm text-amber-700">Client row was deleted after this project was created.</p>
-                    ) : null}
-                    {primaryClientContact ? (
-                      <p className="text-sm text-neutral-600">
-                        Contact: {primaryClientContact.name} <span className="text-neutral-500">({primaryClientContact.email})</span>
-                      </p>
-                    ) : null}
-                    <p className="text-sm text-neutral-600">Package: {project.packageCode}</p>
-                  </div>
-
-                  <div className="flex flex-col gap-2 sm:items-end">
-                    {needsFeedback ? (
-                      <Link className="portal-btn-primary" href={`/admin/projects/${project.id}/concepts#pending-feedback`}>
-                        Resolve pending feedback
-                      </Link>
-                    ) : (
-                      <Link className="portal-btn-primary" href={`/admin/projects/${project.id}`}>
-                        Open project
-                      </Link>
-                    )}
-                    <div className="flex flex-wrap gap-2 sm:justify-end">
-                      {project.hasNewMessages ? <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">New messages</span> : null}
-                      {project.pendingFeedbackCount > 0 ? <span className="inline-flex rounded-full bg-rose-100 px-2 py-0.5 text-xs font-semibold text-rose-900">Pending feedback ({project.pendingFeedbackCount})</span> : null}
-                      {project.hasNewConcepts ? <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-900">New concepts</span> : null}
-                    </div>
-                    <div className="flex flex-wrap gap-3 text-sm text-neutral-700">
-                      <Link className="portal-link no-underline" href={`/admin/projects/${project.id}/messages`}>
-                        Project messages
-                      </Link>
-                      <Link className="portal-link no-underline" href={`/admin/projects/${project.id}/concepts`}>
-                        Concept threads
-                      </Link>
-                    </div>
-                  </div>
+                  ) : null}
                 </div>
 
-                {stuckReason ? <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">⚠ {stuckReason}</p> : null}
-              </Card>
+                <div className="flex shrink-0 items-center gap-1.5">
+                  {needsFeedback ? (
+                    <span className="inline-flex h-5 items-center rounded-full bg-warning-soft px-2 text-[11px] font-medium text-warning">
+                      {project.pendingFeedbackCount} feedback
+                    </span>
+                  ) : null}
+                  {project.hasNewMessages ? (
+                    <span className="inline-flex h-5 items-center gap-1 rounded-full bg-accent-soft px-2 text-[11px] font-medium text-accent">
+                      <MessageIcon size={11} />
+                      New
+                    </span>
+                  ) : null}
+                  {project.hasNewConcepts ? (
+                    <span className="inline-flex h-5 items-center gap-1 rounded-full bg-success-soft px-2 text-[11px] font-medium text-success">
+                      <ImageIcon size={11} />
+                      New
+                    </span>
+                  ) : null}
+                </div>
+
+                <div className="relative z-[1] hidden shrink-0 items-center gap-0.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100 md:flex">
+                  <Link className="portal-btn-ghost h-7 w-7 px-0" href={`/admin/projects/${project.id}/messages`} aria-label="Project messages" title="Project messages">
+                    <MessageIcon size={14} />
+                  </Link>
+                  <Link className="portal-btn-ghost h-7 w-7 px-0" href={`/admin/projects/${project.id}/concepts`} aria-label="Concept threads" title="Concept threads">
+                    <ImageIcon size={14} />
+                  </Link>
+                </div>
+
+                <span className="hidden w-24 shrink-0 text-[12px] text-fg-2 lg:block">{PACKAGE_LABELS[project.packageCode] ?? project.packageCode}</span>
+                <time className="w-24 shrink-0 text-right text-[12px] text-fg-3" dateTime={activity.toISOString()} title={activity.toLocaleString("en-GB")}>
+                  {relativeTime(activity, now)}
+                </time>
+              </li>
             );
           })}
-        </div>
+        </ul>
       )}
     </section>
   );
@@ -357,18 +378,35 @@ export default async function AdminHomePage() {
   sectioned["in-progress"].sort(compareByUrgency);
   sectioned.delivered.sort(compareByUrgency);
 
+  const now = new Date();
+  const active = sectioned["needs-action"].length + sectioned["in-progress"].length;
+
   return (
     <PageShell>
       <HeaderNav />
-      <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="portal-page-title">Admin dashboard</h1>
-          <Link className="portal-link no-underline" href="/admin/health">Health checks</Link>
+      <PageHeader
+        crumbs={[{ label: "Queue" }]}
+        actions={
+          <Link className="portal-btn-ghost" href="/admin/health">
+            <ActivityIcon size={14} />
+            Health checks
+          </Link>
+        }
+      />
+      <main>
+        <div className="flex items-end justify-between gap-4 px-4 pb-4 pt-6 md:px-6">
+          <div>
+            <h1 className="text-[20px] font-semibold tracking-tight text-fg">Queue</h1>
+            <p className="mt-0.5 text-[13px] text-fg-2">
+              {active} active · {sectioned["needs-action"].length} need{sectioned["needs-action"].length === 1 ? "s" : ""} action
+            </p>
+          </div>
         </div>
-
-        <AdminSection {...getSectionMeta("needs-action")} projects={sectioned["needs-action"]} />
-        <AdminSection {...getSectionMeta("in-progress")} projects={sectioned["in-progress"]} />
-        <AdminSection {...getSectionMeta("delivered")} projects={sectioned.delivered} />
+        <div className="border-t border-line">
+          <AdminSection {...getSectionMeta("needs-action")} projects={sectioned["needs-action"]} now={now} />
+          <AdminSection {...getSectionMeta("in-progress")} projects={sectioned["in-progress"]} now={now} />
+          <AdminSection {...getSectionMeta("delivered")} projects={sectioned.delivered} now={now} />
+        </div>
       </main>
     </PageShell>
   );

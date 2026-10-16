@@ -1,3 +1,5 @@
+import { CheckIcon } from "@/components/icons";
+
 type TimelineItem = {
   state: string;
   label: string;
@@ -6,42 +8,52 @@ type TimelineItem = {
   timestamp?: string;
 };
 
-function stepTone(step: TimelineItem): string {
-  if (step.current) return "border-sky-200 bg-sky-50";
-  if (step.completed) return "border-emerald-200 bg-emerald-50";
-  return "border-neutral-200 bg-neutral-50";
+const WHEN = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+
+function Marker({ step }: { step: TimelineItem }) {
+  if (step.completed && !step.current) {
+    return (
+      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[var(--accent-fg)]">
+        <CheckIcon size={10} strokeWidth={3} />
+      </span>
+    );
+  }
+  if (step.current) {
+    return (
+      <span className="flex h-4 w-4 items-center justify-center rounded-full border-2 border-accent bg-panel">
+        <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+      </span>
+    );
+  }
+  return <span className="block h-4 w-4 rounded-full border-2 border-dashed border-line-strong bg-panel" />;
 }
 
-function markerTone(step: TimelineItem): string {
-  if (step.current) return "border-sky-300 bg-sky-500";
-  if (step.completed) return "border-emerald-300 bg-emerald-500";
-  return "border-neutral-300 bg-white";
-}
-
+/** The project's milestones as a compact step list: done, current, still to come. */
 export function ProjectTimeline({ timeline, primaryCta }: { timeline: TimelineItem[]; primaryCta?: string | null }) {
   return (
-    <section className="mt-4 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-semibold text-neutral-900">Timeline</h2>
-          <p className="mt-1 text-sm text-neutral-600">Key milestones and project state changes.</p>
-        </div>
+    <section aria-labelledby="project-timeline-title">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
+        <h2 id="project-timeline-title" className="text-[13px] font-semibold text-fg">
+          Timeline
+        </h2>
         {primaryCta ? (
-          <p className="rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-xs font-medium text-neutral-700">
-            Next action: {primaryCta}
-          </p>
+          <p className="rounded-full border border-line bg-surface px-2.5 py-0.5 text-[12px] font-medium text-fg-2">Next action: {primaryCta}</p>
         ) : null}
       </div>
 
-      <ol className="mt-5 space-y-3">
+      <ol className="rounded-lg border border-line bg-panel px-3 py-2">
         {timeline.map((step, index) => (
-          <li key={`${step.state}-${index}`} className={`relative rounded-xl border p-3 pl-11 text-sm ${stepTone(step)}`}>
-            {index < timeline.length - 1 ? <span aria-hidden className="absolute bottom-[-14px] left-5 top-8 w-px bg-neutral-200" /> : null}
-            <span className={`absolute left-3 top-3 inline-flex h-4 w-4 items-center justify-center rounded-full border-2 ${markerTone(step)}`}>
-              {step.completed ? <span className="h-1.5 w-1.5 rounded-full bg-white" aria-hidden /> : null}
+          <li key={`${step.state}-${index}`} className="relative flex items-center gap-3 py-1.5 text-[13px]">
+            {index < timeline.length - 1 ? <span aria-hidden className="absolute left-[7.5px] top-[22px] h-[calc(100%-12px)] w-px bg-line" /> : null}
+            <span className="relative z-[1] flex shrink-0">
+              <Marker step={step} />
             </span>
-            <p className={`leading-tight ${step.current ? "font-semibold text-neutral-900" : "font-medium text-neutral-800"}`}>{step.label}</p>
-            {step.timestamp ? <p className="mt-1 text-xs text-neutral-500">{new Date(step.timestamp).toLocaleString()}</p> : null}
+            <span className={`flex-1 ${step.current ? "font-semibold text-fg" : step.completed ? "text-fg" : "text-fg-3"}`}>{step.label}</span>
+            {step.timestamp ? (
+              <time className="shrink-0 text-[12px] text-fg-3" dateTime={step.timestamp}>
+                {WHEN.format(new Date(step.timestamp))}
+              </time>
+            ) : null}
           </li>
         ))}
       </ol>

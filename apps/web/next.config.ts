@@ -33,6 +33,8 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // The development badge would sit over the sidebar's footer.
+  devIndicators: { position: "bottom-right" },
   // This repo is not the OpenClaw workspace root; ensure Next/Turbopack treats this folder as the app root.
   turbopack: {
     root: path.resolve(__dirname),
