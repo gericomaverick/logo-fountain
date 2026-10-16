@@ -7,7 +7,9 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { HeaderNav } from "@/components/header-nav";
-import { Card, PageShell } from "@/components/page-shell";
+import { PageShell } from "@/components/page-shell";
+import { PageHeader, Section } from "@/components/ui";
+import { FeatureNoticeCard } from "@/components/feature-notice-card";
 
 type Snapshot = {
   status: string;
@@ -94,66 +96,67 @@ export default function AdminProjectUploadPage() {
   return (
     <PageShell>
       <HeaderNav />
-      <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
-        <div className="mb-4 flex items-center justify-between gap-4">
+      <PageHeader
+        crumbs={[{ label: "Queue", href: "/admin" }, { label: `Project ${projectId}`, href: `/admin/projects/${projectId}` }, { label: "Upload concepts" }]}
+        actions={
+          <div className="flex max-w-[55vw] items-center gap-2 overflow-x-auto text-sm">
+            <Link className="portal-btn-ghost shrink-0" href={`/admin/projects/${projectId}`}>Project overview</Link>
+            <Link className="portal-btn-ghost shrink-0" href={`/admin/projects/${projectId}/concepts`}>Concepts manager</Link>
+            <Link className="portal-btn-ghost shrink-0" href={`/admin/projects/${projectId}/messages`}>Project messages</Link>
+          </div>
+        }
+      />
+      <main className="min-w-0 flex-1 px-4 py-6 md:px-8 lg:py-8">
+        <div className="mx-auto max-w-[720px] space-y-10">
           <div>
-            <h1 className="text-2xl font-semibold">Upload concepts</h1>
-            <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
+            <h1 className="text-3xl font-semibold tracking-tight text-fg">Upload concepts</h1>
+            <p className="mt-2 text-sm text-fg-3">Project {projectId}</p>
           </div>
-          <div className="flex flex-wrap gap-4 text-sm">
-            <Link className="portal-link no-underline" href={`/admin/projects/${projectId}`}>Project overview</Link>
-            <Link className="portal-link no-underline" href={`/admin/projects/${projectId}/concepts`}>Concepts manager</Link>
-            <Link className="portal-link no-underline" href={`/admin/projects/${projectId}/messages`}>Project messages</Link>
-          </div>
+
+          <Section title="Upload and publish concept">
+            <p className="mt-1 text-sm text-fg-2">Uploading here publishes immediately so the client can review it.</p>
+
+            {error ? <p role="alert" className="mt-3 rounded-lg bg-danger-soft p-3 text-sm text-danger">{error}</p> : null}
+            {success ? <p className="mt-3 rounded-lg border border-success/30 bg-success-soft p-3 text-sm text-success">{success}</p> : null}
+
+            <form className="mt-4" onSubmit={uploadConcept}>
+              <FeatureNoticeCard variant="info" title="Concept uploads auto-assign the next concept number so new uploads cannot overwrite Concept #1 by mistake." />
+
+              <label className="mt-4 block text-sm font-medium text-fg">Asset file</label>
+              <input className="portal-field mt-1 block" type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+              <p className="mt-1 text-sm text-fg-3">PNG, JPEG, or WebP only; 10 MB maximum.</p>
+
+              <label className="mt-4 block text-sm font-medium text-fg">Description / explainer</label>
+              <p className="mt-1 text-sm text-fg-3">Shown to the client on the concept page. You can use multiple lines.</p>
+              <textarea
+                className="mt-2 portal-field"
+                rows={4}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="e.g. Why this direction, what to look for, and any rationale"
+              />
+
+              <button className="mt-4 portal-btn-primary" type="submit" disabled={busy || !file}>
+                {busy ? "Uploading…" : "Upload concept"}
+              </button>
+            </form>
+          </Section>
+
+          <Section title="Existing concepts">
+            <div className="flex items-center justify-between gap-3">
+              <Link className="portal-link text-sm" href={`/admin/projects/${projectId}/concepts`}>Open concepts manager + feedback inbox</Link>
+            </div>
+            {loading ? <p className="mt-3 text-sm text-fg-2">Loading…</p> : null}
+            <ul className="mt-3 space-y-2">
+              {(snapshot?.concepts ?? []).map((concept) => (
+                <li key={concept.id} className="rounded border border-line p-3 text-sm">
+                  <span className="font-medium">#{concept.number}</span> — {concept.status}
+                </li>
+              ))}
+              {!loading && (snapshot?.concepts?.length ?? 0) === 0 ? <li className="text-sm text-fg-2">No concepts yet.</li> : null}
+            </ul>
+          </Section>
         </div>
-
-        <Card className="mt-0">
-          <h2 className="text-lg font-medium">Upload and publish concept</h2>
-          <p className="mt-1 text-sm text-neutral-600">Uploading here publishes immediately so the client can review it.</p>
-
-          {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
-          {success ? <p className="mt-3 text-sm text-green-700">{success}</p> : null}
-
-          <form className="mt-4" onSubmit={uploadConcept}>
-            <p className="rounded border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-700">
-              Concept uploads auto-assign the next concept number so new uploads cannot overwrite Concept #1 by mistake.
-            </p>
-
-            <label className="mt-4 block text-sm font-medium">Asset file</label>
-            <input className="mt-1 block" type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-            <p className="mt-1 text-xs text-neutral-600">PNG, JPEG, or WebP only; 10 MB maximum.</p>
-
-            <label className="mt-4 block text-sm font-medium">Description / explainer</label>
-            <p className="mt-1 text-xs text-neutral-600">Shown to the client on the concept page. You can use multiple lines.</p>
-            <textarea
-              className="mt-2 w-full rounded border border-neutral-300 px-2 py-1"
-              rows={4}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g. Why this direction, what to look for, and any rationale"
-            />
-
-            <button className="mt-4 rounded border border-neutral-300 px-3 py-1 text-sm" type="submit" disabled={busy || !file}>
-              {busy ? "Uploading…" : "Upload concept"}
-            </button>
-          </form>
-        </Card>
-
-        <Card>
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-lg font-medium">Existing concepts</h2>
-            <Link className="text-sm underline" href={`/admin/projects/${projectId}/concepts`}>Open concepts manager + feedback inbox</Link>
-          </div>
-          {loading ? <p className="mt-3 text-sm text-neutral-600">Loading…</p> : null}
-          <ul className="mt-3 space-y-2">
-            {(snapshot?.concepts ?? []).map((concept) => (
-              <li key={concept.id} className="rounded border border-neutral-200 p-3 text-sm">
-                <span className="font-medium">#{concept.number}</span> — {concept.status}
-              </li>
-            ))}
-            {!loading && (snapshot?.concepts?.length ?? 0) === 0 ? <li className="text-sm text-neutral-600">No concepts yet.</li> : null}
-          </ul>
-        </Card>
       </main>
     </PageShell>
   );
