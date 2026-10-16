@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 import { HeaderNav } from "@/components/header-nav";
 import { PageShell } from "@/components/page-shell";
+import { PageHeader, Section } from "@/components/ui";
 import { validatePasswordChange, type ValidationErrors } from "@/lib/auth/validation";
 
 type SessionPayload = {
@@ -149,143 +150,143 @@ export default function SettingsPage() {
   return (
     <PageShell>
       <HeaderNav />
-      <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
-        <header className="mb-6">
-          <h1 className="text-2xl font-semibold text-neutral-900">Settings</h1>
-          <p className="mt-2 text-sm text-neutral-600">Update your profile details and sign-in password.</p>
-        </header>
+      <PageHeader crumbs={[{ label: "Settings" }]} />
+      <main className="min-w-0 flex-1 px-4 py-6 md:px-8 lg:py-8">
+        <div className="mx-auto max-w-[720px] space-y-10">
+          <header>
+            <h1 className="text-3xl font-semibold tracking-tight text-fg">Settings</h1>
+            <p className="mt-2 text-base text-fg-2">Update your profile details and sign-in password.</p>
+          </header>
 
-        {loading ? <p className="mt-4 text-sm text-neutral-500">Loading…</p> : null}
-        {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
+          {loading ? <p className="mt-4 text-sm text-fg-3">Loading…</p> : null}
+          {error ? <p className="mt-4 text-sm text-danger" role="alert">{error}</p> : null}
 
-        {!loading && !error ? (
-          <div className="mt-3 space-y-5">
-            <section className="portal-card">
-              <form className="space-y-4" onSubmit={(e) => void onSave(e)}>
-                <label className="block text-sm">
-                  <span className="mb-1 block font-medium">Email</span>
-                  <input className="portal-field bg-neutral-100" type="email" value={email ?? ""} disabled />
-                </label>
+          {!loading && !error ? (
+            <div className="space-y-10">
+              <Section title="Profile">
+                <form className="space-y-4" onSubmit={(e) => void onSave(e)}>
+                  <label className="block text-sm text-fg">
+                    <span className="mb-1 block font-medium">Email</span>
+                    <input className="portal-field bg-surface-2" type="email" value={email ?? ""} disabled />
+                  </label>
 
-                <label className="block text-sm">
-                  <span className="mb-1 block font-medium">First name</span>
-                  <input
-                    className="portal-field"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    maxLength={80}
-                  />
-                </label>
+                  <label className="block text-sm text-fg">
+                    <span className="mb-1 block font-medium">First name</span>
+                    <input
+                      className="portal-field"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      maxLength={80}
+                    />
+                  </label>
 
-                <label className="block text-sm">
-                  <span className="mb-1 block font-medium">Last name</span>
-                  <input
-                    className="portal-field"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    maxLength={80}
-                  />
-                </label>
+                  <label className="block text-sm text-fg">
+                    <span className="mb-1 block font-medium">Last name</span>
+                    <input
+                      className="portal-field"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      maxLength={80}
+                    />
+                  </label>
 
-                <p className="text-xs text-neutral-500">Billing email and VAT number will be added here in a later update.</p>
-                {!session.isAdmin ? (
-                  <p className="text-xs text-neutral-500">
-                    Need a copy of a paid invoice? Visit{" "}
-                    <Link className="portal-link" href="/settings/invoices">
-                      Invoices
-                    </Link>
-                    .
-                  </p>
-                ) : null}
+                  <p className="text-sm text-fg-3">Billing email and VAT number will be added here in a later update.</p>
+                  {!session.isAdmin ? (
+                    <p className="text-sm text-fg-3">
+                      Need a copy of a paid invoice? Visit{" "}
+                      <Link className="portal-link" href="/settings/invoices">
+                        Invoices
+                      </Link>
+                      .
+                    </p>
+                  ) : null}
 
-                <button type="submit" disabled={saving} className="portal-btn-secondary">
-                  {saving ? "Saving…" : "Save changes"}
-                </button>
+                  <button type="submit" disabled={saving} className="portal-btn-primary">
+                    {saving ? "Saving…" : "Save changes"}
+                  </button>
 
-                {saved ? <p className="text-sm text-green-700">{saved}</p> : null}
-              </form>
-            </section>
+                  {saved ? <p className="text-sm text-success">{saved}</p> : null}
+                </form>
+              </Section>
 
-            <section className="portal-card">
-              <div className="mb-4">
-                <h2 className="text-lg font-semibold text-neutral-900">Password</h2>
-                <p className="mt-1 text-sm text-neutral-600">Change the password used to sign in to this account.</p>
-              </div>
+              <Section title="Password">
+                <p className="mb-4 text-sm text-fg-3">Change the password used to sign in to this account.</p>
 
-              <form className="space-y-4" onSubmit={(e) => void onPasswordSave(e)}>
-                <label className="block text-sm" htmlFor="current-password">
-                  <span className="mb-1 block font-medium">Current password</span>
-                  <input
-                    id="current-password"
-                    className={passwordErrors.current ? "portal-field border-red-400" : "portal-field"}
-                    type="password"
-                    autoComplete="current-password"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    aria-invalid={Boolean(passwordErrors.current)}
-                    aria-describedby={passwordErrors.current ? "current-password-error" : undefined}
-                  />
-                </label>
-                {passwordErrors.current ? (
-                  <p id="current-password-error" className="text-sm font-medium text-red-700" role="alert">
-                    {passwordErrors.current}
-                  </p>
-                ) : null}
+                <form className="space-y-4" onSubmit={(e) => void onPasswordSave(e)}>
+                  <label className="block text-sm text-fg" htmlFor="current-password">
+                    <span className="mb-1 block font-medium">Current password</span>
+                    <input
+                      id="current-password"
+                      className={passwordErrors.current ? "portal-field border-danger" : "portal-field"}
+                      type="password"
+                      autoComplete="current-password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      aria-invalid={Boolean(passwordErrors.current)}
+                      aria-describedby={passwordErrors.current ? "current-password-error" : undefined}
+                    />
+                  </label>
+                  {passwordErrors.current ? (
+                    <p id="current-password-error" className="text-sm font-medium text-danger" role="alert">
+                      {passwordErrors.current}
+                    </p>
+                  ) : null}
 
-                <label className="block text-sm" htmlFor="new-password">
-                  <span className="mb-1 block font-medium">New password</span>
-                  <input
-                    id="new-password"
-                    className={passwordErrors.password ? "portal-field border-red-400" : "portal-field"}
-                    type="password"
-                    autoComplete="new-password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    aria-invalid={Boolean(passwordErrors.password)}
-                    aria-describedby={passwordErrors.password ? "new-password-error" : undefined}
-                  />
-                </label>
-                {passwordErrors.password ? (
-                  <p id="new-password-error" className="text-sm font-medium text-red-700" role="alert">
-                    {passwordErrors.password}
-                  </p>
-                ) : null}
+                  <label className="block text-sm text-fg" htmlFor="new-password">
+                    <span className="mb-1 block font-medium">New password</span>
+                    <input
+                      id="new-password"
+                      className={passwordErrors.password ? "portal-field border-danger" : "portal-field"}
+                      type="password"
+                      autoComplete="new-password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      aria-invalid={Boolean(passwordErrors.password)}
+                      aria-describedby={passwordErrors.password ? "new-password-error" : undefined}
+                    />
+                  </label>
+                  {passwordErrors.password ? (
+                    <p id="new-password-error" className="text-sm font-medium text-danger" role="alert">
+                      {passwordErrors.password}
+                    </p>
+                  ) : null}
 
-                <label className="block text-sm" htmlFor="confirm-password">
-                  <span className="mb-1 block font-medium">Confirm new password</span>
-                  <input
-                    id="confirm-password"
-                    className={passwordErrors.confirm ? "portal-field border-red-400" : "portal-field"}
-                    type="password"
-                    autoComplete="new-password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    aria-invalid={Boolean(passwordErrors.confirm)}
-                    aria-describedby={passwordErrors.confirm ? "confirm-password-error" : undefined}
-                  />
-                </label>
-                {passwordErrors.confirm ? (
-                  <p id="confirm-password-error" className="text-sm font-medium text-red-700" role="alert">
-                    {passwordErrors.confirm}
-                  </p>
-                ) : null}
+                  <label className="block text-sm text-fg" htmlFor="confirm-password">
+                    <span className="mb-1 block font-medium">Confirm new password</span>
+                    <input
+                      id="confirm-password"
+                      className={passwordErrors.confirm ? "portal-field border-danger" : "portal-field"}
+                      type="password"
+                      autoComplete="new-password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      aria-invalid={Boolean(passwordErrors.confirm)}
+                      aria-describedby={passwordErrors.confirm ? "confirm-password-error" : undefined}
+                    />
+                  </label>
+                  {passwordErrors.confirm ? (
+                    <p id="confirm-password-error" className="text-sm font-medium text-danger" role="alert">
+                      {passwordErrors.confirm}
+                    </p>
+                  ) : null}
 
-                <button type="submit" disabled={passwordSaving} className="portal-btn-secondary">
-                  {passwordSaving ? "Updating…" : "Update password"}
-                </button>
+                  <button type="submit" disabled={passwordSaving} className="portal-btn-secondary">
+                    {passwordSaving ? "Updating…" : "Update password"}
+                  </button>
 
-                {passwordStatus ? (
-                  <p
-                    className={passwordStatus.tone === "success" ? "text-sm text-green-700" : "text-sm text-red-600"}
-                    role={passwordStatus.tone === "error" ? "alert" : "status"}
-                  >
-                    {passwordStatus.message}
-                  </p>
-                ) : null}
-              </form>
-            </section>
-          </div>
-        ) : null}
+                  {passwordStatus ? (
+                    <p
+                      className={passwordStatus.tone === "success" ? "text-sm text-success" : "text-sm text-danger"}
+                      role={passwordStatus.tone === "error" ? "alert" : "status"}
+                    >
+                      {passwordStatus.message}
+                    </p>
+                  ) : null}
+                </form>
+              </Section>
+            </div>
+          ) : null}
+        </div>
       </main>
     </PageShell>
   );

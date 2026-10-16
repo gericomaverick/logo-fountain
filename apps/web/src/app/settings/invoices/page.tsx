@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 import { HeaderNav } from "@/components/header-nav";
 import { PageShell } from "@/components/page-shell";
+import { EmptyLine, PageHeader } from "@/components/ui";
 
 type Invoice = {
   id: string;
@@ -93,68 +94,71 @@ export default function InvoicesSettingsPage() {
   return (
     <PageShell>
       <HeaderNav />
-      <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
-        <header className="mb-6">
-          <h1 className="text-2xl font-semibold text-neutral-900">Invoices</h1>
-          <p className="mt-2 text-sm text-neutral-600">Download your Stripe invoices and payment receipts.</p>
-          <p className="mt-1 text-xs text-neutral-500">Some older payments may only provide a hosted invoice or receipt link instead of a direct PDF.</p>
-          <p className="mt-2 text-sm text-neutral-600">
-            <Link className="portal-link no-underline" href="/settings">Back to settings</Link>
-          </p>
+      <PageHeader
+        crumbs={[{ label: "Settings", href: "/settings" }, { label: "Invoices" }]}
+        actions={<Link className="portal-btn-ghost" href="/settings">Back to settings</Link>}
+      />
+      <main className="mx-auto w-full max-w-[1400px] px-4 pb-10 md:px-8 lg:px-10">
+        <header className="pb-5 pt-8">
+          <h1 className="text-3xl font-semibold tracking-tight text-fg">Invoices</h1>
+          <p className="mt-1 text-base text-fg-2">Download your Stripe invoices and payment receipts.</p>
+          <p className="mt-2 text-sm text-fg-3">Some older payments may only provide a hosted invoice or receipt link instead of a direct PDF.</p>
         </header>
 
-        {loading ? <p className="text-sm text-neutral-500">Loading…</p> : null}
-        {error ? <p className="text-sm text-red-600">{error}</p> : null}
+        {loading ? <p className="text-sm text-fg-3">Loading…</p> : null}
+        {error ? <p className="text-sm text-danger" role="alert">{error}</p> : null}
 
         {!loading && !error && invoices.length === 0 ? (
-          <p className="rounded-xl border border-neutral-200 bg-white p-4 text-sm text-neutral-600">No invoices yet.</p>
+          <EmptyLine>No invoices yet.</EmptyLine>
         ) : null}
 
         {!loading && !error && invoices.length > 0 ? (
-          <section className="overflow-x-auto rounded-xl border border-neutral-200 bg-white">
-            <table className="min-w-full divide-y divide-neutral-200 text-sm">
-              <thead className="bg-neutral-50 text-left text-xs uppercase tracking-wide text-neutral-500">
-                <tr>
-                  <th className="px-4 py-3">Project</th>
-                  <th className="px-4 py-3">Amount</th>
-                  <th className="px-4 py-3">Date</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-neutral-100">
-                {invoices.map((invoice) => (
-                  <tr key={invoice.id}>
-                    <td className="px-4 py-3 font-medium text-neutral-900">{invoice.projectName}</td>
-                    <td className="px-4 py-3 text-neutral-700">{formatAmount(invoice.amountCents, invoice.currency)}</td>
-                    <td className="px-4 py-3 text-neutral-700">{DATE_FORMATTER.format(new Date(invoice.date))}</td>
-                    <td className="px-4 py-3 text-neutral-700">{invoice.status}</td>
-                    <td className="px-4 py-3">
-                      {(() => {
-                        const action = getInvoiceAction(invoice);
-
-                        if (!action.href) {
-                          return <span className="text-neutral-500">Unavailable</span>;
-                        }
-
-                        return (
-                          <a
-                            href={action.href}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="portal-link no-underline"
-                            download={action.download ? "invoice.pdf" : undefined}
-                            type={action.download ? "application/pdf" : undefined}
-                          >
-                            {action.label}
-                          </a>
-                        );
-                      })()}
-                    </td>
+          <section className="rounded-xl border border-line bg-panel">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-line text-base">
+                <thead className="h-11 text-left text-sm font-semibold text-fg-2 [&_th]:bg-surface [&_th:first-child]:rounded-tl-xl [&_th:last-child]:rounded-tr-xl">
+                  <tr>
+                    <th className="px-4 py-3">Project</th>
+                    <th className="px-4 py-3">Amount</th>
+                    <th className="px-4 py-3">Date</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-line">
+                  {invoices.map((invoice) => (
+                    <tr key={invoice.id} className="hover:bg-surface [&:last-child>td:first-child]:rounded-bl-xl [&:last-child>td:last-child]:rounded-br-xl">
+                      <td className="px-4 py-3 font-medium text-fg">{invoice.projectName}</td>
+                      <td className="px-4 py-3 text-sm text-fg-2">{formatAmount(invoice.amountCents, invoice.currency)}</td>
+                      <td className="px-4 py-3 text-sm text-fg-2">{DATE_FORMATTER.format(new Date(invoice.date))}</td>
+                      <td className="px-4 py-3 text-sm text-fg-2">{invoice.status}</td>
+                      <td className="px-4 py-3">
+                        {(() => {
+                          const action = getInvoiceAction(invoice);
+
+                          if (!action.href) {
+                            return <span className="text-fg-3">Unavailable</span>;
+                          }
+
+                          return (
+                            <a
+                              href={action.href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="portal-btn-secondary whitespace-nowrap"
+                              download={action.download ? "invoice.pdf" : undefined}
+                              type={action.download ? "application/pdf" : undefined}
+                            >
+                              {action.label}
+                            </a>
+                          );
+                        })()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </section>
         ) : null}
       </main>

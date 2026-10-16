@@ -1,6 +1,10 @@
 "use client";
 
 import Link from "next/link";
+
+import { HeaderNav } from "@/components/header-nav";
+import { PageShell } from "@/components/page-shell";
+import { PageHeader } from "@/components/ui";
 import { useEffect, useState } from "react";
 
 type HealthCheck = {
@@ -64,51 +68,57 @@ export default function AdminHealthPage() {
   }, []);
 
   return (
-    <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">Admin Health Checks</h1>
-        <div className="flex items-center gap-3">
-          <Link href="/admin" className="text-sm underline">
-            Back to queue
-          </Link>
-          <button type="button" onClick={() => void loadHealth()} className="rounded border border-neutral-300 px-3 py-1 text-sm">
-            Re-run checks
-          </button>
-        </div>
-      </div>
+    <PageShell>
+      <HeaderNav />
+      <PageHeader
+        crumbs={[{ label: "Queue", href: "/admin" }, { label: "Health checks" }]}
+        actions={
+          <>
+            <Link href="/admin" className="portal-btn-ghost">Back to queue</Link>
+            <button type="button" onClick={() => void loadHealth()} className="portal-btn-primary">
+              Re-run checks
+            </button>
+          </>
+        }
+      />
+      <main className="mx-auto w-full max-w-[1400px] px-4 pb-10 md:px-8 lg:px-10">
+        <header className="pb-5 pt-8">
+          <h1 className="text-3xl font-semibold tracking-tight text-fg">Admin Health Checks</h1>
+        </header>
 
-      {loading ? <p className="mt-4 text-sm text-neutral-600">Running checks…</p> : null}
-      {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
+        {loading ? <p className="mt-4 text-sm text-fg-2">Running checks…</p> : null}
+        {error ? <p className="mt-4 text-sm text-danger" role="alert">{error}</p> : null}
 
-      {payload ? (
-        <>
-          <div className="mt-4 rounded border border-neutral-200 p-3 text-sm">
-            <p>
-              Status:{" "}
-              <span className={payload.ok ? "font-semibold text-green-700" : "font-semibold text-red-700"}>
-                {payload.ok ? "PASS" : "FAIL"}
-              </span>
-            </p>
-            <p className="mt-1 text-neutral-700">
-              {payload.summary.passed}/{payload.summary.total} checks passing ({payload.summary.failed} failing)
-            </p>
-            <p className="mt-1 text-xs text-neutral-500">Generated: {new Date(payload.generatedAt).toLocaleString()}</p>
-          </div>
+        {payload ? (
+          <section className="rounded-xl border border-line bg-panel">
+            <div className="rounded-t-xl border-b border-line bg-surface px-4 py-3 text-sm">
+              <p>
+                Status:{" "}
+                <span className={payload.ok ? "font-semibold text-success" : "font-semibold text-danger"}>
+                  {payload.ok ? "PASS" : "FAIL"}
+                </span>
+              </p>
+              <p className="mt-1 text-fg-2">
+                {payload.summary.passed}/{payload.summary.total} checks passing ({payload.summary.failed} failing)
+              </p>
+              <p className="mt-1 text-xs text-fg-3">Generated: {new Date(payload.generatedAt).toLocaleString()}</p>
+            </div>
 
-          <ul className="mt-4 space-y-3">
-            {payload.checks.map((check) => (
-              <li key={check.key} className="rounded border border-neutral-200 p-4 text-sm">
-                <p className="font-medium">
-                  {check.passed ? "✅" : "❌"} {check.label}
-                </p>
-                <p className="mt-1 text-neutral-700">{check.summary}</p>
-                <p className="mt-2 text-xs text-neutral-600">Fix guidance:</p>
-                <pre className="mt-1 overflow-x-auto rounded bg-neutral-100 p-2 text-xs text-neutral-800">{check.nextStep}</pre>
-              </li>
-            ))}
-          </ul>
-        </>
-      ) : null}
-    </main>
+            <ul className="divide-y divide-line">
+              {payload.checks.map((check) => (
+                <li key={check.key} className="p-4 text-base last:rounded-b-xl">
+                  <p className="font-medium text-fg">
+                    {check.passed ? "✅" : "❌"} {check.label}
+                  </p>
+                  <p className="mt-1 text-fg-2">{check.summary}</p>
+                  <p className="mt-3 text-sm font-medium text-fg-2">Fix guidance:</p>
+                  <pre className="mt-1 overflow-x-auto rounded-lg bg-surface-2 p-3 text-sm text-fg">{check.nextStep}</pre>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+      </main>
+    </PageShell>
   );
 }
