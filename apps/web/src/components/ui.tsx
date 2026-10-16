@@ -8,8 +8,8 @@ export type Crumb = { label: string; href?: string };
 /** The bar across the top of a page: where you are, and what you can do here. */
 export function PageHeader({ crumbs, actions }: { crumbs: Crumb[]; actions?: ReactNode }) {
   return (
-    <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center justify-between gap-3 border-b border-line bg-panel/90 px-4 backdrop-blur md:px-6">
-      <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1 text-[13px]">
+    <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center justify-between gap-3 border-b border-line bg-panel/90 px-4 backdrop-blur md:px-6">
+      <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1 text-sm">
         {crumbs.map((crumb, index) => {
           const last = index === crumbs.length - 1;
           return (
@@ -49,10 +49,10 @@ export function Section({
 }) {
   return (
     <section id={id} className="scroll-mt-16">
-      <div className="mb-2 flex items-center justify-between gap-3">
-        <h2 className="flex items-center gap-2 text-[13px] font-semibold text-fg">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-fg">
           {title}
-          {count !== undefined ? <span className="font-normal text-fg-3">{count}</span> : null}
+          {count !== undefined ? <span className="text-base font-normal text-fg-3">{count}</span> : null}
         </h2>
         {actions ? <div className="flex items-center gap-1">{actions}</div> : null}
       </div>
@@ -64,16 +64,16 @@ export function Section({
 /** One line of a properties panel: a quiet label and its value. */
 export function Property({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="grid grid-cols-[96px_minmax(0,1fr)] items-start gap-3 py-1.5 text-[13px]">
-      <dt className="pt-0.5 text-fg-3">{label}</dt>
-      <dd className="m-0 min-w-0 text-fg">{children}</dd>
+    <div className="grid grid-cols-[104px_minmax(0,1fr)] items-baseline gap-3 py-1.5 text-sm">
+      <dt className="text-sm text-fg-3">{label}</dt>
+      <dd className="m-0 min-w-0 font-medium text-fg">{children}</dd>
     </div>
   );
 }
 
 /** A muted line where a list would be, when it has nothing in it. */
 export function EmptyLine({ children }: { children: ReactNode }) {
-  return <p className="rounded-lg border border-dashed border-line px-4 py-6 text-center text-[13px] text-fg-3">{children}</p>;
+  return <p className="rounded-lg border border-dashed border-line px-4 py-8 text-center text-sm text-fg-3">{children}</p>;
 }
 
 /** A slim usage bar: how much of an allowance is taken. */

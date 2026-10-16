@@ -32,25 +32,25 @@ function Marker({ step }: { step: TimelineItem }) {
 export function ProjectTimeline({ timeline, primaryCta }: { timeline: TimelineItem[]; primaryCta?: string | null }) {
   return (
     <section aria-labelledby="project-timeline-title">
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
-        <h2 id="project-timeline-title" className="text-[13px] font-semibold text-fg">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <h2 id="project-timeline-title" className="text-lg font-semibold tracking-tight text-fg">
           Timeline
         </h2>
         {primaryCta ? (
-          <p className="rounded-full border border-line bg-surface px-2.5 py-0.5 text-[12px] font-medium text-fg-2">Next action: {primaryCta}</p>
+          <p className="rounded-full border border-line bg-surface px-2.5 py-0.5 text-sm font-medium text-fg-2">Next action: {primaryCta}</p>
         ) : null}
       </div>
 
       <ol className="rounded-lg border border-line bg-panel px-3 py-2">
         {timeline.map((step, index) => (
-          <li key={`${step.state}-${index}`} className="relative flex items-center gap-3 py-1.5 text-[13px]">
-            {index < timeline.length - 1 ? <span aria-hidden className="absolute left-[7.5px] top-[22px] h-[calc(100%-12px)] w-px bg-line" /> : null}
+          <li key={`${step.state}-${index}`} className="relative flex items-center gap-3 py-2 text-base">
+            {index < timeline.length - 1 ? <span aria-hidden className="absolute left-[7.5px] top-[26px] h-[calc(100%-16px)] w-px bg-line" /> : null}
             <span className="relative z-[1] flex shrink-0">
               <Marker step={step} />
             </span>
             <span className={`flex-1 ${step.current ? "font-semibold text-fg" : step.completed ? "text-fg" : "text-fg-3"}`}>{step.label}</span>
             {step.timestamp ? (
-              <time className="shrink-0 text-[12px] text-fg-3" dateTime={step.timestamp}>
+              <time className="shrink-0 text-sm text-fg-3" dateTime={step.timestamp}>
                 {WHEN.format(new Date(step.timestamp))}
               </time>
             ) : null}

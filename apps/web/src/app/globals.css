@@ -5,76 +5,86 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 /* ── Tokens ───────────────────────────────────────────────────────────────
-   Every surface, line and text colour comes from here. Light and dark are
-   tuned separately rather than inverted. */
+   Light is parchment and white with warm ink, after arlo.sh and Claude; dark
+   is Claude's warm charcoal. Ink carries text and quiet emphasis; a strong
+   vermilion is the primary colour (primary actions, allowances, the current
+   step, focus, selection).
+   Light and dark are tuned separately rather than inverted. */
 :root {
   color-scheme: light;
-  --app-bg: #f3f3f5;
+  --app-bg: #f3efe4;
   --panel: #ffffff;
-  --surface: #fafafb;
-  --surface-2: #f1f1f4;
-  --nav-active: #e5e5ea;
-  --line: #e6e6ea;
-  --line-strong: #d4d4da;
-  --fg: #18181c;
-  --fg-2: #5a5a66;
-  --fg-3: #8b8b96;
-  --accent: #5e6ad2;
-  --accent-hover: #4f5bc5;
-  --accent-soft: rgba(94, 106, 210, 0.1);
+  --surface: #faf7f0;
+  --surface-2: #f4efe4;
+  --nav-active: #e9e2d2;
+  --line: rgba(33, 33, 31, 0.1);
+  --line-strong: rgba(33, 33, 31, 0.17);
+  --fg: #21211f;
+  --fg-2: #5f5d57;
+  --fg-3: #8e8b82;
+  --ink: #21211f;
+  --ink-hover: #3a3936;
+  --ink-fg: #faf9f5;
+  --accent: #cf4420;
+  --accent-hover: #b73a1a;
+  --accent-soft: rgba(207, 68, 32, 0.1);
   --accent-fg: #ffffff;
-  --danger: #d43f3f;
-  --danger-soft: rgba(212, 63, 63, 0.08);
-  --warning: #c27a0e;
-  --warning-soft: rgba(242, 153, 74, 0.12);
-  --success: #2f9e69;
-  --success-soft: rgba(76, 183, 130, 0.12);
-  --focus: rgba(94, 106, 210, 0.45);
-  --shadow-panel: 0 1px 2px rgba(16, 16, 24, 0.04);
-  --sidebar-w: 236px;
+  --danger: #c43c3c;
+  --danger-soft: rgba(196, 60, 60, 0.08);
+  --warning: #b2700e;
+  --warning-soft: rgba(214, 140, 30, 0.12);
+  --success: #3d8a5f;
+  --success-soft: rgba(61, 138, 95, 0.11);
+  --focus: rgba(207, 68, 32, 0.4);
+  --shadow-panel: 0 1px 2px rgba(33, 33, 31, 0.04), 0 0 0 1px rgba(33, 33, 31, 0.02);
+  --shadow-card: 0 1px 2px rgba(33, 33, 31, 0.05);
+  --sidebar-w: 248px;
 }
 
 [data-theme="dark"] {
   color-scheme: dark;
-  --app-bg: #0c0c0e;
-  --panel: #121215;
-  --surface: #17171b;
-  --surface-2: #1e1e23;
-  --nav-active: #1f1f25;
-  --line: #24242a;
-  --line-strong: #313138;
-  --fg: #ececf0;
-  --fg-2: #a3a3ae;
-  --fg-3: #6f6f7a;
-  --accent: #6670e0;
-  --accent-hover: #7880ea;
-  --accent-soft: rgba(102, 112, 224, 0.16);
-  --accent-fg: #ffffff;
-  --danger: #ef6b6b;
-  --danger-soft: rgba(235, 87, 87, 0.12);
-  --warning: #f2a65a;
-  --warning-soft: rgba(242, 153, 74, 0.14);
-  --success: #5cc493;
-  --success-soft: rgba(76, 183, 130, 0.14);
-  --focus: rgba(120, 128, 234, 0.55);
-  --shadow-panel: 0 0 0 1px rgba(255, 255, 255, 0.02);
+  --app-bg: #1c1b19;
+  --panel: #262624;
+  --surface: #2b2a27;
+  --surface-2: #31302d;
+  --nav-active: #34332f;
+  --line: rgba(250, 249, 245, 0.08);
+  --line-strong: rgba(250, 249, 245, 0.14);
+  --fg: #f5f4ef;
+  --fg-2: #c3c0b6;
+  --fg-3: #8d8a80;
+  --ink: #f5f4ef;
+  --ink-hover: #ffffff;
+  --ink-fg: #21211f;
+  --accent: #f2663f;
+  --accent-hover: #f67a56;
+  --accent-soft: rgba(242, 102, 63, 0.16);
+  --accent-fg: #1c1b19;
+  --danger: #ec7468;
+  --danger-soft: rgba(236, 116, 104, 0.13);
+  --warning: #e8a64b;
+  --warning-soft: rgba(232, 166, 75, 0.14);
+  --success: #6fc290;
+  --success-soft: rgba(111, 194, 144, 0.14);
+  --focus: rgba(242, 102, 63, 0.5);
+  --shadow-panel: 0 0 0 1px rgba(250, 249, 245, 0.03);
+  --shadow-card: none;
 
   /* Interim, for screens not yet moved onto the tokens: Tailwind's greys and
-     white flip, and its colour tints become translucent washes, so a page
-     written for light stays legible in dark. Remove once every screen uses
-     the tokens directly. */
-  --color-white: var(--panel);
-  --color-neutral-50: #17171b;
-  --color-neutral-100: #1e1e23;
-  --color-neutral-200: #2a2a31;
-  --color-neutral-300: #383840;
-  --color-neutral-400: #5c5c67;
-  --color-neutral-500: #81818c;
-  --color-neutral-600: #a3a3ae;
-  --color-neutral-700: #c0c0c9;
-  --color-neutral-800: #d8d8df;
-  --color-neutral-900: #ececf0;
-  --color-neutral-950: #f6f6f9;
+     white become the warm darks, and its colour tints become translucent
+     washes, so a page written for light stays legible in dark. Remove once
+     every screen uses the tokens directly. */
+  --color-neutral-50: #2b2a27;
+  --color-neutral-100: #31302d;
+  --color-neutral-200: #3a3935;
+  --color-neutral-300: #4a4843;
+  --color-neutral-400: #6d6a63;
+  --color-neutral-500: #8d8a80;
+  --color-neutral-600: #aeaba1;
+  --color-neutral-700: #c9c6bc;
+  --color-neutral-800: #e0ded6;
+  --color-neutral-900: #f5f4ef;
+  --color-neutral-950: #faf9f5;
   --color-amber-50: rgba(242,153,74,0.08);
   --color-amber-100: rgba(242,153,74,0.13);
   --color-amber-200: rgba(242,153,74,0.22);
@@ -243,13 +253,16 @@
 }
 
 @theme inline {
+  --color-ink: var(--ink);
+  --color-ink-hover: var(--ink-hover);
+  --color-ink-fg: var(--ink-fg);
+  --color-nav-active: var(--nav-active);
   --color-background: var(--panel);
   --color-foreground: var(--fg);
   --color-app: var(--app-bg);
   --color-panel: var(--panel);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
-  --color-nav-active: var(--nav-active);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
   --color-fg: var(--fg);
@@ -267,6 +280,50 @@
   --font-sans: var(--font-inter);
 }
 
+/* Fluid type and space, from Utopia: 16px at a 360px viewport to 18px at
+   1240px, a 1.2 ratio rising to 1.25 (utopia.fyi). Tailwind's text-xs to
+   text-5xl are these steps, so every screen shares one scale; xl is the half
+   step between lg and 2xl. Space: 3xs (¼ step 0) to 3xl (6×), plus
+   one-up pairs that grow faster for gutters. */
+@theme {
+  --text-xs: clamp(0.6944rem, 0.684rem + 0.0465vw, 0.72rem); /* step -2: 11.11px → 11.52px */
+  --text-xs--line-height: 1.45;
+  --text-sm: clamp(0.8333rem, 0.8061rem + 0.1212vw, 0.9rem); /* step -1: 13.33px → 14.40px */
+  --text-sm--line-height: 1.5;
+  --text-base: clamp(1rem, 0.9489rem + 0.2273vw, 1.125rem); /* step 0: 16.00px → 18.00px */
+  --text-base--line-height: 1.55;
+  --text-xl: clamp(1.3145rem, 1.2091rem + 0.4685vw, 1.5722rem); /* step 1.5: 21.03px → 25.16px */
+  --text-xl--line-height: 1.3;
+  --text-lg: clamp(1.2rem, 1.1156rem + 0.3750vw, 1.4062rem); /* step 1: 19.20px → 22.50px */
+  --text-lg--line-height: 1.4;
+  --text-2xl: clamp(1.44rem, 1.31rem + 0.5778vw, 1.7578rem); /* step 2: 23.04px → 28.12px */
+  --text-2xl--line-height: 1.25;
+  --text-3xl: clamp(1.728rem, 1.536rem + 0.8532vw, 2.1973rem); /* step 3: 27.65px → 35.16px */
+  --text-3xl--line-height: 1.15;
+  --text-4xl: clamp(2.0736rem, 1.7983rem + 1.2236vw, 2.7466rem); /* step 4: 33.18px → 43.95px */
+  --text-4xl--line-height: 1.1;
+  --text-5xl: clamp(2.4883rem, 2.1018rem + 1.7180vw, 3.4332rem); /* step 5: 39.81px → 54.93px */
+  --text-5xl--line-height: 1.05;
+  --space-3xs: clamp(0.25rem, 0.2372rem + 0.0568vw, 0.2812rem);
+  --space-2xs: clamp(0.5rem, 0.4744rem + 0.1136vw, 0.5625rem);
+  --space-xs: clamp(0.75rem, 0.7116rem + 0.1705vw, 0.8438rem);
+  --space-s: clamp(1rem, 0.9489rem + 0.2273vw, 1.125rem);
+  --space-m: clamp(1.5rem, 1.4233rem + 0.3409vw, 1.6875rem);
+  --space-l: clamp(2rem, 1.8977rem + 0.4545vw, 2.25rem);
+  --space-xl: clamp(3rem, 2.8466rem + 0.6818vw, 3.375rem);
+  --space-2xl: clamp(4rem, 3.7955rem + 0.9091vw, 4.5rem);
+  --space-3xl: clamp(6rem, 5.6932rem + 1.3636vw, 6.75rem);
+  --space-3xs-2xs: clamp(0.25rem, 0.1222rem + 0.5682vw, 0.5625rem);
+  --space-2xs-xs: clamp(0.5rem, 0.3594rem + 0.6250vw, 0.8438rem);
+  --space-xs-s: clamp(0.75rem, 0.5966rem + 0.6818vw, 1.125rem);
+  --space-s-m: clamp(1rem, 0.7188rem + 1.2500vw, 1.6875rem);
+  --space-m-l: clamp(1.5rem, 1.1932rem + 1.3636vw, 2.25rem);
+  --space-l-xl: clamp(2rem, 1.4375rem + 2.5000vw, 3.375rem);
+  --space-xl-2xl: clamp(3rem, 2.3864rem + 2.7273vw, 4.5rem);
+  --space-2xl-3xl: clamp(4rem, 2.875rem + 5.0000vw, 6.75rem);
+  --space-s-l: clamp(1rem, 0.4886rem + 2.2727vw, 2.25rem);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -281,8 +338,8 @@ body {
   background: var(--app-bg);
   color: var(--fg);
   font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
   font-feature-settings: "cv11", "ss01";
   -webkit-font-smoothing: antialiased;
 }
@@ -293,6 +350,13 @@ body {
 
 .text-muted {
   color: var(--fg-2);
+}
+
+/* In dark, Tailwind's white backgrounds on screens not yet on the tokens become
+   the panel; white text (on imagery, dark buttons) is left alone. Unlayered, so
+   it outranks the utilities layer. Interim, like the remap above. */
+[data-theme="dark"] :is(.bg-white, .bg-white\/80, .bg-white\/90, .bg-white\/95) {
+  background-color: var(--panel);
 }
 
 /* ── App frame: sidebar and an inset main panel ─────────────────────────── */
@@ -306,11 +370,11 @@ body {
 
   .app-panel {
     grid-column: 2;
-    margin: 8px 8px 8px 0;
+    margin: 10px 10px 10px 0;
     min-width: 0;
     overflow: auto;
     border: 1px solid var(--line);
-    border-radius: 10px;
+    border-radius: 12px;
     background: var(--panel);
     box-shadow: var(--shadow-panel);
   }
@@ -331,7 +395,7 @@ body {
 
 @layer components {
   .portal-page-title {
-    @apply text-[22px] font-semibold tracking-tight text-fg;
+    @apply text-3xl font-semibold tracking-tight text-fg;
   }
 
   .portal-card {
@@ -343,35 +407,35 @@ body {
   }
 
   .portal-badge {
-    @apply inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium;
+    @apply inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium;
   }
 
   .portal-link {
-    @apply text-[13px] font-medium text-fg-2 underline decoration-line-strong underline-offset-4 transition-colors hover:text-fg hover:decoration-fg-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-panel;
+    @apply text-sm font-medium text-fg-2 underline decoration-line-strong underline-offset-4 transition-colors hover:text-fg hover:decoration-fg-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-panel;
   }
 
   .portal-btn-primary {
-    @apply inline-flex h-8 items-center justify-center gap-1.5 rounded-md bg-accent px-3 text-[13px] font-medium text-[var(--accent-fg)] transition-colors duration-150 hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-panel disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex h-9 items-center justify-center gap-1.5 rounded-md bg-accent px-3 text-sm font-medium text-[var(--accent-fg)] transition-colors duration-150 hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-panel disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .portal-btn-secondary {
-    @apply inline-flex h-8 items-center justify-center gap-1.5 rounded-md border border-line-strong bg-surface px-3 text-[13px] font-medium text-fg transition-colors duration-150 hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-panel disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-line-strong bg-surface px-3 text-sm font-medium text-fg transition-colors duration-150 hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-panel disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .portal-btn-ghost {
-    @apply inline-flex h-8 items-center justify-center gap-1.5 rounded-md px-2.5 text-[13px] font-medium text-fg-2 transition-colors duration-150 hover:bg-surface-2 hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex h-9 items-center justify-center gap-1.5 rounded-md px-2.5 text-sm font-medium text-fg-2 transition-colors duration-150 hover:bg-surface-2 hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .portal-btn-danger {
-    @apply inline-flex h-8 items-center justify-center gap-1.5 rounded-md border border-[color-mix(in_srgb,var(--danger)_35%,transparent)] bg-danger-soft px-3 text-[13px] font-medium text-danger transition-colors duration-150 hover:bg-[color-mix(in_srgb,var(--danger)_16%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-[color-mix(in_srgb,var(--danger)_35%,transparent)] bg-danger-soft px-3 text-sm font-medium text-danger transition-colors duration-150 hover:bg-[color-mix(in_srgb,var(--danger)_16%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .portal-field {
-    @apply w-full rounded-md border border-line-strong bg-surface px-2.5 py-1.5 text-[13px] text-fg transition-colors placeholder:text-fg-3 hover:border-fg-3 focus-visible:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)];
+    @apply w-full rounded-md border border-line-strong bg-panel px-3 py-2 text-base text-fg transition-colors placeholder:text-fg-3 hover:border-fg-3 focus-visible:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)];
   }
 
   /* A small uppercase-free section label, Linear style. */
   .portal-label {
-    @apply text-[12px] font-medium text-fg-3;
+    @apply text-xs font-semibold uppercase tracking-[0.06em] text-fg-3;
   }
 }

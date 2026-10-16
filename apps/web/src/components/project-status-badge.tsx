@@ -85,9 +85,14 @@ export function StatusIcon({ status, size = 14 }: { status: string; size?: numbe
 }
 
 export function ProjectStatusBadge({ status }: { status: string }) {
+  const { color } = styleOf(status);
+  // A wash of the state's colour; the text stays ink so pale states stay legible.
   return (
-    <span className={`portal-badge h-6 ${getProjectStatusToneClass()}`}>
-      <StatusIcon status={status} size={12} />
+    <span
+      className="portal-badge h-7 text-fg"
+      style={{ background: `color-mix(in srgb, ${color} 13%, var(--panel))`, borderColor: `color-mix(in srgb, ${color} 32%, transparent)` }}
+    >
+      <StatusIcon status={status} size={13} />
       {getProjectStatusLabel(status)}
     </span>
   );

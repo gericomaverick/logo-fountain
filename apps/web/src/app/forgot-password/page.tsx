@@ -78,7 +78,7 @@ export default function ForgotPasswordPage() {
           {emailError ? <p id="email-error" className="mt-2 text-sm font-medium text-red-700" role="alert">{emailError}</p> : null}
         </div>
 
-        <button type="submit" disabled={busy} className="w-full rounded bg-black px-4 py-2 text-white disabled:opacity-60">
+        <button type="submit" disabled={busy} className="portal-btn-primary h-11 w-full text-base">
           {busy ? "Sending…" : "Send reset email"}
         </button>
       </form>

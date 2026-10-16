@@ -130,14 +130,14 @@ function AdminSection({
 }) {
   return (
     <section aria-label={title}>
-      <div className="sticky top-12 z-[5] flex h-9 items-center gap-2 border-b border-line bg-surface px-4 md:px-6" title={description}>
-        <h2 className="text-[13px] font-medium text-fg">{title}</h2>
-        <span className="text-[13px] text-fg-3">{projects.length}</span>
-        <span className="hidden truncate text-[12px] text-fg-3 lg:inline">· {description}</span>
+      <div className="sticky top-14 z-[5] flex h-11 items-center gap-2.5 border-b border-line bg-surface px-4 md:px-6" title={description}>
+        <h2 className="text-sm font-semibold text-fg">{title}</h2>
+        <span className="text-sm text-fg-3">{projects.length}</span>
+        <span className="hidden truncate text-sm text-fg-3 lg:inline">· {description}</span>
       </div>
 
       {projects.length === 0 ? (
-        <p className="border-b border-line px-4 py-3 text-[13px] text-fg-3 md:px-6">No projects in this section.</p>
+        <p className="border-b border-line px-4 py-4 text-sm text-fg-3 md:px-6">No projects in this section.</p>
       ) : (
         <ul>
           {projects.map((project) => {
@@ -159,24 +159,24 @@ function AdminSection({
             const href = needsFeedback ? `/admin/projects/${project.id}/concepts#pending-feedback` : `/admin/projects/${project.id}`;
 
             return (
-              <li key={project.id} className="group relative flex min-h-11 items-center gap-3 border-b border-line px-4 py-2 transition-colors hover:bg-surface md:px-6">
+              <li key={project.id} className="group relative flex min-h-16 items-center gap-3.5 border-b border-line px-4 py-2.5 transition-colors hover:bg-surface md:px-6">
                 {/* The whole row opens the project; the small links sit above it. */}
                 <Link href={href} className="absolute inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--focus)]" aria-label={needsFeedback ? `Resolve pending feedback: ${projectTitle}` : `Open ${projectTitle}`} />
                 <span title={getProjectStatusLabel(overviewStatus)}>
-                  <StatusIcon status={overviewStatus} />
+                  <StatusIcon status={overviewStatus} size={16} />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="flex min-w-0 items-center gap-2 text-[13px]">
+                  <p className="flex min-w-0 items-center gap-2 text-base">
                     <span className="truncate font-medium text-fg">{projectTitle}</span>
                     <span className="hidden shrink-0 text-fg-3 sm:inline">{getProjectStatusLabel(overviewStatus)}</span>
                   </p>
-                  <p className="truncate text-[12px] text-fg-3">
+                  <p className="truncate text-sm text-fg-3">
                     {clientName}
                     {clientRecordMissing ? <span className="text-warning"> · client record missing (deleted after the project was created)</span> : null}
                     {primaryClientContact ? <> · {primaryClientContact.name === primaryClientContact.email ? primaryClientContact.email : `${primaryClientContact.name} (${primaryClientContact.email})`}</> : null}
                   </p>
                   {stuckReason ? (
-                    <p className="mt-0.5 flex items-center gap-1 text-[12px] text-danger">
+                    <p className="mt-0.5 flex items-center gap-1 text-sm text-danger">
                       <AlertIcon size={12} />
                       {stuckReason}
                     </p>
@@ -185,18 +185,18 @@ function AdminSection({
 
                 <div className="flex shrink-0 items-center gap-1.5">
                   {needsFeedback ? (
-                    <span className="inline-flex h-5 items-center rounded-full bg-warning-soft px-2 text-[11px] font-medium text-warning">
+                    <span className="inline-flex h-5 items-center rounded-full bg-warning-soft px-2 text-xs font-medium text-warning">
                       {project.pendingFeedbackCount} feedback
                     </span>
                   ) : null}
                   {project.hasNewMessages ? (
-                    <span className="inline-flex h-5 items-center gap-1 rounded-full bg-accent-soft px-2 text-[11px] font-medium text-accent">
+                    <span className="inline-flex h-5 items-center gap-1 rounded-full bg-accent-soft px-2 text-xs font-medium text-accent">
                       <MessageIcon size={11} />
                       New
                     </span>
                   ) : null}
                   {project.hasNewConcepts ? (
-                    <span className="inline-flex h-5 items-center gap-1 rounded-full bg-success-soft px-2 text-[11px] font-medium text-success">
+                    <span className="inline-flex h-5 items-center gap-1 rounded-full bg-success-soft px-2 text-xs font-medium text-success">
                       <ImageIcon size={11} />
                       New
                     </span>
@@ -212,8 +212,8 @@ function AdminSection({
                   </Link>
                 </div>
 
-                <span className="hidden w-24 shrink-0 text-[12px] text-fg-2 lg:block">{PACKAGE_LABELS[project.packageCode] ?? project.packageCode}</span>
-                <time className="w-24 shrink-0 text-right text-[12px] text-fg-3" dateTime={activity.toISOString()} title={activity.toLocaleString("en-GB")}>
+                <span className="hidden w-28 shrink-0 text-sm text-fg-2 lg:block">{PACKAGE_LABELS[project.packageCode] ?? project.packageCode}</span>
+                <time className="w-28 shrink-0 text-right text-sm text-fg-3" dateTime={activity.toISOString()} title={activity.toLocaleString("en-GB")}>
                   {relativeTime(activity, now)}
                 </time>
               </li>
@@ -394,10 +394,10 @@ export default async function AdminHomePage() {
         }
       />
       <main>
-        <div className="flex items-end justify-between gap-4 px-4 pb-4 pt-6 md:px-6">
+        <div className="flex items-end justify-between gap-4 px-4 pb-5 pt-8 md:px-6">
           <div>
-            <h1 className="text-[20px] font-semibold tracking-tight text-fg">Queue</h1>
-            <p className="mt-0.5 text-[13px] text-fg-2">
+            <h1 className="text-3xl font-semibold tracking-tight text-fg">Queue</h1>
+            <p className="mt-1 text-base text-fg-2">
               {active} active · {sectioned["needs-action"].length} need{sectioned["needs-action"].length === 1 ? "s" : ""} action
             </p>
           </div>

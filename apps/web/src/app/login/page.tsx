@@ -154,7 +154,7 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full rounded bg-black px-4 py-2 text-white disabled:opacity-60"
+          className="portal-btn-primary h-11 w-full text-base"
         >
           {isSubmitting ? "Signing in..." : "Sign in"}
         </button>

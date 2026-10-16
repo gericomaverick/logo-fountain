@@ -23,10 +23,10 @@ export function AuthShell({
   children,
 }: AuthShellProps) {
   return (
-    <div className="min-h-screen bg-neutral-50 px-4 py-6 sm:px-6 sm:py-8 lg:py-10">
+    <div className="min-h-screen bg-app px-4 py-6 sm:px-6 sm:py-8 lg:py-10">
       <div className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-6xl items-center justify-center sm:min-h-[calc(100vh-4rem)]">
-        <section className="w-full overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-lg shadow-neutral-900/5 lg:grid lg:grid-cols-12">
-          <aside className="relative hidden min-h-full border-r border-neutral-200 bg-neutral-950 text-white lg:col-span-6 lg:block">
+        <section className="w-full overflow-hidden rounded-2xl border border-line bg-panel shadow-[0_12px_40px_-12px_rgba(33,33,31,0.18)] lg:grid lg:grid-cols-12">
+          <aside className="relative hidden min-h-full border-r border-line bg-[#1c1b19] text-white lg:col-span-6 lg:block">
             {/* Half of the 1152px shell, with 24px outer gutters; hidden below lg.
                 Keep default lazy loading instead of preloading artwork hidden on mobile. */}
             {sideImageSrc ? (
@@ -39,20 +39,22 @@ export function AuthShell({
               />
             ) : null}
             <div className="absolute inset-x-0 bottom-0 p-7 lg:p-8">
-              {sideTitle ? <h2 className="text-2xl font-semibold text-white drop-shadow-sm">{sideTitle}</h2> : null}
-              {sideDescription ? <p className="mt-3 text-sm text-white/95 drop-shadow-sm">{sideDescription}</p> : null}
+              {sideTitle ? <h2 className="text-3xl font-semibold tracking-tight text-white drop-shadow-sm">{sideTitle}</h2> : null}
+              {sideDescription ? <p className="mt-3 text-base text-white/90 drop-shadow-sm">{sideDescription}</p> : null}
             </div>
           </aside>
 
           <div className="lg:col-span-6">
             <div className="mx-auto w-full max-w-lg px-6 py-7 sm:px-8 sm:py-8 lg:px-10 lg:py-9">
               <div className="mb-5 flex items-center justify-center sm:mb-6">
-                <Image src="/img/logo.svg" alt="Logo Fountain" width={410} height={386} unoptimized className="h-9 w-auto" />
+                <span className="flex dark:invert">
+                  <Image src="/img/logo.svg" alt="Logo Fountain" width={410} height={386} unoptimized className="h-9 w-auto" />
+                </span>
               </div>
 
               <div>
-                <h1 className="text-2xl font-semibold text-neutral-900">{title}</h1>
-                {subtitle ? <p className="mt-2 text-sm text-neutral-600">{subtitle}</p> : null}
+                <h1 className="text-3xl font-semibold tracking-tight text-fg">{title}</h1>
+                {subtitle ? <p className="mt-2 text-base text-fg-2">{subtitle}</p> : null}
                 <div className="mt-5 sm:mt-6">{children}</div>
               </div>
             </div>

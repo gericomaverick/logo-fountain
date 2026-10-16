@@ -114,7 +114,7 @@ export default function SetPasswordPage() {
           {fieldErrors.confirm ? <p id="confirm-error" className="mt-2 text-sm font-medium text-red-700" role="alert">{fieldErrors.confirm}</p> : null}
         </div>
 
-        <button type="submit" disabled={busy} className="w-full rounded bg-black px-4 py-2 text-white disabled:opacity-60">
+        <button type="submit" disabled={busy} className="portal-btn-primary h-11 w-full text-base">
           {busy ? "Saving…" : "Update password"}
         </button>
       </form>

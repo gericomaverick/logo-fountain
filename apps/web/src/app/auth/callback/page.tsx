@@ -24,7 +24,7 @@ export default function AuthCallbackPage() {
   }
   return <AuthShell title="Complete sign-in" subtitle="Your mailbox proof expires after one hour.">
     <p role="status">{status}</p>
-    <button type="button" disabled={busy} onClick={confirm} className="mt-4 rounded bg-black p-3 text-white">Confirm sign-in</button>
+    <button type="button" disabled={busy} onClick={confirm} className="portal-btn-primary mt-4 h-11 px-5 text-base">Confirm sign-in</button>
     <p className="mt-4"><Link href="/login">Request a fresh magic link</Link></p>
   </AuthShell>;
 }

@@ -107,13 +107,13 @@ export function AppSidebar() {
   const brand = (
     <Link
       href={session.isAdmin ? "/admin" : "/dashboard"}
-      className="flex min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-[13px] font-semibold text-fg transition-colors hover:bg-nav-active/60"
+      className="flex min-w-0 items-center gap-2.5 rounded-md px-2 py-1.5 text-base font-semibold tracking-tight text-fg transition-colors hover:bg-nav-active/60"
     >
       <span className="flex shrink-0 dark:invert">
         <Image src="/img/logo.svg" alt="Logo Fountain" width={410} height={386} unoptimized className="h-5 w-auto" />
       </span>
       <span className="truncate">Logo Fountain</span>
-      {session.isAdmin ? <span className="ml-auto rounded border border-line px-1.5 text-[10px] font-medium text-fg-3">Admin</span> : null}
+      {session.isAdmin ? <span className="ml-auto rounded border border-line px-1.5 text-xs font-medium text-fg-3">Admin</span> : null}
     </Link>
   );
 
@@ -151,17 +151,17 @@ export function AppSidebar() {
                     key={href}
                     href={href}
                     aria-current={current ? "page" : undefined}
-                    className={`flex h-8 items-center gap-2.5 rounded-md px-2 text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] ${
-                      current ? "bg-nav-active text-fg" : "text-fg-2 hover:bg-nav-active/60 hover:text-fg"
+                    className={`relative flex h-9 items-center gap-2.5 rounded-md px-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] ${
+                      current ? "bg-nav-active text-fg before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:rounded-full before:bg-accent" : "text-fg-2 hover:bg-nav-active/60 hover:text-fg"
                     }`}
                   >
-                    <Icon size={16} className={current ? "text-fg" : "text-fg-3"} />
+                    <Icon size={17} className={current ? "text-accent" : "text-fg-3"} />
                     {label}
                   </Link>
                 );
               })}
           {!loading && !session.authenticated ? (
-            <Link className="flex h-8 items-center rounded-md px-2 text-[13px] font-medium text-fg-2 hover:bg-surface-2 hover:text-fg" href="/login">
+            <Link className="flex h-9 items-center rounded-md px-2.5 text-sm font-medium text-fg-2 hover:bg-surface-2 hover:text-fg" href="/login">
               Sign in
             </Link>
           ) : null}
@@ -169,20 +169,20 @@ export function AppSidebar() {
 
         <div className="mt-auto flex flex-col gap-2 border-t border-line pt-2">
           {logoutError ? (
-            <p role="alert" className="rounded-md bg-danger-soft px-2 py-1.5 text-[12px] text-danger">
+            <p role="alert" className="rounded-md bg-danger-soft px-2 py-1.5 text-sm text-danger">
               {logoutError}
             </p>
           ) : null}
           <div className="flex items-center justify-between gap-2 px-1">
-            <span className="text-[12px] text-fg-3">Theme</span>
+            <span className="text-sm text-fg-3">Theme</span>
             <ThemeSwitcher />
           </div>
           {session.authenticated ? (
             <div className="flex items-center gap-2 rounded-md px-1 py-1">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-soft text-[10px] font-semibold text-accent">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-soft text-xs font-semibold text-accent">
                 {initialsOf(session.email)}
               </span>
-              <span className="min-w-0 flex-1 truncate text-[12px] text-fg-2" title={session.email}>
+              <span className="min-w-0 flex-1 truncate text-sm text-fg-2" title={session.email}>
                 {session.email ?? "Signed in"}
               </span>
               <button
