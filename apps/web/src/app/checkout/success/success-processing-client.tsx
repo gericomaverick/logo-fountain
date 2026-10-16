@@ -1,5 +1,7 @@
 "use client";
 
+import { PageHeader } from "@/components/ui";
+
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -117,64 +119,69 @@ export default function SuccessProcessingClient() {
   }
 
   return (
-    <main className="mx-auto max-w-xl p-8">
-      {!isFulfilled ? (
-        <>
-          <h1 className="text-2xl font-semibold">Processing…</h1>
-          <p className="mt-2 text-sm text-neutral-600">
-            We&apos;re confirming your payment and setting up your project.
-          </p>
-        </>
-      ) : (
-        <>
-          <h1 className="text-2xl font-semibold">Check your email for your sign-in link</h1>
-          <p className="mt-2 text-sm text-neutral-600">
-            We sent a secure sign-in link to the purchaser email. Open it to finish setup or sign in to your dashboard.
-          </p>
-          <p className="mt-2 text-sm text-neutral-600">
-            If the original first-time setup email expired, sign in through the mailbox link and use the normal{" "}
-            <Link className="underline" href="/forgot-password">password recovery flow</Link>. A checkout session ID cannot reset a password.
-          </p>
-          <button
-            type="button"
-            onClick={() => void onResendEmail()}
-            disabled={resendState === "sending"}
-            className="mt-4 rounded border border-neutral-300 px-4 py-2 text-sm disabled:opacity-60"
-          >
-            {resendState === "sending" ? "Resending..." : "Resend email"}
-          </button>
-          {resendMessage ? <p className="mt-3 text-sm text-neutral-700">{resendMessage}</p> : null}
-        </>
-      )}
+    <div className="min-h-screen bg-app text-fg">
+      <PageHeader crumbs={[{ label: "Checkout" }]} />
+      <main className="px-4 py-6 md:px-8 lg:py-8">
+        <div className="mx-auto max-w-[720px]">
+          {!isFulfilled ? (
+            <>
+              <h1 className="text-3xl font-semibold tracking-tight text-fg">Processing…</h1>
+              <p className="mt-2 text-base text-fg-2">
+                We&apos;re confirming your payment and setting up your project.
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="text-3xl font-semibold tracking-tight text-fg">Check your email for your sign-in link</h1>
+              <p className="mt-2 text-base text-fg-2">
+                We sent a secure sign-in link to the purchaser email. Open it to finish setup or sign in to your dashboard.
+              </p>
+              <p className="mt-2 text-base text-fg-2">
+                If the original first-time setup email expired, sign in through the mailbox link and use the normal{" "}
+                <Link className="portal-link" href="/forgot-password">password recovery flow</Link>. A checkout session ID cannot reset a password.
+              </p>
+              <button
+                type="button"
+                onClick={() => void onResendEmail()}
+                disabled={resendState === "sending"}
+                className="portal-btn-primary mt-4"
+              >
+                {resendState === "sending" ? "Resending..." : "Resend email"}
+              </button>
+              {resendMessage ? <p className="mt-3 text-sm text-fg-2">{resendMessage}</p> : null}
+            </>
+          )}
 
-      {sessionId ? <p className="mt-4 text-xs text-neutral-500">Session: {sessionId}</p> : null}
+          {sessionId ? <p className="mt-4 break-all text-xs text-fg-3">Session: {sessionId}</p> : null}
 
-      {shouldShowCheckoutTroubleshooting(showTroubleshooting, isFulfilled) ? (
-        <div className="mt-6 rounded-lg border border-amber-300 bg-amber-50 p-4">
-          <p className="text-sm font-medium text-amber-900">Still waiting for confirmation</p>
-          <p className="mt-2 text-sm text-amber-800">
-            Your payment may have completed, but the webhook update has not arrived yet.
-          </p>
-          <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-amber-900">
-            <li>Ensure <code>stripe listen</code> forwarding is running (local/dev).</li>
-            <li>Confirm your Stripe webhook secret is correct in environment variables.</li>
-            <li>Check your app server is running and reachable.</li>
-            <li>Wait a moment, then retry status check.</li>
-          </ul>
-          <button
-            type="button"
-            className="mt-4 rounded-md bg-amber-700 px-3 py-2 text-sm font-medium text-white hover:bg-amber-800"
-            onClick={() => {
-              setErrorMessage(null);
-              setRetryNonce((value) => value + 1);
-            }}
-          >
-            Retry now
-          </button>
+          {shouldShowCheckoutTroubleshooting(showTroubleshooting, isFulfilled) ? (
+            <div className="mt-6 rounded-lg border border-warning/30 bg-warning-soft p-4">
+              <p className="text-base font-medium text-fg">Still waiting for confirmation</p>
+              <p className="mt-2 text-sm text-fg-2">
+                Your payment may have completed, but the webhook update has not arrived yet.
+              </p>
+              <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-fg-2">
+                <li>Ensure <code>stripe listen</code> forwarding is running (local/dev).</li>
+                <li>Confirm your Stripe webhook secret is correct in environment variables.</li>
+                <li>Check your app server is running and reachable.</li>
+                <li>Wait a moment, then retry status check.</li>
+              </ul>
+              <button
+                type="button"
+                className="portal-btn-primary mt-4"
+                onClick={() => {
+                  setErrorMessage(null);
+                  setRetryNonce((value) => value + 1);
+                }}
+              >
+                Retry now
+              </button>
+            </div>
+          ) : null}
+
+          {errorMessage ? <p role="alert" className="mt-4 text-sm text-danger">{errorMessage}</p> : null}
         </div>
-      ) : null}
-
-      {errorMessage ? <p className="mt-4 text-sm text-red-600">{errorMessage}</p> : null}
-    </main>
+      </main>
+    </div>
   );
 }

@@ -1,14 +1,20 @@
+import { PageHeader } from "@/components/ui";
 import { Suspense } from "react";
 import SuccessProcessingClient from "./success-processing-client";
 
 function ProcessingFallback() {
   return (
-    <main className="mx-auto max-w-xl p-8">
-      <h1 className="text-2xl font-semibold">Processing…</h1>
-      <p className="mt-2 text-sm text-neutral-600">
-        We&apos;re confirming your payment and setting up your project.
-      </p>
-    </main>
+    <div className="min-h-screen bg-app text-fg">
+      <PageHeader crumbs={[{ label: "Checkout" }]} />
+      <main className="px-4 py-6 md:px-8 lg:py-8">
+        <div className="mx-auto max-w-[720px]">
+          <h1 className="text-3xl font-semibold tracking-tight text-fg">Processing…</h1>
+          <p className="mt-2 text-base text-fg-2">
+            We&apos;re confirming your payment and setting up your project.
+          </p>
+        </div>
+      </main>
+    </div>
   );
 }
 

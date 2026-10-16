@@ -52,14 +52,14 @@ export default function ForgotPasswordPage() {
       sideDescription="We’ll send a secure link so you can get back into your account quickly."
     >
       {emailError ? (
-        <div className="mb-4 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800" role="alert" aria-live="assertive">
+        <div className="mb-4 rounded-lg border border-danger/30 bg-danger-soft p-3 text-sm text-danger" role="alert" aria-live="assertive">
           <p className="font-medium">⚠ Please fix the highlighted field.</p>
         </div>
       ) : null}
 
       <form className="space-y-4" onSubmit={onSubmit} noValidate>
         <div>
-          <label className="mb-1 block text-sm" htmlFor="email">Email</label>
+          <label className="mb-1 block text-sm font-medium text-fg" htmlFor="email">Email</label>
           <input
             id="email"
             type="email"
@@ -69,28 +69,28 @@ export default function ForgotPasswordPage() {
             onChange={(e) => setEmail(e.target.value)}
             aria-invalid={Boolean(emailError)}
             aria-describedby={emailError ? "email-error" : undefined}
-            className={`w-full rounded border px-3 py-2 transition focus:outline-none focus:ring-2 ${
+            className={`portal-field w-full ${
               emailError
-                ? "border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-200"
-                : "border-neutral-300 focus:border-neutral-400 focus:ring-black/10"
+                ? "border-danger bg-danger-soft"
+                : "border-line"
             }`}
           />
-          {emailError ? <p id="email-error" className="mt-2 text-sm font-medium text-red-700" role="alert">{emailError}</p> : null}
+          {emailError ? <p id="email-error" className="mt-2 text-sm font-medium text-danger" role="alert">{emailError}</p> : null}
         </div>
 
-        <button type="submit" disabled={busy} className="portal-btn-primary h-11 w-full text-base">
+        <button type="submit" disabled={busy} className="portal-btn-primary w-full">
           {busy ? "Sending…" : "Send reset email"}
         </button>
       </form>
 
       {status ? (
-        <p className={`mt-4 text-sm ${status.startsWith("If that account exists") ? "text-green-700" : "text-red-700"}`} role="status" aria-live="polite">
+        <p className={`mt-4 text-sm ${status.startsWith("If that account exists") ? "text-success" : "text-danger"}`} role="status" aria-live="polite">
           {status}
         </p>
       ) : null}
 
-      <p className="mt-6 text-sm text-neutral-600">
-        <Link className="underline" href="/login">Back to sign in</Link>
+      <p className="mt-6 text-sm text-fg-2">
+        <Link className="portal-link" href="/login">Back to sign in</Link>
       </p>
     </AuthShell>
   );
