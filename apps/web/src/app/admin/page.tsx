@@ -3,7 +3,7 @@ import Link from "next/link";
 import { HeaderNav } from "@/components/header-nav";
 import { ActivityIcon, AlertIcon, ImageIcon, MessageIcon } from "@/components/icons";
 import { PageShell } from "@/components/page-shell";
-import { getProjectStatusLabel, StatusIcon } from "@/components/project-status-badge";
+import { ProjectStatusBadge } from "@/components/project-status-badge";
 import { PageHeader, relativeTime } from "@/components/ui";
 import { deriveProjectBadgeState, type AdminSectionKey } from "@/lib/admin-dashboard";
 import { computeLatestConceptActivityAt } from "@/lib/concept-activity";
@@ -162,19 +162,16 @@ function AdminSection({
               <li key={project.id} className="group relative flex min-h-16 items-center gap-3.5 border-b border-line px-4 py-2.5 transition-colors hover:bg-surface md:px-5">
                 {/* The whole row opens the project; the small links sit above it. */}
                 <Link href={href} className="absolute inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--focus)]" aria-label={needsFeedback ? `Resolve pending feedback: ${projectTitle}` : `Open ${projectTitle}`} />
-                <span title={getProjectStatusLabel(overviewStatus)}>
-                  <StatusIcon status={overviewStatus} size={16} />
-                </span>
                 <div className="min-w-0 flex-1">
-                  <p className="flex min-w-0 items-center gap-2 text-base">
-                    <span className="truncate font-medium text-fg">{projectTitle}</span>
-                    <span className="hidden shrink-0 text-fg-3 sm:inline">{getProjectStatusLabel(overviewStatus)}</span>
-                  </p>
+                  <p className="truncate text-base font-medium text-fg">{projectTitle}</p>
                   <p className="truncate text-sm text-fg-3">
                     {clientName}
                     {clientRecordMissing ? <span className="text-warning"> · client record missing (deleted after the project was created)</span> : null}
                     {primaryClientContact ? <> · {primaryClientContact.name === primaryClientContact.email ? primaryClientContact.email : `${primaryClientContact.name} (${primaryClientContact.email})`}</> : null}
                   </p>
+                  <span className="mt-1.5 block md:hidden">
+                    <ProjectStatusBadge status={overviewStatus} size="sm" />
+                  </span>
                   {stuckReason ? (
                     <p className="mt-0.5 flex items-center gap-1 text-sm text-danger">
                       <AlertIcon size={12} />
@@ -182,6 +179,11 @@ function AdminSection({
                     </p>
                   ) : null}
                 </div>
+
+                {/* The stage, in its own aligned column; under the title on small screens. */}
+                <span className="hidden w-52 shrink-0 md:block">
+                  <ProjectStatusBadge status={overviewStatus} />
+                </span>
 
                 <div className="flex shrink-0 items-center gap-1.5">
                   {needsFeedback ? (

@@ -4,19 +4,21 @@ import { PROJECT_STATE_LABELS, type ProjectState } from "@/lib/project-state-mac
 // workflow states: a circle that fills as the project moves towards delivery.
 type Shape = "dashed" | "empty" | "quarter" | "half" | "three" | "full" | "done" | "paused" | "stopped";
 
+// One clear colour per stage, so where a project stands reads at a glance.
+// Orange marks the one stage that waits on the client.
 const STATUS_STYLE: Record<ProjectState | "APPROVED", { color: string; shape: Shape }> = {
-  AWAITING_BRIEF: { color: "var(--fg-3)", shape: "dashed" },
-  BRIEF_SUBMITTED: { color: "#4ea7fc", shape: "empty" },
-  IN_DESIGN: { color: "#e2b93b", shape: "quarter" },
-  CONCEPTS_READY: { color: "#26b5ce", shape: "half" },
-  REVISIONS_IN_PROGRESS: { color: "#f2994a", shape: "half" },
-  AWAITING_APPROVAL: { color: "#a77dfa", shape: "three" },
-  APPROVED: { color: "#4cb782", shape: "three" },
-  FINAL_FILES_READY: { color: "#4cb782", shape: "full" },
-  DELIVERED: { color: "var(--accent)", shape: "done" },
-  ON_HOLD: { color: "#f2994a", shape: "paused" },
-  CANCELLED: { color: "var(--fg-3)", shape: "stopped" },
-  REFUNDED: { color: "var(--fg-3)", shape: "stopped" },
+  AWAITING_BRIEF: { color: "#e5731f", shape: "dashed" },
+  BRIEF_SUBMITTED: { color: "#3b7ddd", shape: "empty" },
+  IN_DESIGN: { color: "#8257e6", shape: "quarter" },
+  CONCEPTS_READY: { color: "#0f9fb0", shape: "half" },
+  REVISIONS_IN_PROGRESS: { color: "#d23f86", shape: "half" },
+  AWAITING_APPROVAL: { color: "#c9960c", shape: "three" },
+  APPROVED: { color: "#5f9e1a", shape: "three" },
+  FINAL_FILES_READY: { color: "#0f9a6a", shape: "full" },
+  DELIVERED: { color: "#1f8a4c", shape: "done" },
+  ON_HOLD: { color: "#9a6a3c", shape: "paused" },
+  CANCELLED: { color: "#8e8b82", shape: "stopped" },
+  REFUNDED: { color: "#8e8b82", shape: "stopped" },
 };
 
 const OVERVIEW_STATUS_LABEL_OVERRIDES: Record<string, string> = {
@@ -84,15 +86,22 @@ export function StatusIcon({ status, size = 14 }: { status: string; size?: numbe
   );
 }
 
-export function ProjectStatusBadge({ status }: { status: string }) {
+/**
+ * The stage as a pill: a wash of its colour, and its name in that colour
+ * mixed towards the text colour, so it stays legible in light and dark.
+ */
+export function ProjectStatusBadge({ status, size = "md" }: { status: string; size?: "sm" | "md" }) {
   const { color } = styleOf(status);
-  // A wash of the state's colour; the text stays ink so pale states stay legible.
   return (
     <span
-      className="portal-badge h-7 text-fg"
-      style={{ background: `color-mix(in srgb, ${color} 13%, var(--panel))`, borderColor: `color-mix(in srgb, ${color} 32%, transparent)` }}
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border font-semibold ${size === "sm" ? "h-6 px-2 text-xs" : "h-7 px-2.5 text-xs"}`}
+      style={{
+        background: `color-mix(in srgb, ${color} 14%, var(--panel))`,
+        borderColor: `color-mix(in srgb, ${color} 38%, transparent)`,
+        color: `color-mix(in srgb, ${color} 62%, var(--fg))`,
+      }}
     >
-      <StatusIcon status={status} size={13} />
+      <StatusIcon status={status} size={size === "sm" ? 12 : 13} />
       {getProjectStatusLabel(status)}
     </span>
   );
