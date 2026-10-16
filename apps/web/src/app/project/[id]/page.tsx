@@ -5,20 +5,18 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { ProjectTimeline } from "@/app/project-timeline";
+import { Allowance, PanelCard, resolveUsage, type EntitlementUsage } from "@/components/allowances";
 import { FeatureNoticeCard } from "@/components/feature-notice-card";
 import { HeaderNav } from "@/components/header-nav";
+import { CheckIcon, ChevronRightIcon, DownloadIcon, FileTextIcon, ImageIcon, MessageIcon } from "@/components/icons";
 import { PageShell } from "@/components/page-shell";
+import { EmptyLine, PageHeader, Property, Section } from "@/components/ui";
+import { getProjectDisplayTitle } from "@/lib/project-display-name";
+import { UPSELL_DISPLAY_PRICES } from "@/lib/stripe-price-allowlist";
 import { ProjectStatusBadge } from "@/components/project-status-badge";
 import { formatClientFirstName, getAreaCardSubtitle } from "@/lib/project-overview";
 import { getClientOverviewNextAction, getPendingFeedbackCountForLatestConcept } from "@/lib/project-hub";
 import { deriveOverviewBadgeStatus } from "@/lib/project-status";
-
-type EntitlementUsage = {
-  limit: number;
-  consumed: number;
-  reserved?: number;
-  remaining: number;
-};
 
 type Snapshot = {
   status: string;
@@ -41,6 +39,14 @@ type Snapshot = {
   timeline?: Array<{ state: string; label: string; completed: boolean; current: boolean; timestamp?: string }>;
 };
 
+const DAY = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" });
+
+function formatDay(value?: string): string {
+  if (!value) return "—";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "—" : DAY.format(date);
+}
+
 type SessionPayload = {
   authenticated: boolean;
   isAdmin?: boolean;
@@ -53,91 +59,25 @@ function readError(payload: { error?: { message?: string; details?: { nextStep?:
   return nextStep ? `${message} — ${nextStep}` : message;
 }
 
-function resolveUsage(usage: EntitlementUsage | undefined) {
-  const limit = Math.max(usage?.limit ?? 0, 0);
-  const consumed = Math.max(usage?.consumed ?? 0, 0);
-  const reserved = Math.max(usage?.reserved ?? 0, 0);
-  const allocated = Math.min(consumed + reserved, limit);
-  const remaining = Math.max(limit - consumed - reserved, 0);
-  const ratio = limit > 0 ? Math.min((allocated / limit) * 100, 100) : 0;
-
-  return { limit, consumed, reserved, allocated, remaining, ratio };
-}
-
-function EntitlementProgress({
-  label,
-  usage,
-  fillClassName,
-}: {
-  label: string;
-  usage: EntitlementUsage | undefined;
-  fillClassName: string;
-}) {
-  const stats = resolveUsage(usage);
-  const [animatedRatio, setAnimatedRatio] = useState(stats.ratio);
-
-  useEffect(() => {
-    const next = stats.ratio;
-    const raf = requestAnimationFrame(() => setAnimatedRatio(next));
-    return () => cancelAnimationFrame(raf);
-  }, [stats.ratio]);
-
+function AreaRow({ title, href, hasNew, subtitle, Icon }: { title: string; href: string; hasNew?: boolean; subtitle?: string; Icon: typeof MessageIcon }) {
   return (
-    <article className="portal-subcard">
-      <div className="flex items-center justify-between gap-3">
-        <h3 className="text-sm font-semibold text-neutral-900">{label}</h3>
-        <p className="text-xs text-neutral-500">{stats.remaining} left</p>
-      </div>
-      <p className="mt-1 text-sm text-neutral-700">
-        {stats.allocated} of {stats.limit} allocated
-      </p>
-      {stats.reserved > 0 ? (
-        <p className="mt-0.5 text-xs text-neutral-500">
-          {stats.consumed} delivered · {stats.reserved} pending
-        </p>
-      ) : null}
-      <div className="mt-3 h-2 rounded-full bg-neutral-200">
-        <div className={`h-2 rounded-full transition-all duration-700 ease-out ${fillClassName}`} style={{ width: `${animatedRatio}%` }} />
-      </div>
-    </article>
-  );
-}
-
-function UsageOverviewCard({
-  conceptUsage,
-  revisionUsage,
-}: {
-  conceptUsage: EntitlementUsage | undefined;
-  revisionUsage: EntitlementUsage | undefined;
-}) {
-  return (
-    <article className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm shadow-neutral-200/70">
-      <h3 className="text-sm font-semibold text-neutral-900">Progress & usage</h3>
-      <p className="mt-1 text-xs text-neutral-500">Track concept and revision allocation in one place.</p>
-      <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        <EntitlementProgress label="Concepts" usage={conceptUsage} fillClassName="bg-gradient-to-r from-indigo-600 to-sky-500" />
-        <EntitlementProgress label="Revisions" usage={revisionUsage} fillClassName="bg-gradient-to-r from-fuchsia-600 to-violet-500" />
-      </div>
-    </article>
-  );
-}
-
-function AreaCard({ title, href, hasNew, subtitle }: { title: string; href: string; hasNew?: boolean; subtitle?: string }) {
-  return (
-    <Link
-      href={href}
-      aria-label={`Open ${title}`}
-      className="group rounded-xl border border-neutral-200 bg-white p-4 shadow-sm shadow-neutral-200/70 transition-all hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300 focus-visible:ring-offset-2"
-    >
-      <div className="flex items-center justify-between gap-3">
-        <h3 className="text-sm font-semibold text-neutral-900">{title}</h3>
-        <div className="flex items-center gap-2">
-          {hasNew ? <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">New</span> : null}
-          <span className="rounded-md border border-neutral-300 px-2 py-0.5 text-xs font-medium text-neutral-700 transition-colors group-hover:border-violet-300 group-hover:text-violet-700">Open</span>
-        </div>
-      </div>
-      <p className="mt-1 text-sm text-neutral-600">{getAreaCardSubtitle(title, subtitle)}</p>
-    </Link>
+    <li>
+      <Link
+        href={href}
+        aria-label={`Open ${title}`}
+        className="group flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--focus)]"
+      >
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-line bg-surface text-fg-2 group-hover:text-fg">
+          <Icon size={17} />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-base font-medium text-fg">{title}</span>
+          <span className="block truncate text-sm text-fg-3">{getAreaCardSubtitle(title, subtitle)}</span>
+        </span>
+        {hasNew ? <span className="rounded-full bg-accent-soft px-2 py-0.5 text-xs font-semibold text-accent">New</span> : null}
+        <ChevronRightIcon size={16} className="shrink-0 text-fg-3 transition-transform group-hover:translate-x-0.5" />
+      </Link>
+    </li>
   );
 }
 
@@ -208,11 +148,11 @@ function UpsellPanel({
   }
 
   return (
-    <section className="mt-6 rounded-2xl border border-violet-200 bg-violet-50 p-5">
+    <section className="rounded-xl border border-[color-mix(in_srgb,var(--accent)_28%,transparent)] bg-[color-mix(in_srgb,var(--accent)_7%,var(--panel))] p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-violet-950">Need more flexibility?</h2>
-          <p className="mt-1 text-sm text-violet-900">
+          <h2 className="text-lg font-semibold tracking-tight text-fg">Need more flexibility?</h2>
+          <p className="mt-1 text-base text-fg-2">
             {shouldOfferAddon
               ? "You’re at the revision limit for this stage. Add one extra revision now, or upgrade for more headroom."
               : "You’re getting close to your revision limit. Upgrade now to avoid interruptions later."}
@@ -220,7 +160,7 @@ function UpsellPanel({
         </div>
         <button
           type="button"
-          className="text-xs font-medium text-violet-900 underline underline-offset-2"
+          className="text-sm font-medium text-fg-2 underline underline-offset-4 hover:text-fg"
           onClick={() => {
             if (typeof window !== "undefined") {
               const key = `upsell:dismissed:${projectId}:${packageCode ?? "unknown"}`;
@@ -236,28 +176,28 @@ function UpsellPanel({
         {shouldOfferAddon ? (
           <button
             type="button"
-            className="rounded-lg bg-violet-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
+            className="portal-btn-primary"
             onClick={() => void startPurchase({ kind: "addon", addonKey: "extra_revision" }, "addon")}
             disabled={submitting !== null}
           >
-            {submitting === "addon" ? "Redirecting…" : "Buy extra revision (£49)"}
+            {submitting === "addon" ? "Redirecting…" : `Buy extra revision (${UPSELL_DISPLAY_PRICES.extra_revision})`}
           </button>
         ) : null}
 
         {shouldOfferUpgrade && upgradeTarget ? (
           <button
             type="button"
-            className="portal-btn-secondary border-violet-400 text-violet-900"
+            className="portal-btn-secondary"
             onClick={() => void startPurchase({ kind: "upgrade", toPackage: upgradeTarget }, "upgrade")}
             disabled={submitting !== null}
           >
             {submitting === "upgrade"
               ? "Redirecting…"
-              : `Upgrade to ${upgradeTarget === "professional" ? "Professional" : "Complete"} (${upgradeTarget === "professional" ? "£180" : "£225"})`}
+              : `Upgrade to ${upgradeTarget === "professional" ? "Professional" : "Complete"} (${upgradeTarget === "professional" ? UPSELL_DISPLAY_PRICES.essential_to_professional : UPSELL_DISPLAY_PRICES.professional_to_complete})`}
           </button>
         ) : null}
       </div>
-      {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
+      {error ? <p className="mt-3 text-sm text-danger">{error}</p> : null}
     </section>
   );
 }
@@ -318,11 +258,11 @@ function UpsellPurchaseStatus({
   if (!sessionId || status === "idle") return null;
 
   return (
-    <section className={`mt-4 rounded-xl border px-4 py-3 text-sm ${status === "fulfilled" ? "border-emerald-200 bg-emerald-50 text-emerald-900" : status === "failed" ? "border-rose-200 bg-rose-50 text-rose-900" : "border-amber-200 bg-amber-50 text-amber-900"}`}>
+    <section className={`rounded-lg border px-4 py-3 text-base text-fg ${status === "fulfilled" ? "border-[color-mix(in_srgb,var(--success)_30%,transparent)] bg-success-soft" : status === "failed" ? "border-[color-mix(in_srgb,var(--danger)_30%,transparent)] bg-danger-soft" : "border-[color-mix(in_srgb,var(--warning)_30%,transparent)] bg-warning-soft"}`}>
       <p className="font-medium">
         {status === "fulfilled" ? "Purchase confirmed" : status === "failed" ? "Purchase confirmation delayed" : "Confirming your purchase"}
       </p>
-      {message ? <p className="mt-1">{message}</p> : null}
+      {message ? <p className="mt-1 text-fg-2">{message}</p> : null}
     </section>
   );
 }
@@ -395,10 +335,6 @@ export default function ProjectPage() {
     }
   }, [projectId, router, session.isAdmin, snapshot]);
 
-  const conceptUsage = useMemo(
-    () => resolveUsage(snapshot?.entitlementUsage?.concepts),
-    [snapshot?.entitlementUsage?.concepts],
-  );
   const revisionUsage = useMemo(
     () => resolveUsage(snapshot?.entitlementUsage?.revisions),
     [snapshot?.entitlementUsage?.revisions],
@@ -443,123 +379,138 @@ export default function ProjectPage() {
     }
   }
 
+  const brandName = snapshot?.latestBrief?.answers?.brandName?.trim() || null;
+  const projectTitle = getProjectDisplayTitle({ projectId, brandName, audience: "client" });
+  const packageLabel = snapshot?.packageCode ? `${snapshot.packageCode.slice(0, 1).toUpperCase()}${snapshot.packageCode.slice(1)}` : "—";
+
   return (
     <PageShell>
       <HeaderNav />
-      <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
-        <section className="mt-3 portal-card">
-          <div className="grid gap-4 lg:grid-cols-12">
-            <div className="lg:col-span-12 rounded-xl border border-neutral-200 bg-neutral-50/60 p-4">
-              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
+      <PageHeader
+        crumbs={[{ label: "Projects", href: "/dashboard" }, { label: projectTitle }]}
+        actions={
+          <>
+            <Link className="portal-btn-ghost relative" href={`/project/${projectId}/messages`}>
+              <MessageIcon size={14} />
+              <span className="hidden sm:inline">Messages</span>
+              {snapshot?.hasNewMessages ? <span aria-label="New messages" className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-accent" /> : null}
+            </Link>
+            <Link className="portal-btn-secondary" href={`/project/${projectId}/concepts`}>
+              <ImageIcon size={14} />
+              <span className="hidden sm:inline">Concepts</span>
+            </Link>
+          </>
+        }
+      />
+
+      <div className="flex min-h-[calc(100%-3.5rem)] flex-col lg:flex-row">
+        <main className="min-w-0 flex-1 px-4 py-6 md:px-8 lg:py-8">
+          <div className="mx-auto max-w-[920px] space-y-10">
+            <div>
+              <ProjectStatusBadge status={overviewStatus} />
+              <h1 className="mt-4 text-3xl font-semibold tracking-tight text-fg">{projectTitle}</h1>
+              <p className="mt-2 text-base text-fg-2">Hey{welcomeName ? `, ${welcomeName}` : ""} — here’s where your project stands.</p>
+            </div>
+
+            {loading ? <p className="text-sm text-fg-3">Loading…</p> : null}
+            {error ? <p className="rounded-lg bg-danger-soft px-3 py-2.5 text-sm text-danger" role="alert">{error}</p> : null}
+
+            <UpsellPurchaseStatus sessionId={upsellSessionId} kind={upsellKind} />
+
+            {/* The one thing to do next, or that there's nothing to do. */}
+            {nextAction ? (
+              <section className="relative overflow-hidden rounded-xl border border-[color-mix(in_srgb,var(--accent)_30%,transparent)] bg-[color-mix(in_srgb,var(--accent)_7%,var(--panel))] p-5 sm:flex sm:items-center sm:justify-between sm:gap-6">
+                <span aria-hidden className="absolute inset-y-0 left-0 w-1 bg-accent" />
+                <div className="pl-1">
+                  <p className="text-xs font-semibold uppercase tracking-[0.06em] text-accent">Next step</p>
+                  <p className="mt-1 text-xl font-semibold tracking-tight text-fg">{nextAction.label}</p>
+                  <p className="mt-1 text-base text-fg-2">Do this first to keep your project moving.</p>
+                </div>
+                <Link href={nextAction.href} className="portal-btn-primary mt-4 h-11 shrink-0 px-5 text-base sm:mt-0">
+                  {nextAction.label}
+                  <ChevronRightIcon size={16} />
+                </Link>
+              </section>
+            ) : (
+              <section className="flex items-start gap-3 rounded-xl border border-[color-mix(in_srgb,var(--success)_28%,transparent)] bg-success-soft p-5">
+                <CheckIcon size={18} className="mt-1 shrink-0 text-success" />
                 <div>
-                  <ProjectStatusBadge status={overviewStatus} />
-                  <h1 className="mt-3 text-2xl font-semibold text-neutral-900">Hey{welcomeName ? `, ${welcomeName}` : ""}</h1>
-                  <p className="mt-1 text-sm text-neutral-600">Project overview · {projectId}</p>
-
-                  <div className="mt-4 grid gap-2 text-sm text-neutral-700 sm:grid-cols-1">
-                    <div className="capitalize">
-                      <p className="text-[11px] uppercase tracking-wide text-neutral-500">Package</p>
-                      <p className="mt-1 font-medium text-neutral-900">{snapshot?.packageCode ?? "—"}</p>
-                    </div>
-                  </div>
+                  <p className="text-lg font-semibold tracking-tight text-fg">You’re all caught up</p>
+                  <p className="mt-1 text-base text-fg-2">We’ll show the next step here when something needs your attention.</p>
                 </div>
-
-                <div className="relative w-full overflow-hidden rounded-2xl border border-violet-200/70 bg-gradient-to-br from-violet-50 via-indigo-50 to-teal-50 px-4 py-3 shadow-sm shadow-violet-200/30">
-                  <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-gradient-to-br from-violet-200/30 via-sky-200/20 to-teal-200/15 blur-2xl" />
-                  <div aria-hidden className="pointer-events-none absolute -bottom-20 left-8 h-40 w-40 rounded-full bg-gradient-to-tr from-teal-200/20 via-cyan-200/15 to-violet-200/20 blur-2xl" />
-                  <div className="relative">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-violet-800">Next action</p>
-                    {nextAction ? (
-                      <>
-                        <p className="mt-1 text-sm text-violet-950">Do this first to keep your project moving.</p>
-                        <Link href={nextAction.href} className="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-violet-700 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300 focus-visible:ring-offset-2">
-                          {nextAction.label}
-                        </Link>
-                      </>
-                    ) : (
-                      <p className="mt-1 text-sm font-medium text-emerald-900">You’re all caught up! We’ll surface the next step here when something needs your attention.</p>
-                    )}
-
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-3 lg:col-span-12">
-              <AreaCard title="Brief" href={`/project/${projectId}/brief`} subtitle={snapshot?.latestBrief ? `Latest: v${snapshot.latestBrief.version}` : "Submit your project brief"} />
-              <AreaCard title="Concepts" href={`/project/${projectId}/concepts`} hasNew={snapshot?.hasNewConcepts} subtitle={snapshot?.hasNewConcepts ? "New concepts/revisions available" : undefined} />
-              <AreaCard title="Messages" href={`/project/${projectId}/messages`} hasNew={snapshot?.hasNewMessages} subtitle={snapshot?.hasNewMessages ? "Unread updates waiting" : undefined} />
-            </div>
+              </section>
+            )}
 
             {canDownloadFinals ? (
-              <div className="lg:col-span-12">
-                <FeatureNoticeCard
-                  variant="brand"
-                  kicker="Final deliverables"
-                  title="Great news — your final deliverables are ready to download ✨"
-                  body="Everything is packed and ready for you. Huge thanks for working with us — it’s been a pleasure building your brand with you."
-                  signature="— Logo Fountain team"
-                  actions={(
-                    <button
-                      type="button"
-                      onClick={() => void handleFinalDownload()}
-                      disabled={downloadingFinals}
-                      className="inline-flex items-center justify-center rounded-lg bg-violet-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-900 disabled:opacity-60"
-                    >
-                      {downloadingFinals ? "Preparing download…" : "Download final ZIP"}
-                    </button>
-                  )}
-                />
-              </div>
+              <FeatureNoticeCard
+                variant="brand"
+                kicker="Final deliverables"
+                title="Great news — your final deliverables are ready to download ✨"
+                body="Everything is packed and ready for you. Huge thanks for working with us — it’s been a pleasure building your brand with you."
+                signature="— Logo Fountain team"
+                actions={(
+                  <button type="button" onClick={() => void handleFinalDownload()} disabled={downloadingFinals} className="portal-btn-primary h-11 px-5 text-base">
+                    <DownloadIcon size={16} />
+                    {downloadingFinals ? "Preparing download…" : "Download final ZIP"}
+                  </button>
+                )}
+              />
             ) : showPendingDeliverablesCard ? (
-              <div className="lg:col-span-12">
-                <FeatureNoticeCard
-                  variant="info"
-                  kicker="Final deliverables"
-                  title="Your logo files are in production"
-                  body="You are all set. We have started preparing your final logo files and quality checks are underway. We will update this space the moment your download is ready."
-                  signature="Logo Fountain team"
-                />
-              </div>
-            ) : (
-              <>
-                <div className="lg:col-span-8">
-                  <UsageOverviewCard
-                    conceptUsage={snapshot?.entitlementUsage?.concepts}
-                    revisionUsage={snapshot?.entitlementUsage?.revisions}
-                  />
-                </div>
+              <FeatureNoticeCard
+                variant="info"
+                kicker="Final deliverables"
+                title="Your logo files are in production"
+                body="You are all set. We have started preparing your final logo files and quality checks are underway. We will update this space the moment your download is ready."
+                signature="Logo Fountain team"
+              />
+            ) : null}
 
-                <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3 lg:col-span-4">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs uppercase tracking-wide text-neutral-500">Latest concept</p>
-                    <Link className="text-xs font-medium text-neutral-700 portal-link no-underline" href={`/project/${projectId}/concepts`}>View all</Link>
-                  </div>
+            <UpsellPanel projectId={projectId} packageCode={snapshot?.packageCode} projectStatus={snapshot?.status} revisionUsage={revisionUsage} />
 
-                  {latestConcept?.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={latestConcept.imageUrl} alt={`Latest concept #${latestConcept.number}`} className="mt-2 h-36 w-full rounded-lg border border-neutral-200 object-cover" />
-                  ) : (
-                    <div className="mt-2 flex h-36 items-center justify-center rounded-lg border border-dashed border-neutral-300 text-xs text-neutral-500">
-                      No concept preview yet
-                    </div>
-                  )}
-                  <p className="mt-2 text-xs text-neutral-600">{conceptUsage.remaining} concepts left · {revisionUsage.remaining} revisions left</p>
-                </div>
-              </>
-            )}
+            <Section title="Your project">
+              <ul className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-panel">
+                <AreaRow title="Brief" Icon={FileTextIcon} href={`/project/${projectId}/brief`} subtitle={snapshot?.latestBrief ? `Latest: v${snapshot.latestBrief.version}` : "Submit your project brief"} />
+                <AreaRow title="Concepts" Icon={ImageIcon} href={`/project/${projectId}/concepts`} hasNew={snapshot?.hasNewConcepts} subtitle={snapshot?.hasNewConcepts ? "New concepts/revisions available" : undefined} />
+                <AreaRow title="Messages" Icon={MessageIcon} href={`/project/${projectId}/messages`} hasNew={snapshot?.hasNewMessages} subtitle={snapshot?.hasNewMessages ? "Unread updates waiting" : undefined} />
+              </ul>
+            </Section>
+
+            {!canDownloadFinals && !showPendingDeliverablesCard ? (
+              <Section title="Latest concept" actions={<Link className="portal-btn-ghost h-8" href={`/project/${projectId}/concepts`}>View all</Link>}>
+                {latestConcept?.imageUrl ? (
+                  <Link href={`/project/${projectId}/concepts`} className="block overflow-hidden rounded-xl border border-line bg-surface transition-colors hover:border-line-strong">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={latestConcept.imageUrl} alt={`Latest concept #${latestConcept.number}`} className="aspect-[16/9] w-full object-contain" />
+                  </Link>
+                ) : (
+                  <EmptyLine>No concept preview yet. Your first concepts will appear here as soon as they’re ready.</EmptyLine>
+                )}
+              </Section>
+            ) : null}
+
+            {snapshot?.timeline ? <ProjectTimeline timeline={snapshot.timeline} primaryCta={snapshot.primaryCta} /> : null}
           </div>
+        </main>
 
-          <UpsellPurchaseStatus sessionId={upsellSessionId} kind={upsellKind} />
-          <UpsellPanel projectId={projectId} packageCode={snapshot?.packageCode} projectStatus={snapshot?.status} revisionUsage={revisionUsage} />
-        </section>
+        <aside aria-label="Project details" className="w-full shrink-0 space-y-4 border-t border-line bg-surface px-4 py-6 lg:w-[384px] lg:border-l lg:border-t-0 lg:px-5 lg:py-8">
+          <PanelCard title="Your allowances">
+            <div className="divide-y divide-line">
+              <Allowance label="Concepts" usage={snapshot?.entitlementUsage?.concepts} />
+              <Allowance label="Revisions" usage={snapshot?.entitlementUsage?.revisions} />
+            </div>
+          </PanelCard>
 
-        {loading ? <p className="mt-4 text-sm text-neutral-600">Loading…</p> : null}
-        {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
-
-        {snapshot?.timeline ? <ProjectTimeline timeline={snapshot.timeline} primaryCta={snapshot.primaryCta} /> : null}
-
-      </main>
+          <PanelCard title="Details">
+            <dl className="-my-2">
+              <Property label="Status"><ProjectStatusBadge status={overviewStatus} size="sm" /></Property>
+              <Property label="Package">{packageLabel}</Property>
+              <Property label="Brief">{snapshot?.latestBrief ? `Version ${snapshot.latestBrief.version}` : <span className="text-fg-3">Not submitted</span>}</Property>
+              <Property label="Started">{formatDay(snapshot?.createdAt)}</Property>
+              <Property label="Updated">{formatDay(snapshot?.updatedAt)}</Property>
+            </dl>
+          </PanelCard>
+        </aside>
+      </div>
     </PageShell>
   );
 }

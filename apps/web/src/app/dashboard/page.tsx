@@ -2,7 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { HeaderNav } from "@/components/header-nav";
+import { CheckIcon, ChevronRightIcon } from "@/components/icons";
 import { PageShell } from "@/components/page-shell";
+import { EmptyLine, PageHeader } from "@/components/ui";
 import { isAdminUser } from "@/lib/auth/admin";
 import { ProjectStatusBadge } from "@/components/project-status-badge";
 import { type ProjectState } from "@/lib/project-state-machine";
@@ -26,11 +28,6 @@ type DashboardProject = {
 };
 
 type DashboardSectionKey = "needs-action" | "in-progress" | "delivered";
-
-type ProjectCta = {
-  href: string;
-  label: string;
-};
 
 const DATE_FORMATTER = new Intl.DateTimeFormat("en-GB", {
   day: "numeric",
@@ -78,22 +75,15 @@ function getStatusNote(status: ProjectState) {
   return null;
 }
 
-function getPrimaryCta(project: DashboardProject): ProjectCta {
-  // Always route through the project overview so clients don’t bypass the hub.
-  return {
-    href: `/project/${project.id}`,
-    label: "Open project",
-  };
-}
-
 function formatProjectDate(project: DashboardProject) {
   const updated = project.updatedAt.toISOString() !== project.createdAt.toISOString();
   if (updated) return `Updated ${DATE_FORMATTER.format(project.updatedAt)}`;
   return `Created ${DATE_FORMATTER.format(project.createdAt)}`;
 }
 
-function ProjectCard({ project }: { project: DashboardProject }) {
-  const cta = getPrimaryCta(project);
+const PACKAGE_LABELS: Record<string, string> = { essential: "Essential", professional: "Professional", complete: "Complete" };
+
+function ProjectRow({ project }: { project: DashboardProject }) {
   const statusNote = getStatusNote(project.status);
   const overviewStatus = deriveOverviewBadgeStatus({
     persistedStatus: project.status,
@@ -104,61 +94,59 @@ function ProjectCard({ project }: { project: DashboardProject }) {
   const projectTitle = getProjectDisplayTitle({ projectId: project.id, brandName, audience: "client" });
 
   return (
-    <article className="mt-3 portal-card">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <ProjectStatusBadge status={overviewStatus} />
-            {project.hasNewConcepts ? <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800">New concepts</span> : null}
-            {project.hasNewMessages ? <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">New message</span> : null}
-          </div>
-          <h3 className="mt-3 text-base font-semibold text-neutral-900">{projectTitle}</h3>
-          <p className="mt-1 text-sm text-neutral-600">Package: {project.packageCode}</p>
-          <p className="mt-1 text-xs text-neutral-500">{formatProjectDate(project)}</p>
-        </div>
-
-        <div className="flex flex-col gap-2 sm:items-end">
-          <Link className="portal-btn-primary" href={cta.href}>
-            {cta.label}
-          </Link>
-          <div className="flex gap-3">
-            <Link className="portal-link no-underline" href={`/project/${project.id}/brief`}>
-              Brief
-            </Link>
-            <Link className="portal-link no-underline" href={`/project/${project.id}/messages`}>
-              Messages
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {statusNote ? (
-        <p className={`mt-4 rounded-lg px-3 py-2 text-sm ${project.status === "FINAL_FILES_READY" ? "border border-emerald-200 bg-emerald-50 font-semibold text-emerald-900" : "bg-neutral-50 text-neutral-700"}`}>
-          {statusNote}
-        </p>
-      ) : null}
-    </article>
+    <li>
+      {/* Always through the project overview, so clients don't bypass the hub. */}
+      <Link
+        href={`/project/${project.id}`}
+        className="group flex items-center gap-4 border-b border-line px-4 py-4 transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--focus)] md:px-5"
+      >
+        <span className="min-w-0 flex-1">
+          <span className="flex flex-wrap items-center gap-2">
+            <span className="truncate text-lg font-semibold tracking-tight text-fg">{projectTitle}</span>
+            {project.hasNewConcepts ? <span className="rounded-full bg-success-soft px-2 py-0.5 text-xs font-semibold text-success">New concepts</span> : null}
+            {project.hasNewMessages ? <span className="rounded-full bg-accent-soft px-2 py-0.5 text-xs font-semibold text-accent">New message</span> : null}
+          </span>
+          {statusNote ? (
+            <span className={`mt-1 block text-base ${project.status === "FINAL_FILES_READY" ? "font-medium text-success" : "text-fg-2"}`}>{statusNote}</span>
+          ) : null}
+          <span className="mt-1 block text-sm text-fg-3">
+            {PACKAGE_LABELS[project.packageCode] ?? project.packageCode} · {formatProjectDate(project)}
+          </span>
+        </span>
+        <span className="hidden shrink-0 sm:block">
+          <ProjectStatusBadge status={overviewStatus} />
+        </span>
+        <ChevronRightIcon size={18} className="shrink-0 text-fg-3 transition-transform group-hover:translate-x-0.5" />
+      </Link>
+    </li>
   );
 }
 
 function DashboardSection({ section, projects }: { section: DashboardSectionKey; projects: DashboardProject[] }) {
   const meta = getSectionMeta(section);
 
-  return (
-    <section className="mt-10">
-      <div className="mb-4">
-        <h2 className="text-xl font-semibold text-neutral-900">{meta.title}</h2>
-        <p className="mt-1 text-sm text-neutral-600">{meta.description}</p>
-      </div>
+  // A client sees only the groups they have projects in; an empty "needs
+  // action" is good news, so it says so.
+  if (projects.length === 0 && section !== "needs-action") return null;
 
+  return (
+    <section aria-label={meta.title}>
+      <div className="flex h-11 items-center gap-2.5 border-b border-line bg-surface px-4 md:px-5" title={meta.description}>
+        <h2 className="text-sm font-semibold text-fg">{meta.title}</h2>
+        <span className="text-sm text-fg-3">{projects.length}</span>
+        <span className="hidden truncate text-sm text-fg-3 lg:inline">· {meta.description}</span>
+      </div>
       {projects.length === 0 ? (
-        <p className="rounded-xl border border-neutral-200 bg-white p-4 text-sm text-neutral-600">No projects in this section.</p>
+        <p className="flex items-center gap-2 border-b border-line px-4 py-4 text-base text-fg-2 md:px-5">
+          <CheckIcon size={16} className="text-success" />
+          Nothing needs you right now.
+        </p>
       ) : (
-        <div className="space-y-4">
+        <ul>
           {projects.map((project) => (
-            <ProjectCard key={project.id} project={project} />
+            <ProjectRow key={project.id} project={project} />
           ))}
-        </div>
+        </ul>
       )}
     </section>
   );
@@ -282,20 +270,32 @@ export default async function DashboardPage() {
     sectioned[section].push(project);
   }
 
+  const waiting = sectioned["needs-action"].length;
+
   return (
     <PageShell>
       <HeaderNav />
-      <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
-        <h1 className="portal-page-title">{greeting}</h1>
+      <PageHeader crumbs={[{ label: "Projects" }]} />
+      <main className="mx-auto w-full max-w-[1400px] px-4 pb-10 md:px-8 lg:px-10">
+        <div className="pb-5 pt-8">
+          <h1 className="text-3xl font-semibold tracking-tight text-fg">{greeting}</h1>
+          <p className="mt-1 text-base text-fg-2">
+            {projects.length === 0
+              ? "Your projects will appear here."
+              : waiting > 0
+                ? `${waiting} project${waiting === 1 ? " needs" : "s need"} your input.`
+                : "Nothing needs your input right now."}
+          </p>
+        </div>
 
         {projects.length === 0 ? (
-          <p className="mt-6 rounded-xl border border-neutral-200 bg-white p-4 text-sm text-neutral-600">No projects yet.</p>
+          <EmptyLine>No projects yet.</EmptyLine>
         ) : (
-          <>
+          <div className="rounded-xl border border-line bg-panel [&>section:first-of-type>div]:rounded-t-xl [&>section:last-of-type_li:last-child>a]:rounded-b-xl [&>section:last-of-type_li:last-child>a]:border-b-0 [&>section:last-of-type>p]:rounded-b-xl [&>section:last-of-type>p]:border-b-0">
             <DashboardSection section="needs-action" projects={sectioned["needs-action"]} />
             <DashboardSection section="in-progress" projects={sectioned["in-progress"]} />
             <DashboardSection section="delivered" projects={sectioned.delivered} />
-          </>
+          </div>
         )}
       </main>
     </PageShell>

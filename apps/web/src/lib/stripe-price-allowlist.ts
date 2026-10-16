@@ -29,6 +29,16 @@ export const UPSELL_PRICE_TO_ACTION: Record<string, UpsellAction> = {
   },
 };
 
+/**
+ * What a client is shown for each extra, kept beside its price above so the
+ * label and the charge change together.
+ */
+export const UPSELL_DISPLAY_PRICES = {
+  extra_revision: "£95",
+  essential_to_professional: "£495",
+  professional_to_complete: "£750",
+} as const;
+
 export function isPlaceholderPriceId(priceId: string | null | undefined): boolean {
   if (!priceId) return true;
   const normalized = priceId.trim();
