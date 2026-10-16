@@ -171,3 +171,13 @@ Upload hardening note (2026-03-06):
 - [ ] Not yet covered by tests: Stripe webhook HTTP → real-PG fulfillment, concurrent webhook retries over HTTP, production-mode (https) cookie check, live Postmark.
 - [x] Isolated owner-run persistent localhost-PG manual handoff (separate from ephemeral test DB): named private data directory, explicit init/start/stop/reset, operator-only admin bootstrap, synthetic paid customer fixture and private credential handoff; test-only R2 owner setup guide. See `apps/web/docs/local-dev-pg-handoff.md`. **Not started or seeded for owner**; provider E2E remains unverified.
 - [ ] **Owner-run release gates:** live PG provisioning + baseline deploy, one-time admin bootstrap, secrets, live R2 acceptance + restore drill, proxy header stripping, merge/deploy. No Supabase data migration (fresh install; customers need setup links).
+
+## Portal redesign — Linear frame, parchment and vermilion (merged to main 2026-10-16)
+
+- [x] App frame, palette and type scale: sidebar + inset working panel, parchment/vermilion tokens, Utopia fluid scale, light and dark both first-class, theme set before first paint by `public/theme-init.js`.
+- [x] Reference screens: admin queue, admin project, customer dashboard, customer project hub. Shared components in `src/components/` (`ui.tsx`, `allowances.tsx`, `icons.tsx`, `project-status-badge.tsx`, `theme-switcher.tsx`). Guide: `apps/web/docs/design-system.md`.
+- [x] Every remaining screen migrated: admin concepts/upload/brief/revision/messages/audit/health, customer concepts + concept detail, briefs and wizard, threads, settings and invoices, checkout and auth. All 25 routes are on the tokens; `app/page.tsx` is a bare redirect with nothing to style.
+- [x] Sign-in migrated and the interim dark remap of Tailwind greys/white/colour tints removed from `globals.css` (188 lines). A `neutral-*`, `white` or named colour added from here on now looks wrong in dark rather than being quietly softened.
+- [x] Validation on the merged tip: typecheck, lint (0 errors / 0 warnings), 96 files / 625 unit tests, webpack build (35 pages). Sign-in screenshotted in light and dark at 1600×1000 and 390×844, including the field-error state; 0 console errors.
+- [ ] Screenshot sweep of the remaining 24 screens in both themes at both widths, against the reference screen of the same pattern. Needs seeded data, so it follows the owner-run local PG handoff (`apps/web/docs/local-dev-pg-handoff.md`).
+- [ ] No independent design review was run on this work, unlike each security batch. Consider one before it goes in front of customers.
