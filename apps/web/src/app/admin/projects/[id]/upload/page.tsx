@@ -114,7 +114,7 @@ export default function AdminProjectUploadPage() {
           </div>
 
           <Section title="Upload and publish concept">
-            <p className="mt-1 text-sm text-fg-2">Uploading here publishes immediately so the client can review it.</p>
+            <p className="mt-1 text-base text-fg-2">Uploading here publishes immediately so the client can review it.</p>
 
             {error ? <p role="alert" className="mt-3 rounded-lg bg-danger-soft p-3 text-sm text-danger">{error}</p> : null}
             {success ? <p className="mt-3 rounded-lg border border-success/30 bg-success-soft p-3 text-sm text-success">{success}</p> : null}
@@ -149,7 +149,7 @@ export default function AdminProjectUploadPage() {
             {loading ? <p className="mt-3 text-sm text-fg-2">Loading…</p> : null}
             <ul className="mt-3 space-y-2">
               {(snapshot?.concepts ?? []).map((concept) => (
-                <li key={concept.id} className="rounded border border-line p-3 text-sm">
+                <li key={concept.id} className="rounded border border-line p-3 text-base">
                   <span className="font-medium">#{concept.number}</span> — {concept.status}
                 </li>
               ))}

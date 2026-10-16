@@ -280,11 +280,11 @@ export default function AdminProjectConceptsPage() {
                               <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs font-medium text-fg-2">{concept.pendingRevisionCount} revisions</span>
                             ) : null}
                           </div>
-                          {concept.notes ? <p className="line-clamp-2 text-xs text-fg-3">{concept.notes}</p> : null}
+                          {concept.notes ? <p className="line-clamp-2 text-base text-fg-3">{concept.notes}</p> : null}
                         </div>
                       </Link>
 
-                      <div className="flex items-center justify-between gap-2 border-t border-line p-3 text-xs">
+                      <div className="flex items-center justify-between gap-2 border-t border-line p-3 text-sm">
                         <Link className="portal-link no-underline" href={`/project/${projectId}/concept/${concept.id}?from=admin`}>
                           Open concept thread
                         </Link>

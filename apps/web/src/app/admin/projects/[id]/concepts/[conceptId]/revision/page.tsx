@@ -86,7 +86,7 @@ export default function AdminConceptRevisionUploadPage() {
           </div>
 
           <section>
-            <p className="text-sm text-fg-2">Upload the updated image for this concept. This creates a new version and marks pending revision requests as delivered.</p>
+            <p className="text-base text-fg-2">Upload the updated image for this concept. This creates a new version and marks pending revision requests as delivered.</p>
 
             {error ? <p role="alert" className="mt-3 rounded-lg bg-danger-soft p-3 text-sm text-danger">{error}</p> : null}
             {success ? <p className="mt-3 rounded-lg border border-success/30 bg-success-soft p-3 text-sm text-success">{success}</p> : null}
