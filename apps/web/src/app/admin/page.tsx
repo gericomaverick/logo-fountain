@@ -130,14 +130,14 @@ function AdminSection({
 }) {
   return (
     <section aria-label={title}>
-      <div className="sticky top-14 z-[5] flex h-11 items-center gap-2.5 border-b border-line bg-surface px-4 md:px-6" title={description}>
+      <div className="sticky top-14 z-[5] flex h-11 items-center gap-2.5 border-b border-line bg-surface px-4 md:px-5" title={description}>
         <h2 className="text-sm font-semibold text-fg">{title}</h2>
         <span className="text-sm text-fg-3">{projects.length}</span>
         <span className="hidden truncate text-sm text-fg-3 lg:inline">· {description}</span>
       </div>
 
       {projects.length === 0 ? (
-        <p className="border-b border-line px-4 py-4 text-sm text-fg-3 md:px-6">No projects in this section.</p>
+        <p className="border-b border-line px-4 py-4 text-sm text-fg-3 md:px-5">No projects in this section.</p>
       ) : (
         <ul>
           {projects.map((project) => {
@@ -159,7 +159,7 @@ function AdminSection({
             const href = needsFeedback ? `/admin/projects/${project.id}/concepts#pending-feedback` : `/admin/projects/${project.id}`;
 
             return (
-              <li key={project.id} className="group relative flex min-h-16 items-center gap-3.5 border-b border-line px-4 py-2.5 transition-colors hover:bg-surface md:px-6">
+              <li key={project.id} className="group relative flex min-h-16 items-center gap-3.5 border-b border-line px-4 py-2.5 transition-colors hover:bg-surface md:px-5">
                 {/* The whole row opens the project; the small links sit above it. */}
                 <Link href={href} className="absolute inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--focus)]" aria-label={needsFeedback ? `Resolve pending feedback: ${projectTitle}` : `Open ${projectTitle}`} />
                 <span title={getProjectStatusLabel(overviewStatus)}>
@@ -393,8 +393,8 @@ export default async function AdminHomePage() {
           </Link>
         }
       />
-      <main>
-        <div className="flex items-end justify-between gap-4 px-4 pb-5 pt-8 md:px-6">
+      <main className="mx-auto w-full max-w-[1400px] px-4 pb-10 md:px-8 lg:px-10">
+        <div className="flex items-end justify-between gap-4 pb-5 pt-8">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight text-fg">Queue</h1>
             <p className="mt-1 text-base text-fg-2">
@@ -402,7 +402,10 @@ export default async function AdminHomePage() {
             </p>
           </div>
         </div>
-        <div className="border-t border-line">
+        {/* Inset from the panel's edges, like a project's content. Not overflow-hidden, which
+            would make the box the group headers' sticky container: the corners are rounded on
+            the first header and the last row instead, and the last row's border is the box's. */}
+        <div className="rounded-xl border border-line bg-panel [&>section:first-child>div]:rounded-t-xl [&>section:last-child>p]:rounded-b-xl [&>section:last-child>p]:border-b-0 [&>section:last-child_li:last-child]:rounded-b-xl [&>section:last-child_li:last-child]:border-b-0">
           <AdminSection {...getSectionMeta("needs-action")} projects={sectioned["needs-action"]} now={now} />
           <AdminSection {...getSectionMeta("in-progress")} projects={sectioned["in-progress"]} now={now} />
           <AdminSection {...getSectionMeta("delivered")} projects={sectioned.delivered} now={now} />
