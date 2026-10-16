@@ -5,7 +5,8 @@ import { useParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { HeaderNav } from "@/components/header-nav";
-import { Card, PageShell, SubCard } from "@/components/page-shell";
+import { PageShell } from "@/components/page-shell";
+import { EmptyLine, PageHeader } from "@/components/ui";
 import { resolveSenderLabel, sortMessagesNewestLast, type ChatMessage } from "@/lib/chat-messages";
 
 type Message = ChatMessage;
@@ -123,48 +124,50 @@ export default function AdminProjectMessagesPage() {
   return (
     <PageShell>
       <HeaderNav />
-      <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
-        <div className="mb-4 flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold">Admin messages</h1>
-            <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
-          </div>
-          <div className="flex flex-wrap gap-4 text-sm">
-            <Link className="portal-link no-underline" href={`/admin/projects/${projectId}`}>Project overview</Link>
-            <Link className="portal-link no-underline" href={`/admin/projects/${projectId}/concepts#pending-feedback`}>Pending feedback inbox</Link>
-            <Link className="portal-link no-underline" href={`/admin/projects/${projectId}/upload`}>Upload concepts</Link>
-          </div>
-        </div>
-
-        <Card className="mt-0">
-          <h2 className="text-lg font-medium">Reply in the right thread</h2>
-          <p className="mt-1 text-sm text-neutral-600">Use this page for project-level updates. For design-specific feedback, jump into the concept thread.</p>
-          {conceptHints.length > 0 ? (
-            <div className="mt-3 flex flex-wrap gap-2 text-xs">
-              {conceptHints.map((concept) => {
-                const pending = concept.unresolvedFeedbackCount;
-                return (
-                  <Link key={concept.id} className="rounded-full border border-neutral-300 bg-white px-2 py-1 text-neutral-700" href={`/project/${projectId}/concept/${concept.id}?from=admin`}>
-                    Concept #{concept.number}{pending > 0 ? ` · ${pending} pending` : ""}
-                  </Link>
-                );
-              })}
+      <PageHeader
+        crumbs={[{ label: "Queue", href: "/admin" }, { label: "Project", href: `/admin/projects/${projectId}` }, { label: "Messages" }]}
+        actions={<Link className="portal-btn-ghost" href={`/admin/projects/${projectId}`}>Project overview</Link>}
+      />
+      <main className="flex h-[calc(100%-3.5rem)] min-h-0 flex-col">
+        <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-4 py-6 md:px-8 lg:py-8">
+          <div className="mx-auto max-w-[920px]">
+            <div className="pb-5">
+              <h1 className="text-3xl font-semibold tracking-tight text-fg">Admin messages</h1>
+              <p className="mt-1 text-sm text-fg-2">Project {projectId}</p>
+              <section className="mt-6 border-t border-line pt-5">
+                <h2 className="text-lg font-semibold tracking-tight text-fg">Reply in the right thread</h2>
+                <p className="mt-1 text-base text-fg-2">Use this page for project-level updates. For design-specific feedback, jump into the concept thread.</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Link className="portal-btn-ghost" href={`/admin/projects/${projectId}/concepts#pending-feedback`}>Pending feedback inbox</Link>
+                  <Link className="portal-btn-secondary" href={`/admin/projects/${projectId}/upload`}>Upload concepts</Link>
+                </div>
+                {conceptHints.length > 0 ? (
+                  <div className="mt-3 flex flex-wrap gap-2 text-sm">
+                    {conceptHints.map((concept) => {
+                      const pending = concept.unresolvedFeedbackCount;
+                      return (
+                        <Link key={concept.id} className="portal-btn-secondary" href={`/project/${projectId}/concept/${concept.id}?from=admin`}>
+                          Concept #{concept.number}{pending > 0 ? ` · ${pending} pending` : ""}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </section>
             </div>
-          ) : null}
-        </Card>
-
-        <SubCard className="mt-3">
-          <div ref={scrollRef} className="h-[28rem] overflow-y-auto rounded-lg border border-neutral-200 bg-white p-4">
-            {loading ? <p className="text-sm text-neutral-600">Loading…</p> : null}
-            {!loading && sorted.length === 0 ? <p className="text-sm text-neutral-600">No messages yet.</p> : null}
-
-            <ul className="space-y-3">
+            {loading ? <EmptyLine>Loading…</EmptyLine> : null}
+            {!loading && sorted.length === 0 ? <EmptyLine>No messages yet.</EmptyLine> : null}
+            <ul className="divide-y divide-line" aria-label="Project messages">
               {sorted.map((message) => {
                 if (message.kind === "system") {
                   return (
-                    <li key={message.id} className="flex justify-center">
-                      <article className="max-w-[85%] rounded-full bg-neutral-100 px-4 py-2 text-xs font-medium text-neutral-700">
-                        {message.body}
+                    <li key={message.id} className="py-4">
+                      <article className="border-l-2 border-line-strong pl-4">
+                        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                          <p className="text-sm font-medium text-fg-2">System</p>
+                          <time className="text-xs text-fg-3" dateTime={message.createdAt} title={new Date(message.createdAt).toLocaleString()}>{new Date(message.createdAt).toLocaleString()}</time>
+                        </div>
+                        <p className="mt-2 whitespace-pre-wrap break-words text-base text-fg-2">{message.body}</p>
                       </article>
                     </li>
                   );
@@ -172,30 +175,32 @@ export default function AdminProjectMessagesPage() {
 
                 const isMine = session.userId && message.sender.id === session.userId;
                 return (
-                  <li key={message.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
-                    <article className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm shadow-sm ${isMine ? "bg-neutral-900 text-white" : "bg-neutral-100 text-neutral-900"}`}>
-                      <p className={`text-xs ${isMine ? "text-neutral-300" : "text-neutral-500"}`}>
-                        {resolveSenderLabel(message.sender)}
-                      </p>
-                      <p className="mt-1 whitespace-pre-wrap">{message.body}</p>
-                      <p className={`mt-2 text-right text-[11px] ${isMine ? "text-neutral-300" : "text-neutral-500"}`}>{new Date(message.createdAt).toLocaleString()}</p>
+                  <li key={message.id} className="py-4">
+                    <article className={`rounded-lg px-4 py-3 ${isMine ? "bg-surface" : "bg-panel"}`}>
+                      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                        <p className="text-sm font-medium text-fg">{resolveSenderLabel(message.sender)}</p>
+                        <time className="text-xs text-fg-3" dateTime={message.createdAt} title={new Date(message.createdAt).toLocaleString()}>{new Date(message.createdAt).toLocaleString()}</time>
+                      </div>
+                      <p className="mt-2 whitespace-pre-wrap break-words text-base text-fg">{message.body}</p>
                     </article>
                   </li>
                 );
               })}
             </ul>
           </div>
-
-          {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
-
-          <form className="mt-4" onSubmit={sendMessage}>
-            <label className="text-sm font-medium" htmlFor="message-body">Write a project update</label>
-            <textarea id="message-body" className="mt-1 portal-field" rows={3} maxLength={2000} value={body} onChange={(e) => setBody(e.target.value)} placeholder="Type your message..." />
-            <button className="mt-2 portal-btn-secondary" type="submit" disabled={busy || !body.trim()}>
-              {busy ? "Sending…" : "Send"}
-            </button>
+        </div>
+        <div className="shrink-0 border-t border-line bg-surface px-4 py-4 md:px-8">
+          <form className="mx-auto max-w-[920px]" onSubmit={sendMessage}>
+            {error ? <p role="alert" className="mb-3 text-sm text-danger">{error}</p> : null}
+            <label className="text-sm font-medium text-fg" htmlFor="message-body">Write a project update</label>
+            <textarea id="message-body" className="portal-field mt-2" rows={3} maxLength={2000} value={body} onChange={(e) => setBody(e.target.value)} placeholder="Type your message..." />
+            <div className="mt-3 flex justify-end">
+              <button className="portal-btn-primary" type="submit" disabled={busy || !body.trim()}>
+                {busy ? "Sending…" : "Send"}
+              </button>
+            </div>
           </form>
-        </SubCard>
+        </div>
       </main>
     </PageShell>
   );

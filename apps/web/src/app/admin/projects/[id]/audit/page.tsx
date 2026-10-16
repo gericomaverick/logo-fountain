@@ -1,10 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { HeaderNav } from "@/components/header-nav";
+import { PageShell } from "@/components/page-shell";
+import { EmptyLine, PageHeader, relativeTime } from "@/components/ui";
 import { summarizeAuditPayload } from "@/lib/admin-audit";
 
 type AuditEvent = {
@@ -61,41 +62,36 @@ export default function AdminProjectAuditPage() {
   }, [projectId]);
 
   return (
-    <>
+    <PageShell>
       <HeaderNav />
-      <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
-        <p className="text-sm">
-          <Link href={`/admin/projects/${projectId}`} className="portal-link no-underline">
-            ← Back to project overview
-          </Link>
-        </p>
-
-        <section className="mt-3 portal-card">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h1 className="text-2xl font-semibold">Admin audit trail</h1>
-              <p className="mt-1 text-sm text-neutral-600">Immutable activity log for this project.</p>
-            </div>
-            <p className="rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-xs font-medium text-neutral-700">
-              {events.length} event{events.length === 1 ? "" : "s"}
-            </p>
+      <PageHeader crumbs={[{ label: "Queue", href: "/admin" }, { label: "Project overview", href: `/admin/projects/${projectId}` }, { label: "Audit trail" }]} />
+      <main className="mx-auto w-full max-w-[1400px] px-4 pb-10 md:px-8 lg:px-10">
+        <div className="pb-5 pt-8">
+          <h1 className="text-3xl font-semibold tracking-tight text-fg">Admin audit trail</h1>
+          <p className="mt-1 text-base text-fg-2">Immutable activity log for this project.</p>
+        </div>
+        {error ? <p role="alert" className="mb-4 text-sm text-danger">{error}</p> : null}
+        <section aria-label="Audit events" className="rounded-xl border border-line bg-panel">
+          <div className="flex h-11 items-center justify-between gap-3 rounded-t-xl border-b border-line bg-surface px-4 text-sm font-semibold text-fg">
+            <h2>Activity</h2>
+            <span className="font-normal tabular-nums text-fg-3">{events.length} event{events.length === 1 ? "" : "s"}</span>
           </div>
-
-          {loading ? <p className="mt-4 text-sm text-neutral-600">Loading…</p> : null}
-          {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
-
-          <ul className="mt-4 space-y-3">
+          {loading ? <div className="p-4"><EmptyLine>Loading…</EmptyLine></div> : null}
+          <ul>
             {events.map((event) => (
-              <li key={event.id} className="rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-sm">
-                <p className="text-xs text-neutral-500">{new Date(event.createdAt).toLocaleString()} · {event.actor?.email ?? "System"}</p>
-                <p className="mt-1 font-medium text-neutral-900">{event.type}</p>
-                <p className="mt-1 text-neutral-700">{summarizeAuditPayload(event.payload)}</p>
+              <li key={event.id} className="border-b border-line px-4 py-4 transition-colors last:rounded-b-xl last:border-b-0 hover:bg-surface">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                  <p className="break-all text-base font-medium text-fg">{event.type}</p>
+                  <time className="text-xs text-fg-3" dateTime={event.createdAt} title={new Date(event.createdAt).toLocaleString()}>{relativeTime(new Date(event.createdAt))}</time>
+                </div>
+                <p className="mt-1 break-words text-base text-fg-2">{summarizeAuditPayload(event.payload)}</p>
+                <p className="mt-2 break-all text-sm text-fg-3">{event.actor?.email ?? "System"}</p>
               </li>
             ))}
-            {!loading && events.length === 0 ? <li className="text-sm text-neutral-500">No audit events yet.</li> : null}
           </ul>
+          {!loading && events.length === 0 ? <div className="p-4"><EmptyLine>No audit events yet.</EmptyLine></div> : null}
         </section>
       </main>
-    </>
+    </PageShell>
   );
 }
