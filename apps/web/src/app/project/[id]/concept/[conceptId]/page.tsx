@@ -436,7 +436,7 @@ export default function ConceptDetailPage() {
         {concept && !isApprovedConcept ? (
           <section className="space-y-4">
             <h2 className="text-lg font-semibold tracking-tight text-fg">Feedback & revisions</h2>
-            {actionError ? <p className="mt-2 text-sm text-danger">{actionError}</p> : null}
+            {actionError ? <p className="mt-2 text-sm text-danger" role="alert">{actionError}</p> : null}
             {actionSuccess ? <p className="mt-2 text-sm text-success">{actionSuccess}</p> : null}
 
             <div className="mt-4 border-t border-line pt-4">
@@ -454,7 +454,7 @@ export default function ConceptDetailPage() {
                       }`}
                     >
                       <div className="flex flex-wrap items-center gap-2 text-xs">
-                        <span className={`font-semibold ${item.isDesignerReply ? "text-fg-2" : "text-fg"}`}>{item.authorLabel}</span>
+                        <span className={`text-sm font-medium ${item.isDesignerReply ? "text-fg-2" : "text-fg"}`}>{item.authorLabel}</span>
                         <span
                           className={`rounded-full px-2 py-0.5 text-xs font-semibold uppercase tracking-wide ${
                             item.isDesignerReply ? "bg-surface-2 text-fg-2" : "bg-surface-2 text-fg-2"
