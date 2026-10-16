@@ -13,7 +13,7 @@ blocks:
     title: Bespoke logo design for UK small businesses.
     ratingLabel: Client feedback and trust signals
     ratingText: Trusted by independent UK businesses since 2018
-    content: <strong>Logo Fountain</strong> is a friendly UK logo design studio for founders, sole traders and growing small businesses. Your logo is handled by dedicated designers with over 15 years of experience each, a real passion for logos, fixed prices and practical final files you can use everywhere.
+    content: <strong>Logo Fountain</strong> is a friendly UK logo design studio for founders, sole traders and growing small businesses. Your logo is handled by dedicated designers with over 15 years of experience each, a real passion for logos, transparency and practical final files you can use everywhere.
     primary:
       text: View logo design packages
       url: "#packages"
