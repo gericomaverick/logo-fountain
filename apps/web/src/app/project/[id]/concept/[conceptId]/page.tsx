@@ -9,12 +9,16 @@ type ConceptAssetItem = { path: string; version: number; createdAt: string; url:
 import { FeatureNoticeCard } from "@/components/feature-notice-card";
 import { HeaderNav } from "@/components/header-nav";
 import { PageShell } from "@/components/page-shell";
+import { Allowance, PanelCard, type EntitlementUsage } from "@/components/allowances";
+import { PageHeader, Property } from "@/components/ui";
+import { ProjectStatusBadge } from "@/components/project-status-badge";
 import { buildUnifiedConceptThread } from "@/lib/concept-thread";
 import { canConfirmFinalApproval, FINAL_APPROVAL_CONFIRMATION_COPY } from "@/lib/final-approval";
 
 type Snapshot = {
   status: string;
   entitlements: { revisions: number };
+  entitlementUsage?: { revisions: EntitlementUsage };
   concepts: Array<{ id: string; number: number; revisionVersion: number; status: string; notes: string | null; imageUrl: string | null }>;
   revisionRequests?: Array<{ id: string; status: string; body: string; createdAt: string; concept?: { id: string; number: number } | null; user?: { email: string; fullName: string | null } | null }>;
 };
@@ -262,17 +266,17 @@ export default function ConceptDetailPage() {
   return (
     <PageShell>
       <HeaderNav />
-      <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
-        <div className="mb-4 flex items-center justify-between gap-4">
+      <PageHeader
+        crumbs={[{ label: fromAdmin ? "Admin project" : "Project", href: backHref }, { label: "Concepts", href: `/project/${projectId}/concepts` }, { label: concept ? `Concept #${concept.number}` : "Concept detail" }]}
+        actions={<Link className="portal-btn-ghost" href={`/project/${projectId}/messages`}>Messages</Link>}
+      />
+      <div className="flex min-h-[calc(100%-3.5rem)] flex-col lg:flex-row">
+      <main className="min-w-0 flex-1 px-4 py-6 md:px-8 lg:py-8">
+        <div className="mx-auto max-w-[920px] space-y-10">
           <div>
-            <h1 className="text-2xl font-semibold">Concept detail</h1>
-            <p className="mt-1 text-sm text-neutral-600">Project {projectId}</p>
+            <h1 className="text-3xl font-semibold tracking-tight text-fg">Concept detail</h1>
+            <p className="mt-2 text-base text-fg-2">Project {projectId}</p>
           </div>
-          <div className="flex gap-4 text-sm">
-            <Link className="portal-link no-underline" href={backHref}>{fromAdmin ? "Back to admin overview" : "Back to project overview"}</Link>
-            <Link className="portal-link no-underline" href={`/project/${projectId}/messages`}>Messages</Link>
-          </div>
-        </div>
 
         {approvalSuccess ? (
           <FeatureNoticeCard
@@ -283,7 +287,7 @@ export default function ConceptDetailPage() {
             body={`${approvalSuccess.conceptNumber ? `Concept #${approvalSuccess.conceptNumber} is now approved.` : "Your selected concept is now approved."} We’ve updated your project status and your designer is moving to the next stage.`}
             actions={(
               <>
-                <Link className="portal-btn-secondary border-emerald-300 bg-white text-emerald-900" href={`/project/${projectId}`}>
+                <Link className="portal-btn-secondary border-line bg-panel text-fg" href={`/project/${projectId}`}>
                   Back to project overview
                 </Link>
                 <button
@@ -298,28 +302,28 @@ export default function ConceptDetailPage() {
           />
         ) : null}
 
-        {loading ? <p className="text-sm text-neutral-600">Loading…</p> : null}
-        {error ? <p className="text-sm text-red-600">{error}</p> : null}
+        {loading ? <p className="text-sm text-fg-3">Loading…</p> : null}
+        {error ? <p className="text-sm text-danger">{error}</p> : null}
 
-        {!loading && !concept ? <p className="text-sm text-neutral-700">Concept not found.</p> : null}
+        {!loading && !concept ? <p className="text-sm text-fg-2">Concept not found.</p> : null}
 
         {concept ? (
-          <section className="mt-3 portal-card">
+          <section className="space-y-4">
             <p className="text-sm font-medium">Concept #{concept.number} · v{concept.revisionVersion}</p>
             {selectedAssetUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img className="mt-3 w-full rounded border border-neutral-200" src={selectedAssetUrl} alt={`Concept ${concept.number}`} />
+              <img className="mt-3 w-full rounded border border-line" src={selectedAssetUrl} alt={`Concept ${concept.number}`} />
             ) : null}
 
             {!isApprovedConcept && visibleAssets.length > 1 ? (
               <div className="mt-3">
-                <p className="text-xs font-medium text-neutral-600">Revision history</p>
+                <p className="text-xs font-medium text-fg-3">Revision history</p>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {visibleAssets.map((asset) => (
                     <button
                       key={asset.path}
                       type="button"
-                      className={`overflow-hidden rounded border transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900 ${selectedAssetPath === asset.path ? "border-neutral-900" : "border-neutral-200 hover:border-neutral-400"}`}
+                      className={`overflow-hidden rounded border transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${selectedAssetPath === asset.path ? "border-line-strong" : "border-line hover:border-line-strong"}`}
                       onClick={() => setSelectedAssetPath(asset.path)}
                       aria-label={`View v${asset.version}`}
                     >
@@ -332,24 +336,24 @@ export default function ConceptDetailPage() {
             ) : null}
 
             {(conceptExplainer || showSelectedV1DesignerNote || showSelectedAssetNote) ? (
-              <div className="mt-4 rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-900">Designer notes for this concept</p>
+              <div className="mt-4 border-t border-line pt-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-fg-2">Designer notes for this concept</p>
                 {conceptExplainer ? (
-                  <div className="mt-2 rounded-xl border border-blue-100 bg-white/70 px-4 py-3">
-                    <p className="text-xs font-semibold text-blue-900">Concept rationale</p>
-                    <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-blue-950">{conceptExplainer}</p>
+                  <div className="mt-3">
+                    <p className="text-xs font-semibold text-fg-2">Concept rationale</p>
+                    <p className="mt-1 whitespace-pre-wrap text-base leading-6 text-fg-2">{conceptExplainer}</p>
                   </div>
                 ) : null}
                 {showSelectedV1DesignerNote ? (
-                  <div className="mt-2 rounded-xl border border-blue-100 bg-white/70 px-4 py-3">
-                    <p className="text-xs font-semibold text-blue-900">Designer note</p>
-                    <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-blue-950">{selectedAssetNote}</p>
+                  <div className="mt-3">
+                    <p className="text-xs font-semibold text-fg-2">Designer note</p>
+                    <p className="mt-1 whitespace-pre-wrap text-base leading-6 text-fg-2">{selectedAssetNote}</p>
                   </div>
                 ) : null}
                 {showSelectedAssetNote ? (
-                  <div className="mt-2 rounded-xl border border-blue-100 bg-white/70 px-4 py-3">
-                    <p className="text-xs font-semibold text-blue-900">Revision note · v{selectedAsset?.version}</p>
-                    <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-blue-950">{selectedAssetNote}</p>
+                  <div className="mt-3">
+                    <p className="text-xs font-semibold text-fg-2">Revision note · v{selectedAsset?.version}</p>
+                    <p className="mt-1 whitespace-pre-wrap text-base leading-6 text-fg-2">{selectedAssetNote}</p>
                   </div>
                 ) : null}
               </div>
@@ -368,7 +372,7 @@ export default function ConceptDetailPage() {
             {isAdminView ? (
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <Link
-                  className="portal-btn-secondary bg-neutral-50"
+                  className="portal-btn-secondary bg-surface"
                   href={`/admin/projects/${projectId}/concepts/${conceptId}/revision`}
                 >
                   Upload revision
@@ -392,11 +396,11 @@ export default function ConceptDetailPage() {
         ) : null}
 
         {showApprovalConfirm ? (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/45 px-4">
-            <div className="w-full max-w-md rounded-2xl border border-violet-200 bg-white p-5 shadow-xl">
-              <h2 className="text-lg font-semibold text-neutral-900">{FINAL_APPROVAL_CONFIRMATION_COPY.title}</h2>
-              <p className="mt-2 text-sm text-neutral-700">{FINAL_APPROVAL_CONFIRMATION_COPY.body}</p>
-              <label className="mt-4 flex items-start gap-2 text-sm text-neutral-800">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-fg/45 px-4">
+            <div className="w-full max-w-md rounded-2xl border border-line-strong bg-panel p-5 shadow-xl">
+              <h2 className="text-lg font-semibold text-fg">{FINAL_APPROVAL_CONFIRMATION_COPY.title}</h2>
+              <p className="mt-2 text-sm text-fg-2">{FINAL_APPROVAL_CONFIRMATION_COPY.body}</p>
+              <label className="mt-4 flex items-start gap-2 text-sm text-fg">
                 <input
                   type="checkbox"
                   className="mt-0.5"
@@ -430,55 +434,54 @@ export default function ConceptDetailPage() {
         ) : null}
 
         {concept && !isApprovedConcept ? (
-          <section className="mt-3 portal-card">
-            <h2 className="text-lg font-medium">Feedback & revisions</h2>
-            <p className="mt-1 text-sm text-neutral-600">Revisions remaining: {snapshot?.entitlements.revisions ?? 0}</p>
-            {actionError ? <p className="mt-2 text-sm text-red-600">{actionError}</p> : null}
-            {actionSuccess ? <p className="mt-2 text-sm text-green-700">{actionSuccess}</p> : null}
+          <section className="space-y-4">
+            <h2 className="text-lg font-semibold tracking-tight text-fg">Feedback & revisions</h2>
+            {actionError ? <p className="mt-2 text-sm text-danger">{actionError}</p> : null}
+            {actionSuccess ? <p className="mt-2 text-sm text-success">{actionSuccess}</p> : null}
 
-            <div className="mt-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-              <h3 className="text-sm font-semibold text-neutral-900">Concept thread</h3>
-              <p className="mt-1 text-xs text-neutral-600">Client feedback and designer replies appear together in one timeline.</p>
+            <div className="mt-4 border-t border-line pt-4">
+              <h3 className="text-sm font-semibold text-fg">Concept thread</h3>
+              <p className="mt-1 text-xs text-fg-3">Client feedback and designer replies appear together in one timeline.</p>
 
               <ul className="mt-4 space-y-3">
                 {unifiedThread.map((item) => (
                   <li key={item.id} className={`flex ${item.isDesignerReply ? "justify-start" : "justify-end"}`}>
                     <article
-                      className={`max-w-[92%] rounded-2xl border px-4 py-3 text-sm shadow-sm md:max-w-[85%] ${
+                      className={`w-full border-b border-line py-4 text-base ${
                         item.isDesignerReply
-                          ? "border-blue-200 bg-blue-50 text-blue-950"
-                          : "border-neutral-200 bg-white text-neutral-900"
+                          ? "border-line bg-surface text-fg"
+                          : "border-line bg-panel text-fg"
                       }`}
                     >
                       <div className="flex flex-wrap items-center gap-2 text-xs">
-                        <span className={`font-semibold ${item.isDesignerReply ? "text-blue-900" : "text-neutral-800"}`}>{item.authorLabel}</span>
+                        <span className={`font-semibold ${item.isDesignerReply ? "text-fg-2" : "text-fg"}`}>{item.authorLabel}</span>
                         <span
-                          className={`rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${
-                            item.isDesignerReply ? "bg-blue-100 text-blue-900" : "bg-neutral-100 text-neutral-700"
+                          className={`rounded-full px-2 py-0.5 text-xs font-semibold uppercase tracking-wide ${
+                            item.isDesignerReply ? "bg-surface-2 text-fg-2" : "bg-surface-2 text-fg-2"
                           }`}
                         >
                           {item.roleLabel}
                         </span>
-                        <span className={item.isDesignerReply ? "text-blue-700" : "text-neutral-500"}>•</span>
-                        <time className={item.isDesignerReply ? "text-blue-800" : "text-neutral-500"} dateTime={item.createdAt}>{formatDateTime(item.createdAt)}</time>
+                        <span className={item.isDesignerReply ? "text-fg-2" : "text-fg-3"}>•</span>
+                        <time className={item.isDesignerReply ? "text-fg-2" : "text-fg-3"} dateTime={item.createdAt}>{formatDateTime(item.createdAt)}</time>
                       </div>
 
                       <p className="mt-2 whitespace-pre-wrap leading-6">{item.body}</p>
 
                       <div className="mt-2 flex flex-wrap items-center gap-2">
                         <span
-                          className={`rounded-full px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide ${
+                          className={`rounded-full px-2 py-0.5 text-xs font-medium uppercase tracking-wide ${
                             item.kind === "revision"
-                              ? "bg-amber-100 text-amber-800"
+                              ? "bg-warning-soft text-warning"
                               : item.isDesignerReply
-                                ? "bg-blue-100 text-blue-900"
-                                : "bg-neutral-100 text-neutral-700"
+                                ? "bg-surface-2 text-fg-2"
+                                : "bg-surface-2 text-fg-2"
                           }`}
                         >
                           {item.kind === "revision" ? "Revision request" : "Reply"}
                         </span>
                         {item.kind === "revision" && item.status ? (
-                          <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-neutral-700">
+                          <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs font-medium uppercase tracking-wide text-fg-2">
                             {item.status}
                           </span>
                         ) : null}
@@ -487,17 +490,17 @@ export default function ConceptDetailPage() {
                   </li>
                 ))}
                 {unifiedThread.length === 0 ? (
-                  <li className="text-sm text-neutral-600">No feedback or replies yet for this concept.</li>
+                  <li className="text-sm text-fg-3">No feedback or replies yet for this concept.</li>
                 ) : null}
               </ul>
             </div>
 
             {session.isAdmin ? (
               <form className="mt-6" onSubmit={submitDesignerMessage}>
-                <label className="block text-sm font-semibold text-neutral-900">Post a designer reply</label>
-                <p className="mt-1 text-sm text-neutral-600">Your reply will appear in the same concept thread.</p>
+                <label className="block text-sm font-semibold text-fg">Post a designer reply</label>
+                <p className="mt-1 text-sm text-fg-3">Your reply will appear in the same concept thread.</p>
                 <textarea
-                  className="mt-2 portal-field px-2 py-1"
+                  className="mt-2 portal-field"
                   rows={4}
                   maxLength={2000}
                   value={designerReply}
@@ -505,7 +508,7 @@ export default function ConceptDetailPage() {
                   placeholder="Write a quick concept-specific update…"
                 />
                 <button
-                  className="mt-2 portal-btn-secondary"
+                  className={showApprovalConfirm ? "mt-2 portal-btn-secondary" : "mt-2 portal-btn-primary"}
                   type="submit"
                   disabled={busy || !designerReply.trim()}
                 >
@@ -514,17 +517,17 @@ export default function ConceptDetailPage() {
               </form>
             ) : (
               <form className="mt-6" onSubmit={submitRevision}>
-                <label className="block text-sm font-semibold text-neutral-900">Request a revision for this concept</label>
-                <p className="mt-1 text-sm text-neutral-600">Once submitted, your designer will review your notes and work on the next revision.</p>
+                <label className="block text-sm font-semibold text-fg">Request a revision for this concept</label>
+                <p className="mt-1 text-sm text-fg-3">Once submitted, your designer will review your notes and work on the next revision.</p>
                 <textarea
-                  className="mt-2 portal-field px-2 py-1"
+                  className="mt-2 portal-field"
                   rows={4}
                   maxLength={5000}
                   value={revisionBody}
                   onChange={(e) => setRevisionBody(e.target.value)}
                 />
                 <button
-                  className="mt-2 portal-btn-secondary"
+                  className={showApprovalConfirm ? "mt-2 portal-btn-secondary" : "mt-2 portal-btn-primary"}
                   type="submit"
                   disabled={busy || !revisionBody.trim() || (snapshot?.entitlements.revisions ?? 0) <= 0}
                 >
@@ -534,7 +537,24 @@ export default function ConceptDetailPage() {
             )}
           </section>
         ) : null}
+        </div>
       </main>
+      <aside aria-label="Concept details" className="w-full shrink-0 space-y-4 border-t border-line bg-surface px-4 py-6 lg:w-[384px] lg:border-l lg:border-t-0 lg:px-5 lg:py-8">
+        {concept && !isApprovedConcept ? (
+          <PanelCard title="Your allowances">
+            <Allowance label="Revisions" usage={snapshot?.entitlementUsage?.revisions} />
+          </PanelCard>
+        ) : null}
+        <PanelCard title="Details">
+          <dl className="-my-2">
+            <Property label="Project"><Link className="portal-link" href={backHref}>{projectId}</Link></Property>
+            {snapshot ? <Property label="Status"><ProjectStatusBadge status={snapshot.status} size="sm" /></Property> : null}
+            {concept ? <Property label="Concept">#{concept.number}</Property> : null}
+            {concept ? <Property label="Version">v{concept.revisionVersion}</Property> : null}
+          </dl>
+        </PanelCard>
+      </aside>
+      </div>
     </PageShell>
   );
 }
