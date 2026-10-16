@@ -1,7 +1,8 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { HeaderNav } from "@/components/header-nav";
+import { PageHeader } from "@/components/ui";
+import { ProjectStatusBadge } from "@/components/project-status-badge";
 import { PageShell } from "@/components/page-shell";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth/current-user";
@@ -55,9 +56,12 @@ export default async function ProjectBriefPage({ params }: ProjectBriefPageProps
     return (
       <PageShell>
         <HeaderNav />
-        <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
-          <h1 className="text-2xl font-semibold">Project brief</h1>
-          <p className="mt-2 text-sm text-neutral-600">Project not found.</p>
+        <PageHeader crumbs={[{ label: "Projects", href: "/dashboard" }, { label: "Project overview", href: `/project/${id}` }, { label: "Brief" }]} />
+        <main className="px-4 py-6 md:px-8 lg:py-8">
+          <div className="mx-auto max-w-[720px]">
+            <h1 className="text-3xl font-semibold tracking-tight text-fg">Project brief</h1>
+            <p className="mt-2 text-sm text-fg-2">Project not found.</p>
+          </div>
         </main>
       </PageShell>
     );
@@ -79,19 +83,21 @@ export default async function ProjectBriefPage({ params }: ProjectBriefPageProps
   return (
     <PageShell>
       <HeaderNav />
-      <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
-        <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold">Project brief</h1>
-            <p className="mt-2 text-sm text-neutral-600">
-              Submit your brief once. After submission, the brief is locked and view-only.
-            </p>
-            <p className="mt-1 text-xs text-neutral-500">Current status: {project.status}</p>
+      <PageHeader crumbs={[{ label: "Projects", href: "/dashboard" }, { label: "Project overview", href: `/project/${project.id}` }, { label: "Brief" }]} />
+      <main className="px-4 py-6 md:px-8 lg:py-8">
+        <div className="mx-auto max-w-[720px]">
+          <div className="mb-8">
+            <div>
+              <h1 className="text-3xl font-semibold tracking-tight text-fg">Project brief</h1>
+              <p className="mt-2 text-sm text-fg-2">
+                Submit your brief once. After submission, the brief is locked and view-only.
+              </p>
+              <div className="mt-3"><ProjectStatusBadge status={project.status} /></div>
+            </div>
           </div>
-          <Link href={`/project/${project.id}`} className="portal-link no-underline">← Back to project overview</Link>
-        </div>
 
-        <BriefForm projectId={project.id} briefVersions={briefVersions} />
+          <BriefForm projectId={project.id} briefVersions={briefVersions} />
+        </div>
       </main>
     </PageShell>
   );

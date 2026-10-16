@@ -171,7 +171,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
             <Link className="portal-btn-primary px-4 py-2" href={`/project/${projectId}`}>
               Back to project overview
             </Link>
-            <Link className="portal-btn-secondary border-emerald-300 text-emerald-900 hover:border-emerald-400" href={`/project/${projectId}/messages`}>
+            <Link className="portal-btn-secondary" href={`/project/${projectId}/messages`}>
               Open project messages
             </Link>
           </>
@@ -201,7 +201,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
               <BriefSection key={section.id} title={section.title} description={section.description} tone="paper">
                 <div className="grid gap-3 md:grid-cols-2">
                   {section.fields.map((field) => (
-                    <BriefField key={field.key} label={field.label} value={latestBrief.answers[field.key] ?? "—"} compact valueClassName="text-[15px] leading-7" />
+                    <BriefField key={field.key} label={field.label} value={latestBrief.answers[field.key] ?? "—"} compact valueClassName="text-base leading-7" />
                   ))}
                 </div>
               </BriefSection>
@@ -211,11 +211,11 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
       ) : null}
 
       {isEditing ? (
-        <form id="brief-editor-form" ref={editorRef} className="portal-card scroll-mt-24 space-y-5 p-4 sm:p-5" onSubmit={onSubmitIntent}>
+        <form id="brief-editor-form" ref={editorRef} className="scroll-mt-24 space-y-6" onSubmit={onSubmitIntent}>
           <h3
             ref={editorHeadingRef}
             tabIndex={-1}
-            className="sr-only focus:not-sr-only focus:mb-2 focus:rounded-md focus:bg-neutral-100 focus:px-2 focus:py-1 focus:text-sm focus:font-semibold"
+            className="sr-only focus:not-sr-only focus:mb-2 focus:rounded-md focus:bg-surface-2 focus:px-2 focus:py-1 focus:text-sm focus:font-semibold"
           >
             Brief editor
           </h3>
@@ -228,44 +228,44 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
             body={(
               <>
                 <p>The more specific your brief, the stronger your logo concepts will be. A few extra details now helps us design faster and with much better precision.</p>
-                <p className="mt-2 text-xs text-violet-900/90">You can move back at any time before submitting. Once submitted, your brief is locked.</p>
+                <p className="mt-2 text-sm text-fg-3">You can move back at any time before submitting. Once submitted, your brief is locked.</p>
               </>
             )}
           />
 
-          <div className="space-y-3 rounded-xl border border-neutral-200 bg-neutral-50/80 p-3 sm:p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-neutral-600">
-              <p className="font-medium text-neutral-800">Step {Math.min(activeStep + 1, reviewStep + 1)} of {reviewStep + 1}</p>
+          <div className="space-y-3 rounded-xl border border-line bg-surface p-3 sm:p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-fg-3">
+              <p className="font-medium text-fg">Step {Math.min(activeStep + 1, reviewStep + 1)} of {reviewStep + 1}</p>
               <div className="flex items-center gap-3">
                 <p>{progressPercent}% complete</p>
-                <p className="rounded-full border border-neutral-300 bg-white px-2 py-0.5 text-[11px] text-neutral-700" aria-live="polite">
+                <p className="rounded-full border border-line-strong bg-panel px-2 py-0.5 text-sm text-fg-3" aria-live="polite">
                   {draftSavedAt ? `Draft saved ${draftSavedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : "Draft autosaves in this tab"}
                 </p>
               </div>
             </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-neutral-200">
-              <div className="h-full rounded-full bg-neutral-900 transition-all" style={{ width: `${progressPercent}%` }} />
+            <div className="h-2 w-full overflow-hidden rounded-full bg-surface-2">
+              <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${progressPercent}%` }} />
             </div>
-            <ol className="flex gap-2 overflow-x-auto pb-1 text-[11px] [scrollbar-width:thin]">
+            <ol className="flex gap-2 overflow-x-auto pb-1 text-xs [scrollbar-width:thin]">
               {briefSections.map((section, index) => (
-                <li key={section.id} className={`shrink-0 rounded-md border px-2 py-1 ${index === activeStep ? "border-neutral-900 bg-white text-neutral-900" : "border-neutral-200 text-neutral-500"}`}>
+                <li key={section.id} className={`shrink-0 rounded-md border px-2 py-1 ${index === activeStep ? "border-accent bg-accent-soft text-accent" : "border-line text-fg-3"}`}>
                   {section.title}
                 </li>
               ))}
-              <li className={`shrink-0 rounded-md border px-2 py-1 ${activeStep === reviewStep ? "border-neutral-900 bg-white text-neutral-900" : "border-neutral-200 text-neutral-500"}`}>Review & submit</li>
+              <li className={`shrink-0 rounded-md border px-2 py-1 ${activeStep === reviewStep ? "border-accent bg-accent-soft text-accent" : "border-line text-fg-3"}`}>Review & submit</li>
             </ol>
           </div>
 
           {currentSection ? (
-            <section className="rounded-xl border border-neutral-200 bg-white p-4">
-              <h3 className="text-sm font-semibold text-neutral-900">{currentSection.title}</h3>
-              <p className="mt-1 text-xs text-neutral-600">{currentSection.description}</p>
-              <p className="mt-2 text-[11px] text-neutral-500"><span className="text-red-700">*</span> Required fields · Optional fields are clearly marked.</p>
+            <section className="space-y-2">
+              <h3 className="text-lg font-semibold tracking-tight text-fg">{currentSection.title}</h3>
+              <p className="mt-1 text-sm text-fg-3">{currentSection.description}</p>
+              <p className="mt-2 text-sm text-fg-3"><span className="text-danger">*</span> Required fields · Optional fields are clearly marked.</p>
               <div className="mt-4 grid gap-4">
                 {currentSection.fields.map((field) => (
                   <div key={field.key}>
-                    <label className="mb-1 block text-sm" htmlFor={field.key}>
-                      {field.label} {field.required ? <span className="text-red-700">*</span> : <span className="text-neutral-500">(optional)</span>}
+                    <label className="mb-1 block text-sm font-medium text-fg" htmlFor={field.key}>
+                      {field.label} {field.required ? <span className="text-danger">*</span> : <span className="text-fg-3">(optional)</span>}
                     </label>
                     {field.kind === "textarea" ? (
                       <textarea
@@ -289,18 +289,18 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
                         className="portal-field"
                       />
                     )}
-                    {field.helperText ? <p className="mt-1 text-xs text-neutral-500">{field.helperText}</p> : null}
+                    {field.helperText ? <p className="mt-1 text-sm text-fg-3">{field.helperText}</p> : null}
                   </div>
                 ))}
               </div>
             </section>
           ) : (
-            <section className="space-y-4 rounded-xl border border-neutral-200 bg-white p-4">
-              <h3 className="text-sm font-semibold text-neutral-900">Final review</h3>
-              <p className="text-xs text-neutral-600">Quickly review your answers before submitting. Use Back if you want to change anything.</p>
+            <section className="space-y-4">
+              <h3 className="text-lg font-semibold tracking-tight text-fg">Final review</h3>
+              <p className="text-sm text-fg-3">Quickly review your answers before submitting. Use Back if you want to change anything.</p>
               {briefSections.map((section) => (
-                <div key={section.id} className="rounded-lg border border-neutral-200 bg-neutral-50/70 p-3">
-                  <h4 className="text-xs font-semibold text-neutral-800">{section.title}</h4>
+                <div key={section.id} className="rounded-lg border border-line bg-surface p-3">
+                  <h4 className="text-xs font-semibold text-fg">{section.title}</h4>
                   <div className="mt-2 grid gap-2">
                     {section.fields.map((field) => (
                       <BriefField key={field.key} label={field.label} value={form[field.key] || "—"} compact />
@@ -323,30 +323,30 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="portal-btn-primary px-4 py-2"
+                className={showSubmitConfirmation ? "portal-btn-secondary px-4 py-2" : "portal-btn-primary px-4 py-2"}
               >
                 {isSubmitting ? "Submitting..." : "Submit brief"}
               </button>
             ) : null}
           </div>
 
-          {hasUnsavedChanges ? <p className="text-xs text-amber-700">You have unsaved changes in this version. Submit when ready.</p> : null}
-          {error ? <p className="text-sm text-red-700" role="alert">{error}</p> : null}
+          {hasUnsavedChanges ? <p className="text-xs text-warning">You have unsaved changes in this version. Submit when ready.</p> : null}
+          {error ? <p className="text-sm text-danger" role="alert">{error}</p> : null}
 
           {showSubmitConfirmation ? (
-            <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4" role="dialog" aria-modal="true" aria-labelledby="brief-submit-confirm-title">
-              <div className="w-full max-w-lg rounded-2xl border border-neutral-200 bg-white p-5 shadow-2xl">
-                <h4 id="brief-submit-confirm-title" className="text-lg font-semibold text-neutral-900">
+            <div className="fixed inset-0 z-40 flex items-center justify-center bg-fg/40 px-4" role="dialog" aria-modal="true" aria-labelledby="brief-submit-confirm-title">
+              <div className="w-full max-w-lg rounded-2xl border border-line bg-panel p-5 shadow-2xl">
+                <h4 id="brief-submit-confirm-title" className="text-lg font-semibold text-fg">
                   {BRIEF_SUBMISSION_CONFIRMATION_COPY.title}
                 </h4>
-                <p className="mt-2 text-sm text-neutral-700">{BRIEF_SUBMISSION_CONFIRMATION_COPY.body}</p>
+                <p className="mt-2 text-sm text-fg-2">{BRIEF_SUBMISSION_CONFIRMATION_COPY.body}</p>
 
-                <label className="mt-4 flex items-start gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-sm text-neutral-800">
+                <label className="mt-4 flex items-start gap-3 rounded-lg border border-line bg-surface p-3 text-sm text-fg">
                   <input
                     type="checkbox"
                     checked={submissionAcknowledged}
                     onChange={(event) => setSubmissionAcknowledged(event.target.checked)}
-                    className="mt-0.5 h-4 w-4"
+                    className="mt-0.5 h-4 w-4 accent-accent"
                   />
                   <span>{BRIEF_SUBMISSION_CONFIRMATION_COPY.checkboxLabel}</span>
                 </label>
