@@ -8,7 +8,7 @@
   try {
     var saved = localStorage.getItem("lf-theme");
     if (saved === "light" || saved === "dark" || saved === "system") pref = saved;
-  } catch (e) {}
+  } catch {}
   var dark = pref === "dark" || (pref === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
   root.dataset.theme = dark ? "dark" : "light";
   root.dataset.themePref = pref;

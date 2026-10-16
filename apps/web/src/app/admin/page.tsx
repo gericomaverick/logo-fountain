@@ -234,8 +234,8 @@ export default async function AdminHomePage() {
     return (
       <PageShell>
         <HeaderNav />
-        <main className="mx-auto w-full max-w-[1160px] px-6 py-8 md:px-10">
-          <p className="text-sm text-neutral-700">Unauthorized.</p>
+        <main className="mx-auto w-full max-w-[1400px] px-4 py-8 md:px-8 lg:px-10">
+          <p className="text-sm text-fg-2">Unauthorized.</p>
         </main>
       </PageShell>
     );

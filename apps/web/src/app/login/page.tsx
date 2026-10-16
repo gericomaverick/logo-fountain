@@ -23,6 +23,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [fieldErrors, setFieldErrors] = useState<LoginErrors>({});
   const [status, setStatus] = useState<string | null>(null);
+  // Which way the status line reads, rather than matching on its text.
+  const [statusTone, setStatusTone] = useState<"success" | "error">("error");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -43,6 +45,7 @@ export default function LoginPage() {
     setIsSubmitting(false);
 
     if (error) {
+      setStatusTone("error");
       setStatus(`We couldn’t sign you in. ${error}`);
       return;
     }
@@ -57,6 +60,7 @@ export default function LoginPage() {
     setFieldErrors(nextErrors);
 
     if (emailError) {
+      setStatusTone("error");
       setStatus("Fix the highlighted field and try again.");
       return;
     }
@@ -69,10 +73,12 @@ export default function LoginPage() {
     setIsSubmitting(false);
 
     if (error) {
+      setStatusTone("error");
       setStatus(`We couldn’t send the magic link. ${error}`);
       return;
     }
 
+    setStatusTone("success");
     setStatus("If that account exists, a magic link has been sent. Check your inbox.");
   }
 
@@ -88,7 +94,7 @@ export default function LoginPage() {
       sideDescription="Pick up where you left off and keep your project momentum going."
     >
       {summaryErrors.length > 0 ? (
-        <div className="mb-4 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800" role="alert" aria-live="assertive">
+        <div className="mb-4 rounded-lg border border-danger/30 bg-danger-soft p-3 text-sm text-danger" role="alert" aria-live="assertive">
           <p className="font-medium">⚠ Please fix the highlighted fields:</p>
           <ul className="mt-2 list-disc space-y-1 pl-5">
             {summaryErrors.map((message) => (
@@ -100,7 +106,7 @@ export default function LoginPage() {
 
       <form className="space-y-4" onSubmit={onPasswordSignIn} noValidate>
         <div>
-          <label className="mb-1 block text-sm" htmlFor="email">
+          <label className="mb-1 block text-sm font-medium text-fg" htmlFor="email">
             Email
           </label>
           <input
@@ -112,21 +118,21 @@ export default function LoginPage() {
             onChange={(event) => setEmail(event.target.value)}
             aria-invalid={Boolean(fieldErrors.email)}
             aria-describedby={fieldErrors.email ? "email-error" : undefined}
-            className={`w-full rounded border px-3 py-2 transition focus:outline-none focus:ring-2 ${
+            className={`portal-field w-full ${
               fieldErrors.email
-                ? "border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-200"
-                : "border-neutral-300 focus:border-neutral-400 focus:ring-black/10"
+                ? "border-danger bg-danger-soft"
+                : "border-line"
             }`}
           />
           {fieldErrors.email ? (
-            <p id="email-error" className="mt-2 text-sm font-medium text-red-700" role="alert">
+            <p id="email-error" className="mt-2 text-sm font-medium text-danger" role="alert">
               {fieldErrors.email}
             </p>
           ) : null}
         </div>
 
         <div>
-          <label className="mb-1 block text-sm" htmlFor="password">
+          <label className="mb-1 block text-sm font-medium text-fg" htmlFor="password">
             Password
           </label>
           <input
@@ -138,24 +144,20 @@ export default function LoginPage() {
             onChange={(event) => setPassword(event.target.value)}
             aria-invalid={Boolean(fieldErrors.password)}
             aria-describedby={fieldErrors.password ? "password-error" : undefined}
-            className={`w-full rounded border px-3 py-2 transition focus:outline-none focus:ring-2 ${
+            className={`portal-field w-full ${
               fieldErrors.password
-                ? "border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-200"
-                : "border-neutral-300 focus:border-neutral-400 focus:ring-black/10"
+                ? "border-danger bg-danger-soft"
+                : "border-line"
             }`}
           />
           {fieldErrors.password ? (
-            <p id="password-error" className="mt-2 text-sm font-medium text-red-700" role="alert">
+            <p id="password-error" className="mt-2 text-sm font-medium text-danger" role="alert">
               {fieldErrors.password}
             </p>
           ) : null}
         </div>
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="portal-btn-primary h-11 w-full text-base"
-        >
+        <button type="submit" disabled={isSubmitting} className="portal-btn-primary w-full">
           {isSubmitting ? "Signing in..." : "Sign in"}
         </button>
       </form>
@@ -164,17 +166,17 @@ export default function LoginPage() {
         type="button"
         onClick={onMagicLinkRequest}
         disabled={isSubmitting}
-        className="mt-3 w-full rounded border border-neutral-300 px-4 py-2 disabled:opacity-60"
+        className="portal-btn-secondary mt-3 w-full"
       >
         Send magic link
       </button>
 
-      <div className="mt-4 flex items-center justify-between text-sm">
-        <a className="underline" href="/forgot-password">Forgot password?</a>
-      </div>
+      <p className="mt-6 text-sm text-fg-2">
+        <a className="portal-link" href="/forgot-password">Forgot password?</a>
+      </p>
 
       {status ? (
-        <p className={`mt-4 text-sm ${status.startsWith("Magic link sent") ? "text-green-700" : "text-red-700"}`} role="status" aria-live="polite">
+        <p className={`mt-4 text-sm ${statusTone === "success" ? "text-success" : "text-danger"}`} role="status" aria-live="polite">
           {status}
         </p>
       ) : null}

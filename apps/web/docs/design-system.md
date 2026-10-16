@@ -125,10 +125,11 @@ each with author `text-sm font-medium`, time `text-xs text-fg-3`, body
 ## Dark mode
 
 Handled by the tokens: nothing to do on a migrated screen if rule 1 is kept.
-`globals.css` has an *interim* remap that keeps unmigrated screens legible in
-dark (greys flipped, colour tints as washes). It is not a licence to use those
-classes; it is removed once every screen is migrated. Images and white text on
-imagery are left alone. A black logo needs a `dark:invert` wrapper.
+Every screen is now migrated, so the interim remap that kept Tailwind's greys
+and colour tints legible in dark has been removed from `globals.css`: a
+`neutral-*`, `white` or named colour added to a screen from here on will simply
+look wrong in dark, with nothing to soften it. Images and white text on imagery
+are left alone. A black logo needs a `dark:invert` wrapper.
 
 ## Migrating a screen: checklist
 
