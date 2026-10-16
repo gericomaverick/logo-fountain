@@ -1,3 +1,8 @@
+# @11ty/eleventy-img 7 requires Node >= 22; pin it so the build does not depend
+# on whatever default this site was created with.
+[build.environment]
+  NODE_VERSION = "22"
+
 [[plugins]]
 package = "netlify-plugin-cache"
 
