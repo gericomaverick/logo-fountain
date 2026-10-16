@@ -46,7 +46,7 @@ export function BriefDocument({ title, subtitle, meta, actions, children, classN
 
 export function BriefSection({ title, description, children, className = "", tone = "neutral" }: BriefSectionProps) {
   const toneClass = tone === "paper"
-    ? "border-amber-200 bg-amber-50"
+    ? "border-line bg-panel"
     : "border-line bg-surface";
 
   return (

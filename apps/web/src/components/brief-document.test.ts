@@ -5,7 +5,7 @@ import { createElement } from "react";
 import { BriefField, BriefSection } from "./brief-document";
 
 describe("brief document primitives", () => {
-  it("renders paper tone sections with subtle amber styling", () => {
+  it("renders paper tone sections with token-based panel styling", () => {
     const html = renderToStaticMarkup(
       createElement(
         BriefSection,
@@ -14,8 +14,8 @@ describe("brief document primitives", () => {
       ),
     );
 
-    expect(html).toContain("bg-amber-50");
-    expect(html).toContain("border-amber-200");
+    expect(html).toContain("bg-panel");
+    expect(html).toContain("border-line");
     expect(html).toContain("Brand context");
   });
 
