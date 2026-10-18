@@ -292,6 +292,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
 
             <div className="min-w-0 space-y-6">
 
+          {activeStep === 0 ? (
           <FeatureNoticeCard
             variant="info"
             className="p-4"
@@ -303,6 +304,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
               </>
             )}
           />
+          ) : null}
 
           {/* The rail carries position; a line of metadata carries the save. */}
           <div className="flex items-center justify-between gap-3 lg:hidden">
@@ -317,20 +319,27 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
           </p>
 
           {currentSection ? (
-            <section className="space-y-2">
-              <h3 className="text-lg font-semibold tracking-tight text-fg">{currentSection.title}</h3>
-              <p className="mt-2 max-w-[60ch] text-base text-fg-2">{currentSection.description}</p>
-              <p className="mt-2 text-sm text-fg-3"><span className="text-danger">*</span> Required fields · Optional fields are clearly marked.</p>
-              <div className="mt-4 grid gap-4">
+            <section>
+              {/* The step leads the page: a heading, a standfirst, then the
+                  questions on their own surface. Each rung of the ladder is a
+                  clear step from the one below it. */}
+              <h3 className="text-xl font-semibold tracking-tight text-fg">{currentSection.title}</h3>
+              <p className="mt-3 max-w-[56ch] text-lg leading-relaxed text-fg-2">{currentSection.description}</p>
+
+              <div className="mt-8 divide-y divide-line overflow-hidden rounded-xl border border-line bg-panel">
                 {currentSection.fields.map((field) => (
-                  <BriefFieldInput
-                    key={field.key}
-                    field={field}
-                    value={form[field.key]}
-                    onChange={(next) => setForm((current) => ({ ...current, [field.key]: next }))}
-                  />
+                  <div key={field.key} className="p-5 sm:p-6">
+                    <BriefFieldInput
+                      field={field}
+                      value={form[field.key]}
+                      onChange={(next) => setForm((current) => ({ ...current, [field.key]: next }))}
+                    />
+                  </div>
                 ))}
               </div>
+              <p className="mt-3 text-sm text-fg-3">
+                <span className="text-danger">*</span> Required. Everything else is optional.
+              </p>
             </section>
           ) : (
             <section className="space-y-4">

@@ -91,10 +91,6 @@ export default async function ProjectBriefPage({ params }: ProjectBriefPageProps
           <header className="border-b border-line pb-8">
             <ProjectStatusBadge status={project.status} />
             <h1 className="mt-4 text-2xl font-semibold tracking-tight text-fg">Project brief</h1>
-            <p className="mt-3 max-w-[60ch] text-base text-fg-2">
-              Tell your designer about your brand. Answer what you can — you can stop and come back,
-              and nothing is sent until you review it and submit.
-            </p>
           </header>
 
           <div className="mt-10">

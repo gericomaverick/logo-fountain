@@ -34,7 +34,7 @@ export function BriefFieldInput({
           <span className="text-sm font-normal text-fg-3">(optional)</span>
         )}
       </label>
-      {field.helperText ? <p className="mt-1 max-w-[60ch] text-base text-fg-2">{field.helperText}</p> : null}
+      {field.helperText ? <p className="mt-1 max-w-[60ch] text-sm text-fg-2">{field.helperText}</p> : null}
 
       <div className="mt-3">
         {hasOptions ? (
@@ -64,7 +64,7 @@ function ChoiceField({
 
   return (
     <div className="space-y-3">
-      {field.optionsPrompt ? <p className="text-base text-fg-2">{field.optionsPrompt}</p> : null}
+      {field.optionsPrompt ? <p className="text-sm text-fg-2">{field.optionsPrompt}</p> : null}
 
       <div className="flex flex-wrap gap-2">
         {options.map((option) => {
