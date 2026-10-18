@@ -42,7 +42,7 @@ export default async function AdminProjectBriefPage({ params }: AdminProjectBrie
         actions={<Link className="portal-btn-ghost" href={`/admin/projects/${projectId}/messages`}>Project messages</Link>}
       />
       <main className="px-4 py-6 md:px-8 lg:py-8">
-        <div className="mx-auto max-w-[720px]">
+        <div className="mx-auto max-w-[920px]">
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
             <div>
               <h1 className="text-3xl font-semibold tracking-tight text-fg">Project brief</h1>

@@ -79,7 +79,7 @@ export default function AdminConceptRevisionUploadPage() {
         }
       />
       <main className="min-w-0 flex-1 px-4 py-6 md:px-8 lg:py-8">
-        <div className="mx-auto max-w-[720px] space-y-10">
+        <div className="mx-auto max-w-[920px] space-y-10">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight text-fg">Upload concept revision</h1>
             <p className="mt-2 text-sm text-fg-3">Project {projectId}</p>

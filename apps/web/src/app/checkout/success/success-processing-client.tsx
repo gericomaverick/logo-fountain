@@ -122,7 +122,7 @@ export default function SuccessProcessingClient() {
     <div className="min-h-screen bg-app text-fg">
       <PageHeader crumbs={[{ label: "Checkout" }]} />
       <main className="px-4 py-6 md:px-8 lg:py-8">
-        <div className="mx-auto max-w-[720px]">
+        <div className="mx-auto max-w-[920px]">
           {!isFulfilled ? (
             <>
               <h1 className="text-3xl font-semibold tracking-tight text-fg">Processing…</h1>

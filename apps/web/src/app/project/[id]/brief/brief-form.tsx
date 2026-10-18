@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { BriefDocument, BriefField, BriefFieldGrid, BriefSection } from "@/components/brief-document";
 import { BriefFieldInput } from "@/components/brief-field-input";
+import { BriefProgress } from "@/components/brief-progress";
 import { FeatureNoticeCard } from "@/components/feature-notice-card";
 import { briefSections, EMPTY_BRIEF_ANSWERS, missingRequiredFields, requiredFieldLabels, type BriefAnswers } from "@/lib/brief";
 import {
@@ -63,10 +64,17 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
   const editorHeadingRef = useRef<HTMLHeadingElement | null>(null);
 
   const reviewStep = briefSections.length;
+  const stepLabels = [...briefSections.map((section) => section.title), "Review"];
+
+  function goToStep(index: number) {
+    // Only backwards: moving on is the Continue button's job, which checks answers.
+    if (index >= activeStep) return;
+    setError(null);
+    setActiveStep(index);
+  }
 
   const currentSection = briefSections[activeStep] ?? null;
   const missingOnStep = currentSection ? missingRequiredFields(form, currentSection) : [];
-  const progressPercent = Math.round(((activeStep + 1) / (briefSections.length + 1)) * 100);
   const hasUnsavedChanges = isEditing && hasBriefAnswerChanges(form, latestBrief?.answers ?? EMPTY_BRIEF_ANSWERS);
 
   async function submitBrief() {
@@ -236,7 +244,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
   }
 
   return (
-    <section className="mt-6 space-y-4">
+    <section className="space-y-6">
       {latestBrief ? (
         <BriefDocument
           title={`Latest submitted brief (v${latestBrief.version})`}
@@ -274,6 +282,16 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
             Brief editor
           </h3>
 
+          <div className="lg:grid lg:grid-cols-[13rem_1fr] lg:gap-12">
+            {/* The rail sits beside the questions and follows them down. */}
+            <aside className="hidden lg:block">
+              <div className="sticky top-24">
+                <BriefProgress labels={stepLabels} activeIndex={activeStep} onSelect={goToStep} />
+              </div>
+            </aside>
+
+            <div className="min-w-0 space-y-6">
+
           <FeatureNoticeCard
             variant="info"
             className="p-4"
@@ -286,32 +304,17 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
             )}
           />
 
-          <div className="space-y-3 rounded-xl border border-line bg-surface p-3 sm:p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-fg-3">
-              <p className="font-medium text-fg">Step {Math.min(activeStep + 1, reviewStep + 1)} of {reviewStep + 1}</p>
-              <div className="flex items-center gap-3">
-                <p>{progressPercent}% complete</p>
-                <p className="rounded-full border border-line-strong bg-panel px-2 py-0.5 text-sm text-fg-3" aria-live="polite">
-                  {draftOffline
-                    ? "Saved on this device"
-                    : draftSavedAt
-                      ? `Saved ${draftSavedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
-                      : "Saves as you go"}
-                </p>
-              </div>
-            </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-surface-2">
-              <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${progressPercent}%` }} />
-            </div>
-            <ol className="flex gap-2 overflow-x-auto pb-1 text-sm [scrollbar-width:thin]">
-              {briefSections.map((section, index) => (
-                <li key={section.id} className={`shrink-0 rounded-md border px-2 py-1 ${index === activeStep ? "border-accent bg-accent-soft text-accent" : "border-line text-fg-3"}`}>
-                  {section.title}
-                </li>
-              ))}
-              <li className={`shrink-0 rounded-md border px-2 py-1 ${activeStep === reviewStep ? "border-accent bg-accent-soft text-accent" : "border-line text-fg-3"}`}>Review & submit</li>
-            </ol>
+          {/* The rail carries position; a line of metadata carries the save. */}
+          <div className="flex items-center justify-between gap-3 lg:hidden">
+            <BriefProgress labels={stepLabels} activeIndex={activeStep} onSelect={goToStep} />
           </div>
+          <p className="text-sm text-fg-3" aria-live="polite">
+            {draftOffline
+              ? "Saved on this device"
+              : draftSavedAt
+                ? `Saved ${draftSavedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+                : "Saves as you go"}
+          </p>
 
           {currentSection ? (
             <section className="space-y-2">
@@ -402,6 +405,8 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
               </div>
             </div>
           ) : null}
+            </div>
+          </div>
         </form>
       ) : null}
     </section>
