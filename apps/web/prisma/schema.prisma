@@ -19,9 +19,10 @@ model Profile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  authUser          AuthUser @relation(fields: [id], references: [id], onDelete: Restrict)
+  authUser          AuthUser            @relation(fields: [id], references: [id], onDelete: Restrict)
   memberships       ClientMembership[]
   createdBriefs     ProjectBrief[]
+  briefDrafts       ProjectBriefDraft[]
   uploadedFiles     FileAsset[]
   sentMessages      Message[]
   revisionRequests  RevisionRequest[]
@@ -66,18 +67,19 @@ model Project {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  client        Client             @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  orders        ProjectOrder[]
-  entitlements  ProjectEntitlement[]
-  briefs        ProjectBrief[]
-  concepts      Concept[]
-  fileAssets    FileAsset[]
-  messageThread MessageThread?
-  messages          Message[]
-  revisionRequests  RevisionRequest[]
-  conceptComments   ConceptComment[]
-  auditEvents       AuditEvent[]
-  readStates        ProjectReadState[]
+  client           Client               @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  orders           ProjectOrder[]
+  entitlements     ProjectEntitlement[]
+  briefs           ProjectBrief[]
+  briefDraft       ProjectBriefDraft?
+  concepts         Concept[]
+  fileAssets       FileAsset[]
+  messageThread    MessageThread?
+  messages         Message[]
+  revisionRequests RevisionRequest[]
+  conceptComments  ConceptComment[]
+  auditEvents      AuditEvent[]
+  readStates       ProjectReadState[]
 
   @@index([clientId])
   @@index([status])
@@ -99,18 +101,34 @@ model ProjectBrief {
   @@index([createdBy])
 }
 
+/// An unsubmitted brief in progress. One per project, replaced as it is edited,
+/// and deleted once the brief is submitted — submissions are the versioned,
+/// immutable record in ProjectBrief. Kept server-side so a customer can start
+/// on a phone and finish on a laptop.
+model ProjectBriefDraft {
+  projectId String   @id @db.Uuid
+  answers   Json
+  updatedBy String   @db.Uuid
+  updatedAt DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    Profile @relation(fields: [updatedBy], references: [id], onDelete: Restrict)
+
+  @@index([updatedBy])
+}
+
 model ProjectOrder {
-  id                     String   @id @default(uuid()) @db.Uuid
-  projectId              String   @db.Uuid
-  clientId               String   @db.Uuid
-  status                 String
-  currency               String
-  totalCents             Int
+  id                      String   @id @default(uuid()) @db.Uuid
+  projectId               String   @db.Uuid
+  clientId                String   @db.Uuid
+  status                  String
+  currency                String
+  totalCents              Int
   stripeCheckoutSessionId String?  @unique
   stripePaymentIntentId   String?  @unique
-  campaignSlug           String?
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
+  campaignSlug            String?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   client  Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
@@ -144,7 +162,7 @@ model Concept {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  project          Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project          Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
   revisionRequests RevisionRequest[]
   comments         ConceptComment[]
 
@@ -272,47 +290,49 @@ model ProjectReadState {
 }
 
 model StripeEvent {
-  eventId     String   @id
+  eventId     String    @id
   type        String
   createdAt   DateTime
   processedAt DateTime?
 }
 
-
 // Better Auth supported Prisma adapter models. Provider IDs/tokens are text,
 // identity/session/account primary IDs are stable UUIDs.
 model AuthUser {
-  id                String @id @default(uuid()) @db.Uuid
+  id                String        @id @default(uuid()) @db.Uuid
   name              String
-  email             String @unique
-  emailVerified     Boolean @default(false)
+  email             String        @unique
+  emailVerified     Boolean       @default(false)
   image             String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  credentialVersion Int @default(0)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  credentialVersion Int           @default(0)
   profile           Profile?
   sessions          AuthSession[]
   accounts          AuthAccount[]
   proofs            AuthProof[]
 }
+
 model AuthSession {
-  id        String @id @default(uuid()) @db.Uuid
+  id        String   @id @default(uuid()) @db.Uuid
   expiresAt DateTime
-  token     String @unique
+  token     String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   ipAddress String?
   userAgent String?
-  userId    String @db.Uuid
+  userId    String   @db.Uuid
   user      AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
 }
+
 model AuthAccount {
-  id                    String @id @default(uuid()) @db.Uuid
+  id                    String    @id @default(uuid()) @db.Uuid
   accountId             String
   providerId            String
-  userId                String @db.Uuid
-  user                  AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                String    @db.Uuid
+  user                  AuthUser  @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?
   refreshToken          String?
   idToken               String?
@@ -320,38 +340,44 @@ model AuthAccount {
   refreshTokenExpiresAt DateTime?
   scope                 String?
   password              String?
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
   @@unique([providerId, accountId])
   @@index([userId])
 }
+
 model AuthVerification {
-  id         String @id @default(uuid()) @db.Uuid
-  identifier String @unique
+  id         String   @id @default(uuid()) @db.Uuid
+  identifier String   @unique
   value      String
   expiresAt  DateTime
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
+
 // Additional app proof fence: never a plaintext bearer token, never a session.
 model AuthProof {
-  tokenHash         String @id @db.Char(64)
-  userId            String @db.Uuid
+  tokenHash         String   @id @db.Char(64)
+  userId            String   @db.Uuid
   user              AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
   kind              String
   credentialVersion Int
   expiresAt         DateTime
+
   @@index([userId])
 }
+
 model AuthAdminBootstrap {
-  id        Int @id
-  userId    String @db.Uuid
+  id        Int      @id
+  userId    String   @db.Uuid
   createdAt DateTime @default(now())
 }
 
 model AuthRateLimit {
-  key         String @id @db.Char(64)
+  key         String   @id @db.Char(64)
   hits        Int
   windowStart DateTime
+
   @@index([windowStart])
 }

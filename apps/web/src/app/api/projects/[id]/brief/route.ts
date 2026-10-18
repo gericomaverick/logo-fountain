@@ -105,6 +105,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
           await tx.project.update({ where: { id: project.id }, data: { status: PROJECT_STATUS_BRIEF_SUBMITTED } });
 
+          // The draft has served its purpose; the submission is the record now.
+          await tx.projectBriefDraft.deleteMany({ where: { projectId: project.id } });
+
           await createProjectSystemMessage(tx, {
             projectId: project.id,
             fallbackUserId: user.id,

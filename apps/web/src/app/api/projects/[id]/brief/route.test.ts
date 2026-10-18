@@ -14,6 +14,9 @@ const mocks = vi.hoisted(() => ({
     project: {
       update: vi.fn(),
     },
+    projectBriefDraft: {
+      deleteMany: vi.fn(),
+    },
   },
   prisma: {
     project: { findUnique: vi.fn() },

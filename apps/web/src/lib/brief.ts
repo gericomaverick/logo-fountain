@@ -17,6 +17,16 @@ export type BriefAnswers = {
   additionalNotes: string;
 };
 
+/**
+ * A choice offered for a question people find hard to answer cold. `value` is
+ * what gets stored, so it must not contain the separators `brief-choices.ts`
+ * composes with (`, ` and ` — `); `hint` explains it without entering the answer.
+ */
+export type BriefFieldOption = {
+  value: string;
+  hint?: string;
+};
+
 export type BriefFieldDefinition = {
   key: keyof BriefAnswers;
   label: string;
@@ -26,6 +36,14 @@ export type BriefFieldDefinition = {
   placeholder?: string;
   helperText?: string;
   maxLength?: number;
+  /** A worked answer, shown on request, so nobody has to guess what good looks like. */
+  example?: string;
+  /** Offering choices turns a blank box into a pick-and-elaborate question. */
+  options?: readonly BriefFieldOption[];
+  /** Invitation above the choices. */
+  optionsPrompt?: string;
+  /** Label for the free-text box that sits under the choices. */
+  notePrompt?: string;
 };
 
 export type BriefSectionDefinition = {
@@ -60,8 +78,23 @@ export const briefSections: BriefSectionDefinition[] = [
     title: "Brand foundations",
     description: "Who you are, what you do, and what this logo needs to communicate.",
     fields: [
-      { key: "brandName", label: "Brand name", required: true, kind: "input", maxLength: 120, placeholder: "e.g. Northvale Analytics" },
-      { key: "tagline", label: "Tagline / strapline", kind: "input", maxLength: 140, placeholder: "Optional — include only if it should appear with the logo" },
+      {
+        key: "brandName",
+        label: "Brand name",
+        required: true,
+        kind: "input",
+        maxLength: 120,
+        placeholder: "e.g. Northvale Analytics",
+        helperText: "Exactly as it should be spelled and capitalised in the logo.",
+      },
+      {
+        key: "tagline",
+        label: "Tagline / strapline",
+        kind: "input",
+        maxLength: 140,
+        placeholder: "Optional — include only if it should appear with the logo",
+        example: "Numbers, minus the headache",
+      },
       { key: "industry", label: "Industry", required: true, kind: "input", maxLength: 120, placeholder: "e.g. B2B SaaS, wellness clinic, coffee roastery" },
       {
         key: "offerSummary",
@@ -72,6 +105,8 @@ export const briefSections: BriefSectionDefinition[] = [
         maxLength: 700,
         helperText: "A clear one-paragraph summary helps us design with the right commercial context.",
         placeholder: "We provide subscription accounting software for UK freelancers and sole traders.",
+        example:
+          "We roast and deliver single-origin coffee to independent cafés across the North West. Customers subscribe for a weekly or fortnightly delivery, and we handle the grind profile for their machine. Most of our growth comes from café owners recommending us to each other.",
       },
     ],
   },
@@ -88,6 +123,8 @@ export const briefSections: BriefSectionDefinition[] = [
         rows: 3,
         maxLength: 500,
         placeholder: "Who buys from you most often? Include traits like role, age band, context, or budget.",
+        example:
+          "Independent café owners, mostly 30–50, running one or two sites. They care about quality and provenance, they are time-poor, and they buy from people they trust rather than from catalogues.",
       },
       {
         key: "audienceSecondary",
@@ -96,6 +133,7 @@ export const briefSections: BriefSectionDefinition[] = [
         rows: 3,
         maxLength: 400,
         placeholder: "Any second audience that should still feel represented.",
+        example: "Home subscribers who discovered us through a café and now order a bag a month for themselves.",
       },
       {
         key: "businessGoals",
@@ -105,6 +143,8 @@ export const briefSections: BriefSectionDefinition[] = [
         rows: 3,
         maxLength: 500,
         placeholder: "e.g. Look more premium, increase trust with enterprise buyers, stand out from local competitors.",
+        example:
+          "Look established enough that a café owner trusts us with a standing order. Right now our handmade look reads as a hobby, and we lose deals to bigger roasters on credibility alone.",
       },
     ],
   },
@@ -120,7 +160,23 @@ export const briefSections: BriefSectionDefinition[] = [
         kind: "textarea",
         rows: 3,
         maxLength: 400,
-        placeholder: "Pick 3–5 words. e.g. Bold, optimistic, clean, technical, playful.",
+        optionsPrompt: "Pick three to five that fit. There are no wrong answers here.",
+        notePrompt: "Anything else about how it should feel (optional)",
+        options: [
+          { value: "Modern" },
+          { value: "Classic" },
+          { value: "Minimal" },
+          { value: "Bold" },
+          { value: "Playful" },
+          { value: "Premium" },
+          { value: "Approachable" },
+          { value: "Technical" },
+          { value: "Handcrafted" },
+          { value: "Trustworthy" },
+          { value: "Energetic" },
+          { value: "Calm" },
+        ],
+        placeholder: "e.g. We want to feel like the grown-up option without being stuffy.",
       },
       {
         key: "styleDirection",
@@ -129,7 +185,18 @@ export const briefSections: BriefSectionDefinition[] = [
         kind: "textarea",
         rows: 4,
         maxLength: 700,
-        placeholder: "What visual direction do you like? Mention typography, icon style, geometry, feel.",
+        optionsPrompt: "Which kinds of logo appeal to you? Pick as many as you like — or tell us you are not sure.",
+        notePrompt: "Anything specific about type, shape or feel (optional)",
+        options: [
+          { value: "Wordmark", hint: "Your name set in distinctive type — think Google" },
+          { value: "Lettermark", hint: "Your initials or a monogram — think HBO" },
+          { value: "Icon with wordmark", hint: "A symbol beside the name — think Adidas" },
+          { value: "Abstract symbol", hint: "A shape that stands for you — think Nike" },
+          { value: "Emblem or badge", hint: "Name inside a contained shape — think Starbucks" },
+          { value: "Illustrated or mascot", hint: "A character or drawn scene" },
+          { value: "Not sure yet", hint: "Happy for the designer to recommend" },
+        ],
+        placeholder: "e.g. Something that still reads at the size of a stamp on a coffee bag.",
       },
       {
         key: "colorPreferences",
@@ -137,7 +204,19 @@ export const briefSections: BriefSectionDefinition[] = [
         kind: "textarea",
         rows: 3,
         maxLength: 400,
-        placeholder: "Preferred colours, banned colours, and any accessibility constraints.",
+        optionsPrompt: "Any direction you already know? Leave it blank if you would rather we explored.",
+        notePrompt: "Specific colours, or any to avoid (optional)",
+        options: [
+          { value: "Keep our existing colours" },
+          { value: "Warm reds and oranges" },
+          { value: "Cool blues and greens" },
+          { value: "Earthy and natural" },
+          { value: "Bright and vivid" },
+          { value: "Muted and understated" },
+          { value: "Black and white only" },
+          { value: "No preference" },
+        ],
+        placeholder: "e.g. Avoid green — our main competitor owns it locally.",
       },
       {
         key: "mustInclude",
@@ -146,6 +225,7 @@ export const briefSections: BriefSectionDefinition[] = [
         rows: 3,
         maxLength: 450,
         placeholder: "Required symbols, initials, wording, cultural references, or legal marks.",
+        example: "The word \u201cRoasters\u201d has to stay in the logo, and we need the \u00ae after the name.",
       },
       {
         key: "avoidanceNotes",
@@ -153,7 +233,9 @@ export const briefSections: BriefSectionDefinition[] = [
         kind: "textarea",
         rows: 3,
         maxLength: 450,
+        helperText: "Knowing what you dislike narrows things down faster than almost anything else.",
         placeholder: "What should the designer avoid? e.g. Generic gradients, mascot style, script fonts.",
+        example: "No coffee beans and no steam swirls — every roaster near us uses them. Nothing that looks hand-drawn.",
       },
     ],
   },
@@ -169,7 +251,22 @@ export const briefSections: BriefSectionDefinition[] = [
         kind: "textarea",
         rows: 3,
         maxLength: 500,
-        placeholder: "e.g. Website header, app icon, social avatar, packaging, signage, uniforms.",
+        optionsPrompt: "Tick everywhere you expect to use it. This decides how simple the mark has to be.",
+        notePrompt: "Anywhere unusual we should plan for (optional)",
+        options: [
+          { value: "Website" },
+          { value: "Social media" },
+          { value: "App icon" },
+          { value: "Business cards" },
+          { value: "Signage" },
+          { value: "Packaging" },
+          { value: "Clothing or merch" },
+          { value: "Vehicles" },
+          { value: "Email signature" },
+          { value: "Print advertising" },
+          { value: "Invoices and documents" },
+        ],
+        placeholder: "e.g. Stamped into the side of a kraft coffee bag, one colour.",
       },
       {
         key: "deliverablesContext",
@@ -178,6 +275,7 @@ export const briefSections: BriefSectionDefinition[] = [
         rows: 3,
         maxLength: 400,
         placeholder: "Anything the team should optimise for now: print-first, icon-first, motion-ready, etc.",
+        example: "Print first — most of what we produce is physical packaging, so it has to work in a single colour.",
       },
       {
         key: "competitors",
@@ -185,7 +283,10 @@ export const briefSections: BriefSectionDefinition[] = [
         kind: "textarea",
         rows: 3,
         maxLength: 500,
+        helperText: "Logos you admire are just as useful as competitors, even from other industries.",
         placeholder: "Share competitor names/links and what you do or don't like about their branding.",
+        example:
+          "Climpson & Sons feel close to right — confident but not shouty. Our nearest competitor uses a bean-and-swirl mark we want to stay well clear of.",
       },
       {
         key: "additionalNotes",
@@ -194,6 +295,7 @@ export const briefSections: BriefSectionDefinition[] = [
         rows: 3,
         maxLength: 500,
         placeholder: "Optional final notes that don't fit elsewhere.",
+        example: "We are rebranding ahead of a second site opening in March, so signage is the first thing it has to work on.",
       },
     ],
   },
