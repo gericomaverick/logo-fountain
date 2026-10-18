@@ -59,7 +59,7 @@ export default async function ProjectBriefPage({ params }: ProjectBriefPageProps
         <PageHeader crumbs={[{ label: "Projects", href: "/dashboard" }, { label: "Project overview", href: `/project/${id}` }, { label: "Brief" }]} />
         <main className="px-4 py-6 md:px-8 lg:py-8">
           <div className="mx-auto max-w-[920px]">
-            <h1 className="text-3xl font-semibold tracking-tight text-fg">Project brief</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-fg">Project brief</h1>
             <p className="mt-2 text-base text-fg-2">Project not found.</p>
           </div>
         </main>
@@ -90,7 +90,7 @@ export default async function ProjectBriefPage({ params }: ProjectBriefPageProps
               thing in the form. */}
           <header className="border-b border-line pb-8">
             <ProjectStatusBadge status={project.status} />
-            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-fg">Project brief</h1>
+            <h1 className="mt-4 text-2xl font-semibold tracking-tight text-fg">Project brief</h1>
             <p className="mt-3 max-w-[60ch] text-base text-fg-2">
               Tell your designer about your brand. Answer what you can — you can stop and come back,
               and nothing is sent until you review it and submit.

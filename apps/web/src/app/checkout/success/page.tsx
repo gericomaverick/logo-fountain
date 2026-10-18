@@ -8,7 +8,7 @@ function ProcessingFallback() {
       <PageHeader crumbs={[{ label: "Checkout" }]} />
       <main className="px-4 py-6 md:px-8 lg:py-8">
         <div className="mx-auto max-w-[920px]">
-          <h1 className="text-3xl font-semibold tracking-tight text-fg">Processing…</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-fg">Processing…</h1>
           <p className="mt-2 text-base text-fg-2">
             We&apos;re confirming your payment and setting up your project.
           </p>

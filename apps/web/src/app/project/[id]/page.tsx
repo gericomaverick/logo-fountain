@@ -394,7 +394,7 @@ export default function ProjectPage() {
           <div className="mx-auto max-w-[920px] space-y-10">
             <div>
               <ProjectStatusBadge status={overviewStatus} />
-              <h1 className="mt-4 text-3xl font-semibold tracking-tight text-fg">{projectTitle}</h1>
+              <h1 className="mt-4 text-2xl font-semibold tracking-tight text-fg">{projectTitle}</h1>
               <p className="mt-2 text-base text-fg-2">Hey{welcomeName ? `, ${welcomeName}` : ""} — here’s where your project stands.</p>
             </div>
 
@@ -415,7 +415,7 @@ export default function ProjectPage() {
             ) : nextAction ? (
               <section className="rounded-xl bg-brand-block p-6 sm:flex sm:items-center sm:justify-between sm:gap-8">
                 <div>
-                  <p className="text-2xl font-semibold tracking-tight text-brand-block-fg">{nextAction.label}</p>
+                  <p className="text-xl font-semibold tracking-tight text-brand-block-fg">{nextAction.label}</p>
                   <p className="mt-2 max-w-[52ch] text-base text-brand-block-fg-2">Do this first to keep your project moving.</p>
                 </div>
                 <Link

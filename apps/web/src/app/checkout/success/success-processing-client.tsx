@@ -125,14 +125,14 @@ export default function SuccessProcessingClient() {
         <div className="mx-auto max-w-[920px]">
           {!isFulfilled ? (
             <>
-              <h1 className="text-3xl font-semibold tracking-tight text-fg">Processing…</h1>
+              <h1 className="text-2xl font-semibold tracking-tight text-fg">Processing…</h1>
               <p className="mt-2 text-base text-fg-2">
                 We&apos;re confirming your payment and setting up your project.
               </p>
             </>
           ) : (
             <>
-              <h1 className="text-3xl font-semibold tracking-tight text-fg">Check your email for your sign-in link</h1>
+              <h1 className="text-2xl font-semibold tracking-tight text-fg">Check your email for your sign-in link</h1>
               <p className="mt-2 text-base text-fg-2">
                 We sent a secure sign-in link to the purchaser email. Open it to finish setup or sign in to your dashboard.
               </p>

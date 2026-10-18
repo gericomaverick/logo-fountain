@@ -123,24 +123,25 @@
    step between lg and 2xl. Space: 3xs (¼ step 0) to 3xl (6×), plus
    one-up pairs that grow faster for gutters. */
 @theme {
+  /* Utopia fluid scale, 1.200 at 320px widening to 1.250 at 1400px. Every
+     named size is a whole step: an earlier half-step at `xl` left two heading
+     sizes only 9.5% apart, which reads as noise rather than hierarchy. */
   --text-xs: clamp(0.6944rem, 0.684rem + 0.0465vw, 0.72rem); /* step -2: 11.11px → 11.52px */
   --text-xs--line-height: 1.45;
   --text-sm: clamp(0.8333rem, 0.8061rem + 0.1212vw, 0.9rem); /* step -1: 13.33px → 14.40px */
   --text-sm--line-height: 1.5;
   --text-base: clamp(1rem, 0.9489rem + 0.2273vw, 1.125rem); /* step 0: 16.00px → 18.00px */
   --text-base--line-height: 1.55;
-  --text-xl: clamp(1.3145rem, 1.2091rem + 0.4685vw, 1.5722rem); /* step 1.5: 21.03px → 25.16px */
-  --text-xl--line-height: 1.3;
   --text-lg: clamp(1.2rem, 1.1156rem + 0.3750vw, 1.4062rem); /* step 1: 19.20px → 22.50px */
   --text-lg--line-height: 1.4;
-  --text-2xl: clamp(1.44rem, 1.31rem + 0.5778vw, 1.7578rem); /* step 2: 23.04px → 28.12px */
-  --text-2xl--line-height: 1.25;
-  --text-3xl: clamp(1.728rem, 1.536rem + 0.8532vw, 2.1973rem); /* step 3: 27.65px → 35.16px */
+  --text-xl: clamp(1.44rem, 1.31rem + 0.5778vw, 1.7578rem); /* step 2: 23.04px → 28.12px */
+  --text-xl--line-height: 1.3;
+  --text-2xl: clamp(1.728rem, 1.536rem + 0.8532vw, 2.1973rem); /* step 3: 27.65px → 35.16px */
+  --text-2xl--line-height: 1.2;
+  --text-3xl: clamp(2.0736rem, 1.7983rem + 1.2236vw, 2.7466rem); /* step 4: 33.18px → 43.95px */
   --text-3xl--line-height: 1.15;
-  --text-4xl: clamp(2.0736rem, 1.7983rem + 1.2236vw, 2.7466rem); /* step 4: 33.18px → 43.95px */
+  --text-4xl: clamp(2.4883rem, 2.1018rem + 1.7180vw, 3.4332rem); /* step 5: 39.81px → 54.93px */
   --text-4xl--line-height: 1.1;
-  --text-5xl: clamp(2.4883rem, 2.1018rem + 1.7180vw, 3.4332rem); /* step 5: 39.81px → 54.93px */
-  --text-5xl--line-height: 1.05;
   --space-3xs: clamp(0.25rem, 0.2372rem + 0.0568vw, 0.2812rem);
   --space-2xs: clamp(0.5rem, 0.4744rem + 0.1136vw, 0.5625rem);
   --space-xs: clamp(0.75rem, 0.7116rem + 0.1705vw, 0.8438rem);

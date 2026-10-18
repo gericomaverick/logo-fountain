@@ -100,7 +100,7 @@ export default function InvoicesSettingsPage() {
       />
       <main className="mx-auto w-full max-w-[1400px] px-4 pb-10 md:px-8 lg:px-10">
         <header className="pb-5 pt-8">
-          <h1 className="text-3xl font-semibold tracking-tight text-fg">Invoices</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-fg">Invoices</h1>
           <p className="mt-1 text-base text-fg-2">Download your Stripe invoices and payment receipts.</p>
           <p className="mt-2 text-sm text-fg-3">Some older payments may only provide a hosted invoice or receipt link instead of a direct PDF.</p>
         </header>

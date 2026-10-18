@@ -341,7 +341,7 @@ export default function AdminProjectPage() {
                 <ProjectStatusBadge status={overviewStatus} />
                 {snapshot?.primaryCta ? <span className="text-sm text-fg-3">Next: {snapshot.primaryCta}</span> : null}
               </div>
-              <h1 className="mt-4 text-3xl font-semibold tracking-tight text-fg">{projectTitle}</h1>
+              <h1 className="mt-4 text-2xl font-semibold tracking-tight text-fg">{projectTitle}</h1>
               <p className="mt-2 text-base text-fg-2">Operational overview and high-confidence controls for this project.</p>
             </div>
 

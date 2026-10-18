@@ -398,7 +398,7 @@ export default async function AdminHomePage() {
       <main className="mx-auto w-full max-w-[1400px] px-4 pb-10 md:px-8 lg:px-10">
         <div className="flex items-end justify-between gap-4 pb-5 pt-8">
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight text-fg">Queue</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-fg">Queue</h1>
             <p className="mt-1 text-base text-fg-2">
               {active} active · {sectioned["needs-action"].length} need{sectioned["needs-action"].length === 1 ? "s" : ""} action
             </p>

@@ -118,7 +118,7 @@ export default function ProjectMessagesPage() {
         <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-4 py-6 md:px-8 lg:py-8">
           <div className="mx-auto max-w-[920px]">
             <div className="pb-5">
-              <h1 className="text-3xl font-semibold tracking-tight text-fg">Project messages</h1>
+              <h1 className="text-2xl font-semibold tracking-tight text-fg">Project messages</h1>
               <p className="mt-1 text-sm text-fg-2">Project {projectId}</p>
             </div>
             {loading ? <EmptyLine>Loading…</EmptyLine> : null}

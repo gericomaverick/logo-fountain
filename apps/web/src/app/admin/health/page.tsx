@@ -83,7 +83,7 @@ export default function AdminHealthPage() {
       />
       <main className="mx-auto w-full max-w-[1400px] px-4 pb-10 md:px-8 lg:px-10">
         <header className="pb-5 pt-8">
-          <h1 className="text-3xl font-semibold tracking-tight text-fg">Admin Health Checks</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-fg">Admin Health Checks</h1>
         </header>
 
         {loading ? <p className="mt-4 text-sm text-fg-2">Running checks…</p> : null}

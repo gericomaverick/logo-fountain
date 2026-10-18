@@ -35,10 +35,10 @@ Build new or migrated screens to match these. Open them side by side.
    (`apps/site/src/_includes/css/app.css`): the portal and the public site share
    one brand colour, so changing it means changing both.
 2. **Type comes only from the scale**: `text-xs` `text-sm` `text-base` `text-lg`
-   `text-xl` `text-2xl` `text-3xl` (Utopia, fluid 16→18px base). **Never**
+   `text-xl` `text-2xl` `text-2xl` (Utopia, fluid 16→18px base). **Never**
    `text-[13px]` or any pixel size.
 3. **Hierarchy through layout and weight, not boxes.** No card inside a card
-   inside a card. One `text-3xl` title per page; sections are `text-lg`.
+   inside a card. One `text-2xl` title per page; sections are `text-lg`.
 4. **The accent is for what matters**: the primary action (one per view), the
    current step, focus, the active nav marker, allowance meters. Not decoration.
 5. **Behaviour is untouched.** A visual migration changes markup and classes
@@ -48,16 +48,21 @@ Build new or migrated screens to match these. Open them side by side.
 
 ## Text: which step for what
 
-| Use | Class |
-|---|---|
-| Page title (one per page) | `text-3xl font-semibold tracking-tight text-fg` |
-| The headline inside a brand block | `text-2xl font-semibold tracking-tight` |
-| Callout titles, large figures in prose | `text-xl font-semibold tracking-tight` |
-| Section title (`<Section>`) | `text-lg font-semibold tracking-tight` (built in) |
-| Body, row titles, field values, descriptions, examples, errors | `text-base` |
-| Secondary lines, metadata, hints, breadcrumbs, nav, buttons, labels | `text-sm` |
-| Badges and status pills only | `text-xs` |
-| Key numbers (allowances) | `text-3xl font-semibold tabular-nums` |
+The scale is Utopia, fluid, a **1.200 ratio at 320px widening to 1.250 at
+1400px**. Every named size is a whole step on that ladder — `text-xs` -2 through
+`text-4xl` 5 — so each is a clear 20–25% from its neighbours. Do not add a
+half-step: `xl` used to sit at 1.5, which left two heading sizes 9.5% apart and
+read as noise rather than hierarchy.
+
+| Use | Step | Class |
+|---|---|---|
+| Page title (one per page) | 3 | `text-2xl font-semibold tracking-tight text-fg` |
+| The headline inside a brand block, callout titles | 2 | `text-xl font-semibold tracking-tight` |
+| Section title (`<Section>`) | 1 | `text-lg font-semibold tracking-tight` (built in) |
+| Body, row titles, field values, descriptions, examples, errors | 0 | `text-base` |
+| Secondary lines, metadata, hints, breadcrumbs, nav, buttons, labels | -1 | `text-sm` |
+| Badges and status pills only | -2 | `text-xs` |
+| Key numbers (allowances) | 3 | `text-2xl font-semibold tabular-nums` |
 
 **Anything a person reads as a sentence is `text-base`.** A description under a
 field, an example answer, an error, the body of a confirmation — all `text-base`.
@@ -110,10 +115,20 @@ space-y-10`) and a properties column (`lg:w-[384px] border-l bg-surface
 space-y-4 p-5`) of `PanelCard`s: the facts that matter most first. On phones the
 column drops below.
 
-**Form page** (brief, settings, upload): the detail layout's main column only,
-`max-w-[720px]`. Labels `text-sm font-medium text-fg`, help `text-sm text-fg-3`,
-fields `portal-field`, one `portal-btn-primary` to submit at the end, errors in
-`text-danger` with `role="alert"`.
+**Form page** (brief, settings, upload): the detail layout's main column only.
+Labels `text-base font-semibold text-fg` so a question leads its own help text,
+help `text-base text-fg-2`, fields `portal-field`, one `portal-btn-primary` to
+submit at the end, errors in `text-base text-danger` with `role="alert"`. A
+multi-step form puts its progress in a rail beside the questions
+(`lg:grid lg:grid-cols-[13rem_1fr]`, see the brief), never in a strip of chips
+that scrolls sideways.
+
+## The column
+
+Two measures, and no third. **Content is `max-w-[920px]`** — detail pages,
+forms, threads, everything a person reads or fills in. **Lists and tables are
+`max-w-[1400px]`**, where rows genuinely use the width. There were once three
+(720, 920, 1400, split almost evenly), which is no standard at all.
 
 **Thread page** (messages): `PageHeader`; messages as a list in the main column,
 each with author `text-sm font-medium`, time `text-xs text-fg-3`, body
