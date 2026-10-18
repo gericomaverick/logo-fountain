@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { ProjectTimeline } from "@/app/project-timeline";
@@ -14,6 +14,8 @@ import { EmptyLine, PageHeader, Property, Section } from "@/components/ui";
 import { getProjectDisplayTitle } from "@/lib/project-display-name";
 import { UPSELL_DISPLAY_PRICES } from "@/lib/stripe-price-allowlist";
 import { ProjectStatusBadge } from "@/components/project-status-badge";
+import { ProjectWelcome } from "@/components/project-welcome";
+import { shouldShowProjectWelcome } from "@/lib/project-journey";
 import { formatClientFirstName, getAreaCardSubtitle } from "@/lib/project-overview";
 import { getClientOverviewNextAction, getPendingFeedbackCountForLatestConcept } from "@/lib/project-hub";
 import { deriveOverviewBadgeStatus } from "@/lib/project-status";
@@ -24,6 +26,7 @@ type Snapshot = {
   createdAt?: string;
   updatedAt?: string;
   entitlements: { concepts: number; revisions: number };
+  hasBriefDraft?: boolean;
   entitlementUsage?: {
     concepts?: EntitlementUsage;
     revisions?: EntitlementUsage;
@@ -47,10 +50,6 @@ function formatDay(value?: string): string {
   return Number.isNaN(date.getTime()) ? "—" : DAY.format(date);
 }
 
-type SessionPayload = {
-  authenticated: boolean;
-  isAdmin?: boolean;
-};
 
 function readError(payload: { error?: { message?: string; details?: { nextStep?: string } } | string } | null, fallback: string): string {
   const err = payload?.error;
@@ -268,29 +267,24 @@ function UpsellPurchaseStatus({
 }
 
 export default function ProjectPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const params = useParams<{ id: string }>();
   const projectId = params.id;
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
-  const [session, setSession] = useState<SessionPayload>({ authenticated: false });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [firstName, setFirstName] = useState<string | null>(null);
   const [downloadingFinals, setDownloadingFinals] = useState(false);
 
   async function refresh(id: string) {
-    const [response, sessionRes, profileRes] = await Promise.all([
+    const [response, profileRes] = await Promise.all([
       fetch(`/api/projects/${id}`, { cache: "no-store" }),
-      fetch("/api/auth/session", { cache: "no-store" }),
       fetch("/api/profile", { cache: "no-store" }),
     ]);
 
     const payload = await response.json().catch(() => null);
     if (!response.ok) throw new Error(readError(payload, "Failed to load project"));
 
-    const sessionPayload = (await sessionRes.json().catch(() => null)) as SessionPayload | null;
-    setSession(sessionPayload ?? { authenticated: false });
     setSnapshot(payload?.snapshot ?? null);
 
     if (profileRes.ok) {
@@ -326,15 +320,6 @@ export default function ProjectPage() {
     };
   }, [projectId]);
 
-  useEffect(() => {
-    if (!snapshot) return;
-    if (session.isAdmin) return;
-
-    if (snapshot.status === "AWAITING_BRIEF") {
-      router.replace(`/project/${projectId}/brief`);
-    }
-  }, [projectId, router, session.isAdmin, snapshot]);
-
   const revisionUsage = useMemo(
     () => resolveUsage(snapshot?.entitlementUsage?.revisions),
     [snapshot?.entitlementUsage?.revisions],
@@ -354,6 +339,9 @@ export default function ProjectPage() {
     return raw === "addon" || raw === "upgrade" ? raw : null;
   }, [searchParams]);
   const welcomeName = formatClientFirstName(firstName);
+  const showWelcome = shouldShowProjectWelcome(snapshot?.status, Boolean(snapshot?.latestBrief));
+  const conceptAllowance = snapshot?.entitlements?.concepts ?? null;
+  const revisionAllowance = snapshot?.entitlements?.revisions ?? null;
   const hasApprovedConcept = (snapshot?.concepts ?? []).some((concept) => concept.status === "approved");
   const canDownloadFinals = Boolean(snapshot?.finalZip?.available) && (snapshot?.status === "FINAL_FILES_READY" || snapshot?.status === "DELIVERED");
   const showPendingDeliverablesCard = hasApprovedConcept && !canDownloadFinals;
@@ -417,8 +405,19 @@ export default function ProjectPage() {
 
             <UpsellPurchaseStatus sessionId={upsellSessionId} kind={upsellKind} />
 
-            {/* The one thing to do next, or that there's nothing to do. */}
-            {nextAction ? (
+            {/* Someone who has paid and not yet briefed gets the whole picture
+                first; everyone else gets the one thing to do next. */}
+            {showWelcome ? (
+              <ProjectWelcome
+                projectId={projectId}
+                status={snapshot?.status}
+                firstName={welcomeName || null}
+                packageLabel={snapshot?.packageCode ? packageLabel : null}
+                conceptCount={conceptAllowance}
+                revisionCount={revisionAllowance}
+                hasDraft={Boolean(snapshot?.hasBriefDraft)}
+              />
+            ) : nextAction ? (
               <section className="relative overflow-hidden rounded-xl border border-[color-mix(in_srgb,var(--accent)_30%,transparent)] bg-[color-mix(in_srgb,var(--accent)_7%,var(--panel))] p-5 sm:flex sm:items-center sm:justify-between sm:gap-6">
                 <span aria-hidden className="absolute inset-y-0 left-0 w-1 bg-accent" />
                 <div className="pl-1">

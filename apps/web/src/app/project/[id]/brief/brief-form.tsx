@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 
 import { BriefDocument, BriefField, BriefFieldGrid, BriefSection } from "@/components/brief-document";
+import { BriefFieldInput } from "@/components/brief-field-input";
 import { FeatureNoticeCard } from "@/components/feature-notice-card";
 import { briefSections, EMPTY_BRIEF_ANSWERS, missingRequiredFields, requiredFieldLabels, type BriefAnswers } from "@/lib/brief";
 import {
@@ -54,6 +55,10 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
   const [submissionAcknowledged, setSubmissionAcknowledged] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [draftSavedAt, setDraftSavedAt] = useState<Date | null>(null);
+  // Until the saved draft has been fetched, saving would overwrite it with
+  // whatever this tab happens to be showing.
+  const [draftLoaded, setDraftLoaded] = useState(latestBrief !== null);
+  const [draftOffline, setDraftOffline] = useState(false);
   const editorRef = useRef<HTMLFormElement | null>(null);
   const editorHeadingRef = useRef<HTMLHeadingElement | null>(null);
 
@@ -134,16 +139,67 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
     focusEditorSection();
   }, [isEditing]);
 
+  // A draft belongs to the person, not the tab: pick up whatever they last
+  // wrote, on whichever device they wrote it.
   useEffect(() => {
-    if (typeof window === "undefined" || submittedVersion !== null || !isEditing) return;
+    if (latestBrief !== null) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const response = await fetch(`/api/projects/${projectId}/brief/draft`, { cache: "no-store" });
+        if (!response.ok) throw new Error("Could not load draft");
+        const payload = (await response.json().catch(() => null)) as
+          | { draft?: { answers?: BriefAnswers; updatedAt?: string } | null }
+          | null;
+        if (cancelled) return;
+
+        const saved = payload?.draft?.answers;
+        if (saved) {
+          // Anything typed in this tab before the fetch landed wins: it is newer.
+          setForm((current) => (hasBriefAnswerChanges(current, EMPTY_BRIEF_ANSWERS) ? current : mergeWithBriefDefaults(saved)));
+          const savedAt = payload?.draft?.updatedAt ? new Date(payload.draft.updatedAt) : null;
+          setDraftSavedAt(savedAt && !Number.isNaN(savedAt.getTime()) ? savedAt : null);
+        }
+      } catch {
+        if (!cancelled) setDraftOffline(true);
+      } finally {
+        if (!cancelled) setDraftLoaded(true);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [latestBrief, projectId]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || submittedVersion !== null || !isEditing || !draftLoaded) return;
 
     const timeout = window.setTimeout(() => {
+      // Written locally first so a refresh mid-sentence never loses anything,
+      // then to the account so another device can pick it up.
       window.sessionStorage.setItem(draftStorageKey, JSON.stringify(form));
-      setDraftSavedAt(new Date());
-    }, 250);
+
+      void (async () => {
+        try {
+          const response = await fetch(`/api/projects/${projectId}/brief/draft`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ answers: form }),
+          });
+          if (!response.ok) throw new Error("Could not save draft");
+          setDraftOffline(false);
+          setDraftSavedAt(new Date());
+        } catch {
+          // The local copy still holds; say so rather than claiming a save.
+          setDraftOffline(true);
+        }
+      })();
+    }, 800);
 
     return () => window.clearTimeout(timeout);
-  }, [draftStorageKey, form, isEditing, submittedVersion]);
+  }, [draftLoaded, draftStorageKey, form, isEditing, projectId, submittedVersion]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !hasUnsavedChanges || isSubmitting) return;
@@ -224,11 +280,11 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
             variant="info"
             className="p-4"
             kicker="From the Logo Fountain team"
-            title="Set us up with a strong brief"
+            title="There are no wrong answers here"
             body={(
               <>
-                <p>The more specific your brief, the stronger your logo concepts will be. A few extra details now helps us design faster and with much better precision.</p>
-                <p className="mt-2 text-sm text-fg-3">You can move back at any time before submitting. Once submitted, your brief is locked.</p>
+                <p>Tell us what you can, in your own words. The more we know about your brand, the sharper your first concepts will be — but a half-finished thought is still more useful to your designer than a blank box.</p>
+                <p className="mt-2 text-sm text-fg-3">Takes about five minutes. Everything saves as you go, so you can stop and come back whenever you like, on any device. Nothing reaches your designer until you review it and press submit.</p>
               </>
             )}
           />
@@ -239,7 +295,11 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
               <div className="flex items-center gap-3">
                 <p>{progressPercent}% complete</p>
                 <p className="rounded-full border border-line-strong bg-panel px-2 py-0.5 text-sm text-fg-3" aria-live="polite">
-                  {draftSavedAt ? `Draft saved ${draftSavedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : "Draft autosaves in this tab"}
+                  {draftOffline
+                    ? "Saved on this device"
+                    : draftSavedAt
+                      ? `Saved ${draftSavedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+                      : "Saves as you go"}
                 </p>
               </div>
             </div>
@@ -263,34 +323,12 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
               <p className="mt-2 text-sm text-fg-3"><span className="text-danger">*</span> Required fields · Optional fields are clearly marked.</p>
               <div className="mt-4 grid gap-4">
                 {currentSection.fields.map((field) => (
-                  <div key={field.key}>
-                    <label className="mb-1 block text-sm font-medium text-fg" htmlFor={field.key}>
-                      {field.label} {field.required ? <span className="text-danger">*</span> : <span className="text-fg-3">(optional)</span>}
-                    </label>
-                    {field.kind === "textarea" ? (
-                      <textarea
-                        id={field.key}
-                        required={field.required}
-                        value={form[field.key]}
-                        maxLength={field.maxLength}
-                        placeholder={field.placeholder}
-                        onChange={(event) => setForm((current) => ({ ...current, [field.key]: event.target.value }))}
-                        className="portal-field"
-                        rows={field.rows ?? 3}
-                      />
-                    ) : (
-                      <input
-                        id={field.key}
-                        required={field.required}
-                        value={form[field.key]}
-                        maxLength={field.maxLength}
-                        placeholder={field.placeholder}
-                        onChange={(event) => setForm((current) => ({ ...current, [field.key]: event.target.value }))}
-                        className="portal-field"
-                      />
-                    )}
-                    {field.helperText ? <p className="mt-1 text-sm text-fg-3">{field.helperText}</p> : null}
-                  </div>
+                  <BriefFieldInput
+                    key={field.key}
+                    field={field}
+                    value={form[field.key]}
+                    onChange={(next) => setForm((current) => ({ ...current, [field.key]: next }))}
+                  />
                 ))}
               </div>
             </section>

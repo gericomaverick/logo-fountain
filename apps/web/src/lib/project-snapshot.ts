@@ -117,6 +117,9 @@ export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
         take: 1,
         select: { version: true, answers: true, createdAt: true },
       },
+      // Only whether one exists: the hub offers to resume, it never shows
+      // unsubmitted answers.
+      briefDraft: { select: { updatedAt: true } },
       messages: {
         orderBy: [{ createdAt: "asc" }, { id: "asc" }],
         select: {
@@ -301,6 +304,7 @@ export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
     latestRevisionRequests: project.revisionRequests.slice(0, 5),
     messages: project.messages,
     latestBrief,
+    hasBriefDraft: Boolean(project.briefDraft),
     finalZip,
     latestOrder,
     stuck: Boolean(stuckReason),
