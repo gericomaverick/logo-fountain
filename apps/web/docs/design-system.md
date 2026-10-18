@@ -6,8 +6,8 @@ more than any one screen's flourish.
 
 **Direction:** Linear's layout (a sidebar, a full-width working panel, dense
 lists, a properties column) in arlo.sh / Claude colouring (parchment, white and
-warm ink, warm charcoal in dark), with one strong vermilion for what matters.
-Light and dark are both first-class.
+warm ink, warm charcoal in dark), with the marketing site's brand purple for
+what matters. Light and dark are both first-class.
 
 ## Reference screens
 
@@ -30,13 +30,15 @@ Build new or migrated screens to match these. Open them side by side.
    their `-soft` washes. **Never** `neutral-*`, `gray-*`, `white`, `black` or a
    named colour (`violet-*`, `emerald-*`…) on a migrated screen, and no gradients.
    The only fixed colours are a stage's colour (`project-status-badge.tsx`) and
-   the auth artwork panel.
+   the auth artwork panel. The accent is the marketing site's `--purple`
+   (`apps/site/src/_includes/css/app.css`): the portal and the public site share
+   one brand colour, so changing it means changing both.
 2. **Type comes only from the scale**: `text-xs` `text-sm` `text-base` `text-lg`
    `text-xl` `text-2xl` `text-3xl` (Utopia, fluid 16→18px base). **Never**
    `text-[13px]` or any pixel size.
 3. **Hierarchy through layout and weight, not boxes.** No card inside a card
    inside a card. One `text-3xl` title per page; sections are `text-lg`.
-4. **Vermilion is for what matters**: the primary action (one per view), the
+4. **The accent is for what matters**: the primary action (one per view), the
    current step, focus, the active nav marker, allowance meters. Not decoration.
 5. **Behaviour is untouched.** A visual migration changes markup and classes
    only: never data loading, API calls, polling, validation, confirmations,
