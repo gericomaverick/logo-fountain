@@ -156,6 +156,27 @@ already holds facts. Keep the block to a headline, a line, and a button.
 **No uppercase pre-headings.** A small capitalised label above a title restates
 the title and earns nothing. Write the title so it stands alone.
 
+## Surfaces
+
+Four levels, and each one has to be *visible* against its neighbour or it is not
+a level at all. Every adjacent pair clears **1.10** in both themes; ground to
+card is 1.33 in light, 1.18 in dark.
+
+| Token | Light | Dark | For |
+|---|---|---|---|
+| `bg-app` | `#e5dfcf` | `#121110` | The page ground |
+| `bg-panel` | `#ffffff` | `#232120` | A card, a form, a list box — what sits on the ground |
+| `bg-surface` | `#f6f4ef` | `#2d2b27` | A subtle fill inside a panel: group headers, insets |
+| `bg-surface-2` | `#eee9df` | `#37332f` | A step further: hover, meter tracks |
+
+The washes (`accent-soft`, `success-soft`, `warning-soft`, `danger-soft`) sit at
+0.16–0.22 alpha. They were once 0.08–0.12, which on white is a ratio of about
+1.12 — present in the stylesheet and absent on the screen. If a tint is worth
+applying it has to be worth seeing.
+
+Borders are `border-line` at 0.14 alpha and `border-line-strong` at 0.26. Below
+about 0.12 a hairline on a light ground disappears.
+
 ## Dark mode
 
 Handled by the tokens: nothing to do on a migrated screen if rule 1 is kept.

@@ -12,13 +12,16 @@
    Light and dark are tuned separately rather than inverted. */
 :root {
   color-scheme: light;
-  --app-bg: #f3efe4;
+  /* The ramp has to be visible to be worth having. The previous one spanned
+     1.002 from app-bg to surface-2 — a single hex digit apart — so a tinted
+     background simply did not read as one. Each step is now 1.11–1.29. */
+  --app-bg: #e5dfcf;
   --panel: #ffffff;
-  --surface: #faf7f0;
-  --surface-2: #f4efe4;
-  --nav-active: #e9e2d2;
-  --line: rgba(33, 33, 31, 0.1);
-  --line-strong: rgba(33, 33, 31, 0.17);
+  --surface: #f6f4ef;
+  --surface-2: #eee9df;
+  --nav-active: #d9cfb9;
+  --line: rgba(33, 33, 31, 0.14);
+  --line-strong: rgba(33, 33, 31, 0.26);
   --fg: #21211f;
   --fg-2: #5f5d57;
   --fg-3: #8e8b82;
@@ -29,7 +32,7 @@
      the public site read as one product. */
   --accent: #5150f7;
   --accent-hover: #3d3cd4;
-  --accent-soft: rgba(81, 80, 247, 0.1);
+  --accent-soft: rgba(81, 80, 247, 0.18);
   --accent-fg: #ffffff;
   /* A filled block of brand colour, for the one thing that matters most on a
      page. A shade deeper than the accent so white body text clears AA on it
@@ -39,26 +42,28 @@
   --brand-block-fg-2: rgba(255, 255, 255, 0.82);
   --brand-block-btn-fg: #3d3cd4;
   --danger: #c43c3c;
-  --danger-soft: rgba(196, 60, 60, 0.08);
+  --danger-soft: rgba(196, 60, 60, 0.16);
   --warning: #b2700e;
-  --warning-soft: rgba(214, 140, 30, 0.12);
+  --warning-soft: rgba(214, 140, 30, 0.2);
   --success: #3d8a5f;
-  --success-soft: rgba(61, 138, 95, 0.11);
+  --success-soft: rgba(61, 138, 95, 0.18);
   --focus: rgba(81, 80, 247, 0.4);
   --shadow-panel: 0 1px 2px rgba(33, 33, 31, 0.04), 0 0 0 1px rgba(33, 33, 31, 0.02);
-  --shadow-card: 0 1px 2px rgba(33, 33, 31, 0.05);
+  --shadow-card: 0 1px 3px rgba(33, 33, 31, 0.08);
   --sidebar-w: 248px;
 }
 
 [data-theme="dark"] {
   color-scheme: dark;
-  --app-bg: #1c1b19;
-  --panel: #262624;
-  --surface: #2b2a27;
-  --surface-2: #31302d;
-  --nav-active: #34332f;
-  --line: rgba(250, 249, 245, 0.08);
-  --line-strong: rgba(250, 249, 245, 0.14);
+  /* Same problem in dark: panel to surface was 1.056 and surface-2 to
+     nav-active 1.044. Deepened the ground and spread the steps to 1.12–1.15. */
+  --app-bg: #121110;
+  --panel: #232120;
+  --surface: #2d2b27;
+  --surface-2: #37332f;
+  --nav-active: #423d36;
+  --line: rgba(250, 249, 245, 0.12);
+  --line-strong: rgba(250, 249, 245, 0.22);
   --fg: #f5f4ef;
   --fg-2: #c3c0b6;
   --fg-3: #8d8a80;
@@ -69,18 +74,18 @@
      dark text at 7.7:1 where the brand purple itself would only reach 2.8:1. */
   --accent: #a5a4ff;
   --accent-hover: #b4b3ff;
-  --accent-soft: rgba(165, 164, 255, 0.16);
+  --accent-soft: rgba(165, 164, 255, 0.22);
   --accent-fg: #1c1b19;
   --brand-block: #4a49e8;
   --brand-block-fg: #ffffff;
   --brand-block-fg-2: rgba(255, 255, 255, 0.82);
   --brand-block-btn-fg: #3d3cd4;
   --danger: #ec7468;
-  --danger-soft: rgba(236, 116, 104, 0.13);
+  --danger-soft: rgba(236, 116, 104, 0.2);
   --warning: #e8a64b;
-  --warning-soft: rgba(232, 166, 75, 0.14);
+  --warning-soft: rgba(232, 166, 75, 0.22);
   --success: #6fc290;
-  --success-soft: rgba(111, 194, 144, 0.14);
+  --success-soft: rgba(111, 194, 144, 0.22);
   --focus: rgba(165, 164, 255, 0.5);
   --shadow-panel: 0 0 0 1px rgba(250, 249, 245, 0.03);
   --shadow-card: none;
