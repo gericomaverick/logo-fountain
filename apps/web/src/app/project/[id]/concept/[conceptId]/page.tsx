@@ -282,7 +282,6 @@ export default function ConceptDetailPage() {
           <FeatureNoticeCard
             variant="success"
             className="mb-4 p-4"
-            kicker="Concept approved"
             title="Concept approved — thank you!"
             body={`${approvalSuccess.conceptNumber ? `Concept #${approvalSuccess.conceptNumber} is now approved.` : "Your selected concept is now approved."} We’ve updated your project status and your designer is moving to the next stage.`}
             actions={(
@@ -337,7 +336,7 @@ export default function ConceptDetailPage() {
 
             {(conceptExplainer || showSelectedV1DesignerNote || showSelectedAssetNote) ? (
               <div className="mt-4 border-t border-line pt-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-fg-2">Designer notes for this concept</p>
+                <p className="text-sm font-semibold text-fg-2">Designer notes for this concept</p>
                 {conceptExplainer ? (
                   <div className="mt-3">
                     <p className="text-xs font-semibold text-fg-2">Concept rationale</p>
@@ -363,7 +362,6 @@ export default function ConceptDetailPage() {
               <FeatureNoticeCard
                 variant="success"
                 className="mt-4 p-4"
-                kicker="Concept status"
                 title="Great choice — this concept is officially approved 🎉"
                 body="Your designer is now polishing the final files for delivery. We’ll send you notifications as soon as your deliverables are ready to download."
               />

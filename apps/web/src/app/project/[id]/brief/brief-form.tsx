@@ -218,7 +218,6 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
       <FeatureNoticeCard
         variant="success"
         className="mt-6"
-        kicker="Brief submitted"
         title="Your brief is in — your designer now has your submission"
         body="Your brief has been submitted and is now locked for client editing."
         signature="— Logo Fountain team"
@@ -247,7 +246,6 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
           <FeatureNoticeCard
             variant="success"
             className="mb-4 p-4"
-            kicker="Brief status"
             title="Brief submission complete"
             body="Editing and re-submission are now disabled for clients."
             contentClassName="max-w-none"
@@ -279,12 +277,11 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
           <FeatureNoticeCard
             variant="info"
             className="p-4"
-            kicker="From the Logo Fountain team"
             title="There are no wrong answers here"
             body={(
               <>
                 <p>Tell us what you can, in your own words. The more we know about your brand, the sharper your first concepts will be — but a half-finished thought is still more useful to your designer than a blank box.</p>
-                <p className="mt-2 text-sm text-fg-3">Takes about five minutes. Everything saves as you go, so you can stop and come back whenever you like, on any device. Nothing reaches your designer until you review it and press submit.</p>
+                <p className="mt-3 text-base text-fg-2">Takes about five minutes. Everything saves as you go, so you can stop and come back whenever you like, on any device. Nothing reaches your designer until you review it and press submit.</p>
               </>
             )}
           />
@@ -306,7 +303,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
             <div className="h-2 w-full overflow-hidden rounded-full bg-surface-2">
               <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${progressPercent}%` }} />
             </div>
-            <ol className="flex gap-2 overflow-x-auto pb-1 text-xs [scrollbar-width:thin]">
+            <ol className="flex gap-2 overflow-x-auto pb-1 text-sm [scrollbar-width:thin]">
               {briefSections.map((section, index) => (
                 <li key={section.id} className={`shrink-0 rounded-md border px-2 py-1 ${index === activeStep ? "border-accent bg-accent-soft text-accent" : "border-line text-fg-3"}`}>
                   {section.title}
@@ -319,7 +316,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
           {currentSection ? (
             <section className="space-y-2">
               <h3 className="text-lg font-semibold tracking-tight text-fg">{currentSection.title}</h3>
-              <p className="mt-1 text-sm text-fg-3">{currentSection.description}</p>
+              <p className="mt-2 max-w-[60ch] text-base text-fg-2">{currentSection.description}</p>
               <p className="mt-2 text-sm text-fg-3"><span className="text-danger">*</span> Required fields · Optional fields are clearly marked.</p>
               <div className="mt-4 grid gap-4">
                 {currentSection.fields.map((field) => (
@@ -335,10 +332,10 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
           ) : (
             <section className="space-y-4">
               <h3 className="text-lg font-semibold tracking-tight text-fg">Final review</h3>
-              <p className="text-sm text-fg-3">Quickly review your answers before submitting. Use Back if you want to change anything.</p>
+              <p className="max-w-[60ch] text-base text-fg-2">Quickly review your answers before submitting. Use Back if you want to change anything.</p>
               {briefSections.map((section) => (
                 <div key={section.id} className="rounded-lg border border-line bg-surface p-3">
-                  <h4 className="text-xs font-semibold text-fg">{section.title}</h4>
+                  <h4 className="text-base font-semibold text-fg">{section.title}</h4>
                   <div className="mt-2 grid gap-2">
                     {section.fields.map((field) => (
                       <BriefField key={field.key} label={field.label} value={form[field.key] || "—"} compact />
@@ -368,8 +365,8 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
             ) : null}
           </div>
 
-          {hasUnsavedChanges ? <p className="text-xs text-warning">You have unsaved changes in this version. Submit when ready.</p> : null}
-          {error ? <p className="text-sm text-danger" role="alert">{error}</p> : null}
+          {hasUnsavedChanges ? <p className="text-sm text-warning">You have unsaved changes in this version. Submit when ready.</p> : null}
+          {error ? <p className="text-base text-danger" role="alert">{error}</p> : null}
 
           {showSubmitConfirmation ? (
             <div className="fixed inset-0 z-40 flex items-center justify-center bg-fg/40 px-4" role="dialog" aria-modal="true" aria-labelledby="brief-submit-confirm-title">
@@ -377,9 +374,9 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
                 <h4 id="brief-submit-confirm-title" className="text-lg font-semibold text-fg">
                   {BRIEF_SUBMISSION_CONFIRMATION_COPY.title}
                 </h4>
-                <p className="mt-2 text-sm text-fg-2">{BRIEF_SUBMISSION_CONFIRMATION_COPY.body}</p>
+                <p className="mt-2 text-base text-fg-2">{BRIEF_SUBMISSION_CONFIRMATION_COPY.body}</p>
 
-                <label className="mt-4 flex items-start gap-3 rounded-lg border border-line bg-surface p-3 text-sm text-fg">
+                <label className="mt-4 flex items-start gap-3 rounded-lg border border-line bg-surface p-3 text-base text-fg">
                   <input
                     type="checkbox"
                     checked={submissionAcknowledged}

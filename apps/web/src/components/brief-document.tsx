@@ -52,9 +52,8 @@ export function BriefSection({ title, description, children, className = "", ton
   return (
     <section className={`rounded-xl border p-4 sm:p-5 ${toneClass} ${className}`.trim()}>
       <div className="border-b border-line pb-3">
-        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-fg-2">Section</p>
-        <h3 className="mt-1 text-lg font-semibold tracking-tight text-fg">{title}</h3>
-        {description ? <p className="mt-1.5 max-w-[72ch] text-sm leading-6 text-fg-2">{description}</p> : null}
+        <h3 className="text-lg font-semibold tracking-tight text-fg">{title}</h3>
+        {description ? <p className="mt-1.5 max-w-[72ch] text-base leading-7 text-fg-2">{description}</p> : null}
       </div>
       <div className="mt-4">{children}</div>
     </section>
@@ -64,7 +63,7 @@ export function BriefSection({ title, description, children, className = "", ton
 export function BriefField({ label, value, compact = false, className = "", valueClassName = "" }: BriefFieldProps) {
   return (
     <section className={`border-b border-line ${compact ? "py-3" : "py-4"} ${className}`.trim()}>
-      <h4 className="text-xs font-semibold uppercase tracking-[0.08em] text-fg-2">{label}</h4>
+      <h4 className="text-sm font-medium text-fg-2">{label}</h4>
       <p className={`mt-2.5 max-w-[72ch] whitespace-pre-wrap text-base text-fg ${compact ? "leading-6" : "leading-7"} ${valueClassName}`.trim()}>{value || "—"}</p>
     </section>
   );

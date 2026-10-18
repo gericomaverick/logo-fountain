@@ -26,16 +26,23 @@ export function BriefFieldInput({
 
   return (
     <div>
-      <label className="mb-1 block text-sm font-medium text-fg" htmlFor={field.key}>
-        {field.label} {field.required ? <span className="text-danger">*</span> : <span className="text-fg-3">(optional)</span>}
+      <label className="block text-base font-semibold text-fg" htmlFor={field.key}>
+        {field.label}{" "}
+        {field.required ? (
+          <span className="text-danger">*</span>
+        ) : (
+          <span className="text-sm font-normal text-fg-3">(optional)</span>
+        )}
       </label>
-      {field.helperText ? <p className="mb-2 text-sm text-fg-3">{field.helperText}</p> : null}
+      {field.helperText ? <p className="mt-1 max-w-[60ch] text-base text-fg-2">{field.helperText}</p> : null}
 
-      {hasOptions ? (
-        <ChoiceField field={field} value={value} onChange={onChange} />
-      ) : (
-        <FreeTextField field={field} value={value} onChange={onChange} />
-      )}
+      <div className="mt-3">
+        {hasOptions ? (
+          <ChoiceField field={field} value={value} onChange={onChange} />
+        ) : (
+          <FreeTextField field={field} value={value} onChange={onChange} />
+        )}
+      </div>
 
       {field.example ? <ExampleDisclosure example={field.example} /> : null}
     </div>
@@ -57,7 +64,7 @@ function ChoiceField({
 
   return (
     <div className="space-y-3">
-      {field.optionsPrompt ? <p className="text-sm text-fg-3">{field.optionsPrompt}</p> : null}
+      {field.optionsPrompt ? <p className="text-base text-fg-2">{field.optionsPrompt}</p> : null}
 
       <div className="flex flex-wrap gap-2">
         {options.map((option) => {
@@ -83,7 +90,7 @@ function ChoiceField({
       </div>
 
       <div>
-        <label className="mb-1 block text-sm text-fg-3" htmlFor={field.key}>
+        <label className="mb-1 block text-sm font-medium text-fg-2" htmlFor={field.key}>
           {field.notePrompt ?? "Anything to add (optional)"}
         </label>
         <textarea
@@ -152,7 +159,7 @@ function ExampleDisclosure({ example }: { example: string }) {
       >
         {open ? "Hide example" : "See an example"}
       </button>
-      <p id={id} hidden={!open} className="mt-2 border-l-2 border-line-strong pl-3 text-sm italic text-fg-3">
+      <p id={id} hidden={!open} className="mt-2 rounded-md bg-surface px-3 py-2 text-base italic text-fg-2">
         {example}
       </p>
     </div>

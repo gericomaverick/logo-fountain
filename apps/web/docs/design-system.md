@@ -26,8 +26,9 @@ Build new or migrated screens to match these. Open them side by side.
 1. **Colours come only from the tokens** (`globals.css`, used as Tailwind
    classes): `bg-app`, `bg-panel`, `bg-surface`, `bg-surface-2`, `border-line`,
    `border-line-strong`, `text-fg`, `text-fg-2`, `text-fg-3`, `bg-accent`,
-   `text-accent`, `bg-accent-soft`, and `success` / `warning` / `danger` with
-   their `-soft` washes. **Never** `neutral-*`, `gray-*`, `white`, `black` or a
+   `text-accent`, `bg-accent-soft`, `bg-brand-block` with
+   `text-brand-block-fg` / `text-brand-block-fg-2`, and `success` / `warning` /
+   `danger` with their `-soft` washes. **Never** `neutral-*`, `gray-*`, `white`, `black` or a
    named colour (`violet-*`, `emerald-*`…) on a migrated screen, and no gradients.
    The only fixed colours are a stage's colour (`project-status-badge.tsx`) and
    the auth artwork panel. The accent is the marketing site's `--purple`
@@ -50,12 +51,19 @@ Build new or migrated screens to match these. Open them side by side.
 | Use | Class |
 |---|---|
 | Page title (one per page) | `text-3xl font-semibold tracking-tight text-fg` |
-| Section title (`<Section>`) | `text-lg font-semibold tracking-tight` (built in) |
+| The headline inside a brand block | `text-2xl font-semibold tracking-tight` |
 | Callout titles, large figures in prose | `text-xl font-semibold tracking-tight` |
-| Body, row titles, field values, descriptions | `text-base` |
-| Secondary lines, metadata, breadcrumbs, nav, buttons | `text-sm` |
-| Badges, small labels (`portal-label`) | `text-xs` |
+| Section title (`<Section>`) | `text-lg font-semibold tracking-tight` (built in) |
+| Body, row titles, field values, descriptions, examples, errors | `text-base` |
+| Secondary lines, metadata, hints, breadcrumbs, nav, buttons, labels | `text-sm` |
+| Badges and status pills only | `text-xs` |
 | Key numbers (allowances) | `text-3xl font-semibold tabular-nums` |
+
+**Anything a person reads as a sentence is `text-base`.** A description under a
+field, an example answer, an error, the body of a confirmation — all `text-base`.
+`text-sm` is for the things around the content: labels, hints, metadata,
+buttons. `text-xs` is for badges, and nothing else. When most of a screen is
+`text-sm` there is no hierarchy left and nothing tells the eye where to start.
 
 Muted text is `text-fg-2` (secondary) or `text-fg-3` (tertiary: timestamps,
 hints, empty states). Space uses Tailwind spacing, or `--space-*` tokens for
@@ -81,7 +89,7 @@ All in `src/components/`. Use these before writing markup.
 | Icons (`icons.tsx`) | Inline 16px icons; add any new one there, Lucide-style |
 | `portal-btn-primary` / `-secondary` / `-ghost` / `-danger` | Buttons (36px, `text-sm`). One primary per view |
 | `portal-field` | Inputs, selects, textareas (`text-base`, so phones don't zoom) |
-| `portal-label` | A small uppercase section label inside a card |
+| `portal-label` | A small section label inside a card (`text-sm`, sentence case) |
 | `portal-link` | An inline text link |
 
 ## Page patterns
@@ -118,11 +126,20 @@ each with author `text-sm font-medium`, time `text-xs text-fg-3`, body
 
 | Meaning | Style |
 |---|---|
-| Next step / primary call to action | `border-[color-mix(in_srgb,var(--accent)_30%,transparent)] bg-[color-mix(in_srgb,var(--accent)_7%,var(--panel))]`, a 4px accent rule down the left (`w-1 bg-accent`), an uppercase `text-accent` kicker, a primary button (see the project hub) |
+| The one thing to do on this page | A **brand block**: `rounded-xl bg-brand-block p-6`, a `text-2xl` headline in `text-brand-block-fg`, one line of `text-base` in `text-brand-block-fg-2`, and a white button with `text-[var(--brand-block-btn-fg)]`. See the project hub |
 | Success / done | `bg-success-soft` with a matching border |
 | Warning / waiting | `bg-warning-soft` |
 | Problem / error | `bg-danger-soft text-danger` |
 | Neutral info | `FeatureNoticeCard variant="info"` |
+
+**One brand block per page, and only for what the person must do next.** It is a
+filled field of colour, not a tinted card: solid colour is what makes it the
+first thing seen. Do not put a coloured rule down the side of a card to signal
+importance, and do not stack facts inside the block — the properties column
+already holds facts. Keep the block to a headline, a line, and a button.
+
+**No uppercase pre-headings.** A small capitalised label above a title restates
+the title and earns nothing. Write the title so it stands alone.
 
 ## Dark mode
 
@@ -139,7 +156,8 @@ are left alone. A black logo needs a `dark:invert` wrapper.
 - [ ] Old `mx-auto max-w-[1160px]` main replaced by the page pattern above
 - [ ] No `neutral-*`, `white`, `black`, named colours, gradients or `text-[…px]` left
 - [ ] Stage shown only with `ProjectStatusBadge`; allowances only with `Allowance`
-- [ ] At most one primary button in view
+- [ ] At most one primary button in view, and at most one brand block
+- [ ] Every sentence is `text-base`; no `text-xs` outside a badge; no uppercase pre-headings
 - [ ] Behaviour unchanged (diff shows markup and classes only)
 - [ ] Checked in light and dark, desktop and phone width
 - [ ] `npm run typecheck`, `npm run lint`, `npm run test` pass

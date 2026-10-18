@@ -340,8 +340,6 @@ export default function ProjectPage() {
   }, [searchParams]);
   const welcomeName = formatClientFirstName(firstName);
   const showWelcome = shouldShowProjectWelcome(snapshot?.status, Boolean(snapshot?.latestBrief));
-  const conceptAllowance = snapshot?.entitlements?.concepts ?? null;
-  const revisionAllowance = snapshot?.entitlements?.revisions ?? null;
   const hasApprovedConcept = (snapshot?.concepts ?? []).some((concept) => concept.status === "approved");
   const canDownloadFinals = Boolean(snapshot?.finalZip?.available) && (snapshot?.status === "FINAL_FILES_READY" || snapshot?.status === "DELIVERED");
   const showPendingDeliverablesCard = hasApprovedConcept && !canDownloadFinals;
@@ -412,20 +410,18 @@ export default function ProjectPage() {
                 projectId={projectId}
                 status={snapshot?.status}
                 firstName={welcomeName || null}
-                packageLabel={snapshot?.packageCode ? packageLabel : null}
-                conceptCount={conceptAllowance}
-                revisionCount={revisionAllowance}
                 hasDraft={Boolean(snapshot?.hasBriefDraft)}
               />
             ) : nextAction ? (
-              <section className="relative overflow-hidden rounded-xl border border-[color-mix(in_srgb,var(--accent)_30%,transparent)] bg-[color-mix(in_srgb,var(--accent)_7%,var(--panel))] p-5 sm:flex sm:items-center sm:justify-between sm:gap-6">
-                <span aria-hidden className="absolute inset-y-0 left-0 w-1 bg-accent" />
-                <div className="pl-1">
-                  <p className="text-xs font-semibold uppercase tracking-[0.06em] text-accent">Next step</p>
-                  <p className="mt-1 text-xl font-semibold tracking-tight text-fg">{nextAction.label}</p>
-                  <p className="mt-1 text-base text-fg-2">Do this first to keep your project moving.</p>
+              <section className="rounded-xl bg-brand-block p-6 sm:flex sm:items-center sm:justify-between sm:gap-8">
+                <div>
+                  <p className="text-2xl font-semibold tracking-tight text-brand-block-fg">{nextAction.label}</p>
+                  <p className="mt-2 max-w-[52ch] text-base text-brand-block-fg-2">Do this first to keep your project moving.</p>
                 </div>
-                <Link href={nextAction.href} className="portal-btn-primary mt-4 h-11 shrink-0 px-5 text-base sm:mt-0">
+                <Link
+                  href={nextAction.href}
+                  className="mt-5 inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-md bg-[var(--brand-block-fg)] px-5 text-base font-semibold text-[var(--brand-block-btn-fg)] transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-block-fg)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--brand-block)] sm:mt-0"
+                >
                   {nextAction.label}
                   <ChevronRightIcon size={16} />
                 </Link>
@@ -434,7 +430,7 @@ export default function ProjectPage() {
               <section className="flex items-start gap-3 rounded-xl border border-[color-mix(in_srgb,var(--success)_28%,transparent)] bg-success-soft p-5">
                 <CheckIcon size={18} className="mt-1 shrink-0 text-success" />
                 <div>
-                  <p className="text-lg font-semibold tracking-tight text-fg">You’re all caught up</p>
+                  <p className="text-xl font-semibold tracking-tight text-fg">You’re all caught up</p>
                   <p className="mt-1 text-base text-fg-2">We’ll show the next step here when something needs your attention.</p>
                 </div>
               </section>
@@ -443,7 +439,6 @@ export default function ProjectPage() {
             {canDownloadFinals ? (
               <FeatureNoticeCard
                 variant="brand"
-                kicker="Final deliverables"
                 title="Great news — your final deliverables are ready to download ✨"
                 body="Everything is packed and ready for you. Huge thanks for working with us — it’s been a pleasure building your brand with you."
                 signature="— Logo Fountain team"
@@ -457,7 +452,6 @@ export default function ProjectPage() {
             ) : showPendingDeliverablesCard ? (
               <FeatureNoticeCard
                 variant="info"
-                kicker="Final deliverables"
                 title="Your logo files are in production"
                 body="You are all set. We have started preparing your final logo files and quality checks are underway. We will update this space the moment your download is ready."
                 signature="Logo Fountain team"

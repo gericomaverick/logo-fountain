@@ -31,6 +31,13 @@
   --accent-hover: #3d3cd4;
   --accent-soft: rgba(81, 80, 247, 0.1);
   --accent-fg: #ffffff;
+  /* A filled block of brand colour, for the one thing that matters most on a
+     page. A shade deeper than the accent so white body text clears AA on it
+     (6.2:1, and 5.1:1 once softened) rather than scraping past at 4.5. */
+  --brand-block: #4a49e8;
+  --brand-block-fg: #ffffff;
+  --brand-block-fg-2: rgba(255, 255, 255, 0.82);
+  --brand-block-btn-fg: #3d3cd4;
   --danger: #c43c3c;
   --danger-soft: rgba(196, 60, 60, 0.08);
   --warning: #b2700e;
@@ -64,6 +71,10 @@
   --accent-hover: #b4b3ff;
   --accent-soft: rgba(165, 164, 255, 0.16);
   --accent-fg: #1c1b19;
+  --brand-block: #4a49e8;
+  --brand-block-fg: #ffffff;
+  --brand-block-fg-2: rgba(255, 255, 255, 0.82);
+  --brand-block-btn-fg: #3d3cd4;
   --danger: #ec7468;
   --danger-soft: rgba(236, 116, 104, 0.13);
   --warning: #e8a64b;
@@ -94,6 +105,9 @@
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-accent-soft: var(--accent-soft);
+  --color-brand-block: var(--brand-block);
+  --color-brand-block-fg: var(--brand-block-fg);
+  --color-brand-block-fg-2: var(--brand-block-fg-2);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
   --color-warning: var(--warning);
@@ -252,6 +266,6 @@ body {
 
   /* A small uppercase-free section label, Linear style. */
   .portal-label {
-    @apply text-xs font-semibold uppercase tracking-[0.06em] text-fg-3;
+    @apply text-sm font-semibold text-fg-2;
   }
 }

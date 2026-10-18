@@ -62,7 +62,7 @@ export default async function AdminProjectBriefPage({ params }: AdminProjectBrie
               meta={<span>Submitted {dateLabel(brief.createdAt)}</span>}
             >
               <div className="mb-2 rounded-xl border border-line bg-surface px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-fg-3">At a glance</p>
+                <p className="text-sm font-semibold text-fg-2">At a glance</p>
                 <p className="mt-1 text-sm text-fg-2">{briefSections.length} sections · {briefSections.reduce((total, section) => total + section.fields.length, 0)} answers</p>
               </div>
 

@@ -474,7 +474,7 @@ export default function AdminProjectPage() {
               {hasApprovedConcept ? (
                 <div className="space-y-3">
                   {finalUploadSuccess ? (
-                    <FeatureNoticeCard variant="success" className="p-4" kicker="Upload complete" title="Final deliverables published" body={finalUploadSuccess} />
+                    <FeatureNoticeCard variant="success" className="p-4" title="Final deliverables published" body={finalUploadSuccess} />
                   ) : null}
                   {snapshot?.finalZip?.available ? (
                     <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[color-mix(in_srgb,var(--success)_30%,transparent)] bg-success-soft px-3 py-2.5 text-base text-fg">
