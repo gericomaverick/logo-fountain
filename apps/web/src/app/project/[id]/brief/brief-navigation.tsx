@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 import { canPinBriefNavigation } from "./brief-feedback";
 
 /** One DOM action set; the wrapper reserves the measured, safe-area-inclusive height. */
-export function BriefNavigation({ children, stage, modal }: { children: ReactNode; stage: string; modal: boolean }) {
+export function BriefNavigation({ children, timeline, stage, modal }: { children: ReactNode; timeline: ReactNode; stage: string; modal: boolean }) {
   const slot = useRef<HTMLDivElement>(null);
   const bar = useRef<HTMLDivElement>(null);
   const [placement, setPlacement] = useState<{ left: number; width: number; bottom: number; height: number } | null>(null);
@@ -54,7 +54,8 @@ export function BriefNavigation({ children, stage, modal }: { children: ReactNod
       <div ref={bar} data-brief-navigation data-placement={placement ? "persistent" : "flow"}
         style={fixed}
         className="z-20 border-t border-line bg-panel pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
-        <p className="mb-2 text-sm text-fg-2 lg:hidden">{stage}</p>
+        <div className="mb-3">{timeline}</div>
+        <p className="mb-3 text-sm text-fg-2 sm:hidden">{stage}</p>
         <div className="flex flex-wrap items-center justify-between gap-3">{children}</div>
       </div>
     </div>

@@ -369,17 +369,10 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
             Brief editor
           </h3>
 
-          <div inert={showSubmitConfirmation} className="lg:grid lg:grid-cols-[13rem_1fr] lg:gap-12">
-            {/* The rail sits beside the questions and follows them down. */}
-            <aside className="mb-4 lg:-mt-1.5 lg:mb-0 lg:self-start lg:top-24 [@media(min-height:700px)]:lg:sticky">
-              <div>
-                <BriefProgress labels={stepLabels} activeIndex={activeStep} onSelect={goToStep} />
-              </div>
-            </aside>
-
+          <div inert={showSubmitConfirmation}>
             <div className="flex min-w-0 flex-col gap-4 sm:gap-6">
 
-          {/* The rail carries position; a line of metadata carries the save. */}
+          {/* Position lives in the bottom navigation; save metadata stays with the questions. */}
           {currentSection ? (
             <div>
               <h2 ref={stepHeadingRef} tabIndex={-1} className="scroll-mt-24 text-lg font-semibold tracking-tight text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">{currentSection.title}</h2>
@@ -452,7 +445,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
           ) : null}
           {hasUnsavedChanges ? <p className="text-base text-fg-2">You have unsaved changes in this version. Submit when ready.</p> : null}
           {error && !showSubmitConfirmation ? <p className="text-base text-danger" role="alert">{error}</p> : null}
-          <BriefNavigation stage={`Step ${activeStep + 1} of ${stepLabels.length} · ${stepLabels[activeStep]}`} modal={showSubmitConfirmation}>
+          <BriefNavigation timeline={<BriefProgress labels={stepLabels} activeIndex={activeStep} onSelect={goToStep} />} stage={`Step ${activeStep + 1} of ${stepLabels.length} · ${stepLabels[activeStep]}`} modal={showSubmitConfirmation}>
             <button type="button" onClick={goBack} disabled={activeStep === 0} className="portal-btn-secondary min-h-11 px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50">
               Back
             </button>

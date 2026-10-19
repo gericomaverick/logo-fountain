@@ -38,7 +38,7 @@ export function canPinBriefNavigation({ width, height, viewportHeight, viewportW
   width: number; height: number; viewportHeight: number; viewportWidth: number;
   offsetTop: number; scale: number; editing: boolean; modal: boolean; barHeight: number;
 }) {
-  return width < 1024 && width >= 300 && height >= 640 && viewportHeight >= 640
+  return width >= 300 && height >= 640 && viewportHeight >= 640
     && viewportHeight >= height - 40 && Math.abs(viewportWidth - width) < 2
     && offsetTop < 2 && scale === 1 && !editing && !modal && barHeight * 4 < viewportHeight;
 }
