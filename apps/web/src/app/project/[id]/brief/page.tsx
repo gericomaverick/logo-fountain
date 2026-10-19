@@ -88,12 +88,12 @@ export default async function ProjectBriefPage({ params }: ProjectBriefPageProps
         <div className="mx-auto max-w-[920px]">
           {/* The page's own header, set apart so it does not read as the first
               thing in the form. */}
-          <header className="border-b border-line pb-8">
+          <header className="border-b border-line pb-4 sm:pb-6">
             <ProjectStatusBadge status={project.status} />
             <h1 className="mt-4 text-2xl font-semibold tracking-tight text-fg">Project brief</h1>
           </header>
 
-          <div className="mt-10">
+          <div className="mt-6 sm:mt-8">
             <BriefForm projectId={project.id} briefVersions={briefVersions} />
           </div>
         </div>

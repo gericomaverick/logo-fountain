@@ -290,26 +290,18 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
               </div>
             </aside>
 
-            <div className="min-w-0 space-y-6">
-
-          {activeStep === 0 ? (
-          <FeatureNoticeCard
-            variant="info"
-            className="p-4"
-            title="There are no wrong answers here"
-            body={(
-              <>
-                <p>Tell us what you can, in your own words. The more we know about your brand, the sharper your first concepts will be — but a half-finished thought is still more useful to your designer than a blank box.</p>
-                <p className="mt-3 text-base text-fg-2">Takes about five minutes. Everything saves as you go, so you can stop and come back whenever you like, on any device. Nothing reaches your designer until you review it and press submit.</p>
-              </>
-            )}
-          />
-          ) : null}
+            <div className="flex min-w-0 flex-col gap-4 sm:gap-6">
 
           {/* The rail carries position; a line of metadata carries the save. */}
-          <div className="flex items-center justify-between gap-3 lg:hidden">
+          <div className="lg:hidden">
             <BriefProgress labels={stepLabels} activeIndex={activeStep} onSelect={goToStep} />
           </div>
+          {currentSection ? (
+            <div>
+              <h2 className="text-lg font-semibold tracking-tight text-fg">{currentSection.title}</h2>
+              <p className="mt-2 max-w-[56ch] text-base leading-relaxed text-fg-2">{currentSection.description}</p>
+            </div>
+          ) : null}
           <p className="text-sm text-fg-3" aria-live="polite">
             {draftOffline
               ? "Saved on this device"
@@ -318,15 +310,17 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
                 : "Saves as you go"}
           </p>
 
+          {activeStep === 0 ? (
+            <div className="space-y-2 text-base leading-normal text-fg-2 sm:leading-relaxed">
+              <h3 className="font-semibold text-fg">There are no wrong answers here</h3>
+              <p>Tell us what you can, in your own words. The more we know about your brand, the sharper your first concepts will be — but a half-finished thought is still more useful to your designer than a blank box.</p>
+              <p>Takes about five minutes. Everything saves as you go, so you can stop and come back whenever you like, on any device. Nothing reaches your designer until you review it and press submit.</p>
+            </div>
+          ) : null}
+
           {currentSection ? (
             <section>
-              {/* The step leads the page: a heading, a standfirst, then the
-                  questions on their own surface. Each rung of the ladder is a
-                  clear step from the one below it. */}
-              <h3 className="text-xl font-semibold tracking-tight text-fg">{currentSection.title}</h3>
-              <p className="mt-3 max-w-[56ch] text-lg leading-relaxed text-fg-2">{currentSection.description}</p>
-
-              <div className="mt-8 divide-y divide-line overflow-hidden rounded-xl border border-line bg-panel">
+              <div className="divide-y divide-line rounded-xl border border-line bg-panel">
                 {currentSection.fields.map((field) => (
                   <div key={field.key} className="p-5 sm:p-6">
                     <BriefFieldInput
@@ -337,17 +331,17 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
                   </div>
                 ))}
               </div>
-              <p className="mt-3 text-sm text-fg-3">
+              <p className="mt-3 text-base text-fg-2">
                 <span className="text-danger">*</span> Required. Everything else is optional.
               </p>
             </section>
           ) : (
             <section className="space-y-4">
-              <h3 className="text-lg font-semibold tracking-tight text-fg">Final review</h3>
+              <h2 className="text-lg font-semibold tracking-tight text-fg">Final review</h2>
               <p className="max-w-[60ch] text-base text-fg-2">Quickly review your answers before submitting. Use Back if you want to change anything.</p>
               {briefSections.map((section) => (
                 <div key={section.id} className="rounded-lg border border-line bg-surface p-3">
-                  <h4 className="text-base font-semibold text-fg">{section.title}</h4>
+                  <h3 className="text-base font-semibold text-fg">{section.title}</h3>
                   <div className="mt-2 grid gap-2">
                     {section.fields.map((field) => (
                       <BriefField key={field.key} label={field.label} value={form[field.key] || "—"} compact />
@@ -358,7 +352,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
             </section>
           )}
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-6">
             <button type="button" onClick={goBack} disabled={activeStep === 0} className="portal-btn-secondary px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50">
               Back
             </button>
@@ -377,7 +371,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
             ) : null}
           </div>
 
-          {hasUnsavedChanges ? <p className="text-sm text-warning">You have unsaved changes in this version. Submit when ready.</p> : null}
+          {hasUnsavedChanges ? <p className="text-base text-warning">You have unsaved changes in this version. Submit when ready.</p> : null}
           {error ? <p className="text-base text-danger" role="alert">{error}</p> : null}
 
           {showSubmitConfirmation ? (
