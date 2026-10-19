@@ -1,4 +1,4 @@
-import { briefSections, missingRequiredFields, type BriefAnswers } from "./brief";
+import { briefSections, missingRequiredFields, normalizeBriefAnswers, type BriefAnswers } from "./brief";
 
 export const REVIEW_STEP_INDEX = briefSections.length;
 
@@ -6,7 +6,7 @@ export function canAdvanceFromStep(answers: BriefAnswers, stepIndex: number): { 
   const section = briefSections[stepIndex];
   if (!section) return { ok: true };
 
-  const missing = missingRequiredFields(answers, section);
+  const missing = missingRequiredFields(normalizeBriefAnswers(answers)!, section);
   if (missing.length > 0) return { ok: false, missing };
   return { ok: true };
 }
