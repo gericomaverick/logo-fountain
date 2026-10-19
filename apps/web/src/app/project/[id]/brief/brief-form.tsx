@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 
 import { BriefDocument, BriefField, BriefFieldGrid, BriefSection } from "@/components/brief-document";
@@ -273,7 +273,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
       ) : null}
 
       {isEditing ? (
-        <form id="brief-editor-form" ref={editorRef} className="scroll-mt-24 space-y-6" onSubmit={onSubmitIntent}>
+        <form id="brief-editor-form" ref={editorRef} className="scroll-mt-24 space-y-6 [&_button:focus-visible]:ring-accent" onSubmit={onSubmitIntent}>
           <h3
             ref={editorHeadingRef}
             tabIndex={-1}
@@ -302,7 +302,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
               <p className="mt-2 max-w-[56ch] text-base leading-relaxed text-fg-2">{currentSection.description}</p>
             </div>
           ) : null}
-          <p className="text-sm text-fg-3" aria-live="polite">
+          <p className="text-sm text-fg-2" aria-live="polite">
             {draftOffline
               ? "Saved on this device"
               : draftSavedAt
@@ -310,25 +310,30 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
                 : "Saves as you go"}
           </p>
 
-          {activeStep === 0 ? (
-            <div className="space-y-2 text-base leading-normal text-fg-2 sm:leading-relaxed">
-              <h3 className="font-semibold text-fg">There are no wrong answers here</h3>
-              <p>Tell us what you can, in your own words. The more we know about your brand, the sharper your first concepts will be — but a half-finished thought is still more useful to your designer than a blank box.</p>
-              <p>Takes about five minutes. Everything saves as you go, so you can stop and come back whenever you like, on any device. Nothing reaches your designer until you review it and press submit.</p>
-            </div>
-          ) : null}
-
           {currentSection ? (
             <section>
               <div className="divide-y divide-line rounded-xl border border-line bg-panel">
-                {currentSection.fields.map((field) => (
-                  <div key={field.key} className="p-5 sm:p-6">
-                    <BriefFieldInput
-                      field={field}
-                      value={form[field.key]}
-                      onChange={(next) => setForm((current) => ({ ...current, [field.key]: next }))}
-                    />
-                  </div>
+                {currentSection.fields.map((field, fieldIndex) => (
+                  <Fragment key={field.key}>
+                    <div className="p-4 sm:p-6">
+                      <BriefFieldInput
+                        field={field}
+                        value={form[field.key]}
+                        onChange={(next) => setForm((current) => ({ ...current, [field.key]: next }))}
+                      />
+                    </div>
+                    {fieldIndex === 0 ? (
+                      <>
+                        {activeStep === 0 ? (
+                          <div className="space-y-2 p-4 text-base leading-normal text-fg-2 sm:p-6 sm:leading-relaxed">
+                            <h3 className="font-semibold text-fg">There are no wrong answers here</h3>
+                            <p>Tell us what you can, in your own words. The more we know about your brand, the sharper your first concepts will be — but a half-finished thought is still more useful to your designer than a blank box.</p>
+                            <p>Takes about five minutes. Everything saves as you go, so you can stop and come back whenever you like, on any device. Nothing reaches your designer until you review it and press submit.</p>
+                          </div>
+                        ) : null}
+                      </>
+                    ) : null}
+                  </Fragment>
                 ))}
               </div>
               <p className="mt-3 text-base text-fg-2">

@@ -31,7 +31,7 @@ export function BriefFieldInput({
         {field.required ? (
           <span className="text-danger">*</span>
         ) : (
-          <span className="text-sm font-normal text-fg-3">(optional)</span>
+          <span className="text-sm font-normal text-fg-2">(optional)</span>
         )}
       </label>
       {field.helperText ? <p className="mt-2 max-w-[60ch] text-base text-fg-2">{field.helperText}</p> : null}
@@ -78,9 +78,9 @@ function ChoiceField({
               onClick={() => onChange(composeBriefAnswer(toggleBriefChoice(selected, option.value, values), note))}
               className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
                 isSelected
-                  ? "border-accent bg-accent-soft font-medium text-accent"
-                  : "border-line-strong bg-panel text-fg-2 hover:border-fg-3 hover:text-fg"
-              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)]`}
+                  ? "border-accent bg-accent-soft font-medium text-fg"
+                  : "border-fg-3 bg-panel text-fg-2 hover:border-fg-3 hover:text-fg"
+              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent`}
             >
               {option.value}
               {option.hint ? <span className="ml-1.5 text-fg-2">· {option.hint}</span> : null}
@@ -99,7 +99,7 @@ function ChoiceField({
           maxLength={field.maxLength}
           placeholder={field.placeholder}
           onChange={(event) => onChange(composeBriefAnswer(selected, event.target.value))}
-          className="portal-field"
+          className="portal-field border-fg-3 placeholder:text-fg-2 focus-visible:ring-accent"
           rows={2}
         />
       </div>
@@ -125,7 +125,7 @@ function FreeTextField({
         maxLength={field.maxLength}
         placeholder={field.placeholder}
         onChange={(event) => onChange(event.target.value)}
-        className="portal-field"
+        className="portal-field border-fg-3 placeholder:text-fg-2 focus-visible:ring-accent"
         rows={field.rows ?? 3}
       />
     );
@@ -139,7 +139,7 @@ function FreeTextField({
       maxLength={field.maxLength}
       placeholder={field.placeholder}
       onChange={(event) => onChange(event.target.value)}
-      className="portal-field"
+      className="portal-field border-fg-3 placeholder:text-fg-2 focus-visible:ring-accent"
     />
   );
 }
@@ -155,7 +155,7 @@ function ExampleDisclosure({ example }: { example: string }) {
         onClick={() => setOpen((current) => !current)}
         aria-expanded={open}
         aria-controls={id}
-        className="portal-link text-sm"
+        className="portal-link text-sm focus-visible:ring-accent"
       >
         {open ? "Hide example" : "See an example"}
       </button>
