@@ -69,18 +69,16 @@ function AreaRow({ title, href, hasNew, subtitle, Icon }: { title: string; href:
       <Link
         href={href}
         aria-label={`Open ${title}`}
-        className="group flex h-full items-start gap-3 rounded-xl border border-line bg-panel p-4 transition-colors hover:border-line-strong hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)]"
+        className="group flex h-full flex-col rounded-xl border border-line bg-panel p-4 transition-colors hover:border-line-strong hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)]"
       >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-line bg-surface text-fg-2 group-hover:text-fg">
-          <Icon size={17} />
+        <span className="flex h-10 w-10 items-center justify-center rounded-lg border border-line bg-surface text-fg-2 group-hover:text-fg">
+          <Icon size={18} />
         </span>
-        <span className="min-w-0 flex-1">
-          <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <span className="text-base font-medium text-fg">{title}</span>
-            {hasNew ? <span className="rounded-full bg-accent-soft px-2 py-0.5 text-xs font-semibold text-accent">New</span> : null}
-          </span>
-          <span className="mt-0.5 block text-sm leading-snug text-fg-3">{getAreaCardSubtitle(title, subtitle)}</span>
+        <span className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="text-base font-medium text-fg">{title}</span>
+          {hasNew ? <span className="rounded-full bg-accent-soft px-2 py-0.5 text-xs font-semibold text-accent">New</span> : null}
         </span>
+        <span className="mt-0.5 block text-sm leading-snug text-fg-3">{getAreaCardSubtitle(title, subtitle)}</span>
       </Link>
     </li>
   );
