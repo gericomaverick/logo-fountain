@@ -15,16 +15,11 @@
   /* The ramp has to be visible to be worth having. The previous one spanned
      1.002 from app-bg to surface-2 — a single hex digit apart — so a tinted
      background simply did not read as one. Each step is now 1.11–1.29. */
-  /* Ivory ground, white cards. The ground was a deeper parchment, which made
-     the page the warm thing and the cards the plain ones; this way round the
-     card is what stands out, which is what a card is for. Lighter leaves less
-     room for the ramp, so each step below is smaller than it was — every
-     adjacent pair still clears 1.11. */
-  --app-bg: #ece9e2;
+  --app-bg: #e5dfcf;
   --panel: #ffffff;
-  --surface: #f4f1ea;
-  --surface-2: #e9e5dc;
-  --nav-active: #ded9cb;
+  --surface: #f6f4ef;
+  --surface-2: #eee9df;
+  --nav-active: #d9cfb9;
   --line: rgba(33, 33, 31, 0.14);
   --line-strong: rgba(33, 33, 31, 0.26);
   --fg: #21211f;
