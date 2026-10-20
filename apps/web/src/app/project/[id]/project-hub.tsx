@@ -22,6 +22,8 @@ import { getClientOverviewNextAction, getPendingFeedbackCountForLatestConcept } 
 import { deriveOverviewBadgeStatus } from "@/lib/project-status";
 import { customerActionFor } from "@/lib/project-state-machine";
 
+const SHORT_DATE = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short" });
+
 export type Snapshot = {
   status: string;
   packageCode: string;
@@ -60,23 +62,25 @@ function readError(payload: { error?: { message?: string; details?: { nextStep?:
   return nextStep ? `${message} — ${nextStep}` : message;
 }
 
+/** One of the project's three places to go. Side by side once there is room. */
 function AreaRow({ title, href, hasNew, subtitle, Icon }: { title: string; href: string; hasNew?: boolean; subtitle?: string; Icon: typeof MessageIcon }) {
   return (
     <li>
       <Link
         href={href}
         aria-label={`Open ${title}`}
-        className="group flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--focus)]"
+        className="group flex h-full items-start gap-3 rounded-xl border border-line bg-panel p-4 transition-colors hover:border-line-strong hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)]"
       >
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-line bg-surface text-fg-2 group-hover:text-fg">
           <Icon size={17} />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-base font-medium text-fg">{title}</span>
-          <span className="block truncate text-sm text-fg-3">{getAreaCardSubtitle(title, subtitle)}</span>
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="text-base font-medium text-fg">{title}</span>
+            {hasNew ? <span className="rounded-full bg-accent-soft px-2 py-0.5 text-xs font-semibold text-accent">New</span> : null}
+          </span>
+          <span className="mt-0.5 block text-sm leading-snug text-fg-3">{getAreaCardSubtitle(title, subtitle)}</span>
         </span>
-        {hasNew ? <span className="rounded-full bg-accent-soft px-2 py-0.5 text-xs font-semibold text-accent">New</span> : null}
-        <ChevronRightIcon size={16} className="shrink-0 text-fg-3 transition-transform group-hover:translate-x-0.5" />
       </Link>
     </li>
   );
@@ -468,8 +472,8 @@ export function ProjectHub({
             <UpsellPanel projectId={projectId} packageCode={snapshot?.packageCode} projectStatus={snapshot?.status} revisionUsage={revisionUsage} />
 
             <Section title="Your project">
-              <ul className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-panel">
-                <AreaRow title="Brief" Icon={FileTextIcon} href={`/project/${projectId}/brief`} subtitle={snapshot?.latestBrief ? `Latest: v${snapshot.latestBrief.version}` : "Submit your project brief"} />
+              <ul className="grid gap-3 sm:grid-cols-3">
+                <AreaRow title="Brief" Icon={FileTextIcon} href={`/project/${projectId}/brief`} subtitle={snapshot?.latestBrief ? "Submitted — your designer has it" : "Submit your project brief"} />
                 <AreaRow title="Concepts" Icon={ImageIcon} href={`/project/${projectId}/concepts`} hasNew={snapshot?.hasNewConcepts} subtitle={snapshot?.hasNewConcepts ? "New concepts/revisions available" : undefined} />
                 <AreaRow title="Messages" Icon={MessageIcon} href={`/project/${projectId}/messages`} hasNew={snapshot?.hasNewMessages} subtitle={snapshot?.hasNewMessages ? "Unread updates waiting" : undefined} />
               </ul>
@@ -504,7 +508,15 @@ export function ProjectHub({
             <dl className="-my-2">
               <Property label="Status"><ProjectStatusBadge status={overviewStatus} size="sm" /></Property>
               <Property label="Package">{packageLabel}</Property>
-              <Property label="Brief">{snapshot?.latestBrief ? `Version ${snapshot.latestBrief.version}` : <span className="text-fg-3">Not submitted</span>}</Property>
+              <Property label="Brief">
+                  {snapshot?.latestBrief ? (
+                    <time dateTime={snapshot.latestBrief.createdAt} title={new Date(snapshot.latestBrief.createdAt).toLocaleString()}>
+                      Submitted {SHORT_DATE.format(new Date(snapshot.latestBrief.createdAt))}
+                    </time>
+                  ) : (
+                    <span className="text-fg-3">Not submitted</span>
+                  )}
+                </Property>
               <Property label="Started">{formatDay(snapshot?.createdAt)}</Property>
               <Property label="Updated">{formatDay(snapshot?.updatedAt)}</Property>
             </dl>

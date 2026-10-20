@@ -334,7 +334,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
     <section className="space-y-6">
       {latestBrief ? (
         <BriefDocument
-          title={`Latest submitted brief (v${latestBrief.version})`}
+          title="Your brief"
           subtitle="This is the brief your designer is working from."
           meta={<span>Submitted {dateLabel(latestBrief.createdAt)}</span>}
         >
