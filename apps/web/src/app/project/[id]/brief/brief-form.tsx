@@ -394,7 +394,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
 
           {currentSection ? (
             <section>
-              <div className="divide-y divide-line rounded-xl border border-line bg-surface">
+              <div className="divide-y divide-line rounded-xl border border-line bg-panel">
                 {currentSection.fields.map((field, fieldIndex) => (
                   <Fragment key={field.key}>
                     <div className="p-4 sm:p-6">

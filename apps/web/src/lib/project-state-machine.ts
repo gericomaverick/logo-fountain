@@ -56,6 +56,28 @@ export const PROJECT_STATE_LABELS: Record<ProjectState, string> = {
  * progress" — which reads as two different things when it is one, and asks
  * someone to act when there is nothing for them to do.
  */
+/**
+ * What happens next, said as the thing the person will see rather than as the
+ * name of a state. "In design" is what we call the stage; "Your logo goes into
+ * design" is what it means to them.
+ */
+const NEXT_STAGE_COPY: Record<string, string> = {
+  AWAITING_BRIEF: "You tell us about your brand",
+  BRIEF_SUBMITTED: "Your brief reaches your designer",
+  IN_DESIGN: "Your logo goes into design",
+  CONCEPTS_READY: "Your first concepts arrive",
+  REVISIONS_IN_PROGRESS: "Your designer works on your feedback",
+  AWAITING_APPROVAL: "You choose the one you want",
+  APPROVED: "You choose the one you want",
+  FINAL_FILES_READY: "Your final files are prepared",
+  DELIVERED: "Everything is yours to use",
+};
+
+/** The next stage in the person's words, or its plain label if we have none. */
+export function nextStageCopy(state: string, fallback: string): string {
+  return NEXT_STAGE_COPY[state] ?? fallback;
+}
+
 const CUSTOMER_ACTION_STATES = new Set<ProjectState>(["AWAITING_BRIEF", "CONCEPTS_READY", "FINAL_FILES_READY"]);
 
 /** What the customer must do here, or null when the work is ours. */

@@ -1,4 +1,5 @@
 import { ChevronRightIcon } from "@/components/icons";
+import { nextStageCopy } from "@/lib/project-state-machine";
 
 type TimelineItem = {
   state: string;
@@ -55,7 +56,7 @@ export function ProjectTimeline({
         className={
           waitingOnThem
             ? "brand-sheen rounded-xl p-5 sm:p-6"
-            : "rounded-xl border border-line bg-surface p-5 sm:p-6"
+            : "rounded-xl border border-line bg-panel p-5 sm:p-6"
         }
       >
         <p className={`text-sm font-semibold ${waitingOnThem ? "text-brand-block-fg-2" : "text-accent"}`}>Now</p>
@@ -82,8 +83,10 @@ export function ProjectTimeline({
 
         {stages.next ? (
           <div className={`mt-5 border-t pt-4 ${waitingOnThem ? "border-[rgba(255,255,255,0.22)]" : "border-line"}`}>
-            <p className={`text-sm font-semibold ${waitingOnThem ? "text-brand-block-fg-2" : "text-fg-3"}`}>Then</p>
-            <p className={`mt-1 text-base ${waitingOnThem ? "text-brand-block-fg-2" : "text-fg-2"}`}>{stages.next.label}</p>
+            <p className={`text-sm font-semibold ${waitingOnThem ? "text-brand-block-fg-2" : "text-fg-3"}`}>Next</p>
+            <p className={`mt-1 text-base ${waitingOnThem ? "text-brand-block-fg-2" : "text-fg-2"}`}>
+              {nextStageCopy(stages.next.state, stages.next.label)}
+            </p>
           </div>
         ) : null}
       </div>
@@ -99,7 +102,7 @@ export function ProjectTimelineSkeleton() {
   return (
     <section aria-hidden className="animate-pulse">
       <div className="mb-3 h-6 w-44 rounded bg-surface-2" />
-      <div className="rounded-xl border border-line bg-surface p-5 sm:p-6">
+      <div className="rounded-xl border border-line bg-panel p-5 sm:p-6">
         <div className="h-4 w-10 rounded bg-surface-2" />
         <div className="mt-2 h-6 w-2/3 rounded bg-surface-2" />
         <div className="mt-2 h-4 w-32 rounded bg-surface-2" />
