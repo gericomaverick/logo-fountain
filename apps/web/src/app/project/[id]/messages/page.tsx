@@ -156,10 +156,12 @@ export default function ProjectMessagesPage() {
           </div>
         </div>
         <div className="shrink-0 border-t border-line bg-surface px-4 py-4 md:px-8">
-          <form className="mx-auto max-w-[920px]" onSubmit={sendMessage}>
+          {/* The composer fills the panel, as a chat composer does; the
+              conversation above it keeps the reading measure. */}
+          <form onSubmit={sendMessage}>
             {error ? <p role="alert" className="mb-3 text-sm text-danger">{error}</p> : null}
             <label className="text-sm font-medium text-fg" htmlFor="message-body">Write a message</label>
-            <textarea id="message-body" className="portal-field mt-2" rows={3} maxLength={2000} value={body} onChange={(e) => setBody(e.target.value)} placeholder="Type your message..." />
+            <textarea id="message-body" className="portal-field mt-2 min-h-28" rows={4} maxLength={2000} value={body} onChange={(e) => setBody(e.target.value)} placeholder="Type your message..." />
             <div className="mt-3 flex justify-end">
               <button className="portal-btn-primary" type="submit" disabled={busy || !body.trim()}>
                 {busy ? "Sending…" : "Send"}

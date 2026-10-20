@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
-import { ProjectTimeline } from "@/app/project-timeline";
+import { ProjectTimeline, ProjectTimelineSkeleton } from "@/app/project-timeline";
 import { Allowance, PanelCard, resolveUsage, type EntitlementUsage } from "@/components/allowances";
 import { FeatureNoticeCard } from "@/components/feature-notice-card";
 import { HeaderNav } from "@/components/header-nav";
@@ -481,7 +481,7 @@ export default function ProjectPage() {
               </Section>
             ) : null}
 
-            {snapshot?.timeline ? <ProjectTimeline timeline={snapshot.timeline} primaryCta={snapshot.primaryCta} /> : null}
+            {snapshot?.timeline ? <ProjectTimeline timeline={snapshot.timeline} primaryCta={snapshot.primaryCta} /> : <ProjectTimelineSkeleton />}
           </div>
         </main>
 

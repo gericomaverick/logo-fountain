@@ -112,8 +112,8 @@ function ChoiceField({
           maxLength={field.maxLength}
           placeholder={field.placeholder}
           onChange={(event) => onChange(composeBriefAnswer(selected, event.target.value))}
-          className="portal-field border-fg-3 placeholder:text-fg-2 focus-visible:ring-accent"
-          rows={2}
+          className="portal-field min-h-24 border-fg-3 placeholder:text-fg-2 focus-visible:ring-accent"
+          rows={3}
         />
       </div>
     </div>
@@ -142,8 +142,8 @@ function FreeTextField({
         maxLength={field.maxLength}
         placeholder={field.placeholder}
         onChange={(event) => onChange(event.target.value)}
-        className={`portal-field ${invalid ? "border-danger" : "border-fg-3"} placeholder:text-fg-2 focus-visible:ring-accent`}
-        rows={field.rows ?? 3}
+        className={`portal-field min-h-32 ${invalid ? "border-danger" : "border-fg-3"} placeholder:text-fg-2 focus-visible:ring-accent`}
+        rows={field.rows ?? 5}
       />
     );
   }
