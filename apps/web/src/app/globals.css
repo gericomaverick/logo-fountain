@@ -41,6 +41,16 @@
   --brand-block-fg: #ffffff;
   --brand-block-fg-2: rgba(255, 255, 255, 0.82);
   --brand-block-btn-fg: #3d3cd4;
+  /* Two gradients, each with one job.
+     `--brand-sheen` is the brand block: the purple with a little depth across
+     it, so the one thing to do on a page has some life without becoming
+     decoration.
+     `--celebration` is for the handful of moments worth marking — concepts
+     ready, final files delivered — and is the marketing site's package ribbon,
+     which is where this palette already belongs. */
+  --brand-sheen: linear-gradient(135deg, #5150f7 0%, #4a49e8 42%, #5f3fd4 100%);
+  --celebration: linear-gradient(135deg, #ffcf70 0%, #ff7ab6 22%, #8f7cff 48%, #51d6ff 72%, #b6ffbd 100%);
+  --celebration-fg: #1c1b19;
   --danger: #c43c3c;
   --danger-soft: rgba(196, 60, 60, 0.16);
   --warning: #b2700e;
@@ -80,6 +90,9 @@
   --brand-block-fg: #ffffff;
   --brand-block-fg-2: rgba(255, 255, 255, 0.82);
   --brand-block-btn-fg: #3d3cd4;
+  --brand-sheen: linear-gradient(135deg, #5150f7 0%, #4a49e8 42%, #5f3fd4 100%);
+  --celebration: linear-gradient(135deg, #ffcf70 0%, #ff7ab6 22%, #8f7cff 48%, #51d6ff 72%, #b6ffbd 100%);
+  --celebration-fg: #1c1b19;
   --danger: #ec7468;
   --danger-soft: rgba(236, 116, 104, 0.2);
   --warning: #e8a64b;
@@ -268,6 +281,19 @@ body {
 
   .portal-field {
     @apply w-full rounded-md border border-line-strong bg-panel px-3 py-2 text-base text-fg transition-colors placeholder:text-fg-3 hover:border-fg-3 focus-visible:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)];
+  }
+
+  /* The brand block's own surface. Only one of these per page, on the one
+     thing the person has to do. */
+  .brand-sheen {
+    background-image: var(--brand-sheen);
+  }
+
+  /* A moment worth marking. Rare by design: if everything celebrates, nothing
+     does. The dark ink is deliberate — this palette is light. */
+  .celebration {
+    background-image: var(--celebration);
+    color: var(--celebration-fg);
   }
 
   /* A small uppercase-free section label, Linear style. */

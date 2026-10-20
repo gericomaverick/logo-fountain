@@ -360,7 +360,7 @@ export default function ConceptDetailPage() {
 
             {isApprovedConcept ? (
               <FeatureNoticeCard
-                variant="success"
+                variant="celebration"
                 className="mt-4 p-4"
                 title="Great choice — this concept is officially approved 🎉"
                 body="Your designer is now polishing the final files for delivery. We’ll send you notifications as soon as your deliverables are ready to download."

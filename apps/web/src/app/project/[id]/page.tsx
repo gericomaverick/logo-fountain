@@ -277,21 +277,30 @@ export default function ProjectPage() {
   const [downloadingFinals, setDownloadingFinals] = useState(false);
 
   async function refresh(id: string) {
-    const [response, profileRes] = await Promise.all([
-      fetch(`/api/projects/${id}`, { cache: "no-store" }),
-      fetch("/api/profile", { cache: "no-store" }),
-    ]);
+    // Only the snapshot is re-read. A person's name does not change while they
+    // watch their project, and fetching it every few seconds doubled the
+    // requests this page makes for an answer that is always the same.
+    const response = await fetch(`/api/projects/${id}`, { cache: "no-store" });
 
     const payload = await response.json().catch(() => null);
     if (!response.ok) throw new Error(readError(payload, "Failed to load project"));
 
     setSnapshot(payload?.snapshot ?? null);
 
-    if (profileRes.ok) {
-      const profilePayload = (await profileRes.json().catch(() => null)) as { profile?: { firstName?: string | null } } | null;
-      setFirstName(profilePayload?.profile?.firstName ?? null);
-    }
   }
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const response = await fetch("/api/profile", { cache: "no-store" }).catch(() => null);
+      if (!response?.ok || cancelled) return;
+      const payload = (await response.json().catch(() => null)) as { profile?: { firstName?: string | null } } | null;
+      if (!cancelled) setFirstName(payload?.profile?.firstName ?? null);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!projectId) return;
@@ -313,7 +322,7 @@ export default function ProjectPage() {
     };
 
     void tick();
-    const timer = setInterval(() => void tick(), 3000);
+    const timer = setInterval(() => void tick(), 10000);
     return () => {
       cancelled = true;
       clearInterval(timer);
@@ -395,7 +404,7 @@ export default function ProjectPage() {
             <div>
               <ProjectStatusBadge status={overviewStatus} />
               <h1 className="mt-4 text-2xl font-semibold tracking-tight text-fg">{projectTitle}</h1>
-              <p className="mt-2 text-base text-fg-2">Hey{welcomeName ? `, ${welcomeName}` : ""} — here’s where your project stands.</p>
+              <p className="mt-2 text-base text-fg-2">{welcomeName ? `Hey, ${welcomeName} — here’s where your project stands.` : "Here’s where your project stands."}</p>
             </div>
 
             {loading ? <p className="text-sm text-fg-3">Loading…</p> : null}
@@ -413,7 +422,7 @@ export default function ProjectPage() {
                 hasDraft={Boolean(snapshot?.hasBriefDraft)}
               />
             ) : nextAction ? (
-              <section className="rounded-xl bg-brand-block p-6 sm:flex sm:items-center sm:justify-between sm:gap-8">
+              <section className="brand-sheen rounded-xl bg-brand-block p-6 sm:flex sm:items-center sm:justify-between sm:gap-8">
                 <div>
                   <p className="text-xl font-semibold tracking-tight text-brand-block-fg">{nextAction.label}</p>
                   <p className="mt-2 max-w-[52ch] text-base text-brand-block-fg-2">Do this first to keep your project moving.</p>
@@ -438,7 +447,7 @@ export default function ProjectPage() {
 
             {canDownloadFinals ? (
               <FeatureNoticeCard
-                variant="brand"
+                variant="celebration"
                 title="Great news — your final deliverables are ready to download ✨"
                 body="Everything is packed and ready for you. Huge thanks for working with us — it’s been a pleasure building your brand with you."
                 signature="— Logo Fountain team"

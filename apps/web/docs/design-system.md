@@ -29,7 +29,10 @@ Build new or migrated screens to match these. Open them side by side.
    `text-accent`, `bg-accent-soft`, `bg-brand-block` with
    `text-brand-block-fg` / `text-brand-block-fg-2`, and `success` / `warning` /
    `danger` with their `-soft` washes. **Never** `neutral-*`, `gray-*`, `white`, `black` or a
-   named colour (`violet-*`, `emerald-*`…) on a migrated screen, and no gradients.
+   named colour (`violet-*`, `emerald-*`…) on a migrated screen. Gradients come
+   only from the two that are defined, never hand-written: `brand-sheen` on a
+   brand block, and `celebration` for a genuine high point — final files ready,
+   a concept approved. If everything celebrates, nothing does.
    The only fixed colours are a stage's colour (`project-status-badge.tsx`) and
    the auth artwork panel. The accent is the marketing site's `--purple`
    (`apps/site/src/_includes/css/app.css`): the portal and the public site share

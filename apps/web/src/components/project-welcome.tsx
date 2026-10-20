@@ -27,9 +27,9 @@ export function ProjectWelcome({
 
   return (
     <section className="space-y-8">
-      <div className="rounded-xl bg-brand-block p-6 sm:p-8">
+      <div className="brand-sheen rounded-xl bg-brand-block p-6 sm:p-8">
         <h2 className="max-w-[22ch] text-xl font-semibold tracking-tight text-brand-block-fg sm:text-2xl">
-          {firstName ? `${firstName}, let’s get your logo started` : "Let’s get your logo started"}
+          {firstName ? `Hey, ${firstName} — let’s get your logo started` : "Let’s get your logo started"}
         </h2>
         <p className="mt-3 max-w-[52ch] text-base text-brand-block-fg-2">
           {hasDraft
