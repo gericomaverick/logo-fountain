@@ -150,6 +150,11 @@ each with author `text-sm font-medium`, time `text-xs text-fg-3`, body
 | Problem / error | `bg-danger-soft text-danger` |
 | Neutral info | `FeatureNoticeCard variant="info"` |
 
+**A page has one strong block: purple when the next move is theirs, green when
+it is not.** `bg-success-block` is the green one — "you're all caught up" — and
+the two never appear together, so it can be as present as the purple without
+competing with it.
+
 **One brand block per page, and only for what the person must do next.** It is a
 filled field of colour, not a tinted card: solid colour is what makes it the
 first thing seen. Do not put a coloured rule down the side of a card to signal

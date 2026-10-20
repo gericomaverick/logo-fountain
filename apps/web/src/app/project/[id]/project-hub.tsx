@@ -432,11 +432,13 @@ export function ProjectHub({
                 </Link>
               </section>
             ) : (
-              <section className="flex items-start gap-3 rounded-xl border border-[color-mix(in_srgb,var(--success)_28%,transparent)] bg-success-soft p-5">
-                <CheckIcon size={18} className="mt-1 shrink-0 text-success" />
+              <section className="flex items-start gap-4 rounded-xl bg-success-block p-5 sm:p-6">
+                <span aria-hidden className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[rgba(255,255,255,0.18)]">
+                  <CheckIcon size={20} className="text-success-block-fg" />
+                </span>
                 <div>
-                  <p className="text-xl font-semibold tracking-tight text-fg">You’re all caught up</p>
-                  <p className="mt-1 text-base text-fg-2">We’ll show the next step here when something needs your attention.</p>
+                  <p className="text-xl font-semibold tracking-tight text-success-block-fg">You’re all caught up</p>
+                  <p className="mt-1 max-w-[52ch] text-base text-success-block-fg-2">We’ll show the next step here when something needs your attention.</p>
                 </div>
               </section>
             )}

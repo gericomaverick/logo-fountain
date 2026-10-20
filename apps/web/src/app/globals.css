@@ -51,6 +51,12 @@
   --brand-sheen: linear-gradient(135deg, #7a4ef0 0%, #5150f7 40%, #3f3ed0 100%);
   --celebration: linear-gradient(135deg, #ffcf70 0%, #ff7ab6 22%, #8f7cff 48%, #51d6ff 72%, #b6ffbd 100%);
   --celebration-fg: #1c1b19;
+  /* The other side of the brand block: nothing to do rather than something to
+     do. A page has one or the other, never both, so this can be as present as
+     the purple without competing with it. */
+  --success-block: #17794a;
+  --success-block-fg: #ffffff;
+  --success-block-fg-2: rgba(255, 255, 255, 0.92);
   --danger: #c43c3c;
   --danger-soft: rgba(196, 60, 60, 0.16);
   --warning: #b2700e;
@@ -93,6 +99,12 @@
   --brand-sheen: linear-gradient(135deg, #7a4ef0 0%, #5150f7 40%, #3f3ed0 100%);
   --celebration: linear-gradient(135deg, #ffcf70 0%, #ff7ab6 22%, #8f7cff 48%, #51d6ff 72%, #b6ffbd 100%);
   --celebration-fg: #1c1b19;
+  /* The other side of the brand block: nothing to do rather than something to
+     do. A page has one or the other, never both, so this can be as present as
+     the purple without competing with it. */
+  --success-block: #17794a;
+  --success-block-fg: #ffffff;
+  --success-block-fg-2: rgba(255, 255, 255, 0.92);
   --danger: #ec7468;
   --danger-soft: rgba(236, 116, 104, 0.2);
   --warning: #e8a64b;
@@ -126,6 +138,9 @@
   --color-brand-block: var(--brand-block);
   --color-brand-block-fg: var(--brand-block-fg);
   --color-brand-block-fg-2: var(--brand-block-fg-2);
+  --color-success-block: var(--success-block);
+  --color-success-block-fg: var(--success-block-fg);
+  --color-success-block-fg-2: var(--success-block-fg-2);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
   --color-warning: var(--warning);
