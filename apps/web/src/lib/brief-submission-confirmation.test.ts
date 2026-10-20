@@ -51,9 +51,18 @@ describe("brief submission confirmation", () => {
     expect(shouldPerformBriefSubmission({ ...locked, isDialogOpen: true, isAcknowledged: true })).toBe(false);
   });
 
-  it("uses warm but clear finality language", () => {
-    expect(BRIEF_SUBMISSION_CONFIRMATION_COPY.body.toLowerCase()).toContain("guides your designer");
-    expect(BRIEF_SUBMISSION_CONFIRMATION_COPY.body.toLowerCase()).toContain("locked");
-    expect(BRIEF_SUBMISSION_CONFIRMATION_COPY.checkboxLabel.toLowerCase()).toContain("locked");
+  it("says plainly that it cannot be changed, in the person's own terms", () => {
+    const body = BRIEF_SUBMISSION_CONFIRMATION_COPY.body.toLowerCase();
+    expect(body).toContain("designer");
+    // The finality has to be stated, but as what happens to them rather than as
+    // a record being locked against a "client".
+    expect(body).toMatch(/won.t be able to change|cannot change|can.t change/);
+    expect(BRIEF_SUBMISSION_CONFIRMATION_COPY.checkboxLabel.toLowerCase()).toContain("ready to send");
+  });
+
+  it("never calls the person a client or talks about locking", () => {
+    const all = Object.values(BRIEF_SUBMISSION_CONFIRMATION_COPY).join(" ").toLowerCase();
+    expect(all).not.toContain("client");
+    expect(all).not.toContain("lock");
   });
 });

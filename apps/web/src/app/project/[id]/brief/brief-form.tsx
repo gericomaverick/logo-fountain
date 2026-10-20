@@ -314,7 +314,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
         variant="success"
         className="mt-6"
         title="Your brief is in — your designer now has your submission"
-        body="Your brief has been submitted and is now locked for client editing."
+        body="That’s everything we need to make a start. You can’t change the brief now it’s with your designer — if something needs correcting, send them a message and they’ll pick it up."
         signature="— Logo Fountain team"
         actions={(
           <>
@@ -335,14 +335,14 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
       {latestBrief ? (
         <BriefDocument
           title={`Latest submitted brief (v${latestBrief.version})`}
-          subtitle="Your brief is now locked. Review your submitted answers below."
+          subtitle="This is the brief your designer is working from."
           meta={<span>Submitted {dateLabel(latestBrief.createdAt)}</span>}
         >
           <FeatureNoticeCard
             variant="success"
             className="mb-4 p-4"
-            title="Brief submission complete"
-            body="Editing and re-submission are now disabled for clients."
+            title="Sent to your designer"
+            body="To change anything now, send your designer a message."
             contentClassName="max-w-none"
           />
           <BriefFieldGrid>

@@ -1,8 +1,8 @@
 export const BRIEF_SUBMISSION_CONFIRMATION_COPY = {
-  title: "Ready to submit your brief?",
-  body: "You’ve done the hard part — nice work. This submission guides your designer’s next steps. Once you confirm, your brief is locked for client editing, so take a final moment to review everything.",
-  checkboxLabel: "I’ve reviewed my answers and understand this brief will be locked after I submit.",
-  confirmLabel: "Yes, submit my brief",
+  title: "Ready to send this to your designer?",
+  body: "You’ve done the hard part — nice work. This is what your designer will work from, so take a last look: you won’t be able to change it once it’s sent. If something needs correcting later, message your designer and they’ll pick it up.",
+  checkboxLabel: "I’ve reviewed my answers and I’m ready to send this to my designer.",
+  confirmLabel: "Yes, send my brief",
   cancelLabel: "Go back and review",
 };
 
