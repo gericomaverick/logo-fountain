@@ -59,7 +59,7 @@ export function BriefNavigation({ children, timeline, stage, modal }: { children
       <div ref={bar} data-brief-navigation data-placement={placement ? "persistent" : "flow"}
         style={fixed}
         className={`z-20 border-t border-line bg-surface pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] ${placement ? "px-4 md:px-8" : ""}`}>
-        <div data-brief-nav-content className="mx-auto max-w-[920px]">
+        <div data-brief-nav-content className={placement ? "w-full" : "mx-auto max-w-[920px]"}>
           <div className="mb-3">{timeline}</div>
           <p className="mb-3 text-sm text-fg-2 sm:hidden">{stage}</p>
           <div className="flex flex-wrap items-center justify-between gap-3">{children}</div>
