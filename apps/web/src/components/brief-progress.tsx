@@ -1,108 +1,36 @@
 "use client";
 
-import { CheckIcon } from "./icons";
-
-/**
- * Where you are in the brief. A vertical timeline in its own rail beside the
- * questions, reading top to bottom like the stages on the project hub — so it
- * never scrolls sideways and never truncates a label.
- *
- * Below the rail's breakpoint it collapses to a row of dots: position without
- * labels, which the section heading underneath supplies anyway.
- *
- * A step already passed is a link back to it. Going forward stays with the
- * Continue button, which is what checks the required answers.
- */
-export function BriefProgress({
-  labels,
-  activeIndex,
-  onSelect,
-}: {
-  labels: string[];
-  activeIndex: number;
-  onSelect: (index: number) => void;
+/** Horizontal position, not a certificate of validity. Only previous steps are destinations. */
+export function BriefProgress({ labels, activeIndex, onSelect }: {
+  labels: string[]; activeIndex: number; onSelect: (index: number) => void;
 }) {
   return (
-    <nav aria-label="Brief progress">
-      {/* The rail. */}
-      <ol className="hidden lg:block">
+    <nav aria-label="Brief progress" className="relative">
+      <div role="progressbar" aria-label="Brief step" aria-valuemin={1} aria-valuemax={labels.length}
+        aria-valuenow={activeIndex + 1} aria-valuetext={`Step ${activeIndex + 1} of ${labels.length}: ${labels[activeIndex]}`}
+        className="absolute top-5 h-1 overflow-hidden rounded-full bg-surface-2"
+        style={{ left: `${50 / labels.length}%`, right: `${50 / labels.length}%` }}>
+        <div className="h-full bg-accent" style={{ width: `${labels.length > 1 ? activeIndex / (labels.length - 1) * 100 : 100}%` }} />
+      </div>
+      <ol className="flex">
         {labels.map((label, index) => {
-          const isDone = index < activeIndex;
-          const isCurrent = index === activeIndex;
-          const isLast = index === labels.length - 1;
-
-          return (
-            <li key={label} className={`relative pl-9 ${isLast ? "" : "pb-7"}`}>
-              {!isLast ? (
-                <span
-                  aria-hidden
-                  className={`absolute left-[13px] top-7 bottom-0 w-px ${index < activeIndex ? "bg-accent" : "bg-line-strong"}`}
-                />
-              ) : null}
-              <span aria-hidden className="absolute left-0 top-0">
-                <Dot isDone={isDone} isCurrent={isCurrent} index={index} />
-              </span>
-
-              {isDone ? (
-                <button
-                  type="button"
-                  onClick={() => onSelect(index)}
-                  className="rounded text-left text-base text-fg-2 underline-offset-4 hover:text-fg hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)]"
-                >
-                  {label}
-                </button>
-              ) : (
-                <span
-                  className={`block text-base ${isCurrent ? "font-semibold text-fg" : "text-fg-3"}`}
-                  aria-current={isCurrent ? "step" : undefined}
-                >
-                  {label}
-                </span>
-              )}
-            </li>
-          );
+          const previous = index < activeIndex;
+          const current = index === activeIndex;
+          const content = <>
+            <span aria-hidden className={`relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold tabular-nums ${current
+              ? "bg-accent text-[var(--accent-fg)] ring-4 ring-accent-soft"
+              : "border border-fg-3 bg-surface text-fg-2"}`}>{index + 1}</span>
+            <span className={`relative hidden px-1 text-sm sm:block ${current ? "font-semibold text-fg" : "text-fg-2"}`}>{label}</span>
+            <span className="sr-only sm:hidden">{label}{current ? " (current step)" : ""}</span>
+          </>;
+          return <li key={label} className="relative min-w-0 flex-1" aria-current={current ? "step" : undefined}>
+            {previous ? <button type="button" onClick={() => onSelect(index)}
+              className="relative flex min-h-11 w-full flex-col items-center gap-2 rounded-md px-1 py-2 text-center hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+              <span className="sr-only">Return to </span>{content}
+            </button> : <div className="relative flex min-h-11 flex-col items-center gap-2 px-1 py-2 text-center">{content}</div>}
+          </li>;
         })}
       </ol>
-
-      {/* Narrower than the rail: dots only, no sideways scrolling. */}
-      <ol className="flex items-center gap-2 lg:hidden">
-        {labels.map((label, index) => (
-          <li key={label} className="flex flex-1 items-center gap-2">
-            <span className="sr-only">
-              {label}
-              {index === activeIndex ? " (current step)" : ""}
-            </span>
-            <span
-              aria-hidden
-              className={`h-1.5 flex-1 rounded-full ${index < activeIndex ? "bg-accent" : index === activeIndex ? "bg-accent" : "bg-surface-2"}`}
-            />
-          </li>
-        ))}
-      </ol>
     </nav>
-  );
-}
-
-function Dot({ isDone, isCurrent, index }: { isDone: boolean; isCurrent: boolean; index: number }) {
-  if (isDone) {
-    return (
-      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent text-[var(--accent-fg)]">
-        <CheckIcon size={14} />
-      </span>
-    );
-  }
-
-  if (isCurrent) {
-    return (
-      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent text-sm font-semibold tabular-nums text-[var(--accent-fg)] ring-4 ring-accent-soft">
-        {index + 1}
-      </span>
-    );
-  }
-
-  return (
-    <span className="flex h-7 w-7 items-center justify-center rounded-full border border-line-strong bg-panel text-sm font-medium tabular-nums text-fg-3">
-      {index + 1}
-    </span>
   );
 }

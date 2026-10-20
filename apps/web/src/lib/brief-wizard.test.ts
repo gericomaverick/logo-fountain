@@ -57,3 +57,16 @@ describe("brief wizard navigation", () => {
     expect(answers).toEqual(original);
   });
 });
+
+describe("trim-aligned submission gating", () => {
+  it("rejects whitespace-only required answers without changing the controlled text", () => {
+    const answers = { ...EMPTY_BRIEF_ANSWERS, brandName: " \n\t ", industry: "Tools", offerSummary: " Useful\n tools " };
+    expect(nextStepIndex(0, answers)).toBe(0);
+    expect(answers.offerSummary).toBe(" Useful\n tools ");
+  });
+  it("accepts choice-only, note-only and legacy free-text answers", () => {
+    for (const answer of ["Modern", " Quiet and confident ", "Modern — Detail\nline"]) {
+      expect(nextStepIndex(2, { ...EMPTY_BRIEF_ANSWERS, brandPersonality: answer, styleDirection: answer })).toBe(3);
+    }
+  });
+});
