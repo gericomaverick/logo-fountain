@@ -1,5 +1,3 @@
-import { CheckIcon } from "@/components/icons";
-
 type TimelineItem = {
   state: string;
   label: string;
@@ -10,76 +8,75 @@ type TimelineItem = {
 
 const WHEN = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
-function Marker({ step }: { step: TimelineItem }) {
-  if (step.completed && !step.current) {
-    return (
-      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[var(--accent-fg)]">
-        <CheckIcon size={10} strokeWidth={3} />
-      </span>
-    );
-  }
-  if (step.current) {
-    return (
-      <span className="flex h-4 w-4 items-center justify-center rounded-full border-2 border-accent bg-panel">
-        <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-      </span>
-    );
-  }
-  return <span className="block h-4 w-4 rounded-full border-2 border-dashed border-line-strong bg-panel" />;
+/** Where the project is, and the one thing that happens after it. */
+function pickStages(timeline: TimelineItem[]): { now: TimelineItem; next?: TimelineItem } | null {
+  if (timeline.length === 0) return null;
+  const index = timeline.findIndex((step) => step.current);
+  // No current step means the work is finished: the last stage is where it rests.
+  if (index === -1) return { now: timeline[timeline.length - 1]! };
+  return { now: timeline[index]!, next: timeline[index + 1] };
 }
 
 /**
- * Space held for the timeline while the project is still being fetched. The
- * snapshot arrives after first paint, so without this the page ends, then grows
- * a timeline underneath whatever the person was already reading.
- *
- * Eight steps, because that is what buildTimeline lays out.
+ * Eight stages listed out told someone mostly what was not happening. What they
+ * want on opening their project is where it is now and what comes after it, so
+ * that is all this shows.
  */
-export function ProjectTimelineSkeleton() {
+export function ProjectTimeline({ timeline, primaryCta }: { timeline: TimelineItem[]; primaryCta?: string | null }) {
+  const stages = pickStages(timeline);
+  if (!stages) return null;
+
+  const done = timeline.filter((step) => step.completed).length;
+
   return (
-    <section aria-hidden className="animate-pulse">
-      <div className="mb-3 h-6 w-24 rounded bg-surface-2" />
-      <ol className="space-y-3">
-        {Array.from({ length: 8 }, (_, index) => (
-          <li key={index} className="flex items-center gap-3">
-            <span className="h-4 w-4 shrink-0 rounded-full bg-surface-2" />
-            <span className="h-4 flex-1 rounded bg-surface-2" style={{ maxWidth: `${52 - index * 3}%` }} />
-          </li>
-        ))}
-      </ol>
+    <section aria-labelledby="project-stage-title">
+      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-3">
+        <h2 id="project-stage-title" className="text-lg font-semibold tracking-tight text-fg">
+          Where your project is
+        </h2>
+        <p className="text-sm text-fg-3 tabular-nums">
+          Stage {Math.min(done + (stages.next ? 1 : 0), timeline.length)} of {timeline.length}
+        </p>
+      </div>
+
+      <div className="rounded-xl border border-line bg-panel p-5">
+        <p className="text-sm font-medium text-accent">Now</p>
+        <p className="mt-1 text-xl font-semibold tracking-tight text-fg">{stages.now.label}</p>
+        {stages.now.timestamp ? (
+          <time className="mt-1 block text-sm text-fg-3" dateTime={stages.now.timestamp}>
+            Since {WHEN.format(new Date(stages.now.timestamp))}
+          </time>
+        ) : null}
+        {primaryCta ? <p className="mt-3 text-base text-fg-2">Next action: {primaryCta}</p> : null}
+
+        {stages.next ? (
+          <div className="mt-5 border-t border-line pt-4">
+            <p className="text-sm font-medium text-fg-3">Then</p>
+            <p className="mt-1 text-base text-fg-2">{stages.next.label}</p>
+          </div>
+        ) : null}
+      </div>
     </section>
   );
 }
 
-/** The project's milestones as a compact step list: done, current, still to come. */
-export function ProjectTimeline({ timeline, primaryCta }: { timeline: TimelineItem[]; primaryCta?: string | null }) {
+/**
+ * Space held while the project is fetched, the size of what replaces it, so the
+ * page does not grow underneath whatever the person is already reading.
+ */
+export function ProjectTimelineSkeleton() {
   return (
-    <section aria-labelledby="project-timeline-title">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-        <h2 id="project-timeline-title" className="text-lg font-semibold tracking-tight text-fg">
-          Timeline
-        </h2>
-        {primaryCta ? (
-          <p className="rounded-full border border-line bg-surface px-2.5 py-0.5 text-sm font-medium text-fg-2">Next action: {primaryCta}</p>
-        ) : null}
+    <section aria-hidden className="animate-pulse">
+      <div className="mb-3 h-6 w-44 rounded bg-surface-2" />
+      <div className="rounded-xl border border-line bg-panel p-5">
+        <div className="h-4 w-10 rounded bg-surface-2" />
+        <div className="mt-2 h-6 w-2/3 rounded bg-surface-2" />
+        <div className="mt-2 h-4 w-32 rounded bg-surface-2" />
+        <div className="mt-5 border-t border-line pt-4">
+          <div className="h-4 w-12 rounded bg-surface-2" />
+          <div className="mt-2 h-5 w-1/2 rounded bg-surface-2" />
+        </div>
       </div>
-
-      <ol className="rounded-lg border border-line bg-panel px-3 py-2">
-        {timeline.map((step, index) => (
-          <li key={`${step.state}-${index}`} className="relative flex items-center gap-3 py-2 text-base">
-            {index < timeline.length - 1 ? <span aria-hidden className="absolute left-[7.5px] top-[26px] h-[calc(100%-16px)] w-px bg-line" /> : null}
-            <span className="relative z-[1] flex shrink-0">
-              <Marker step={step} />
-            </span>
-            <span className={`flex-1 ${step.current ? "font-semibold text-fg" : step.completed ? "text-fg" : "text-fg-3"}`}>{step.label}</span>
-            {step.timestamp ? (
-              <time className="shrink-0 text-sm text-fg-3" dateTime={step.timestamp}>
-                {WHEN.format(new Date(step.timestamp))}
-              </time>
-            ) : null}
-          </li>
-        ))}
-      </ol>
     </section>
   );
 }
