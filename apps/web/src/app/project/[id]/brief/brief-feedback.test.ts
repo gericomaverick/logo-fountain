@@ -41,13 +41,21 @@ describe("snapshot-aware save presentation", () => {
   });
 });
 describe("conservative persistent-navigation eligibility", () => {
-  const phone = { width: 390, height: 844, viewportHeight: 844, viewportWidth: 390, offsetTop: 0, scale: 1, editing: false, modal: false, barHeight: 110 };
+  const phone = { width: 390, height: 844, viewportHeight: 844, viewportWidth: 390, offsetTop: 0, scale: 1, modal: false, barHeight: 110 };
   it("permits ordinary/narrow phones and desktop", () => {
     expect(canPinBriefNavigation(phone)).toBe(true);
     expect(canPinBriefNavigation({ ...phone, width: 320, viewportWidth: 320 })).toBe(true);
     expect(canPinBriefNavigation({ ...phone, width: 1600, viewportWidth: 1600 })).toBe(true);
   });
-  it.each([{ editing: true }, { modal: true }, { height: 500, viewportHeight: 500 }, { viewportHeight: 500 }, { scale: 2 }, { offsetTop: 100 }, { viewportWidth: 300 }, { barHeight: 220 }])("falls back to flow for constraint %j", (constraint) => {
+  it("does not infer a keyboard from focus: full viewports remain pinnable", () => {
+    for (const width of [320, 390, 1024, 1600]) {
+      expect(canPinBriefNavigation({ ...phone, width, viewportWidth: width })).toBe(true);
+    }
+  });
+  it.each([{ viewportHeight: 803 }, { offsetTop: -2 }, { offsetTop: 2 }, { viewportWidth: 388 }])("rejects measured viewport constraint %j", (constraint) => {
+    expect(canPinBriefNavigation({ ...phone, ...constraint })).toBe(false);
+  });
+  it.each([{ modal: true }, { height: 500, viewportHeight: 500 }, { viewportHeight: 500 }, { scale: 2 }, { offsetTop: 100 }, { viewportWidth: 300 }, { barHeight: 220 }])("falls back to flow for constraint %j", (constraint) => {
     expect(canPinBriefNavigation({ ...phone, ...constraint })).toBe(false);
   });
 });

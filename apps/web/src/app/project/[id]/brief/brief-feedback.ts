@@ -33,12 +33,12 @@ export function savePresentation(snapshot: string, loaded: boolean, record: Save
     : "Account save acknowledged" } as const;
 }
 
-/** Conservative opt-in: do not try to pin alongside any editing/zoom/keyboard constraint. */
-export function canPinBriefNavigation({ width, height, viewportHeight, viewportWidth, offsetTop, scale, editing, modal, barHeight }: {
+/** Focus alone is not a keyboard constraint; use measured viewport/zoom/height limits. */
+export function canPinBriefNavigation({ width, height, viewportHeight, viewportWidth, offsetTop, scale, modal, barHeight }: {
   width: number; height: number; viewportHeight: number; viewportWidth: number;
-  offsetTop: number; scale: number; editing: boolean; modal: boolean; barHeight: number;
+  offsetTop: number; scale: number; modal: boolean; barHeight: number;
 }) {
   return width >= 300 && height >= 640 && viewportHeight >= 640
     && viewportHeight >= height - 40 && Math.abs(viewportWidth - width) < 2
-    && offsetTop < 2 && scale === 1 && !editing && !modal && barHeight * 4 < viewportHeight;
+    && Math.abs(offsetTop) < 2 && scale === 1 && !modal && barHeight * 4 < viewportHeight;
 }
