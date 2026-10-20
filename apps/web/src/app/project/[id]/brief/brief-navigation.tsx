@@ -58,11 +58,11 @@ export function BriefNavigation({ children, timeline, stage, modal }: { children
     <div ref={slot} data-brief-nav-slot style={placement ? { height: placement.height + 16 } : undefined}>
       <div ref={bar} data-brief-navigation data-placement={placement ? "persistent" : "flow"}
         style={fixed}
-        className={`z-20 border-t border-line bg-surface pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] ${placement ? "px-4 md:px-8" : ""}`}>
-        <div data-brief-nav-content className={placement ? "w-full" : "mx-auto max-w-[920px]"}>
-          <div className="mb-3">{timeline}</div>
+        className={`@container z-20 border-t border-line bg-surface pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] ${placement ? "px-4 md:px-8" : ""}`}>
+        <div data-brief-nav-content className={`${placement ? "w-full" : "mx-auto max-w-[920px]"} @min-[900px]:flex @min-[900px]:items-center @min-[900px]:gap-6`}>
+          <div className="mb-3 min-w-0 @min-[900px]:mb-0 @min-[900px]:flex-1">{timeline}</div>
           <p className="mb-3 text-sm text-fg-2 sm:hidden">{stage}</p>
-          <div className="flex flex-wrap items-center justify-between gap-3">{children}</div>
+          <div className="flex flex-wrap items-center justify-between gap-3 @min-[900px]:shrink-0 @min-[900px]:flex-nowrap">{children}</div>
         </div>
       </div>
     </div>
