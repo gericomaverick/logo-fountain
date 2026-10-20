@@ -18,14 +18,21 @@ export type ComposedAnswer = {
   note: string;
 };
 
-/** Build the stored string from picked options and a free-text note. */
+/**
+ * Build the stored string from picked options and a free-text note.
+ *
+ * The note is kept exactly as typed. This runs on every keystroke — the stored
+ * string is parsed straight back out to redisplay the field — so trimming here
+ * deletes a space at the moment it is pressed, and the person cannot type one
+ * at all. Emptiness is measured by length, not by whether it is blank, so a
+ * note that is still only a space survives long enough to become a word.
+ */
 export function composeBriefAnswer(selected: string[], note: string): string {
   const picked = selected.filter((value) => value.trim().length > 0).join(JOIN);
-  const trimmedNote = note.trim();
 
-  if (!picked) return trimmedNote;
-  if (!trimmedNote) return picked;
-  return `${picked}${SEPARATOR}${trimmedNote}`;
+  if (!picked) return note;
+  if (note.length === 0) return picked;
+  return `${picked}${SEPARATOR}${note}`;
 }
 
 /**
@@ -38,12 +45,12 @@ export function composeBriefAnswer(selected: string[], note: string): string {
  * question had options, or typed in another client, intact.
  */
 export function parseBriefAnswer(value: string, options: readonly string[]): ComposedAnswer {
-  const trimmed = value.trim();
-  if (!trimmed) return { selected: [], note: "" };
+  if (!value.trim()) return { selected: [], note: "" };
 
-  const separatorAt = trimmed.indexOf(SEPARATOR);
-  const head = separatorAt === -1 ? trimmed : trimmed.slice(0, separatorAt);
-  const tail = separatorAt === -1 ? "" : trimmed.slice(separatorAt + SEPARATOR.length);
+  const separatorAt = value.indexOf(SEPARATOR);
+  const head = separatorAt === -1 ? value : value.slice(0, separatorAt);
+  // Kept byte for byte: this is what the textarea redisplays while someone types.
+  const tail = separatorAt === -1 ? "" : value.slice(separatorAt + SEPARATOR.length);
 
   const byLowerValue = new Map(options.map((option) => [option.toLowerCase(), option]));
   const candidates = head.split(JOIN).map((part) => part.trim());
@@ -52,11 +59,11 @@ export function parseBriefAnswer(value: string, options: readonly string[]): Com
   for (const candidate of candidates) {
     const match = byLowerValue.get(candidate.toLowerCase());
     // An unrecognised part means the head is not a selection list at all.
-    if (!match) return { selected: [], note: trimmed };
+    if (!match) return { selected: [], note: value };
     if (!selected.includes(match)) selected.push(match);
   }
 
-  return { selected, note: tail.trim() };
+  return { selected, note: tail };
 }
 
 /** Toggle one option, preserving the order the question lists them in. */

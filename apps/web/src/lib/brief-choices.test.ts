@@ -10,12 +10,18 @@ describe("composeBriefAnswer", () => {
     expect(composeBriefAnswer(["Modern", "Minimal"], "calm and reassuring")).toBe("Modern, Minimal — calm and reassuring");
   });
 
-  it("returns only the selections when there is no note", () => {
-    expect(composeBriefAnswer(["Modern"], "   ")).toBe("Modern");
+  it("returns only the selections when the note is empty", () => {
+    expect(composeBriefAnswer(["Modern"], "")).toBe("Modern");
   });
 
-  it("returns only the note when nothing is picked", () => {
-    expect(composeBriefAnswer([], "  something specific  ")).toBe("something specific");
+  it("keeps a blank note, because it is a space someone just pressed", () => {
+    // Trimming here is what stopped people typing a space at all. Whitespace is
+    // tidied where the answer is stored instead: cleanText in normalizeBriefAnswers.
+    expect(composeBriefAnswer(["Modern"], "   ")).toBe("Modern —    ");
+  });
+
+  it("returns the note as typed when nothing is picked", () => {
+    expect(composeBriefAnswer([], "  something specific  ")).toBe("  something specific  ");
   });
 
   it("is empty when there is neither", () => {
@@ -102,5 +108,50 @@ describe("the options the brief actually offers", () => {
   it("offers a way out on the question most likely to stump someone", () => {
     const style = fieldsWithOptions.find((field) => field.key === "styleDirection");
     expect(style?.options?.some((option) => option.value === "Not sure yet")).toBe(true);
+  });
+});
+
+describe("typing into the note, one keystroke at a time", () => {
+  // The field is controlled: every keystroke composes a stored string and
+  // parses it straight back out to redisplay. Anything the round trip drops is
+  // a character the person cannot type at all. The earlier tests all composed
+  // a finished string in one go, which is why they never caught this.
+  const type = (text: string, selected: string[] = ["Modern"]) => {
+    let stored = composeBriefAnswer(selected, "");
+    for (const character of text) {
+      const current = parseBriefAnswer(stored, OPTIONS);
+      stored = composeBriefAnswer(current.selected, current.note + character);
+    }
+    return parseBriefAnswer(stored, OPTIONS);
+  };
+
+  it("keeps the spaces between words", () => {
+    expect(type("we want calm").note).toBe("we want calm");
+  });
+
+  it("keeps a space the moment it is pressed, before the next word", () => {
+    expect(type("calm ").note).toBe("calm ");
+  });
+
+  it("keeps newlines, so a note can have more than one line", () => {
+    expect(type("one\ntwo").note).toBe("one\ntwo");
+  });
+
+  it("keeps a leading space", () => {
+    expect(type(" calm").note).toBe(" calm");
+  });
+
+  it("does the same with nothing picked", () => {
+    expect(type("just our own words", []).note).toBe("just our own words");
+  });
+
+  it("still keeps the selection while the note is typed", () => {
+    expect(type("we want calm").selected).toEqual(["Modern"]);
+  });
+
+  it("survives a space as the very first keystroke", () => {
+    // The note is " " here: blank, but not empty. Treating it as empty drops
+    // the separator, and the next keystroke lands in the selection list.
+    expect(type(" ").note).toBe(" ");
   });
 });

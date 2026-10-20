@@ -362,12 +362,17 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
             <button type="button" onClick={goBack} disabled={activeStep === 0} className="portal-btn-secondary px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50">
               Back
             </button>
+            {/* Distinct keys matter here. Without them React reuses one DOM node
+                and flips its type from button to submit as the last section
+                gives way to the review, so the click that asked to continue
+                lands on a submit and opens the confirmation straight away. */}
             {activeStep < reviewStep ? (
-              <button type="button" onClick={goNext} className="portal-btn-primary px-4 py-2">
+              <button key="brief-continue" type="button" onClick={goNext} className="portal-btn-primary px-4 py-2">
                 Continue
               </button>
             ) : shouldShowBriefSubmitAction(Boolean(latestBrief)) ? (
               <button
+                key="brief-submit"
                 type="submit"
                 disabled={isSubmitting}
                 className={showSubmitConfirmation ? "portal-btn-secondary px-4 py-2" : "portal-btn-primary px-4 py-2"}
