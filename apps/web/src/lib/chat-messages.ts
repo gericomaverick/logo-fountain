@@ -32,9 +32,17 @@ export function resolveDesignerDisplayName(sender: ChatSender): string {
   return normalize(sender.fullName) ?? fullNameFromParts(sender.firstName, sender.lastName) ?? "Designer";
 }
 
-export function resolveSenderLabel(sender: ChatSender): string {
+/**
+ * Who sent a message, from the reader's side of it.
+ *
+ * Their own messages say "You". A designer's say the designer's name. Anyone
+ * else on the customer's side is named if we have a name — being told your own
+ * words came from "Client" reads as though someone else wrote them.
+ */
+export function resolveSenderLabel(sender: ChatSender, viewerId?: string | null): string {
+  if (viewerId && sender.id === viewerId) return "You";
   if (sender.isAdmin) return resolveDesignerDisplayName(sender);
-  return "Client";
+  return normalize(sender.fullName) ?? fullNameFromParts(sender.firstName, sender.lastName) ?? "Client";
 }
 
 export function sortMessagesNewestLast<T extends Pick<ChatMessage, "createdAt" | "id">>(messages: T[]): T[] {

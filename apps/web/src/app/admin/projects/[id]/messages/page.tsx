@@ -178,7 +178,7 @@ export default function AdminProjectMessagesPage() {
                   <li key={message.id} className="py-4">
                     <article className={`rounded-lg px-4 py-3 ${isMine ? "bg-surface" : "bg-panel"}`}>
                       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                        <p className="text-sm font-medium text-fg">{resolveSenderLabel(message.sender)}</p>
+                        <p className="text-sm font-medium text-fg">{resolveSenderLabel(message.sender, session.userId)}</p>
                         <time className="text-xs text-fg-3" dateTime={message.createdAt} title={new Date(message.createdAt).toLocaleString()}>{new Date(message.createdAt).toLocaleString()}</time>
                       </div>
                       <p className="mt-2 whitespace-pre-wrap break-words text-base text-fg">{message.body}</p>

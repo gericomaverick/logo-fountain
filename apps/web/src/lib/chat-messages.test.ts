@@ -23,6 +23,15 @@ describe("chat message helpers", () => {
 
   it("falls back to Designer for admin and Client for non-admin", () => {
     expect(resolveSenderLabel({ id: "a", email: "a@x.com", isAdmin: true })).toBe("Designer");
-    expect(resolveSenderLabel({ id: "c", email: "c@x.com", isAdmin: false, fullName: "Ignored" })).toBe("Client");
+    expect(resolveSenderLabel({ id: "c", email: "c@x.com", isAdmin: false })).toBe("Client");
+  });
+
+  it("says You for the reader's own messages", () => {
+    expect(resolveSenderLabel({ id: "c", email: "c@x.com", isAdmin: false, fullName: "Jess Hall" }, "c")).toBe("You");
+    expect(resolveSenderLabel({ id: "a", email: "a@x.com", isAdmin: true, fullName: "Sam Lee" }, "a")).toBe("You");
+  });
+
+  it("names someone else on the customer's side rather than calling them Client", () => {
+    expect(resolveSenderLabel({ id: "c", email: "c@x.com", isAdmin: false, fullName: "Jess Hall" }, "someone-else")).toBe("Jess Hall");
   });
 });
