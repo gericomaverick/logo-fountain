@@ -20,6 +20,7 @@ import { shouldShowProjectWelcome } from "@/lib/project-journey";
 import { formatClientFirstName, getAreaCardSubtitle } from "@/lib/project-overview";
 import { getClientOverviewNextAction, getPendingFeedbackCountForLatestConcept } from "@/lib/project-hub";
 import { deriveOverviewBadgeStatus } from "@/lib/project-status";
+import { customerActionFor } from "@/lib/project-state-machine";
 
 export type Snapshot = {
   status: string;
@@ -485,7 +486,7 @@ export function ProjectHub({
               </Section>
             ) : null}
 
-            {snapshot?.timeline ? <ProjectTimeline timeline={snapshot.timeline} primaryCta={snapshot.primaryCta} /> : <ProjectTimelineSkeleton />}
+            {snapshot?.timeline ? <ProjectTimeline timeline={snapshot.timeline} customerAction={customerActionFor(snapshot.status)} /> : <ProjectTimelineSkeleton />}
           </div>
         </main>
 

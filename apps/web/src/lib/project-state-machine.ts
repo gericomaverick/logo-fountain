@@ -50,6 +50,20 @@ export const PROJECT_STATE_LABELS: Record<ProjectState, string> = {
   REFUNDED: "Refunded",
 };
 
+/**
+ * The states where the next move is genuinely the customer's. Everywhere else
+ * PRIMARY_CTA_BY_STATE restates the stage — "In design" paired with "Design in
+ * progress" — which reads as two different things when it is one, and asks
+ * someone to act when there is nothing for them to do.
+ */
+const CUSTOMER_ACTION_STATES = new Set<ProjectState>(["AWAITING_BRIEF", "CONCEPTS_READY", "FINAL_FILES_READY"]);
+
+/** What the customer must do here, or null when the work is ours. */
+export function customerActionFor(state: string | null | undefined): string | null {
+  if (!state || !isProjectState(state)) return null;
+  return CUSTOMER_ACTION_STATES.has(state) ? PRIMARY_CTA_BY_STATE[state] : null;
+}
+
 export const PRIMARY_CTA_BY_STATE: Record<ProjectState, string> = {
   AWAITING_BRIEF: "Submit brief",
   BRIEF_SUBMITTED: "Design in progress",

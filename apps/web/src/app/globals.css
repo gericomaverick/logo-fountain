@@ -39,7 +39,7 @@
      (6.2:1, and 5.1:1 once softened) rather than scraping past at 4.5. */
   --brand-block: #4a49e8;
   --brand-block-fg: #ffffff;
-  --brand-block-fg-2: rgba(255, 255, 255, 0.82);
+  --brand-block-fg-2: rgba(255, 255, 255, 0.92);
   --brand-block-btn-fg: #3d3cd4;
   /* Two gradients, each with one job.
      `--brand-sheen` is the brand block: the purple with a little depth across
@@ -48,7 +48,7 @@
      `--celebration` is for the handful of moments worth marking — concepts
      ready, final files delivered — and is the marketing site's package ribbon,
      which is where this palette already belongs. */
-  --brand-sheen: linear-gradient(135deg, #5150f7 0%, #4a49e8 42%, #5f3fd4 100%);
+  --brand-sheen: linear-gradient(135deg, #7a4ef0 0%, #5150f7 40%, #3f3ed0 100%);
   --celebration: linear-gradient(135deg, #ffcf70 0%, #ff7ab6 22%, #8f7cff 48%, #51d6ff 72%, #b6ffbd 100%);
   --celebration-fg: #1c1b19;
   --danger: #c43c3c;
@@ -88,9 +88,9 @@
   --accent-fg: #1c1b19;
   --brand-block: #4a49e8;
   --brand-block-fg: #ffffff;
-  --brand-block-fg-2: rgba(255, 255, 255, 0.82);
+  --brand-block-fg-2: rgba(255, 255, 255, 0.92);
   --brand-block-btn-fg: #3d3cd4;
-  --brand-sheen: linear-gradient(135deg, #5150f7 0%, #4a49e8 42%, #5f3fd4 100%);
+  --brand-sheen: linear-gradient(135deg, #7a4ef0 0%, #5150f7 40%, #3f3ed0 100%);
   --celebration: linear-gradient(135deg, #ffcf70 0%, #ff7ab6 22%, #8f7cff 48%, #51d6ff 72%, #b6ffbd 100%);
   --celebration-fg: #1c1b19;
   --danger: #ec7468;

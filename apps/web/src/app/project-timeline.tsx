@@ -1,3 +1,5 @@
+import { ChevronRightIcon } from "@/components/icons";
+
 type TimelineItem = {
   state: string;
   label: string;
@@ -18,15 +20,25 @@ function pickStages(timeline: TimelineItem[]): { now: TimelineItem; next?: Timel
 }
 
 /**
- * Eight stages listed out told someone mostly what was not happening. What they
- * want on opening their project is where it is now and what comes after it, so
- * that is all this shows.
+ * Eight stages listed out told someone mostly what was not happening. This
+ * shows where the project is and what follows.
+ *
+ * It takes colour only when the next move is theirs: a stage waiting on us is a
+ * quiet tinted panel, and a stage waiting on them is the brand block, so the
+ * difference is visible from across the room rather than read.
  */
-export function ProjectTimeline({ timeline, primaryCta }: { timeline: TimelineItem[]; primaryCta?: string | null }) {
+export function ProjectTimeline({
+  timeline,
+  customerAction,
+}: {
+  timeline: TimelineItem[];
+  customerAction?: string | null;
+}) {
   const stages = pickStages(timeline);
   if (!stages) return null;
 
   const done = timeline.filter((step) => step.completed).length;
+  const waitingOnThem = Boolean(customerAction);
 
   return (
     <section aria-labelledby="project-stage-title">
@@ -39,20 +51,39 @@ export function ProjectTimeline({ timeline, primaryCta }: { timeline: TimelineIt
         </p>
       </div>
 
-      <div className="rounded-xl border border-line bg-panel p-5">
-        <p className="text-sm font-medium text-accent">Now</p>
-        <p className="mt-1 text-xl font-semibold tracking-tight text-fg">{stages.now.label}</p>
+      <div
+        className={
+          waitingOnThem
+            ? "brand-sheen rounded-xl p-5 sm:p-6"
+            : "rounded-xl border border-line bg-surface p-5 sm:p-6"
+        }
+      >
+        <p className={`text-sm font-semibold ${waitingOnThem ? "text-brand-block-fg-2" : "text-accent"}`}>Now</p>
+        <p className={`mt-1 text-xl font-semibold tracking-tight ${waitingOnThem ? "text-brand-block-fg" : "text-fg"}`}>
+          {stages.now.label}
+        </p>
         {stages.now.timestamp ? (
-          <time className="mt-1 block text-sm text-fg-3" dateTime={stages.now.timestamp}>
+          <time
+            className={`mt-1 block text-sm ${waitingOnThem ? "text-brand-block-fg-2" : "text-fg-3"}`}
+            dateTime={stages.now.timestamp}
+          >
             Since {WHEN.format(new Date(stages.now.timestamp))}
           </time>
         ) : null}
-        {primaryCta ? <p className="mt-3 text-base text-fg-2">Next action: {primaryCta}</p> : null}
+
+        {waitingOnThem ? (
+          <p className="mt-4 flex items-center gap-1.5 text-lg font-semibold text-brand-block-fg">
+            <ChevronRightIcon size={18} />
+            {customerAction}
+          </p>
+        ) : (
+          <p className="mt-4 text-base text-fg-2">Nothing needed from you — we’ll tell you the moment there is.</p>
+        )}
 
         {stages.next ? (
-          <div className="mt-5 border-t border-line pt-4">
-            <p className="text-sm font-medium text-fg-3">Then</p>
-            <p className="mt-1 text-base text-fg-2">{stages.next.label}</p>
+          <div className={`mt-5 border-t pt-4 ${waitingOnThem ? "border-[rgba(255,255,255,0.22)]" : "border-line"}`}>
+            <p className={`text-sm font-semibold ${waitingOnThem ? "text-brand-block-fg-2" : "text-fg-3"}`}>Then</p>
+            <p className={`mt-1 text-base ${waitingOnThem ? "text-brand-block-fg-2" : "text-fg-2"}`}>{stages.next.label}</p>
           </div>
         ) : null}
       </div>
@@ -68,10 +99,11 @@ export function ProjectTimelineSkeleton() {
   return (
     <section aria-hidden className="animate-pulse">
       <div className="mb-3 h-6 w-44 rounded bg-surface-2" />
-      <div className="rounded-xl border border-line bg-panel p-5">
+      <div className="rounded-xl border border-line bg-surface p-5 sm:p-6">
         <div className="h-4 w-10 rounded bg-surface-2" />
         <div className="mt-2 h-6 w-2/3 rounded bg-surface-2" />
         <div className="mt-2 h-4 w-32 rounded bg-surface-2" />
+        <div className="mt-4 h-5 w-1/2 rounded bg-surface-2" />
         <div className="mt-5 border-t border-line pt-4">
           <div className="h-4 w-12 rounded bg-surface-2" />
           <div className="mt-2 h-5 w-1/2 rounded bg-surface-2" />
