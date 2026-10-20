@@ -17,6 +17,8 @@ describe("horizontal bottom timeline semantics", () => {
     expect(html).toContain('aria-valuetext="Step 3 of 5: Creative"');
     expect(html).toContain("width:50%");
     expect(html).not.toContain("lg:block");
+    expect(html).not.toContain("bg-panel"); // Markers/labels blend into the tinted bottom surface.
+    expect(html).toContain("hover:bg-surface-2");
     expect(html).not.toMatch(/complete|valid|saved/i);
   });
   it("leaves the initial timeline non-interactive without certifying blank answers", () => {

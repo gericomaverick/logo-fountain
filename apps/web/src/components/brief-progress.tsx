@@ -19,13 +19,13 @@ export function BriefProgress({ labels, activeIndex, onSelect }: {
           const content = <>
             <span aria-hidden className={`relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold tabular-nums ${current
               ? "bg-accent text-[var(--accent-fg)] ring-4 ring-accent-soft"
-              : "border border-fg-3 bg-panel text-fg-2"}`}>{index + 1}</span>
-            <span className={`relative hidden bg-panel px-1 text-sm sm:block ${current ? "font-semibold text-fg" : "text-fg-2"}`}>{label}</span>
+              : "border border-fg-3 bg-surface text-fg-2"}`}>{index + 1}</span>
+            <span className={`relative hidden px-1 text-sm sm:block ${current ? "font-semibold text-fg" : "text-fg-2"}`}>{label}</span>
             <span className="sr-only sm:hidden">{label}{current ? " (current step)" : ""}</span>
           </>;
           return <li key={label} className="relative min-w-0 flex-1" aria-current={current ? "step" : undefined}>
             {previous ? <button type="button" onClick={() => onSelect(index)}
-              className="relative flex min-h-11 w-full flex-col items-center gap-2 rounded-md px-1 py-2 text-center hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+              className="relative flex min-h-11 w-full flex-col items-center gap-2 rounded-md px-1 py-2 text-center hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
               <span className="sr-only">Return to </span>{content}
             </button> : <div className="relative flex min-h-11 flex-col items-center gap-2 px-1 py-2 text-center">{content}</div>}
           </li>;
