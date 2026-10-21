@@ -148,7 +148,32 @@ async function seed(c) {
   run("./node_modules/.bin/vitest", ["run", "src/lib/local-dev-seed.test.ts"], env);
   console.log(`Seeded locally only. Private setup details: ${secretFile} (mode 0600); never paste its contents into chat or logs.`);
 }
-const stages = ["awaiting-brief", "brief-submitted"];
+const stages = ["awaiting-brief", "brief-submitted", "concepts-ready"];
+const packages = ["essential", "professional", "complete"];
+const counts = ["--concepts-used", "--revisions-used", "--revisions-pending"];
+/**
+ * `seed-project <stage> [--package X] [--concepts-used N] ...`. Only the stage
+ * is required; each option may appear once, and the counts only make sense for
+ * a stage that has sent concepts.
+ */
+function projectOptions(args) {
+  const parsed = { package: "essential", "--concepts-used": 0, "--revisions-used": 0, "--revisions-pending": 0 };
+  const seen = new Set();
+  for (let index = 0; index < args.length; index += 2) {
+    const flag = args[index];
+    const value = args[index + 1];
+    if (value === undefined || seen.has(flag)) return null;
+    seen.add(flag);
+    if (flag === "--package") {
+      if (!packages.includes(value)) return null;
+      parsed.package = value;
+    } else if (counts.includes(flag)) {
+      if (!/^[0-9]$/.test(value)) return null;
+      parsed[flag] = Number(value);
+    } else return null;
+  }
+  return parsed;
+}
 /**
  * An EXTRA project for the customer `seed` already created, left at the named
  * stage, so that stage can be looked at without driving the app there by hand.
@@ -156,16 +181,20 @@ const stages = ["awaiting-brief", "brief-submitted"];
  * re-run: this one creates no identity, sends no mail, and leaves the admin
  * password and the customer setup link in the handoff file untouched.
  */
-async function seedProject(c, stage) {
+async function seedProject(c, stage, options) {
   if (await isAbsent(secretFile)) fail("Run seed first; this only extends the already-seeded local customer");
   await safeNoEnvFiles();
   await verifyOwnedCluster(c);
   const st = await lstat(identitiesFile);
   if (!st.isFile() || st.isSymbolicLink() || st.mode & 0o077) fail("Private owner-supplied identities file required");
   const env = runtimeEnv(c, { DATABASE_URL: urls(c).runtime, DIRECT_URL: urls(c).migration, PG_INTEGRATION_URL: urls(c).runtime,
-    PG_LOCAL_DEV_EXTRA_PROJECT: stage, LOCAL_DEV_HOME: home, LOCAL_DEV_SECRETS_FILE: secretFile, LOCAL_DEV_IDENTITIES_FILE: identitiesFile });
+    PG_LOCAL_DEV_EXTRA_PROJECT: stage, PG_LOCAL_DEV_PACKAGE: options.package,
+    PG_LOCAL_DEV_CONCEPTS_USED: String(options["--concepts-used"]),
+    PG_LOCAL_DEV_REVISIONS_USED: String(options["--revisions-used"]),
+    PG_LOCAL_DEV_REVISIONS_PENDING: String(options["--revisions-pending"]),
+    LOCAL_DEV_HOME: home, LOCAL_DEV_SECRETS_FILE: secretFile, LOCAL_DEV_IDENTITIES_FILE: identitiesFile });
   run("./node_modules/.bin/vitest", ["run", "src/lib/local-dev-extra-project.test.ts"], env);
-  console.log(`Extra local project seeded at the ${stage} stage; its id was added to ${secretFile} (mode 0600). Never paste that file's contents into chat or logs.`);
+  console.log(`Extra local ${options.package} project seeded at the ${stage} stage; its id was added to ${secretFile} (mode 0600). Never paste that file's contents into chat or logs.`);
 }
 /** `app` takes each of its two opt-in flags at most once, and nothing else. */
 function appFlagsValid(flags) {
@@ -219,9 +248,9 @@ async function app(c) {
 try {
   if (!["init", "start", "stop", "seed", "seed-project", "app", "reset"].includes(command) ||
       (command === "reset" ? process.argv.length !== 4 || process.argv[3] !== "--confirm-disposable-local-data" :
-        command === "seed-project" ? process.argv.length !== 4 || !stages.includes(process.argv[3]) :
+        command === "seed-project" ? process.argv.length < 4 || !stages.includes(process.argv[3]) || !projectOptions(process.argv.slice(4)) :
         command === "app" ? !appFlagsValid(process.argv.slice(3)) : process.argv.length !== 3)) {
-    fail(`Usage: node scripts/local-dev-pg.mjs init|start|stop|seed|seed-project ${stages.join("|")}|app [--with-r2] [--with-stripe]|reset --confirm-disposable-local-data`);
+    fail(`Usage: node scripts/local-dev-pg.mjs init|start|stop|seed|seed-project ${stages.join("|")} [--package ${packages.join("|")}] [${counts.join(" N] [")} N]|app [--with-r2] [--with-stripe]|reset --confirm-disposable-local-data`);
   }
   if (command === "init") await init();
   else {
@@ -237,7 +266,7 @@ try {
       console.log("Owned local PG stopped; all data retained.");
     }
     if (command === "seed") await seed(c);
-    if (command === "seed-project") await seedProject(c, process.argv[3]);
+    if (command === "seed-project") await seedProject(c, process.argv[3], projectOptions(process.argv.slice(4)));
     if (command === "app") await app(c);
     if (command === "reset") {
       if (!process.argv.includes("--confirm-disposable-local-data")) fail("Explicit --confirm-disposable-local-data required");
