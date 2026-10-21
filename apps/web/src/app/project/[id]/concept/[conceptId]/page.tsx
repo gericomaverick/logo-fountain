@@ -286,12 +286,12 @@ export default function ConceptDetailPage() {
             body={`${approvalSuccess.conceptNumber ? `Concept #${approvalSuccess.conceptNumber} is now approved.` : "Your selected concept is now approved."} We’ve updated your project status and your designer is moving to the next stage.`}
             actions={(
               <>
-                <Link className="portal-btn-secondary border-line bg-panel text-fg" href={`/project/${projectId}`}>
+                <Link className="portal-btn-on-block" href={`/project/${projectId}`}>
                   Back to project overview
                 </Link>
                 <button
                   type="button"
-                  className="portal-btn-secondary"
+                  className="portal-btn-on-block-ghost"
                   onClick={() => setApprovalSuccess(null)}
                 >
                   Dismiss

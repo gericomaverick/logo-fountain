@@ -339,6 +339,27 @@ body {
     @apply inline-flex cursor-pointer h-9 items-center justify-center gap-1.5 rounded-md px-2.5 text-sm font-medium text-fg-2 transition-colors duration-150 hover:bg-surface-2 hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] disabled:cursor-not-allowed disabled:opacity-50;
   }
 
+  /* Buttons that sit on a filled block of colour. The block sets --block-fg
+     and --block-btn-fg on itself, so one pair of classes serves the brand
+     purple and the success teal alike. */
+  .portal-btn-on-block {
+    @apply inline-flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-md px-4 text-sm font-semibold transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50;
+    background: var(--block-fg);
+    color: var(--block-btn-fg);
+    --tw-ring-color: var(--block-fg);
+  }
+
+  .portal-btn-on-block-ghost {
+    @apply inline-flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-md border px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50;
+    border-color: color-mix(in srgb, var(--block-fg) 45%, transparent);
+    color: var(--block-fg);
+    --tw-ring-color: var(--block-fg);
+  }
+
+  .portal-btn-on-block-ghost:hover {
+    background: color-mix(in srgb, var(--block-fg) 14%, transparent);
+  }
+
   .portal-btn-danger {
     @apply inline-flex cursor-pointer h-9 items-center justify-center gap-1.5 rounded-md border border-[color-mix(in_srgb,var(--danger)_35%,transparent)] bg-danger-soft px-3 text-sm font-medium text-danger transition-colors duration-150 hover:bg-[color-mix(in_srgb,var(--danger)_16%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] disabled:cursor-not-allowed disabled:opacity-50;
   }

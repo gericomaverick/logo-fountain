@@ -318,10 +318,10 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
         signature="— Logo Fountain team"
         actions={(
           <>
-            <Link className="portal-btn-primary px-4 py-2" href={`/project/${projectId}`}>
+            <Link className="portal-btn-on-block" href={`/project/${projectId}`}>
               Back to project overview
             </Link>
-            <Link className="portal-btn-secondary" href={`/project/${projectId}/messages`}>
+            <Link className="portal-btn-on-block-ghost" href={`/project/${projectId}/messages`}>
               Open project messages
             </Link>
           </>
