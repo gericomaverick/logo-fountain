@@ -283,7 +283,6 @@ export function ProjectHub({
   const [snapshot, setSnapshot] = useState<Snapshot | null>(initialSnapshot);
   const [loading, setLoading] = useState(initialSnapshot === null);
   const [error, setError] = useState<string | null>(null);
-  const [firstName, setFirstName] = useState<string | null>(initialFirstName);
   const [downloadingFinals, setDownloadingFinals] = useState(false);
 
   async function refresh(id: string) {
@@ -345,7 +344,7 @@ export function ProjectHub({
     const raw = searchParams.get("kind");
     return raw === "addon" || raw === "upgrade" ? raw : null;
   }, [searchParams]);
-  const welcomeName = formatClientFirstName(firstName);
+  const welcomeName = formatClientFirstName(initialFirstName);
   const showWelcome = shouldShowProjectWelcome(snapshot?.status, Boolean(snapshot?.latestBrief));
   const hasApprovedConcept = (snapshot?.concepts ?? []).some((concept) => concept.status === "approved");
   const canDownloadFinals = Boolean(snapshot?.finalZip?.available) && (snapshot?.status === "FINAL_FILES_READY" || snapshot?.status === "DELIVERED");

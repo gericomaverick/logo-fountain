@@ -203,6 +203,23 @@ export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
     if (!conceptFiles.has(conceptId)) conceptFiles.set(conceptId, file.path);
   }
 
+/**
+ * A preview URL, or none if it cannot be signed.
+ *
+ * Signing reaches private storage, and this runs inside the project snapshot:
+ * letting it throw takes the whole project page down over one missing picture,
+ * whether storage is unreachable or simply unconfigured. A concept without a
+ * preview is a page with a gap in it, which is the smaller failure.
+ */
+async function signConceptPreview(path: string | undefined): Promise<string | null> {
+  if (!path) return null;
+  try {
+    return await createSignedConceptAssetUrl(path);
+  } catch {
+    return null;
+  }
+}
+
   const concepts = await Promise.all(project.concepts.map(async (concept) => {
     const version = versionByConceptId.get(concept.id) ?? 0;
 
@@ -214,9 +231,7 @@ export async function getProjectSnapshot({ projectId, userId }: SnapshotArgs) {
       createdAt: concept.createdAt,
       updatedAt: concept.updatedAt,
       revisionVersion: Math.max(version, 1),
-      imageUrl: conceptFiles.get(concept.id)
-        ? await createSignedConceptAssetUrl(conceptFiles.get(concept.id) as string)
-        : null,
+      imageUrl: await signConceptPreview(conceptFiles.get(concept.id)),
     };
   }));
 
