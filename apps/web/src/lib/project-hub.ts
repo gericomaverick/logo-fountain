@@ -145,6 +145,11 @@ const UPGRADE_FROM: Record<string, "professional" | "complete"> = {
   professional: "complete",
 };
 
+/** The package above this one, if there is one. */
+export function nextPackageUp(packageCode: string | undefined | null): "professional" | "complete" | null {
+  return packageCode ? UPGRADE_FROM[packageCode] ?? null : null;
+}
+
 /**
  * Whether to offer more revisions, and what to say about it.
  *
@@ -157,7 +162,7 @@ const UPGRADE_FROM: Record<string, "professional" | "complete"> = {
  */
 export function resolveUpsellOffer(revisions: RevisionStanding, packageCode: string | undefined): UpsellOffer {
   const remaining = Math.max(revisions.remaining, 0);
-  const upgradeTo = packageCode ? UPGRADE_FROM[packageCode] ?? null : null;
+  const upgradeTo = nextPackageUp(packageCode);
   const addon = remaining <= 0;
   const upgrade = upgradeTo !== null && remaining <= 1;
 

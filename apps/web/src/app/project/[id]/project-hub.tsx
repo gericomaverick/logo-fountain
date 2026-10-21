@@ -18,7 +18,8 @@ import { ProjectStatusBadge } from "@/components/project-status-badge";
 import { ProjectJourney, ProjectWelcome } from "@/components/project-welcome";
 import { shouldShowProjectWelcome } from "@/lib/project-journey";
 import { formatClientFirstName, getAreaCardSubtitle, getConceptsAreaSubtitle, getMessagesAreaSubtitle } from "@/lib/project-overview";
-import { getClientOverviewNextAction, getPendingFeedbackCountForLatestConcept, resolveUpsellOffer } from "@/lib/project-hub";
+import { getClientOverviewNextAction, getPendingFeedbackCountForLatestConcept, nextPackageUp, resolveUpsellOffer } from "@/lib/project-hub";
+import { RevisionPurchaseFooter, upgradeLabel, upgradePrice, useRevisionPurchase, useSessionDismissal } from "@/components/revision-purchase";
 import { deriveOverviewBadgeStatus } from "@/lib/project-status";
 import { customerActionFor } from "@/lib/project-state-machine";
 
@@ -95,9 +96,8 @@ function UpsellPanel({
   projectStatus: string | undefined;
   revisionUsage: ReturnType<typeof resolveUsage>;
 }) {
-  const [submitting, setSubmitting] = useState<"addon" | "upgrade" | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [dismissed, setDismissed] = useState(false);
+  const { start: startPurchase, submitting, error } = useRevisionPurchase(projectId);
+  const [dismissed, dismiss] = useSessionDismissal(`upsell:dismissed:${projectId}:${packageCode ?? "unknown"}`);
 
   const offer = resolveUpsellOffer(revisionUsage, packageCode);
   const shouldOfferAddon = offer.addon;
@@ -106,50 +106,8 @@ function UpsellPanel({
   const shouldRender = shouldOfferAddon || shouldOfferUpgrade;
   const inRelevantPhase = projectStatus === "CONCEPTS_READY" || projectStatus === "REVISIONS_IN_PROGRESS" || projectStatus === "AWAITING_APPROVAL";
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const key = `upsell:dismissed:${projectId}:${packageCode ?? "unknown"}`;
-    const raw = window.sessionStorage.getItem(key);
-    if (!raw) {
-      setDismissed(false);
-      return;
-    }
-
-    const expiresAt = Number.parseInt(raw, 10);
-    if (Number.isFinite(expiresAt) && Date.now() < expiresAt) {
-      setDismissed(true);
-      return;
-    }
-
-    window.sessionStorage.removeItem(key);
-    setDismissed(false);
-  }, [packageCode, projectId]);
-
   if (!inRelevantPhase || !shouldRender || dismissed) return null;
 
-  async function startPurchase(body: Record<string, unknown>, mode: "addon" | "upgrade") {
-    setSubmitting(mode);
-    setError(null);
-
-    try {
-      const res = await fetch(`/api/projects/${projectId}/checkout/session`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      const payload = await res.json().catch(() => null);
-      if (!res.ok) {
-        throw new Error(readError(payload, "Unable to start checkout"));
-      }
-
-      if (!payload?.url) throw new Error("Checkout URL missing");
-      window.location.assign(payload.url as string);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Unable to start checkout");
-      setSubmitting(null);
-    }
-  }
 
   return (
     <section className="rounded-xl border border-[color-mix(in_srgb,var(--accent)_28%,transparent)] bg-[color-mix(in_srgb,var(--accent)_7%,var(--panel))] p-5">
@@ -161,13 +119,7 @@ function UpsellPanel({
         <button
           type="button"
           className="text-sm font-medium text-fg-2 underline underline-offset-4 hover:text-fg"
-          onClick={() => {
-            if (typeof window !== "undefined") {
-              const key = `upsell:dismissed:${projectId}:${packageCode ?? "unknown"}`;
-              window.sessionStorage.setItem(key, String(Date.now() + 1000 * 60 * 60 * 24));
-            }
-            setDismissed(true);
-          }}
+          onClick={dismiss}
         >
           Not now
         </button>
@@ -191,9 +143,7 @@ function UpsellPanel({
             onClick={() => void startPurchase({ kind: "upgrade", toPackage: upgradeTarget }, "upgrade")}
             disabled={submitting !== null}
           >
-            {submitting === "upgrade"
-              ? "Redirecting…"
-              : `Upgrade to ${upgradeTarget === "professional" ? "Professional" : "Complete"} (${upgradeTarget === "professional" ? UPSELL_DISPLAY_PRICES.essential_to_professional : UPSELL_DISPLAY_PRICES.professional_to_complete})`}
+            {submitting === "upgrade" ? "Redirecting…" : `Upgrade to ${upgradeLabel(upgradeTarget)} (${upgradePrice(upgradeTarget)})`}
           </button>
         ) : null}
       </div>
@@ -519,6 +469,9 @@ export function ProjectHub({
               <Allowance label="Concepts" usage={snapshot?.entitlementUsage?.concepts} />
               <Allowance label="Revisions" usage={snapshot?.entitlementUsage?.revisions} />
             </div>
+            {/* The prompt that appears when revisions run low can be waved
+                away; this is how someone gets back to buying one. */}
+            <RevisionPurchaseFooter projectId={projectId} upgradeTo={nextPackageUp(snapshot?.packageCode)} />
           </PanelCard>
 
           {/* No Status row: the badge under the page title is the same value,
