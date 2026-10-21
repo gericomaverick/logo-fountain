@@ -15,9 +15,9 @@ import type { BriefAnswers } from "@/lib/brief";
 import { getProjectDisplayTitle } from "@/lib/project-display-name";
 import { UPSELL_DISPLAY_PRICES } from "@/lib/stripe-price-allowlist";
 import { ProjectStatusBadge } from "@/components/project-status-badge";
-import { ProjectWelcome } from "@/components/project-welcome";
+import { ProjectJourney, ProjectWelcome } from "@/components/project-welcome";
 import { shouldShowProjectWelcome } from "@/lib/project-journey";
-import { formatClientFirstName, getAreaCardSubtitle } from "@/lib/project-overview";
+import { formatClientFirstName, getAreaCardSubtitle, getConceptsAreaSubtitle, getMessagesAreaSubtitle } from "@/lib/project-overview";
 import { getClientOverviewNextAction, getPendingFeedbackCountForLatestConcept } from "@/lib/project-hub";
 import { deriveOverviewBadgeStatus } from "@/lib/project-status";
 import { customerActionFor } from "@/lib/project-state-machine";
@@ -403,7 +403,11 @@ export function ProjectHub({
             <div>
               <ProjectStatusBadge status={overviewStatus} />
               <h1 className="mt-4 text-2xl font-semibold tracking-tight text-fg">{projectTitle}</h1>
-              <p className="mt-2 text-base text-fg-2">{welcomeName ? `Hey, ${welcomeName} — here’s where your project stands.` : "Here’s where your project stands."}</p>
+              {/* The brief invitation below greets them by name itself, and two
+                  greetings one after the other read like a mistake. */}
+              {showWelcome ? null : (
+                <p className="mt-2 text-base text-fg-2">{welcomeName ? `Hey, ${welcomeName} — here’s where your project stands.` : "Here’s where your project stands."}</p>
+              )}
             </div>
 
             {loading ? <p className="text-sm text-fg-3">Loading…</p> : null}
@@ -411,12 +415,13 @@ export function ProjectHub({
 
             <UpsellPurchaseStatus sessionId={upsellSessionId} kind={upsellKind} />
 
-            {/* Someone who has paid and not yet briefed gets the whole picture
-                first; everyone else gets the one thing to do next. */}
+            {/* One block of brand colour, in the same place whatever the
+                project's stage: the brief invitation before anything is
+                submitted, the next action after, and the caught-up note when
+                nothing is owed. */}
             {showWelcome ? (
               <ProjectWelcome
                 projectId={projectId}
-                status={snapshot?.status}
                 firstName={welcomeName || null}
                 hasDraft={Boolean(snapshot?.hasBriefDraft)}
               />
@@ -473,34 +478,41 @@ export function ProjectHub({
             <Section title="Your project">
               <ul className="grid gap-3 sm:grid-cols-3">
                 <AreaRow title="Brief" Icon={FileTextIcon} href={`/project/${projectId}/brief`} subtitle={snapshot?.latestBrief ? "Submitted — your designer has it" : "Submit your project brief"} />
-                <AreaRow title="Concepts" Icon={ImageIcon} href={`/project/${projectId}/concepts`} hasNew={snapshot?.hasNewConcepts} subtitle={snapshot?.hasNewConcepts ? "New concepts/revisions available" : undefined} />
-                <AreaRow title="Messages" Icon={MessageIcon} href={`/project/${projectId}/messages`} hasNew={snapshot?.hasNewMessages} subtitle={snapshot?.hasNewMessages ? "Unread updates waiting" : undefined} />
+                <AreaRow title="Concepts" Icon={ImageIcon} href={`/project/${projectId}/concepts`} hasNew={snapshot?.hasNewConcepts} subtitle={getConceptsAreaSubtitle(snapshot?.concepts?.length ?? 0, snapshot?.hasNewConcepts)} />
+                <AreaRow title="Messages" Icon={MessageIcon} href={`/project/${projectId}/messages`} hasNew={snapshot?.hasNewMessages} subtitle={getMessagesAreaSubtitle(snapshot?.hasNewMessages)} />
               </ul>
             </Section>
 
-            {/* The stage, and the latest concept beside it once one exists. With
-                nothing to show, the concept card is not rendered as an empty
-                frame — the stage takes the width instead, which is the state a
-                customer is in for the first stretch of every project. */}
-            <div className={showConceptCard ? "grid gap-6 lg:grid-cols-2" : ""}>
-              {snapshot?.timeline ? (
-                <ProjectTimeline timeline={snapshot.timeline} customerAction={customerActionFor(snapshot.status)} />
-              ) : (
-                <ProjectTimelineSkeleton />
-              )}
+            {/* Where the project is, and the latest concept beside it once one
+                exists. With nothing to show, the concept card is not rendered
+                as an empty frame — the stage takes the width instead, which is
+                the state a customer is in for the first stretch of every
+                project. Before a brief exists this is the journey instead: the
+                timeline would only repeat the invitation above it, in the same
+                purple, and the two then competed for the same attention. */}
+            {showWelcome ? (
+              <ProjectJourney status={snapshot?.status} />
+            ) : (
+              <div className={showConceptCard ? "grid gap-6 lg:grid-cols-2" : ""}>
+                {snapshot?.timeline ? (
+                  <ProjectTimeline timeline={snapshot.timeline} customerAction={customerActionFor(snapshot.status)} />
+                ) : (
+                  <ProjectTimelineSkeleton />
+                )}
 
-              {showConceptCard ? (
-                <Section title="Latest concept" actions={<Link className="portal-btn-ghost h-8" href={`/project/${projectId}/concepts`}>View all</Link>}>
-                  <Link
-                    href={`/project/${projectId}/concepts`}
-                    className="block overflow-hidden rounded-xl border border-line bg-surface transition-colors hover:border-line-strong"
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={latestConcept!.imageUrl!} alt={`Latest concept #${latestConcept!.number}`} className="aspect-[16/9] w-full object-contain" />
-                  </Link>
-                </Section>
-              ) : null}
-            </div>
+                {showConceptCard ? (
+                  <Section title="Latest concept" actions={<Link className="portal-btn-ghost h-8" href={`/project/${projectId}/concepts`}>View all</Link>}>
+                    <Link
+                      href={`/project/${projectId}/concepts`}
+                      className="block overflow-hidden rounded-xl border border-line bg-surface transition-colors hover:border-line-strong"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={latestConcept!.imageUrl!} alt={`Latest concept #${latestConcept!.number}`} className="aspect-[16/9] w-full object-contain" />
+                    </Link>
+                  </Section>
+                ) : null}
+              </div>
+            )}
           </div>
         </main>
 

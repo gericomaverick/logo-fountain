@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatClientFirstName, getAreaCardSubtitle, getRemainingLabel } from "./project-overview";
+import { formatClientFirstName, getAreaCardSubtitle, getConceptsAreaSubtitle, getMessagesAreaSubtitle, getRemainingLabel } from "./project-overview";
 
 describe("formatClientFirstName", () => {
   it("returns empty string for missing values", () => {
@@ -33,5 +33,23 @@ describe("getRemainingLabel", () => {
   it("normalizes invalid and negative values", () => {
     expect(getRemainingLabel(-3, "concept")).toBe("0 concepts left");
     expect(getRemainingLabel(Number.NaN, "revision")).toBe("0 revisions left");
+  });
+});
+
+describe("area subtitles", () => {
+  it("says what is in concepts rather than how to open them", () => {
+    expect(getConceptsAreaSubtitle(0)).toBe("Nothing to review yet");
+    expect(getConceptsAreaSubtitle(1)).toBe("1 concept to look at");
+    expect(getConceptsAreaSubtitle(3)).toBe("3 concepts to look at");
+  });
+
+  it("lets unread concepts and messages take priority over the count", () => {
+    expect(getConceptsAreaSubtitle(3, true)).toBe("New concepts/revisions available");
+    expect(getMessagesAreaSubtitle(true)).toBe("Unread updates waiting");
+  });
+
+  it("invites a message when there is nothing unread", () => {
+    expect(getMessagesAreaSubtitle()).toBe("Ask your designer anything");
+    expect(getMessagesAreaSubtitle(false)).toBe("Ask your designer anything");
   });
 });
