@@ -131,3 +131,43 @@ export function buildActivityGroups(snapshot: {
 
   return Array.from(grouped.entries()).map(([dayLabel, items]) => ({ dayLabel, items }));
 }
+
+export type RevisionStanding = { limit: number; remaining: number; reserved: number };
+
+export type UpsellOffer = {
+  addon: boolean;
+  upgradeTo: "professional" | "complete" | null;
+  message: string;
+};
+
+const UPGRADE_FROM: Record<string, "professional" | "complete"> = {
+  essential: "professional",
+  professional: "complete",
+};
+
+/**
+ * Whether to offer more revisions, and what to say about it.
+ *
+ * `remaining` already has pending requests netted out of it, so an offer that
+ * also tested `reserved >= remaining` fired while a revision was still
+ * available — telling someone with one left that they were at their limit,
+ * beside a counter that said otherwise. The only honest trigger for the
+ * add-on is none remaining, and for the upgrade, one or none: a project that
+ * has used nothing is not close to anything, whatever package it is on.
+ */
+export function resolveUpsellOffer(revisions: RevisionStanding, packageCode: string | undefined): UpsellOffer {
+  const remaining = Math.max(revisions.remaining, 0);
+  const upgradeTo = packageCode ? UPGRADE_FROM[packageCode] ?? null : null;
+  const addon = remaining <= 0;
+  const upgrade = upgradeTo !== null && remaining <= 1;
+
+  return {
+    addon,
+    upgradeTo: upgrade ? upgradeTo : null,
+    message: addon
+      ? "You’ve used every revision in your package. Add one more now, or upgrade for extra headroom."
+      : revisions.reserved > 0
+        ? "You have one revision left, and one already with your designer. Upgrade now to avoid being held up later."
+        : "You have one revision left. Upgrade now to avoid being held up later.",
+  };
+}

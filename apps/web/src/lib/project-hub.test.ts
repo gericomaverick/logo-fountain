@@ -5,6 +5,7 @@ import {
   getClientOverviewNextAction,
   getMissionControlPrimaryCta,
   getPendingFeedbackCountForLatestConcept,
+  resolveUpsellOffer,
 } from "./project-hub";
 
 describe("getPendingFeedbackCountForLatestConcept", () => {
@@ -76,5 +77,44 @@ describe("buildActivityGroups", () => {
 
     expect(groups[0]?.items[0]?.label).toBe("Current status: brief submitted.");
     expect(groups[0]?.items[0]?.label.toLowerCase()).not.toContain("status changed");
+  });
+});
+
+describe("resolveUpsellOffer", () => {
+  const standing = (limit: number, consumed: number, reserved = 0) => ({
+    limit,
+    reserved,
+    remaining: Math.max(limit - consumed - reserved, 0),
+  });
+
+  it("offers nothing while there is room to spare", () => {
+    const offer = resolveUpsellOffer(standing(3, 0), "complete");
+    expect(offer.addon).toBe(false);
+    expect(offer.upgradeTo).toBeNull();
+  });
+
+  it("does not claim someone is at their limit while a revision is left", () => {
+    // The bug: one left and one pending read as exhausted.
+    const offer = resolveUpsellOffer(standing(3, 1, 1), "complete");
+    expect(offer.addon).toBe(false);
+    expect(offer.message).toContain("one revision left");
+  });
+
+  it("offers the add-on only once none remain", () => {
+    expect(resolveUpsellOffer(standing(2, 2), "professional").addon).toBe(true);
+    expect(resolveUpsellOffer(standing(2, 1, 1), "professional").addon).toBe(true);
+  });
+
+  it("offers an upgrade at one left, to the next package up", () => {
+    expect(resolveUpsellOffer(standing(1, 0), "essential").upgradeTo).toBe("professional");
+    expect(resolveUpsellOffer(standing(2, 1), "professional").upgradeTo).toBe("complete");
+  });
+
+  it("has nothing to upgrade to from the top package", () => {
+    expect(resolveUpsellOffer(standing(3, 3), "complete").upgradeTo).toBeNull();
+  });
+
+  it("offers no upgrade when the package is unknown", () => {
+    expect(resolveUpsellOffer(standing(1, 1), undefined).upgradeTo).toBeNull();
   });
 });

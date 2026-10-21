@@ -18,7 +18,7 @@ import { ProjectStatusBadge } from "@/components/project-status-badge";
 import { ProjectJourney, ProjectWelcome } from "@/components/project-welcome";
 import { shouldShowProjectWelcome } from "@/lib/project-journey";
 import { formatClientFirstName, getAreaCardSubtitle, getConceptsAreaSubtitle, getMessagesAreaSubtitle } from "@/lib/project-overview";
-import { getClientOverviewNextAction, getPendingFeedbackCountForLatestConcept } from "@/lib/project-hub";
+import { getClientOverviewNextAction, getPendingFeedbackCountForLatestConcept, resolveUpsellOffer } from "@/lib/project-hub";
 import { deriveOverviewBadgeStatus } from "@/lib/project-status";
 import { customerActionFor } from "@/lib/project-state-machine";
 
@@ -99,9 +99,10 @@ function UpsellPanel({
   const [error, setError] = useState<string | null>(null);
   const [dismissed, setDismissed] = useState(false);
 
-  const upgradeTarget = packageCode === "essential" ? "professional" : packageCode === "professional" ? "complete" : null;
-  const shouldOfferAddon = revisionUsage.remaining <= 0 || revisionUsage.reserved >= Math.max(revisionUsage.remaining, 1);
-  const shouldOfferUpgrade = Boolean(upgradeTarget) && (revisionUsage.remaining <= 1 || revisionUsage.limit <= 2);
+  const offer = resolveUpsellOffer(revisionUsage, packageCode);
+  const shouldOfferAddon = offer.addon;
+  const upgradeTarget = offer.upgradeTo;
+  const shouldOfferUpgrade = upgradeTarget !== null;
   const shouldRender = shouldOfferAddon || shouldOfferUpgrade;
   const inRelevantPhase = projectStatus === "CONCEPTS_READY" || projectStatus === "REVISIONS_IN_PROGRESS" || projectStatus === "AWAITING_APPROVAL";
 
@@ -155,11 +156,7 @@ function UpsellPanel({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold tracking-tight text-fg">Need more flexibility?</h2>
-          <p className="mt-1 text-base text-fg-2">
-            {shouldOfferAddon
-              ? "You’re at the revision limit for this stage. Add one extra revision now, or upgrade for more headroom."
-              : "You’re getting close to your revision limit. Upgrade now to avoid interruptions later."}
-          </p>
+          <p className="mt-1 text-base text-fg-2">{offer.message}</p>
         </div>
         <button
           type="button"
