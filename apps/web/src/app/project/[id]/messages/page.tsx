@@ -3,12 +3,14 @@
 import { HeaderNav } from "@/components/header-nav";
 import { PageShell } from "@/components/page-shell";
 import { EmptyLine, PageHeader } from "@/components/ui";
-import { resolveSenderLabel, sortMessagesNewestLast, type ChatMessage } from "@/lib/chat-messages";
+import { groupMessagesByDay, resolveSenderLabel, shouldSendOnKey, sortMessagesNewestLast, type ChatMessage } from "@/lib/chat-messages";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type Message = ChatMessage;
+
+const CLOCK = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit" });
 
 type SessionPayload = {
   authenticated: boolean;
@@ -35,6 +37,9 @@ export default function ProjectMessagesPage() {
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   const sorted = useMemo(() => sortMessagesNewestLast(messages), [messages]);
+  // One date between days beats a full date stamped on every line. The day is
+  // fixed per render so the server and the browser cannot disagree about it.
+  const days = useMemo(() => groupMessagesByDay(sorted, new Date()), [sorted]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -83,8 +88,9 @@ export default function ProjectMessagesPage() {
     };
   }, [projectId]);
 
-  async function sendMessage(e: React.FormEvent) {
-    e.preventDefault();
+  // Called by the form and by Enter in the composer, which has no event to stop.
+  async function sendMessage(e?: React.FormEvent) {
+    e?.preventDefault();
     if (!projectId || !body.trim()) return;
 
     setBusy(true);
@@ -115,58 +121,91 @@ export default function ProjectMessagesPage() {
         actions={<Link className="portal-btn-ghost" href={`/project/${projectId}`}>Back to project overview</Link>}
       />
       <main className="flex h-[calc(100%-3.5rem)] min-h-0 flex-col">
-        <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-4 py-6 md:px-8 lg:py-8">
-          <div className="mx-auto max-w-[920px]">
-            <div className="pb-5">
-              <h1 className="portal-display text-2xl text-fg">Project messages</h1>
-              <p className="mt-1 text-sm text-fg-2">Project {projectId}</p>
-            </div>
-            {loading ? <EmptyLine>Loading…</EmptyLine> : null}
-            {!loading && sorted.length === 0 ? <EmptyLine>No messages yet.</EmptyLine> : null}
-            <ul className="divide-y divide-line" aria-label="Project messages">
-              {sorted.map((message) => {
-                if (message.kind === "system") {
+        <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-4 py-6 md:px-8">
+          {/* Full width, the way a chat window is. The measure is kept by the
+              bubbles, which cap at a readable line length wherever the window
+              ends — not by a column down the middle of an empty page. */}
+          <h1 className="sr-only">Project messages</h1>
+          {loading ? <EmptyLine>Loading…</EmptyLine> : null}
+          {!loading && sorted.length === 0 ? (
+            <EmptyLine>No messages yet — say hello, or ask your designer anything.</EmptyLine>
+          ) : null}
+
+          {days.map((day) => (
+            <section key={day.key} aria-label={day.label}>
+              <h2 className="sticky top-0 z-10 -mx-4 mb-4 bg-panel/85 px-4 py-1 text-center font-mono text-xs text-fg-2 backdrop-blur md:-mx-8 md:px-8">
+                {day.label}
+              </h2>
+              <ul className="space-y-4 pb-4" aria-label={`Messages on ${day.label}`}>
+                {day.messages.map((message) => {
+                  if (message.kind === "system") {
+                    return (
+                      <li key={message.id} className="flex justify-center">
+                        <p className="max-w-[60ch] text-center text-sm text-fg-2">
+                          {message.body}
+                          {" "}
+                          <time className="text-fg-3" dateTime={message.createdAt} title={new Date(message.createdAt).toLocaleString()}>
+                            {CLOCK.format(new Date(message.createdAt))}
+                          </time>
+                        </p>
+                      </li>
+                    );
+                  }
+
+                  const isMine = Boolean(session.userId && message.sender.id === session.userId);
                   return (
-                    <li key={message.id} className="py-4">
-                      <article className="border-l-2 border-line-strong pl-4">
-                        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                          <p className="text-sm font-medium text-fg-2">System</p>
-                          <time className="text-xs text-fg-3" dateTime={message.createdAt} title={new Date(message.createdAt).toLocaleString()}>{new Date(message.createdAt).toLocaleString()}</time>
+                    <li key={message.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
+                      <article className={`max-w-[min(46rem,88%)] ${isMine ? "text-right" : ""}`}>
+                        <div className={`flex flex-wrap items-baseline gap-x-2 ${isMine ? "justify-end" : ""}`}>
+                          <p className="text-sm font-medium text-fg">{resolveSenderLabel(message.sender, session.userId)}</p>
+                          <time className="font-mono text-xs text-fg-2" dateTime={message.createdAt} title={new Date(message.createdAt).toLocaleString()}>
+                            {CLOCK.format(new Date(message.createdAt))}
+                          </time>
                         </div>
-                        <p className="mt-2 whitespace-pre-wrap break-words text-base text-fg-2">{message.body}</p>
+                        <p
+                          className={`mt-1 inline-block whitespace-pre-wrap break-words rounded-2xl px-4 py-3 text-left text-base ${
+                            isMine
+                              ? "rounded-tr-sm bg-accent text-[var(--accent-fg)]"
+                              : "rounded-tl-sm border border-line bg-surface text-fg"
+                          }`}
+                        >
+                          {message.body}
+                        </p>
                       </article>
                     </li>
                   );
-                }
-
-                const isMine = session.userId && message.sender.id === session.userId;
-                return (
-                  <li key={message.id} className="py-4">
-                    <article className={`rounded-lg px-4 py-3 ${isMine ? "bg-surface" : "bg-panel"}`}>
-                      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                        <p className="text-sm font-medium text-fg">{resolveSenderLabel(message.sender, session.userId)}</p>
-                        <time className="text-xs text-fg-3" dateTime={message.createdAt} title={new Date(message.createdAt).toLocaleString()}>{new Date(message.createdAt).toLocaleString()}</time>
-                      </div>
-                      <p className="mt-2 whitespace-pre-wrap break-words text-base text-fg">{message.body}</p>
-                    </article>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
+                })}
+              </ul>
+            </section>
+          ))}
         </div>
+
         <div className="shrink-0 border-t border-line bg-surface px-4 py-4 md:px-8">
-          {/* The composer fills the panel, as a chat composer does; the
-              conversation above it keeps the reading measure. */}
+          {/* Enter sends. Anyone who has used a chat window will try it, and
+              being told so under the box is cheaper than finding out. */}
           <form onSubmit={sendMessage}>
             {error ? <p role="alert" className="mb-3 text-sm text-danger">{error}</p> : null}
-            <label className="text-sm font-medium text-fg" htmlFor="message-body">Write a message</label>
-            <textarea id="message-body" className="portal-field mt-2 min-h-28" rows={4} maxLength={2000} value={body} onChange={(e) => setBody(e.target.value)} placeholder="Type your message..." />
-            <div className="mt-3 flex justify-end">
-              <button className="portal-btn-primary" type="submit" disabled={busy || !body.trim()}>
+            <label className="sr-only" htmlFor="message-body">Write a message</label>
+            <div className="flex items-end gap-3">
+              <textarea
+                id="message-body"
+                className="portal-field min-h-20 flex-1"
+                rows={2}
+                maxLength={2000}
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+                onKeyDown={(e) => {
+                  if (!shouldSendOnKey({ key: e.key, shiftKey: e.shiftKey, ctrlKey: e.ctrlKey, metaKey: e.metaKey, altKey: e.altKey, isComposing: e.nativeEvent.isComposing })) return;
+                  e.preventDefault();
+                  void sendMessage();
+                }}
+                placeholder="Type your message…"
+              />
+              <button className="portal-btn-primary h-11 shrink-0 px-5" type="submit" disabled={busy || !body.trim()}>
                 {busy ? "Sending…" : "Send"}
               </button>
             </div>
+            <p className="mt-2 font-mono text-xs text-fg-2">Enter to send · Shift + Enter for a new line</p>
           </form>
         </div>
       </main>

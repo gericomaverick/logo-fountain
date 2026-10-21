@@ -275,7 +275,7 @@ export default function ConceptDetailPage() {
         <div className="mx-auto max-w-[920px] space-y-10">
           <div>
             <h1 className="portal-display text-2xl text-fg">Concept detail</h1>
-            <p className="mt-2 text-base text-fg-2">Project {projectId}</p>
+            {concept ? <p className="mt-2 text-base text-fg-2">Concept #{concept.number}, version {concept.revisionVersion}.</p> : null}
           </div>
 
         {approvalSuccess ? (
@@ -545,7 +545,7 @@ export default function ConceptDetailPage() {
         ) : null}
         <PanelCard title="Details">
           <dl className="-my-2">
-            <Property label="Project"><Link className="portal-link" href={backHref}>{projectId}</Link></Property>
+            <Property label="Project"><Link className="portal-link" href={backHref}>Back to your project</Link></Property>
             {snapshot ? <Property label="Status"><ProjectStatusBadge status={snapshot.status} size="sm" /></Property> : null}
             {concept ? <Property label="Concept">#{concept.number}</Property> : null}
             {concept ? <Property label="Version">v{concept.revisionVersion}</Property> : null}

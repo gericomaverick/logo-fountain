@@ -92,7 +92,7 @@ export default function ProjectConceptsPage() {
       <main className="mx-auto w-full max-w-[1400px] px-4 md:px-8 lg:px-10">
         <div className="pt-8 pb-5">
           <h1 className="portal-display text-2xl text-fg">Concepts gallery</h1>
-          <p className="mt-2 text-base text-fg-2">Project {projectId}</p>
+          <p className="mt-2 text-base text-fg-2">Every concept your designer has sent, newest first.</p>
         </div>
 
         {loading ? <p className="text-sm text-fg-3">Loading…</p> : null}
