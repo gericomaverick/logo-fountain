@@ -107,8 +107,8 @@ export function ProjectTimeline({
       >
         <div className="flex items-start justify-between gap-5">
           <div className="min-w-0">
-        <p className={`text-sm font-semibold ${waitingOnThem ? "text-brand-block-fg-2" : "text-accent"}`}>Now</p>
-        <p className={`mt-1 text-xl font-semibold tracking-tight ${waitingOnThem ? "text-brand-block-fg" : "text-fg"}`}>
+        <p className={`portal-label ${waitingOnThem ? "text-brand-block-fg-2" : "text-accent"}`}>Now</p>
+        <p className={`portal-display mt-1 text-xl ${waitingOnThem ? "text-brand-block-fg" : "text-fg"}`}>
           {stages.now.label}
         </p>
         {stages.now.timestamp ? (
@@ -129,8 +129,8 @@ export function ProjectTimeline({
                 waitingOnThem ? "text-brand-block-fg" : "text-fg"
               }`}
             >
-              <span className="text-lg font-semibold tabular-nums">{stageNumber}</span>
-              <span className={`mt-0.5 text-sm ${waitingOnThem ? "text-brand-block-fg-2" : "text-fg-3"}`}>of {timeline.length}</span>
+              <span className="portal-display text-lg tabular-nums">{stageNumber}</span>
+              <span className={`mt-0.5 font-mono text-xs ${waitingOnThem ? "text-brand-block-fg-2" : "text-fg-2"}`}>of {timeline.length}</span>
             </span>
           </div>
         </div>
@@ -146,7 +146,7 @@ export function ProjectTimeline({
 
         {stages.next ? (
           <div className={`mt-5 border-t pt-4 ${waitingOnThem ? "border-[rgba(255,255,255,0.22)]" : "border-line"}`}>
-            <p className={`text-sm font-semibold ${waitingOnThem ? "text-brand-block-fg-2" : "text-fg-3"}`}>Next</p>
+            <p className={`portal-label ${waitingOnThem ? "text-brand-block-fg-2" : "text-fg-2"}`}>Next</p>
             <p className={`mt-1 text-base ${waitingOnThem ? "text-brand-block-fg-2" : "text-fg-2"}`}>
               {nextStageCopy(stages.next.state, stages.next.label)}
             </p>

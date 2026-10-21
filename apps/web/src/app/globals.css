@@ -4,6 +4,40 @@
    <html data-theme> before first paint by /theme-init.js. */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
+/* ── The marketing site's faces ───────────────────────────────────────────
+   The same two the public site self-hosts (apps/site/src/fonts): Sfizia for
+   display, Geist Mono for the small labels. Inter still carries everything a
+   person actually reads. Without these the portal was the same purple in a
+   different voice, which reads as a different company. */
+@font-face {
+  font-family: "Sfizia";
+  src: url("/fonts/atipo-sfizia-regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Sfizia";
+  src: url("/fonts/atipo-sfizia-regular-italic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/fonts/geist-mono-v6-latin-regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/fonts/geist-mono-v6-latin-200.woff2") format("woff2");
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ── Tokens ───────────────────────────────────────────────────────────────
    Light is parchment and white with warm ink, after arlo.sh and Claude; dark
    is Claude's warm charcoal. Ink carries text and quiet emphasis; a strong
@@ -17,12 +51,18 @@
      background simply did not read as one. Each step is now 1.11–1.29. */
   --app-bg: #e5dfcf;
   --panel: #ffffff;
-  --surface: #f6f4ef;
-  --surface-2: #eee9df;
+  /* The public site's own parchment, parchment-2 and rule (apps/site
+     --parchment, --parchment-2, --rule), so a customer arriving from the
+     marketing pages lands on the same paper. The warm rule also reads a
+     little stronger than the grey alpha it replaces: 1.51 against white
+     rather than 1.39. */
+  --surface: #f5f1e8;
+  --surface-2: #efe9dc;
   --nav-active: #d9cfb9;
-  --line: rgba(33, 33, 31, 0.14);
-  --line-strong: rgba(33, 33, 31, 0.26);
-  --fg: #21211f;
+  --line: #d9d2c1;
+  --line-strong: #bdb49c;
+  /* The site's ink, which is blacker than the portal's was. */
+  --fg: #0e0e0c;
   --fg-2: #5f5d57;
   --fg-3: #8e8b82;
   --ink: #21211f;
@@ -148,6 +188,8 @@
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
   --font-sans: var(--font-inter);
+  --font-display: "Sfizia", Cambria, Georgia, serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 /* Fluid type and space, from Utopia: 16px at a 360px viewport to 18px at
@@ -311,8 +353,21 @@ body {
     color: var(--celebration-fg);
   }
 
-  /* A small uppercase-free section label, Linear style. */
+  /* A display heading, in the face the marketing site puts its headlines in.
+     Sfizia has one weight, so it is never asked to be semibold: at 400 and
+     28-35px it carries a page by shape rather than by weight. */
+  .portal-display {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.08;
+  }
+
+  /* The small label above a block of facts. The site sets these in Geist Mono
+     and the portal now does too — but sentence case, not the site's uppercase
+     eyebrow, which reads as shouting in an interface. */
   .portal-label {
-    @apply text-sm font-semibold text-fg-2;
+    font-family: var(--font-mono);
+    @apply text-sm font-medium tracking-[0.02em] text-fg-2;
   }
 }

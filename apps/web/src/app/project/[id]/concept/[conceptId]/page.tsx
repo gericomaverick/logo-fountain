@@ -274,7 +274,7 @@ export default function ConceptDetailPage() {
       <main className="min-w-0 flex-1 px-4 py-6 md:px-8 lg:py-8">
         <div className="mx-auto max-w-[920px] space-y-10">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-fg">Concept detail</h1>
+            <h1 className="portal-display text-2xl text-fg">Concept detail</h1>
             <p className="mt-2 text-base text-fg-2">Project {projectId}</p>
           </div>
 

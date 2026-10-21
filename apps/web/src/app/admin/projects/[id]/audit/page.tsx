@@ -67,7 +67,7 @@ export default function AdminProjectAuditPage() {
       <PageHeader crumbs={[{ label: "Queue", href: "/admin" }, { label: "Project overview", href: `/admin/projects/${projectId}` }, { label: "Audit trail" }]} />
       <main className="mx-auto w-full max-w-[1400px] px-4 pb-10 md:px-8 lg:px-10">
         <div className="pb-5 pt-8">
-          <h1 className="text-2xl font-semibold tracking-tight text-fg">Admin audit trail</h1>
+          <h1 className="portal-display text-2xl text-fg">Admin audit trail</h1>
           <p className="mt-1 text-base text-fg-2">Immutable activity log for this project.</p>
         </div>
         {error ? <p role="alert" className="mb-4 text-sm text-danger">{error}</p> : null}

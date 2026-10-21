@@ -278,7 +278,7 @@ export default async function DashboardPage() {
       <PageHeader crumbs={[{ label: "Projects" }]} />
       <main className="mx-auto w-full max-w-[1400px] px-4 pb-10 md:px-8 lg:px-10">
         <div className="pb-5 pt-8">
-          <h1 className="text-2xl font-semibold tracking-tight text-fg">{greeting}</h1>
+          <h1 className="portal-display text-2xl text-fg">{greeting}</h1>
           <p className="mt-1 text-base text-fg-2">
             {projects.length === 0
               ? "Your projects will appear here."

@@ -24,7 +24,7 @@ export function ProjectWelcome({
 }) {
   return (
     <section className="brand-sheen rounded-xl bg-brand-block p-6 sm:p-8">
-      <h2 className="max-w-[22ch] text-xl font-semibold tracking-tight text-brand-block-fg sm:text-2xl">
+      <h2 className="portal-display max-w-[22ch] text-xl text-brand-block-fg sm:text-2xl">
         {firstName ? `Hey, ${firstName} — let’s get your logo started` : "Let’s get your logo started"}
       </h2>
       <p className="mt-3 max-w-[52ch] text-base text-brand-block-fg-2">
@@ -95,7 +95,7 @@ function JourneyRow({ step, index, isLast }: { step: JourneyStep; index: number;
       <div className="min-w-0 pt-1">
         <p className="flex flex-wrap items-baseline gap-x-2">
           <span className={`text-base ${isCurrent ? "font-semibold text-fg" : "font-medium text-fg"}`}>{step.title}</span>
-          {isCurrent ? <span className="text-sm font-semibold text-accent">You are here</span> : null}
+          {isCurrent ? <span className="font-mono text-xs font-medium tracking-[0.02em] text-accent">You are here</span> : null}
         </p>
         <p className="mt-1 max-w-[56ch] text-sm text-fg-2">{step.description}</p>
       </div>

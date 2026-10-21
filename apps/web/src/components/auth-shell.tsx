@@ -39,7 +39,7 @@ export function AuthShell({
               />
             ) : null}
             <div className="absolute inset-x-0 bottom-0 p-7 lg:p-8">
-              {sideTitle ? <h2 className="text-2xl font-semibold tracking-tight text-white drop-shadow-sm">{sideTitle}</h2> : null}
+              {sideTitle ? <h2 className="portal-display text-2xl text-white drop-shadow-sm">{sideTitle}</h2> : null}
               {sideDescription ? <p className="mt-3 text-base text-white/90 drop-shadow-sm">{sideDescription}</p> : null}
             </div>
           </aside>
@@ -53,7 +53,7 @@ export function AuthShell({
               </div>
 
               <div>
-                <h1 className="text-2xl font-semibold tracking-tight text-fg">{title}</h1>
+                <h1 className="portal-display text-2xl text-fg">{title}</h1>
                 {subtitle ? <p className="mt-2 text-base text-fg-2">{subtitle}</p> : null}
                 <div className="mt-5 sm:mt-6">{children}</div>
               </div>

@@ -51,7 +51,7 @@ export function Allowance({ label, usage }: { label: string; usage: EntitlementU
         )}
       </div>
       <p className="mt-1 flex items-baseline gap-1.5">
-        <span className="text-2xl font-semibold tabular-nums tracking-tight text-fg">{usage?.unlimited ? stats.consumed : stats.remaining}</span>
+        <span className="portal-display text-2xl tabular-nums text-fg">{usage?.unlimited ? stats.consumed : stats.remaining}</span>
         <span className="text-sm text-fg-2">{usage?.unlimited ? "used" : `left of ${stats.limit}`}</span>
       </p>
       {segmented ? (

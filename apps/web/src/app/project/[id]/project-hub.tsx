@@ -402,7 +402,7 @@ export function ProjectHub({
           <div className="mx-auto max-w-[920px] space-y-10">
             <div>
               <ProjectStatusBadge status={overviewStatus} />
-              <h1 className="mt-4 text-2xl font-semibold tracking-tight text-fg">{projectTitle}</h1>
+              <h1 className="mt-4 portal-display text-2xl text-fg">{projectTitle}</h1>
               {/* The brief invitation below greets them by name itself, and two
                   greetings one after the other read like a mistake. */}
               {showWelcome ? null : (
@@ -428,7 +428,7 @@ export function ProjectHub({
             ) : nextAction ? (
               <section className="brand-sheen rounded-xl bg-brand-block p-6 sm:flex sm:items-center sm:justify-between sm:gap-8">
                 <div>
-                  <p className="text-xl font-semibold tracking-tight text-brand-block-fg">{nextAction.label}</p>
+                  <p className="portal-display text-xl text-brand-block-fg">{nextAction.label}</p>
                   <p className="mt-2 max-w-[52ch] text-base text-brand-block-fg-2">Do this first to keep your project moving.</p>
                 </div>
                 <Link
@@ -445,7 +445,7 @@ export function ProjectHub({
                   <CheckIcon size={20} className="text-success-block-fg" />
                 </span>
                 <div>
-                  <p className="text-xl font-semibold tracking-tight text-success-block-fg">You’re all caught up</p>
+                  <p className="portal-display text-xl text-success-block-fg">You’re all caught up</p>
                   <p className="mt-1 max-w-[52ch] text-base text-success-block-fg-2">We’ll show the next step here when something needs your attention.</p>
                 </div>
               </section>

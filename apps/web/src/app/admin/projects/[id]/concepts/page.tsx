@@ -173,7 +173,7 @@ export default function AdminProjectConceptsPage() {
         <main className="min-w-0 flex-1 px-4 py-6 md:px-8 lg:py-8">
           <div className="mx-auto max-w-[920px] space-y-10">
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-fg">Concepts manager</h1>
+              <h1 className="portal-display text-2xl text-fg">Concepts manager</h1>
               <p className="mt-2 text-sm text-fg-3">Project {projectId}</p>
             </div>
 

@@ -45,7 +45,7 @@ export default async function AdminProjectBriefPage({ params }: AdminProjectBrie
         <div className="mx-auto max-w-[920px]">
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-fg">Project brief</h1>
+              <h1 className="portal-display text-2xl text-fg">Project brief</h1>
               <p className="mt-1 text-sm text-fg-2">Project {projectId}</p>
             </div>
           </div>
