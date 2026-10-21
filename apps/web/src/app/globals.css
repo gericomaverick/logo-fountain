@@ -316,24 +316,26 @@ body {
     @apply inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium;
   }
 
+  /* Used on buttons as well as anchors, which is why the cursor is spelled
+     out: a <button> gets the arrow unless it is told otherwise. */
   .portal-link {
-    @apply text-sm font-medium text-fg-2 underline decoration-line-strong underline-offset-4 transition-colors hover:text-fg hover:decoration-fg-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-panel;
+    @apply cursor-pointer text-sm font-medium text-fg-2 underline decoration-line-strong underline-offset-4 transition-colors hover:text-fg hover:decoration-fg-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-panel;
   }
 
   .portal-btn-primary {
-    @apply inline-flex h-9 items-center justify-center gap-1.5 rounded-md bg-accent px-3 text-sm font-medium text-[var(--accent-fg)] transition-colors duration-150 hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-panel disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex cursor-pointer h-9 items-center justify-center gap-1.5 rounded-md bg-accent px-3 text-sm font-medium text-[var(--accent-fg)] transition-colors duration-150 hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-panel disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .portal-btn-secondary {
-    @apply inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-line-strong bg-surface px-3 text-sm font-medium text-fg transition-colors duration-150 hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-panel disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex cursor-pointer h-9 items-center justify-center gap-1.5 rounded-md border border-line-strong bg-surface px-3 text-sm font-medium text-fg transition-colors duration-150 hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-panel disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .portal-btn-ghost {
-    @apply inline-flex h-9 items-center justify-center gap-1.5 rounded-md px-2.5 text-sm font-medium text-fg-2 transition-colors duration-150 hover:bg-surface-2 hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex cursor-pointer h-9 items-center justify-center gap-1.5 rounded-md px-2.5 text-sm font-medium text-fg-2 transition-colors duration-150 hover:bg-surface-2 hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .portal-btn-danger {
-    @apply inline-flex h-9 items-center justify-center gap-1.5 rounded-md border border-[color-mix(in_srgb,var(--danger)_35%,transparent)] bg-danger-soft px-3 text-sm font-medium text-danger transition-colors duration-150 hover:bg-[color-mix(in_srgb,var(--danger)_16%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex cursor-pointer h-9 items-center justify-center gap-1.5 rounded-md border border-[color-mix(in_srgb,var(--danger)_35%,transparent)] bg-danger-soft px-3 text-sm font-medium text-danger transition-colors duration-150 hover:bg-[color-mix(in_srgb,var(--danger)_16%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)] disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .portal-field {

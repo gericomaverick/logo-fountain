@@ -63,8 +63,9 @@ export function upgradePrice(target: "professional" | "complete"): string {
  *
  * The prompt that appears when revisions run low can be dismissed, and until
  * now that was the only route to a purchase — someone who waved it away and
- * later needed another revision had nowhere to go. This sits quietly in the
- * card people already open to ask how many they have left.
+ * later needed another revision had nowhere to go. This sits in the card
+ * people already open to ask how many they have left, in a tinted block of
+ * its own — under the meters as plain text it read as small print.
  */
 export function RevisionPurchaseFooter({
   projectId,
@@ -76,12 +77,17 @@ export function RevisionPurchaseFooter({
   const { start, submitting, error } = useRevisionPurchase(projectId);
 
   return (
-    <div className="mt-3 border-t border-line pt-3">
-      <p className="text-sm text-fg-2">Need more?</p>
-      <div className="mt-1.5 flex flex-col items-start gap-1">
+    /* A tinted block rather than two quiet links: this is the only permanent
+       route to buying a revision, and as plain text under the meters it read
+       as small print. The tint is the accent at 12% — the step where the
+       block is visibly its own thing (1.19 against the white card) while
+       accent text on it still clears AA at 4.6. */
+    <div className="mt-4 rounded-lg border border-[color-mix(in_srgb,var(--accent)_30%,transparent)] bg-[color-mix(in_srgb,var(--accent)_12%,var(--panel))] p-3">
+      <p className="portal-label text-fg">Need more?</p>
+      <div className="mt-2 flex flex-col items-start gap-2">
         <button
           type="button"
-          className="portal-link text-sm"
+          className="portal-btn-primary h-9 w-full"
           onClick={() => void start({ kind: "addon", addonKey: "extra_revision" }, "addon")}
           disabled={submitting !== null}
         >
@@ -90,7 +96,7 @@ export function RevisionPurchaseFooter({
         {upgradeTo ? (
           <button
             type="button"
-            className="portal-link text-sm"
+            className="portal-link text-accent decoration-[color-mix(in_srgb,var(--accent)_45%,transparent)] hover:text-accent-hover hover:decoration-accent"
             onClick={() => void start({ kind: "upgrade", toPackage: upgradeTo }, "upgrade")}
             disabled={submitting !== null}
           >
