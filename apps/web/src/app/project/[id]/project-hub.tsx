@@ -10,7 +10,7 @@ import { FeatureNoticeCard } from "@/components/feature-notice-card";
 import { HeaderNav } from "@/components/header-nav";
 import { CheckIcon, ChevronRightIcon, DownloadIcon, FileTextIcon, ImageIcon, MessageIcon } from "@/components/icons";
 import { PageShell } from "@/components/page-shell";
-import { EmptyLine, PageHeader, Property, Section } from "@/components/ui";
+import { PageHeader, Property, Section } from "@/components/ui";
 import type { BriefAnswers } from "@/lib/brief";
 import { getProjectDisplayTitle } from "@/lib/project-display-name";
 import { UPSELL_DISPLAY_PRICES } from "@/lib/stripe-price-allowlist";
@@ -350,6 +350,8 @@ export function ProjectHub({
   const hasApprovedConcept = (snapshot?.concepts ?? []).some((concept) => concept.status === "approved");
   const canDownloadFinals = Boolean(snapshot?.finalZip?.available) && (snapshot?.status === "FINAL_FILES_READY" || snapshot?.status === "DELIVERED");
   const showPendingDeliverablesCard = hasApprovedConcept && !canDownloadFinals;
+  // A concept card earns its place only when there is a concept in it.
+  const showConceptCard = Boolean(latestConcept?.imageUrl) && !canDownloadFinals && !showPendingDeliverablesCard;
   const overviewStatus = deriveOverviewBadgeStatus({
     persistedStatus: snapshot?.status ?? "UNKNOWN",
     hasApprovedConcept,
@@ -477,20 +479,29 @@ export function ProjectHub({
               </ul>
             </Section>
 
-            {!canDownloadFinals && !showPendingDeliverablesCard ? (
-              <Section title="Latest concept" actions={<Link className="portal-btn-ghost h-8" href={`/project/${projectId}/concepts`}>View all</Link>}>
-                {latestConcept?.imageUrl ? (
-                  <Link href={`/project/${projectId}/concepts`} className="block overflow-hidden rounded-xl border border-line bg-surface transition-colors hover:border-line-strong">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={latestConcept.imageUrl} alt={`Latest concept #${latestConcept.number}`} className="aspect-[16/9] w-full object-contain" />
-                  </Link>
-                ) : (
-                  <EmptyLine>No concept preview yet. Your first concepts will appear here as soon as they’re ready.</EmptyLine>
-                )}
-              </Section>
-            ) : null}
+            {/* The stage, and the latest concept beside it once one exists. With
+                nothing to show, the concept card is not rendered as an empty
+                frame — the stage takes the width instead, which is the state a
+                customer is in for the first stretch of every project. */}
+            <div className={showConceptCard ? "grid gap-6 lg:grid-cols-2" : ""}>
+              {snapshot?.timeline ? (
+                <ProjectTimeline timeline={snapshot.timeline} customerAction={customerActionFor(snapshot.status)} />
+              ) : (
+                <ProjectTimelineSkeleton />
+              )}
 
-            {snapshot?.timeline ? <ProjectTimeline timeline={snapshot.timeline} customerAction={customerActionFor(snapshot.status)} /> : <ProjectTimelineSkeleton />}
+              {showConceptCard ? (
+                <Section title="Latest concept" actions={<Link className="portal-btn-ghost h-8" href={`/project/${projectId}/concepts`}>View all</Link>}>
+                  <Link
+                    href={`/project/${projectId}/concepts`}
+                    className="block overflow-hidden rounded-xl border border-line bg-surface transition-colors hover:border-line-strong"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={latestConcept!.imageUrl!} alt={`Latest concept #${latestConcept!.number}`} className="aspect-[16/9] w-full object-contain" />
+                  </Link>
+                </Section>
+              ) : null}
+            </div>
           </div>
         </main>
 
