@@ -4,15 +4,27 @@ import { afterAll, describe, expect, it, vi } from "vitest";
 
 import { readPrivateLocalIdentities, requirePrivateLocalCluster } from "./local-dev-fixture-guard";
 
-// A manual, disposable-cluster-only fixture: a SECOND project for the customer
-// the first seed already created, with its brief already submitted, so the
-// brief-submitted stage of the hub can be looked at without filling the form.
-// It creates no identity and sets no password, so no mailbox proof is needed —
-// and the transport is stubbed to throw rather than quietly capture a link.
+// A manual, disposable-cluster-only fixture: an EXTRA project for the customer
+// the first seed already created, at a stage the owner wants to look at without
+// driving the app there by hand. It creates no identity and sets no password,
+// so no mailbox proof is needed — and the transport is stubbed to throw rather
+// than quietly capture a link.
 vi.mock("@/lib/auth/mail", () => ({ sendAuthEmail: async () => { throw new Error("This fixture must neither send nor capture mail"); } }));
 vi.mock("@/lib/stripe", () => ({ PRICE_ID_TO_PACKAGE: { price_local_fixture: "essential" }, stripe: { checkout: { sessions: { listLineItems: async () => ({ data: [{ price: { id: "price_local_fixture" } }] }) } } } }));
 
-const enabled = process.env.PG_LOCAL_DEV_EXTRA_PROJECT === "1";
+/**
+ * Which stage to leave the extra project at, and the field in the private
+ * handoff file that records the one already made. That field's presence is how
+ * a second run of the same stage is refused, so one stage per local cluster.
+ */
+const STAGES = {
+  "awaiting-brief": { status: "AWAITING_BRIEF", handoffKey: "awaitingBriefProjectId" },
+  "brief-submitted": { status: "BRIEF_SUBMITTED", handoffKey: "briefSubmittedProjectId" },
+} as const;
+
+const requested = process.env.PG_LOCAL_DEV_EXTRA_PROJECT ?? "";
+const stage = Object.hasOwn(STAGES, requested) ? STAGES[requested as keyof typeof STAGES] : null;
+const enabled = stage !== null;
 // Fail CLOSED before any fixture import or Prisma write.
 if (enabled) await requirePrivateLocalCluster();
 
@@ -45,18 +57,18 @@ const ANSWERS = {
   additionalNotes: "The shop opens in March, so signage artwork is the first thing we need.",
 };
 
-describe.skipIf(!enabled)("local-only second project at the brief-submitted stage", () => {
+describe.skipIf(!enabled)(`local-only extra project at the ${requested} stage`, () => {
   let db: typeof import("@/lib/prisma").prisma;
   afterAll(async () => { await db?.$disconnect(); });
 
-  it("attaches a paid project with its brief already in to the seeded customer", async () => {
+  it("attaches a paid project at the requested stage to the seeded customer", async () => {
     const file = process.env.LOCAL_DEV_SECRETS_FILE!;
     if (((await stat(file)).mode & 0o777) !== 0o600) throw new Error("Private credential file required");
     const handoff = JSON.parse(await readFile(file, "utf8"));
     // The first seed must have finished: this fixture extends that customer and
     // must never be the thing that creates one.
     if (handoff.status !== "ready") throw new Error("Run seed to completion first");
-    if (handoff.customer?.briefSubmittedProjectId) throw new Error("A brief-submitted fixture project already exists locally");
+    if (handoff.customer?.[stage!.handoffKey]) throw new Error(`A ${requested} fixture project already exists locally`);
 
     db = (await import("@/lib/prisma")).prisma;
     const { customerEmail } = await readPrivateLocalIdentities();
@@ -81,40 +93,49 @@ describe.skipIf(!enabled)("local-only second project at the brief-submitted stag
     expect(await db.clientMembership.count({ where: { clientId: paid.clientId, userId: customer.userId } })).toBe(1);
     expect(await db.projectEntitlement.count({ where: { projectId: paid.projectId } })).toBe(2);
 
-    // Submitted through the same validation and state machine the route uses,
-    // so the stored row is the one a real submission would have written.
-    const parsed = validateBriefSubmission(ANSWERS);
-    if (!parsed.ok) throw new Error(`Fixture brief is incomplete: ${parsed.missing.join(", ")}`);
-    const transition = applyTransition("AWAITING_BRIEF", "BRIEF_SUBMITTED");
-    if (!transition.ok) throw new Error("BRIEF_SUBMITTED is no longer reachable from AWAITING_BRIEF");
+    // Fulfillment already leaves a project at AWAITING_BRIEF, which is a stage
+    // in its own right: the onboarding form can be walked from there.
+    if (stage!.status === "BRIEF_SUBMITTED") {
+      // Submitted through the same validation and state machine the route uses,
+      // so the stored row is the one a real submission would have written.
+      const parsed = validateBriefSubmission(ANSWERS);
+      if (!parsed.ok) throw new Error(`Fixture brief is incomplete: ${parsed.missing.join(", ")}`);
+      const transition = applyTransition("AWAITING_BRIEF", "BRIEF_SUBMITTED");
+      if (!transition.ok) throw new Error("BRIEF_SUBMITTED is no longer reachable from AWAITING_BRIEF");
 
-    await db.$transaction(async (tx) => {
-      const brief = await tx.projectBrief.create({
-        data: { projectId: paid.projectId, version: 1, answers: parsed.answers, createdBy: customer.userId },
-        select: { id: true },
+      await db.$transaction(async (tx) => {
+        const brief = await tx.projectBrief.create({
+          data: { projectId: paid.projectId, version: 1, answers: parsed.answers, createdBy: customer.userId },
+          select: { id: true },
+        });
+        await tx.project.update({ where: { id: paid.projectId }, data: { status: "BRIEF_SUBMITTED" } });
+        await createProjectSystemMessage(tx, {
+          projectId: paid.projectId,
+          fallbackUserId: customer.userId,
+          body: "Brief received. Your designer will review and reply soon.",
+        });
+        await logAudit(tx, { projectId: paid.projectId, actorId: customer.userId, type: "brief_submitted", payload: { briefId: brief.id, version: 1, isResubmission: false } });
+        await logAudit(tx, { projectId: paid.projectId, actorId: customer.userId, type: "state_changed", payload: { previousStatus: "AWAITING_BRIEF", nextStatus: "BRIEF_SUBMITTED" } });
       });
-      await tx.project.update({ where: { id: paid.projectId }, data: { status: "BRIEF_SUBMITTED" } });
-      await createProjectSystemMessage(tx, {
-        projectId: paid.projectId,
-        fallbackUserId: customer.userId,
-        body: "Brief received. Your designer will review and reply soon.",
-      });
-      await logAudit(tx, { projectId: paid.projectId, actorId: customer.userId, type: "brief_submitted", payload: { briefId: brief.id, version: 1, isResubmission: false } });
-      await logAudit(tx, { projectId: paid.projectId, actorId: customer.userId, type: "state_changed", payload: { previousStatus: "AWAITING_BRIEF", nextStatus: "BRIEF_SUBMITTED" } });
-    });
+    }
 
     const project = await db.project.findUniqueOrThrow({
       where: { id: paid.projectId },
       select: { status: true, briefs: { select: { version: true, answers: true } }, messages: { select: { kind: true } } },
     });
-    expect(project.status).toBe("BRIEF_SUBMITTED");
-    expect(project.briefs).toHaveLength(1);
-    expect((project.briefs[0]?.answers as { brandName?: string }).brandName).toBe(ANSWERS.brandName);
-    expect(project.messages.some((message) => message.kind === "system")).toBe(true);
+    expect(project.status).toBe(stage!.status);
+    if (stage!.status === "BRIEF_SUBMITTED") {
+      expect(project.briefs).toHaveLength(1);
+      expect((project.briefs[0]?.answers as { brandName?: string }).brandName).toBe(ANSWERS.brandName);
+      expect(project.messages.some((message) => message.kind === "system")).toBe(true);
+    } else {
+      // Nothing written yet: the form is the only thing that should fill this.
+      expect(project.briefs).toHaveLength(0);
+    }
 
     // The id goes in the private handoff file, never to a terminal or a report.
     const temp = file + ".extra";
-    await writeFile(temp, JSON.stringify({ ...handoff, customer: { ...handoff.customer, briefSubmittedProjectId: paid.projectId } }), { flag: "wx", mode: 0o600 });
+    await writeFile(temp, JSON.stringify({ ...handoff, customer: { ...handoff.customer, [stage!.handoffKey]: paid.projectId } }), { flag: "wx", mode: 0o600 });
     await rename(temp, file);
     if (((await stat(file)).mode & 0o777) !== 0o600) throw new Error("Private credential file required");
   });
