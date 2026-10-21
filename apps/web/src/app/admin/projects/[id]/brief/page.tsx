@@ -69,7 +69,7 @@ export default async function AdminProjectBriefPage({ params }: AdminProjectBrie
               <BriefFieldGrid className="gap-5">
                 {briefSections.map((section) => (
                   <BriefSection key={section.id} title={section.title} description={section.description} tone="paper">
-                    <div className="grid gap-3 md:grid-cols-2">
+                    <div className="flex flex-col">
                       {section.fields.map((field) => (
                         <BriefField
                           key={field.key}

@@ -348,7 +348,7 @@ export function BriefForm({ projectId, briefVersions }: BriefFormProps) {
           <BriefFieldGrid>
             {briefSections.map((section) => (
               <BriefSection key={section.id} title={section.title} description={section.description} tone="paper">
-                <div className="grid gap-3 md:grid-cols-2">
+                <div className="flex flex-col">
                   {section.fields.map((field) => (
                     <BriefField key={field.key} label={field.label} value={latestBrief.answers[field.key] ?? "—"} compact valueClassName="text-base leading-7" />
                   ))}

@@ -41,7 +41,7 @@ export function FeatureNoticeCard({
         celebrating
           ? undefined
           : {
-              background: `color-mix(in srgb, ${style.tone} ${variant === "info" ? 6 : 9}%, var(--panel))`,
+              background: `color-mix(in srgb, ${style.tone} ${variant === "info" ? 8 : 12}%, var(--panel))`,
               borderColor: `color-mix(in srgb, ${style.tone} 28%, transparent)`,
             }
       }

@@ -62,8 +62,8 @@ export function BriefSection({ title, description, children, className = "", ton
 
 export function BriefField({ label, value, compact = false, className = "", valueClassName = "" }: BriefFieldProps) {
   return (
-    <section className={`border-b border-line ${compact ? "py-3" : "py-4"} ${className}`.trim()}>
-      <h4 className="text-sm font-medium text-fg-2">{label}</h4>
+    <section className={`border-b border-line last:border-b-0 last:pb-0 ${compact ? "py-3" : "py-4"} ${className}`.trim()}>
+      <h4 className="portal-label">{label}</h4>
       <p className={`mt-2.5 max-w-[72ch] whitespace-pre-wrap text-base text-fg ${compact ? "leading-6" : "leading-7"} ${valueClassName}`.trim()}>{value || "—"}</p>
     </section>
   );
