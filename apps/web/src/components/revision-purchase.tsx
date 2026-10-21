@@ -77,12 +77,13 @@ export function RevisionPurchaseFooter({
   const { start, submitting, error } = useRevisionPurchase(projectId);
 
   return (
-    /* A tinted block rather than two quiet links: this is the only permanent
-       route to buying a revision, and as plain text under the meters it read
-       as small print. The tint is the accent at 12% — the step where the
-       block is visibly its own thing (1.19 against the white card) while
-       accent text on it still clears AA at 4.6. */
-    <div className="mt-4 rounded-lg border border-[color-mix(in_srgb,var(--accent)_30%,transparent)] bg-[color-mix(in_srgb,var(--accent)_12%,var(--panel))] p-3">
+    /* A block of its own rather than two quiet links: this is the only
+       permanent route to buying a revision, and as plain text under the
+       meters it read as small print. It takes the same parchment and warm
+       rule as the stage and journey panels — 1.13 against the white card, the
+       separation those already use — so the colour belongs to the page and
+       the purple belongs to the thing you press. */
+    <div className="mt-4 rounded-lg border border-line bg-surface p-3">
       <p className="portal-label text-fg">Need more?</p>
       <div className="mt-2 flex flex-col items-start gap-2">
         <button
