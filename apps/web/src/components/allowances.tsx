@@ -25,11 +25,21 @@ export function allowanceTone(usage: EntitlementUsage | undefined, remaining: nu
   return "plenty";
 }
 
-const TONE_STYLE: Record<AllowanceTone, { label: string; chip: string; used: string }> = {
-  plenty: { label: "Available", chip: "bg-success-soft text-success", used: "bg-accent" },
-  last: { label: "Last one", chip: "bg-warning-soft text-warning", used: "bg-warning" },
-  out: { label: "Used up", chip: "bg-danger-soft text-danger", used: "bg-danger" },
-  neutral: { label: "", chip: "bg-surface-2 text-fg-2", used: "bg-accent" },
+/**
+ * The word, and the tint behind it.
+ *
+ * The tint carries the tone and the word is set in ink, which clears AA on
+ * every surface — the coloured text these used did not: amber on an amber tint
+ * measured 3.3:1, and any amber dark enough to pass on parchment is a brown.
+ * The meter itself is always the brand purple, because it answers "how many",
+ * not "how worried": blocks of dark ochre and red read as dirt beside the
+ * warm backgrounds, and the word above them has already said it.
+ */
+const TONE_STYLE: Record<AllowanceTone, { label: string; chip: string }> = {
+  plenty: { label: "Available", chip: "bg-success-soft text-fg" },
+  last: { label: "Last one", chip: "bg-warning-soft text-fg" },
+  out: { label: "Used up", chip: "bg-danger-soft text-fg" },
+  neutral: { label: "", chip: "bg-surface-2 text-fg-2" },
 };
 
 /** One allowance, sized to be read at a glance: what's left, of how many, and what's pending. */
@@ -61,7 +71,7 @@ export function Allowance({ label, usage }: { label: string; usage: EntitlementU
             return (
               <span
                 key={index}
-                className={`h-2 flex-1 rounded-full ${state === "used" ? style.used : state === "pending" ? "bg-[repeating-linear-gradient(135deg,var(--accent)_0_3px,var(--accent-soft)_3px_6px)]" : "bg-surface-2 shadow-[inset_0_0_0_1px_var(--line)]"}`}
+                className={`h-2 flex-1 rounded-full ${state === "used" ? "bg-accent" : state === "pending" ? "bg-[repeating-linear-gradient(135deg,var(--accent)_0_3px,var(--accent-soft)_3px_6px)]" : "bg-surface-2 shadow-[inset_0_0_0_1px_var(--line)]"}`}
               />
             );
           })}

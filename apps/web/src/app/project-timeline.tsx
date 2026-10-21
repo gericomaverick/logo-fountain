@@ -29,7 +29,7 @@ function pickStages(timeline: TimelineItem[]): { now: TimelineItem; next?: Timel
  * circumference and hides the rest, offset by its own share, with the whole
  * thing turned a quarter so it starts at the top.
  */
-function StageRing({ total, done, current, onBrand }: { total: number; done: number; current: number; onBrand: boolean }) {
+function StageRing({ total, done, current }: { total: number; done: number; current: number }) {
   const size = 84;
   const stroke = 8;
   const radius = (size - stroke) / 2;
@@ -37,11 +37,6 @@ function StageRing({ total, done, current, onBrand }: { total: number; done: num
   const per = circumference / total;
   const gap = per * 0.125;
   const arc = per - gap;
-
-  const filled = onBrand ? "var(--brand-block-fg)" : "var(--accent)";
-  const empty = onBrand ? "rgba(255,255,255,0.28)" : "var(--line-strong)";
-  // The stage being worked on sits between the two: started, not finished.
-  const inProgress = onBrand ? "rgba(255,255,255,0.65)" : "var(--accent-hover)";
 
   return (
     <svg
@@ -60,7 +55,8 @@ function StageRing({ total, done, current, onBrand }: { total: number; done: num
           r={radius}
           fill="none"
           strokeWidth={stroke}
-          stroke={index < done ? filled : index === current ? inProgress : empty}
+          // The stage being worked on sits between the two: started, not finished.
+          stroke={index < done ? "var(--accent)" : index === current ? "var(--accent-hover)" : "var(--line-strong)"}
           strokeDasharray={`${arc} ${circumference - arc}`}
           strokeDashoffset={-index * per}
         />
@@ -73,9 +69,11 @@ function StageRing({ total, done, current, onBrand }: { total: number; done: num
  * Eight stages listed out told someone mostly what was not happening. This
  * shows where the project is and what follows.
  *
- * It takes colour only when the next move is theirs: a stage waiting on us is a
- * quiet tinted panel, and a stage waiting on them is the brand block, so the
- * difference is visible from across the room rather than read.
+ * It is always the quiet panel. It used to turn into a block of brand colour
+ * whenever the next move was the customer's — but the page already carries
+ * exactly that in the block at the top, so two purple blocks then said the
+ * same thing and fought over which was first. The ring keeps the brand colour;
+ * the frame does not.
  */
 export function ProjectTimeline({
   timeline,
@@ -90,7 +88,6 @@ export function ProjectTimeline({
   const done = timeline.filter((step) => step.completed).length;
   const currentIndex = timeline.findIndex((step) => step.current);
   const stageNumber = currentIndex === -1 ? timeline.length : currentIndex + 1;
-  const waitingOnThem = Boolean(customerAction);
 
   return (
     <section aria-labelledby="project-stage-title">
@@ -98,46 +95,30 @@ export function ProjectTimeline({
         Where your project is
       </h2>
 
-      <div
-        className={
-          waitingOnThem
-            ? "brand-sheen rounded-xl p-5 sm:p-6"
-            : "rounded-xl border border-line bg-surface p-5 sm:p-6"
-        }
-      >
+      <div className="rounded-xl border border-line bg-surface p-5 sm:p-6">
         <div className="flex items-start justify-between gap-5">
           <div className="min-w-0">
-        <p className={`portal-label ${waitingOnThem ? "text-brand-block-fg-2" : "text-accent"}`}>Now</p>
-        <p className={`portal-display mt-1 text-xl ${waitingOnThem ? "text-brand-block-fg" : "text-fg"}`}>
-          {stages.now.label}
-        </p>
-        {stages.now.timestamp ? (
-          <time
-            className={`mt-1 block text-sm ${waitingOnThem ? "text-brand-block-fg-2" : "text-fg-3"}`}
-            dateTime={stages.now.timestamp}
-          >
-            Since {WHEN.format(new Date(stages.now.timestamp))}
-          </time>
-        ) : null}
-
+            <p className="portal-label text-accent">Now</p>
+            <p className="portal-display mt-1 text-xl text-fg">{stages.now.label}</p>
+            {stages.now.timestamp ? (
+              <time className="mt-1 block text-sm text-fg-2" dateTime={stages.now.timestamp}>
+                Since {WHEN.format(new Date(stages.now.timestamp))}
+              </time>
+            ) : null}
           </div>
 
           <div className="relative shrink-0">
-            <StageRing total={timeline.length} done={done} current={currentIndex} onBrand={waitingOnThem} />
-            <span
-              className={`absolute inset-0 flex flex-col items-center justify-center leading-none ${
-                waitingOnThem ? "text-brand-block-fg" : "text-fg"
-              }`}
-            >
+            <StageRing total={timeline.length} done={done} current={currentIndex} />
+            <span className="absolute inset-0 flex flex-col items-center justify-center leading-none text-fg">
               <span className="portal-display text-lg tabular-nums">{stageNumber}</span>
-              <span className={`mt-0.5 font-mono text-xs ${waitingOnThem ? "text-brand-block-fg-2" : "text-fg-2"}`}>of {timeline.length}</span>
+              <span className="mt-0.5 font-mono text-xs text-fg-2">of {timeline.length}</span>
             </span>
           </div>
         </div>
 
-        {waitingOnThem ? (
-          <p className="mt-4 flex items-center gap-1.5 text-lg font-semibold text-brand-block-fg">
-            <ChevronRightIcon size={18} />
+        {customerAction ? (
+          <p className="mt-4 flex items-center gap-1.5 text-base font-semibold text-fg">
+            <ChevronRightIcon size={18} className="text-accent" />
             {customerAction}
           </p>
         ) : (
@@ -145,11 +126,9 @@ export function ProjectTimeline({
         )}
 
         {stages.next ? (
-          <div className={`mt-5 border-t pt-4 ${waitingOnThem ? "border-[rgba(255,255,255,0.22)]" : "border-line"}`}>
-            <p className={`portal-label ${waitingOnThem ? "text-brand-block-fg-2" : "text-fg-2"}`}>Next</p>
-            <p className={`mt-1 text-base ${waitingOnThem ? "text-brand-block-fg-2" : "text-fg-2"}`}>
-              {nextStageCopy(stages.next.state, stages.next.label)}
-            </p>
+          <div className="mt-5 border-t border-line pt-4">
+            <p className="portal-label text-fg-2">Next</p>
+            <p className="mt-1 text-base text-fg-2">{nextStageCopy(stages.next.state, stages.next.label)}</p>
           </div>
         ) : null}
       </div>
