@@ -524,9 +524,10 @@ export function ProjectHub({
             </div>
           </PanelCard>
 
+          {/* No Status row: the badge under the page title is the same value,
+              and the stage panel says it in words above both. */}
           <PanelCard title="Details">
             <dl className="-my-2">
-              <Property label="Status"><ProjectStatusBadge status={overviewStatus} size="sm" /></Property>
               <Property label="Package">{packageLabel}</Property>
               <Property label="Brief">
                   {snapshot?.latestBrief ? (
