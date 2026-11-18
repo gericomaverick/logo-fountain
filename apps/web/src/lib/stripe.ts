@@ -2,6 +2,8 @@ import "server-only";
 
 import Stripe from "stripe";
 
+import { stripeParityOptions } from "@/lib/parity-mode";
+
 import {
   PACKAGE_TO_PRICE_ID,
   STRIPE_PLACEHOLDER_PRICE_IDS,
@@ -32,4 +34,5 @@ function getRequiredEnv(name: string): string {
 
 export const stripe = new Stripe(getRequiredEnv("STRIPE_SECRET_KEY"), {
   apiVersion: "2026-02-25.clover",
+  ...stripeParityOptions(),
 });

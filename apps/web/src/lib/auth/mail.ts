@@ -1,4 +1,5 @@
 import "server-only";
+import { parityOverride } from "@/lib/parity-mode";
 import { renderBrandedEmail } from "@/lib/email-branding";
 const POSTMARK_API_URL = "https://api.postmarkapp.com/email";
 type MagicLinkFlow = "setup" | "signin" | "reset";
@@ -38,7 +39,7 @@ async function sendPostmarkEmail({
       : "If you did not request this email, you can safely ignore it.",
   });
 
-  const response = await fetch(POSTMARK_API_URL, {
+  const response = await fetch(parityOverride("POSTMARK_API_URL") ?? POSTMARK_API_URL, {
     signal: AbortSignal.timeout(10000),
     method: "POST",
     headers: {

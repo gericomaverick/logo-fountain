@@ -18,7 +18,7 @@ development_status:
   epic-0: in-progress
   0-1-parity-suite-scaffold: done
   0-2-test-infrastructure-stack: backlog
-  0-3-next-js-test-seams-freeze-exceptions: backlog
+  0-3-next-js-test-seams-freeze-exceptions: done
   0-4-seed-scenarios-next: backlog
   0-5-stripe-fixtures-and-webhook-scenarios: backlog
   0-6a-golden-upload-corpus: backlog

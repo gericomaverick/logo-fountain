@@ -1,4 +1,5 @@
 import "server-only";
+import { parityOverride } from "@/lib/parity-mode";
 
 import { logAudit } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
@@ -114,7 +115,7 @@ async function sendEmail({ to, subject, textBody, htmlBody }: { to: string; subj
     return { status: "skipped", reason: "not_configured" };
   }
 
-  const response = await fetch(POSTMARK_API_URL, {
+  const response = await fetch(parityOverride("POSTMARK_API_URL") ?? POSTMARK_API_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

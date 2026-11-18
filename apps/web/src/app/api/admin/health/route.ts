@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { requireAdmin, requireUser, toRouteErrorResponse } from "@/lib/auth/require";
 import { prisma } from "@/lib/prisma";
 import { STRIPE_PLACEHOLDER_PRICE_IDS } from "@/lib/stripe";
+import { stripeParityOptions } from "@/lib/parity-mode";
 import { checkPrivateStorageHealth } from "@/lib/storage/r2";
 import {
   STORAGE_BUCKET_CONCEPTS,
@@ -131,7 +132,7 @@ export async function GET() {
 
     if (envPresent("STRIPE_SECRET_KEY")) {
       try {
-        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2026-02-25.clover" });
+        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2026-02-25.clover", ...stripeParityOptions() });
         const account = await stripe.accounts.retrieve();
 
         checks.push({

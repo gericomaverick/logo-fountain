@@ -160,7 +160,7 @@ Actors: **P** public / anonymous · **C** client (project member) · **A** admin
 | O-05 | Production proxy-config preflight | `scripts/auth-proxy-preflight.mjs` | Not started |
 | O-06 | DB runtime grants (least-privilege runtime role) | `ops/postgres/runtime-grants.sql` | Not started |
 | O-07 | Environment variables: `DATABASE_URL`, `DIRECT_URL`, `PUBLIC_SITE_URL`, `PUBLIC_MARKETING_SITE_URL`, `STRIPE_*`, `POSTMARK_*`, R2 vars, `ADMIN_NOTIFICATION_EMAILS`, `EMAIL_LOGO_URL`, `AUTH_CLIENT_IP_HEADER`, `AUTH_TRUSTED_PROXY_HOPS` (the full list comes from `grep process.env` in Phase 0) | | Not started |
-| O-09 | **Parity test seams in `apps/web`** (freeze exceptions, inert unless `PARITY_MODE=1`): `POSTMARK_API_URL` in `lib/auth/mail.ts` and `lib/project-lifecycle-email.ts`; `R2_ENDPOINT` plus `forcePathStyle` in `lib/storage/r2.ts`; `STRIPE_API_BASE` in `lib/stripe.ts` and `app/api/admin/health/route.ts`; `scripts/parity-seed.mjs` | story 0.3 | Not started |
+| O-09 | **Parity test seams in `apps/web`** (freeze exceptions, inert unless `PARITY_MODE=1`): `POSTMARK_API_URL` in `lib/auth/mail.ts` and `lib/project-lifecycle-email.ts`; `R2_ENDPOINT` plus `forcePathStyle` in `lib/storage/r2.ts`; `STRIPE_API_BASE` in `lib/stripe.ts` and `app/api/admin/health/route.ts`; `scripts/parity-seed.mjs` | story 0.3 (a–c), 0.4 (d) | Not started (a–c built: `apps/web/src/lib/parity-mode.ts`, test `parity-mode.test.ts`) |
 | O-08 | Runbooks: auth, checkout troubleshooting, webhook ops, R2, test runbook, all rewritten for Laravel | `apps/web/docs/*` | Not started |
 
 ## Decided deviations from the Next.js behaviour

@@ -5,6 +5,7 @@ import { DeleteObjectCommand, GetObjectCommand, HeadBucketCommand, PutObjectComm
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import type { PreparedUpload } from "@/lib/upload-validation";
+import { parityOverride } from "@/lib/parity-mode";
 
 // Persist logical namespaces, not operator-selected infrastructure bucket names.
 export const STORAGE_BUCKET_CONCEPTS = "concepts";
@@ -108,9 +109,10 @@ function getStorage(): PrivateR2Storage {
   if (!/^[a-f0-9]{32}$/.test(account)) throw new Error("Invalid R2 account ID");
   const jurisdiction = process.env.R2_JURISDICTION?.trim();
   if (jurisdiction && jurisdiction !== "eu" && jurisdiction !== "fedramp") throw new Error("Invalid R2 jurisdiction");
-  const endpoint = `https://${account}${jurisdiction ? `.${jurisdiction}` : ""}.r2.cloudflarestorage.com`;
+  const parityEndpoint = parityOverride("R2_ENDPOINT");
+  const endpoint = parityEndpoint ?? `https://${account}${jurisdiction ? `.${jurisdiction}` : ""}.r2.cloudflarestorage.com`;
   storage = new PrivateR2Storage(new S3Client({
-    region: "auto", endpoint,
+    region: "auto", endpoint, ...(parityEndpoint ? { forcePathStyle: true } : {}),
     credentials: { accessKeyId: required("R2_ACCESS_KEY_ID"), secretAccessKey: required("R2_SECRET_ACCESS_KEY") },
     requestChecksumCalculation: "WHEN_REQUIRED", responseChecksumValidation: "WHEN_REQUIRED",
     maxAttempts: 3,

@@ -3,7 +3,7 @@
 ## Now (overwrite this section at the end of every session)
 
 - **Updated:** 2026-11-18 (night session; the owner is away and asked for autonomous progress with tracking)
-- **Phase:** Epic 0 in progress. **0.1 done** (`tests/parity/`, @smoke 2/2 on Next).
+- **Phase:** Epic 0 in progress. **0.1 done** (@smoke 2/2 on Next). **0.3 done** (seams, `apps/web/src/lib/parity-mode.ts`; 726 unit tests pass).
 - **Running:** sub-agents on 0.2, 0.6a and 0.6b in separate worktrees (branches `story/0-2`, `story/0-6a`, `story/0-6b`). The parent reviews and merges.
 - **Next:** merge them → 0.3 (Next seams) → 0.4 → 0.5 → 0.7a–d → 0.8a–e → 0.9.
 - **Run the suite:** `cd tests/parity && npm ci && PARITY_TARGET=next PARITY_START_NEXT=1 node scripts/run.mjs "@smoke"`.
@@ -25,6 +25,7 @@ npm run test:e2e                                        # last recorded: 5–6 P
 
 ## Session log (newest first, one line each)
 
+- 2026-11-18: 0.3 done (Next seams a–c, inert unless PARITY_MODE=1).
 - 2026-11-18: 0.1 done (parity scaffold, smoke green on Next). Next agent-nudge workaround.
 
 - 2026-11-18: Readiness fixes applied. Epics v2. Sprint plan. Baseline re-verified (722 tests).
