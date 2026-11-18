@@ -5,7 +5,7 @@
 - **Updated:** 2026-11-18
 - **Phase:** Phase 1 (analysis) and Phase 2.2 (UX), drafts written. Awaiting owner review.
 - **Done this session:** Phase 0 sweep finished (DB trigger and constraints → A-19, stale runbook notes). `product-brief.md` (BMAD 1.1, draft). `ux-design.md` (BMAD 2.2, full spec: IA, turn-based status model, verified colour tokens, type, components, patterns, journeys, responsive and a11y, per-screen priorities). `ux/design-directions.html` (A/B/C, light and dark). Finding F-15 / DV-12 (polling re-downloads R2 images). Technical research (BMAD 1.2) delegated to a sub-agent → `research-technical.md`.
-- **Next step:** (1) merge and review the research output and update plan §3 rows (CONFIRMED / CHANGED / OPEN); (2) the owner answers: the brief's open questions, UX §15 (direction choice, turnaround copy, one-project shortcut, Files tab, Sfizia licence, brief uploads), the research owner questions; (3) then Phase 2.1 `create-prd` (functional requirements = inventory IDs, NFRs = X-series plus UX targets).
+- **Next step:** (1) merge and review the research output and update plan §3 rows (CONFIRMED / CHANGED / OPEN); (2) the owner answers: the brief's open questions, UX §15 (direction **A chosen**; still open: turnaround copy, one-project shortcut, Files tab, Sfizia licence, brief uploads), the research owner questions; (3) then Phase 2.1 `create-prd` (functional requirements = inventory IDs, NFRs = X-series plus UX targets).
 - **Blockers:** owner choices above (the UX direction gates E6/E7, not the PRD).
 - **Half-finished:** `research-technical.md` (sub-agent running).
 

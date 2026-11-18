@@ -8,7 +8,7 @@ inputDocuments:
   - apps/web/docs/design-system.md
   - apps/site/src/_includes/css/app.css (brand tokens)
 workflow: bmad-bmm-create-ux-design (BMAD step 2.2)
-status: Draft. Design direction awaiting owner choice (§9); everything else for owner review
+status: Direction A (Studio paper) chosen by the owner 2026-11-18; remaining owner inputs in §15
 date: 2026-11-18
 ---
 
@@ -203,7 +203,7 @@ Rules: every text and background pairing used must be one of the verified pairs 
 - **Motion:** 150 ms (micro) / 250 ms (panels), ease-out. Only to explain change (a tab indicator, a sheet entering, a progress fill). `prefers-reduced-motion` turns all of it off. No parallax, no looping animation.
 - **Icons:** Lucide (outline, 1.5 px stroke, 16 / 20 px), always with a visible label or an `aria-label`.
 
-## 9. Design direction (owner decision required)
+## 9. Design direction: **A, Studio paper (chosen by the owner, 2026-11-18)**
 
 Three directions apply the same IA, tokens structure and components but differ in character. A comparison page with light and dark is in [`ux/design-directions.html`](ux/design-directions.html).
 
@@ -338,7 +338,7 @@ For each screen, content is listed **in priority order** (the order a person nee
 | Admin Health | "Is everything working?" | (none) | Checks grouped (config, database, Stripe, storage) with next steps |
 
 ## 15. Owner input needed (UX)
-1. **Choose a design direction** (A recommended). `ux/design-directions.html`.
+1. ~~Choose a design direction~~ **Done: A (Studio paper), 2026-11-18.** The §8.1 tokens as written are final for A. B and C are discarded.
 2. Turnaround copy for empty states ("usually within N working days") and the "what happens next" lines. Customers need realistic times.
 3. Approve the IA changes that alter flows: **one-project shortcut** (§5.3.1) and the **Files** tab (§5.1).
 4. Is the Sfizia display serif licensed for app (web-app) use as well as the marketing site? (It's already in the repo for both.)
