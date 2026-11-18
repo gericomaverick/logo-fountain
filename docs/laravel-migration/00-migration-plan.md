@@ -1,6 +1,6 @@
 # Logo Fountain: Next.js → Laravel migration plan (BMAD)
 
-Status: **v0.4. Phase 0 complete; findings ruled on (DV- deviations); UI redesign added to scope (2026-11-18); Phase 1 next**
+Status: **v0.5 (2026-11-18). Phase 0 done. Phase 1 brief drafted, technical research in progress. Phase 2.2 UX spec drafted (design direction awaiting owner choice)**
 Created: 2026-11-18
 Scope: `apps/web` (client portal, admin portal, checkout/payments backend). `apps/site` (Eleventy marketing) is not in scope.
 

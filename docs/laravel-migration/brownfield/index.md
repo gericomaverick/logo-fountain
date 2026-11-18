@@ -34,6 +34,7 @@ The Phase 0 output of BMAD `document-project` (deep scan, apps/web only), 2026-1
 | F-12 | Email | Re-uploading finals while `FINAL_FILES_READY` re-sends the "final files ready" email | Keep and document it |
 | F-13 | Lifecycle | `IN_DESIGN` is unreachable: no route sets it | Keep parity. Optional later "Mark in design" admin action |
 | F-14 | Messages | System messages are deduplicated by body, so legitimate repeats (e.g. after a reset) are suppressed | Keep parity now. A post-launch fix |
+| F-15 | Storage / cost | Polled pages (customer hub every 10 s, admin project every **2 s**, concept lists) re-sign concept image URLs on every poll. A new query string means a browser cache miss, so **every poll re-downloads every image from R2**: Class B operations and bandwidth wasted, and visible image flicker. E.g. one admin tab with 3 images open for an hour ≈ 5,400 R2 reads | Laravel: the API also returns a stable `imageKey` (the file asset id). The React image component **keeps its current `src` until `imageKey` changes or the URL is within 5 min of expiry**. Signed URLs are still never stored server-side. Decided under the owner's R2-for-images intent (2026-11-18) |
 
 ## Notes for architecture (step 3.1)
 

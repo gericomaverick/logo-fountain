@@ -31,6 +31,7 @@ Actors: **P** public / anonymous · **C** client (project member) · **A** admin
 | A-15 | P | `/` redirects to `/login` | `app/page.tsx` | `@smoke` | | Not started |
 | A-17 | S | Production fail-closed: auth endpoints return `503 AUTH_UNAVAILABLE` when no trusted client address can be derived. Auth JSON wrapper: `application/json` required (`400 INVALID_JSON`), 8192-byte body cap (`413 PAYLOAD_TOO_LARGE`), generic error message, `no-store` and `no-referrer` headers | `lib/auth/http.ts` | `@auth @security` | | Not started |
 | A-18 | C | Magic-link callback asks for an explicit "Confirm sign-in" click (so link scanners can't burn it). Tokens are read from the URL **fragment** and removed from history before rendering | `app/auth/callback`, `lib/auth/client.ts` | `@auth @security` | | Not started |
+| A-19 | S | DB trigger: only the migration (owner) role can set or change `profiles.is_admin`. Email check constraints (lowercase and trimmed) | `prisma/migrations/20260901000000_portable_core` | `@pg-race @security` | | Not started |
 | A-16 | C/A | Route guards: pages and APIs require a session. Admin areas require `isAdmin`. SSR guards and API checks are both enforced | `lib/auth/require.ts`, `app/admin/layout.tsx` | `@authz` | | Not started |
 
 ## K: Checkout, payments, entitlements
@@ -176,6 +177,7 @@ These rows deliberately **don't** reproduce today's behaviour. Their parity test
 | DV-8 | N-04…N-12 | Emails sent inline after commit | Queued jobs dispatched after commit, with retries. Same recipients, subjects, markers | Recommendation (F-8) |
 | DV-9 | D-08, N-05 | A revision delivered by **upload** sends no client email | The revision upload sends "Your revised concept is ready" **once per upload** (marker `email_sent:client_revision_ready:upload:{fileAssetId}`). The mark-delivered route keeps its per-request marker | Owner (F-9) |
 | DV-11 | D-11 | The finals upload returns `{error:"…", code}` in three places | The standard `{error:{message, code}}` everywhere | Recommendation (F-11) |
+| DV-12 | C-03, C-08, C-09, D-02, D-05 | Every poll re-signs image URLs, so images re-download and flicker | Snapshot and concept payloads add a stable `imageKey`. The UI keeps the existing signed URL until the key changes or the URL nears expiry (adding a field is backward-compatible for the contract) | Recommendation (F-15), within the owner's R2 intent |
 | DV-UX | C-19 and every page | The portal mid-redesign, with inconsistent markup | **Redesigned from the start in Laravel:** a design system and layouts defined in BMAD UX design (step 2.2), and every screen built to it. **Behaviour stays identical**, only the look changes | Owner (2026-11-18) |
 
 F-10, F-12, F-13 and F-14 keep the current behaviour (parity). See `ASSUMPTIONS.md` 2026-11-18.
@@ -185,5 +187,5 @@ F-10, F-12, F-13 and F-14 keep the current behaviour (parity). See `ASSUMPTIONS.
 - [x] Every `route.ts` (49) and `page.tsx` (27) maps to a row above (2026-11-18, `brownfield/api-*.md`, `ui-pages.md`).
 - [x] Every `src/lib/*.ts` module maps to a row, or is marked UI-only (`brownfield/business-rules-and-notifications.md` §1).
 - [x] Every test file (110 including Playwright) is listed in `test-port-ledger.md`.
-- [ ] Every doc in `docs/` and `apps/web/docs/` has been read for behaviour that isn't visible in code. (Read so far: security-boundaries, the supabase-exit report, test-runbook, TODO. The rest is still to do.)
+- [x] Every doc in `apps/web/docs/` plus the product brief and user journeys has been read for behaviour that isn't visible in code (2026-11-18). Stale runbook statements are listed in `brownfield/data-model-and-ops.md` §6, and migration-SQL rules were added as A-19.
 - [x] `TBC` rows resolved (2026-11-18: K-13 → F-1, N-13 → UI only).

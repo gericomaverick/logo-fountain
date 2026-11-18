@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portal Design Directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+@font-face{font-family:"Sfizia";src:url("../../../apps/site/src/fonts/atipo-sfizia-regular.ttf") format("truetype");font-display:swap}
+@font-face{font-family:"Geist Mono";src:url("../../../apps/site/src/fonts/geist-mono-v6-latin-regular.woff2") format("woff2");font-display:swap}
+
+/* ---------- page chrome (neutral, not part of any direction) ---------- */
+:root{--chrome-bg:#f4f4f2;--chrome-fg:#1a1a18;--chrome-mute:#5f5d57;--chrome-line:#dcdad3}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--chrome-bg:#141413;--chrome-fg:#ecebe6;--chrome-mute:#a4a19a;--chrome-line:#2e2d2a}}
+:root[data-theme="dark"]{--chrome-bg:#141413;--chrome-fg:#ecebe6;--chrome-mute:#a4a19a;--chrome-line:#2e2d2a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--chrome-bg);color:var(--chrome-fg);font:16px/1.5 Inter,system-ui,sans-serif}
+.wrap{max-width:1320px;margin:0 auto;padding:24px 16px 64px}
+header.top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:end;justify-content:space-between;margin-bottom:20px}
+header.top h1{font-size:1.5rem;margin:0;font-weight:600}
+header.top p{margin:4px 0 0;color:var(--chrome-mute);max-width:70ch}
+.controls{display:flex;gap:8px;flex-wrap:wrap}
+.seg{display:inline-flex;border:1px solid var(--chrome-line);border-radius:10px;overflow:hidden}
+.seg button{font:500 14px Inter,sans-serif;padding:8px 14px;border:0;background:transparent;color:var(--chrome-fg);cursor:pointer;min-height:40px}
+.seg button[aria-pressed="true"]{background:var(--chrome-fg);color:var(--chrome-bg)}
+.grid{display:grid;gap:24px;grid-template-columns:1fr}
+@media (min-width:1100px){.grid{grid-template-columns:repeat(3,1fr)}}
+.label{display:flex;justify-content:space-between;align-items:baseline;margin:0 0 8px}
+.label h2{font-size:1.05rem;margin:0;font-weight:600}
+.label span{font-size:.8rem;color:var(--chrome-mute)}
+.note{font-size:.85rem;color:var(--chrome-mute);margin:10px 2px 0}
+.rec{font-size:.75rem;font-weight:600;background:#5150F7;color:#fff;border-radius:999px;padding:2px 8px;margin-left:6px}
+
+/* ---------- direction tokens ---------- */
+.dir{--r-sm:6px;--r-md:10px;--r-lg:16px;--display:"Sfizia",Georgia,serif;
+  background:var(--bg);color:var(--fg);border-radius:18px;border:1px solid var(--divider);overflow:hidden;font-family:Inter,system-ui,sans-serif}
+/* A: Studio paper */
+.dir.a{--bg:#FBF9F4;--surface:#FFFFFF;--sunken:#F3EEE3;--divider:#E7E1D5;--border:#857E6F;--fg:#151412;--fg2:#4A4740;--fg3:#6B675E;--accent:#5150F7;--accent-fg:#fff;--accent-text:#4241D6;--accent-soft:#ECEBFF;--success:#17704A;--success-soft:#E6F4EC;--warning:#8A5300;--warning-soft:#FBF0DC;--shadow:0 1px 2px rgba(21,20,18,.06),0 4px 12px rgba(21,20,18,.05)}
+.dir.a.dark{--bg:#121211;--surface:#1B1B19;--sunken:#0C0C0B;--divider:#2A2926;--border:#77726A;--fg:#F2EFE8;--fg2:#C2BDB2;--fg3:#9B968B;--accent:#8E8DFF;--accent-fg:#0C0C0B;--accent-text:#A3A2FF;--accent-soft:#24234A;--success:#4CC38A;--success-soft:#12301F;--warning:#E7A93B;--warning-soft:#33270F;--shadow:none}
+/* B: Clean ink */
+.dir.b{--display:Inter,system-ui,sans-serif;--bg:#F6F7F9;--surface:#FFFFFF;--sunken:#EEF0F3;--divider:#E3E6EA;--border:#7C828C;--fg:#0B0C0E;--fg2:#40454D;--fg3:#5F6670;--accent:#5150F7;--accent-fg:#fff;--accent-text:#4241D6;--accent-soft:#EDEDFF;--success:#127A4B;--success-soft:#E5F5EC;--warning:#8A5300;--warning-soft:#FCF1DD;--shadow:0 1px 2px rgba(11,12,14,.06),0 6px 16px rgba(11,12,14,.05)}
+.dir.b.dark{--bg:#0B0C0E;--surface:#15171A;--sunken:#08090A;--divider:#262A2F;--border:#6E747E;--fg:#F3F4F6;--fg2:#BCC1C8;--fg3:#8F959E;--accent:#8E8DFF;--accent-fg:#08090A;--accent-text:#A3A2FF;--accent-soft:#22234A;--success:#4CC38A;--success-soft:#10291D;--warning:#E7A93B;--warning-soft:#2E230E;--shadow:none}
+/* C: Soft contrast */
+.dir.c{--r-sm:10px;--r-md:14px;--r-lg:22px;--bg:#F7F6FF;--surface:#FFFFFF;--sunken:#EFEDFF;--divider:#E2DFFA;--border:#7F7BA6;--fg:#17152B;--fg2:#45416A;--fg3:#646087;--accent:#5150F7;--accent-fg:#fff;--accent-text:#4241D6;--accent-soft:#E6E5FF;--success:#127A4B;--success-soft:#E3F5EB;--warning:#8A5300;--warning-soft:#FCEFD9;--shadow:0 2px 6px rgba(81,80,247,.10),0 10px 24px rgba(81,80,247,.08)}
+.dir.c.dark{--bg:#13121F;--surface:#1C1A2C;--sunken:#0E0D18;--divider:#2D2A45;--border:#7A76A0;--fg:#F1F0FB;--fg2:#C4C1E0;--fg3:#9894BA;--accent:#8E8DFF;--accent-fg:#0E0D18;--accent-text:#A9A8FF;--accent-soft:#2A2858;--success:#4CC38A;--success-soft:#122B20;--warning:#E7A93B;--warning-soft:#30260F;--shadow:none}
+
+/* ---------- shared component styles (driven by tokens) ---------- */
+.app-top{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--divider);background:var(--surface)}
+.logo{font-weight:600;font-size:.95rem;letter-spacing:-.01em}
+.logo b{color:var(--accent-text);font-weight:600}
+.avatar{width:32px;height:32px;border-radius:999px;background:var(--sunken);color:var(--fg2);display:grid;place-items:center;font-size:.8rem;font-weight:600;border:1px solid var(--divider)}
+.proj-head{padding:18px 16px 0}
+.crumb{font-size:.8rem;color:var(--fg3);margin:0 0 4px}
+.proj-title{font-family:var(--display);font-size:1.75rem;line-height:1.15;margin:0;font-weight:400;letter-spacing:-.01em}
+.dir.b .proj-title{font-weight:600;font-size:1.5rem}
+.tabs{display:flex;gap:4px;padding:12px 16px 0;border-bottom:1px solid var(--divider);overflow-x:auto}
+.tab{font-size:.85rem;font-weight:500;color:var(--fg2);padding:8px 10px 10px;border-bottom:2px solid transparent;white-space:nowrap;position:relative}
+.tab[aria-current="page"]{color:var(--fg);border-color:var(--accent)}
+.dot{display:inline-block;width:7px;height:7px;border-radius:999px;background:var(--accent);margin-left:5px;vertical-align:middle}
+.body{padding:16px;display:grid;gap:14px}
+.turn{background:var(--accent-soft);border-radius:var(--r-lg);padding:16px;display:grid;gap:10px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:.72rem;font-weight:600;letter-spacing:.02em;text-transform:uppercase;padding:3px 9px;border-radius:999px;width:max-content}
+.pill.you{background:var(--accent);color:var(--accent-fg)}
+.pill.them{background:var(--sunken);color:var(--fg2);border:1px solid var(--divider)}
+.pill.done{background:var(--success-soft);color:var(--success)}
+.pill.paused{background:var(--warning-soft);color:var(--warning)}
+.turn h3{margin:0;font-size:1.2rem;line-height:1.3;font-weight:600}
+.turn p{margin:0;color:var(--fg2);font-size:.95rem}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:600 .9rem Inter,sans-serif;min-height:44px;padding:0 18px;border-radius:var(--r-md);border:1px solid transparent;cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--accent-fg)}
+.btn.secondary{background:var(--surface);color:var(--fg);border-color:var(--border)}
+.btn:focus-visible,.tab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.card{background:var(--surface);border:1px solid var(--divider);border-radius:var(--r-lg);padding:14px;box-shadow:var(--shadow)}
+.card h4{margin:0 0 10px;font-size:.85rem;font-weight:600;color:var(--fg2)}
+.track{display:flex;gap:6px;align-items:center}
+.step{flex:1;height:6px;border-radius:999px;background:var(--sunken);border:1px solid var(--divider)}
+.step.done{background:var(--fg2);border-color:var(--fg2)}
+.step.cur{background:var(--accent);border-color:var(--accent)}
+.track-labels{display:flex;justify-content:space-between;font-size:.72rem;color:var(--fg3);margin-top:8px}
+.track-labels .now{color:var(--accent-text);font-weight:600}
+.allow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.allow .n{font-size:1.6rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1}
+.allow .l{font-size:.8rem;color:var(--fg2);margin-top:4px}
+.seg-meter{display:flex;gap:3px;margin-top:8px}
+.seg-meter i{flex:1;height:6px;border-radius:2px;background:var(--sunken);border:1px solid var(--divider)}
+.seg-meter i.used{background:var(--fg3);border-color:var(--fg3)}
+.seg-meter i.prog{background:repeating-linear-gradient(45deg,var(--accent) 0 3px,var(--accent-soft) 3px 6px);border-color:var(--accent)}
+.act{list-style:none;margin:0;padding:0;display:grid;gap:8px;font-size:.88rem}
+.act li{display:flex;justify-content:space-between;gap:10px;color:var(--fg2)}
+.act time{color:var(--fg3);font-size:.78rem;white-space:nowrap}
+.queue{border-top:1px solid var(--divider);background:var(--sunken);padding:14px 16px}
+.queue h5{margin:0 0 8px;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--fg3)}
+.qrow{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface);border:1px solid var(--divider);border-radius:var(--r-md);padding:10px 12px;font-size:.85rem}
+.qrow + .qrow{margin-top:6px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:.72rem;padding:2px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent-text);font-weight:600}
+.chip.mute{background:var(--sunken);color:var(--fg2);border:1px solid var(--divider)}
+.mono{font-family:"Geist Mono",ui-monospace,monospace;font-size:.78rem;color:var(--fg3)}
+@media (prefers-reduced-motion:no-preference){.btn,.tab{transition:background-color .15s ease-out,border-color .15s ease-out}}
+</style>
+<script>
+try{var t=localStorage.getItem('dd-theme');if(t)document.documentElement.dataset.theme=t}catch(e){}
+</script>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Portal design directions</h1>
+      <p>The same project overview (customer, phone width) and admin queue rows, in three directions. Each uses the same information architecture, components and rules (<code>ux-design.md</code>). Only character differs. Switch theme to compare light and dark.</p>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Theme">
+        <button type="button" data-set="light">Light</button>
+        <button type="button" data-set="dark">Dark</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<template id="mock">
+  <div class="app-top"><span class="logo">Logo <b>Fountain</b></span><span class="avatar" aria-hidden="true">SN</span></div>
+  <div class="proj-head">
+    <p class="crumb">Projects › Northvale Coffee</p>
+    <h3 class="proj-title">Northvale Coffee</h3>
+  </div>
+  <nav class="tabs" aria-label="Project sections">
+    <span class="tab" aria-current="page">Overview</span>
+    <span class="tab">Concepts<span class="dot" aria-label="new"></span></span>
+    <span class="tab">Messages</span>
+    <span class="tab">Brief</span>
+    <span class="tab">Files</span>
+  </nav>
+  <div class="body">
+    <section class="turn" aria-label="Your next step">
+      <span class="pill you">Your turn</span>
+      <h3>Your concepts are ready to review</h3>
+      <p>Take a look and tell your designer what you think. Comments are free; a revision uses one of your allowance.</p>
+      <div><span class="btn primary">Review concepts</span></div>
+    </section>
+    <section class="card" aria-label="Progress">
+      <h4>Where your project is</h4>
+      <div class="track" aria-hidden="true"><span class="step done"></span><span class="step done"></span><span class="step cur"></span><span class="step"></span></div>
+      <div class="track-labels"><span>Brief</span><span>Design</span><span class="now">Feedback</span><span>Files</span></div>
+    </section>
+    <section class="card" aria-label="Allowances">
+      <h4>Your allowances</h4>
+      <div class="allow">
+        <div><div class="n">2</div><div class="l">concepts · all delivered</div><div class="seg-meter"><i class="used"></i><i class="used"></i></div></div>
+        <div><div class="n">1 left</div><div class="l">revisions · 1 in progress</div><div class="seg-meter"><i class="prog"></i><i></i></div></div>
+      </div>
+    </section>
+    <section class="card" aria-label="Recent activity">
+      <h4>Recent activity</h4>
+      <ul class="act">
+        <li><span>Concept 2 is ready for review.</span><time>2 h ago</time></li>
+        <li><span>Revision request received.</span><time>Yesterday</time></li>
+        <li><span>Brief received. Your designer will review and reply soon.</span><time>14 Nov</time></li>
+      </ul>
+    </section>
+  </div>
+  <div class="queue" aria-label="Admin queue sample">
+    <h5>Admin queue: needs action</h5>
+    <div class="qrow"><div><strong>Northvale Coffee</strong> <span class="mono">#3f2a91c0</span><div class="chips" style="margin-top:4px"><span class="chip">2 revision requests</span><span class="chip mute">new message</span></div></div><span class="pill you">Act</span></div>
+    <div class="qrow"><div><strong>Harbour Physio</strong> <span class="mono">#a81c0d77</span><div class="chips" style="margin-top:4px"><span class="chip mute">brief submitted</span></div></div><span class="pill them">Design</span></div>
+  </div>
+</template>
+
+<script>
+var dirs=[
+ {k:'a',name:'A: Studio paper',rec:true,sub:'Warm paper and ink, Sfizia headlines',note:'Matches the marketing site, so there’s no “where am I?” moment after checkout. Premium and designer-led; modern through restraint.'},
+ {k:'b',name:'B: Clean ink',sub:'Cool neutrals, Inter only',note:'The crispest, most “tool-like” feel. Loses the brand warmth and the link to the site.'},
+ {k:'c',name:'C: Soft contrast',sub:'Purple-tinted surfaces, rounder',note:'The friendliest and most consumer-like. Risks feeling less premium; the purple everywhere dilutes the accent.'}
+];
+var grid=document.getElementById('grid'),tpl=document.getElementById('mock');
+dirs.forEach(function(d){
+  var col=document.createElement('section');
+  col.innerHTML='<div class="label"><h2>'+d.name+(d.rec?'<span class="rec">Recommended</span>':'')+'</h2><span>'+d.sub+'</span></div>';
+  var box=document.createElement('div');box.className='dir '+d.k;box.appendChild(tpl.content.cloneNode(true));
+  col.appendChild(box);
+  var n=document.createElement('p');n.className='note';n.textContent=d.note;col.appendChild(n);
+  grid.appendChild(col);
+});
+function current(){var t=document.documentElement.dataset.theme;if(t)return t;return matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}
+function apply(t){
+  document.querySelectorAll('.dir').forEach(function(el){el.classList.toggle('dark',t==='dark')});
+  document.querySelectorAll('[data-set]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.set===t))});
+}
+document.querySelectorAll('[data-set]').forEach(function(b){b.addEventListener('click',function(){
+  document.documentElement.dataset.theme=b.dataset.set;try{localStorage.setItem('dd-theme',b.dataset.set)}catch(e){}
+  apply(b.dataset.set);
+})});
+apply(current());
+</script>
+</body>
+</html>

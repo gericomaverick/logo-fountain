@@ -35,6 +35,11 @@ All IDs are UUID unless noted. `createdAt` and `updatedAt` are timestamps (Prism
 
 Laravel migrations must reproduce the FK `onDelete` behaviours exactly (cascade, restrict, set null). Restrict on `profiles` means profiles are never deleted while they authored anything.
 
+### Database-level rules (in the `portable_core` migration SQL, not visible in the Prisma schema)
+
+- **Trigger `protect_operator_admin_flag`** on `Profile` BEFORE INSERT/UPDATE: inserting `isAdmin=true`, or changing `isAdmin`, raises `operator-owned admin flag` unless `current_user` is the table owner (the migration role). **The runtime app can never promote or demote an admin**, even through a bug. Laravel: reproduce the function and trigger in a raw-SQL migration, with a Pest L3 test that the runtime connection gets an exception.
+- **Check constraints** `AuthUser_normalized_email` and `Profile_normalized_email`: `email = lower(btrim(email))`.
+
 ## 2. Database roles and grants
 
 - Two roles: **runtime** (`DATABASE_URL`, DML only) and **migration** (`DIRECT_URL`, owns the schema). The same host and database are required, with distinct users (`lib/database-target.ts`).
@@ -79,7 +84,15 @@ Laravel: `php artisan admin:bootstrap --prepare --email=` / `--email= --confirm-
 
 Note: the old test runbook deliberately avoided Docker. The owner's decision D6 (2026-11-18) changes that to Docker for local, parity and CI.
 
-## 6. Existing tests (input to the test-port ledger)
+## 6. Stale statements in the old runbooks (code wins)
+
+- `checkout-troubleshooting.md` and `webhook-ops.md` describe `GET /api/checkout/status?…&include_stripe=1` Stripe diagnostics. **The code no longer supports this** (the status endpoint was minimised to `{fulfilled,status}`). Don't port it. Admins use the admin project page and reprocess instead.
+- `hardening-notes.md` says both project pages poll every 2 s. The client hub now polls every **10 s**; the admin page polls every 2 s.
+- `checkout-auth-security.md` describes a process-local forgot-password limiter. Forgot password now uses the shared DB limiter (`auth-and-security.md` §8).
+- Also confirmed from the runbooks: the checkout success page has a **"Retry now"** button in its troubleshooting panel; magic links are consumed only by the explicit confirm POST, never by GET.
+- The original user stories (`docs/user-journeys-and-stories-v1.0.md`, US-BRIEF-02 "upload example files with the brief") were **never implemented**. Not in parity scope. Raise it with the owner as a candidate for the redesign (see the UX spec).
+
+## 7. Existing tests (input to the test-port ledger)
 
 - Vitest: about 95 files / 614 tests (`*.test.ts` beside the source; `src/app/api/**/route.test.ts` for routes, `route-guards.test.ts` for the Origin guard shape across all mutation handlers).
 - Real PG (opt-in): `src/lib/postgres.integration.test.ts` (core) and `src/lib/auth.postgres.integration.test.ts` (auth), 18 tests.

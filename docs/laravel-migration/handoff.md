@@ -3,11 +3,11 @@
 ## Now (overwrite this section at the end of every session)
 
 - **Updated:** 2026-11-18
-- **Phase:** Phase 0 complete. Phase 1 next.
-- **Done this session:** Owner ruled on the findings → DV-1…DV-11 deviations in `01-feature-inventory.md`. Owner added a **full redesign** to scope (DV-UX): BMAD UX step 2.2 is now in, the parity suite is behavioural with per-app page objects, L7 baselines against the UX spec, and accessibility (L7a) and design-system lint (L7b) added.
-- **Next step:** (1) read the remaining `apps/web/docs/*` runbooks (sweep item 4); (2) BMAD `create-product-brief` for the migration (success criteria: security, robustness, ecosystem, plus a coherent redesigned UI); (3) `technical-research`; (4) `create-ux-design` can start alongside the research. It needs the owner for the look and feel.
-- **Blockers:** none.
-- **Half-finished:** none.
+- **Phase:** Phase 1 (analysis) and Phase 2.2 (UX), drafts written. Awaiting owner review.
+- **Done this session:** Phase 0 sweep finished (DB trigger and constraints → A-19, stale runbook notes). `product-brief.md` (BMAD 1.1, draft). `ux-design.md` (BMAD 2.2, full spec: IA, turn-based status model, verified colour tokens, type, components, patterns, journeys, responsive and a11y, per-screen priorities). `ux/design-directions.html` (A/B/C, light and dark). Finding F-15 / DV-12 (polling re-downloads R2 images). Technical research (BMAD 1.2) delegated to a sub-agent → `research-technical.md`.
+- **Next step:** (1) merge and review the research output and update plan §3 rows (CONFIRMED / CHANGED / OPEN); (2) the owner answers: the brief's open questions, UX §15 (direction choice, turnaround copy, one-project shortcut, Files tab, Sfizia licence, brief uploads), the research owner questions; (3) then Phase 2.1 `create-prd` (functional requirements = inventory IDs, NFRs = X-series plus UX targets).
+- **Blockers:** owner choices above (the UX direction gates E6/E7, not the PRD).
+- **Half-finished:** `research-technical.md` (sub-agent running).
 
 ## Verify the baseline
 
@@ -24,6 +24,8 @@ npm run test:e2e                                        # last recorded: 5–6 P
 | 2026-11-18 | not re-run | not re-run | n/a (suite not built) | n/a | Figures above are from `docs/TODO.md`, not re-verified in this session |
 
 ## Session log (newest first, one line each)
+
+- 2026-11-18: Product brief and UX spec drafted. Design directions page. F-15/DV-12. Research delegated.
 
 - 2026-11-18: Findings ruled → DV- deviations. Redesign added to scope (UX phase, behavioural parity, page objects).
 
