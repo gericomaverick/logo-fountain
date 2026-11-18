@@ -14,9 +14,9 @@ The Phase 0 output of BMAD `document-project` (deep scan, apps/web only), 2026-1
 | [data-model-and-ops.md](data-model-and-ops.md) | Tables → Laravel tables, roles and grants, admin bootstrap, env vars, dev scripts, the existing tests |
 | [../test-port-ledger.md](../test-port-ledger.md) | All 110 test files → inventory IDs → their destination after the port |
 
-## Findings that need owner decisions (before story writing, BMAD step 3.2)
+## Findings (ruled on 2026-11-18)
 
-Default if not decided: **reproduce the current behaviour exactly** (parity first), and log the deviation candidates as post-launch stories.
+**Outcomes:** the owner decided F-1 (enable), F-2 (fix), F-3 (defer), F-6 (fix), F-7 (make impossible) and F-9 (email the client). F-4, F-5, F-8 and F-11 follow the recommendation below. F-10, F-12, F-13 and F-14 keep parity (an assumption logged for review). The resulting Laravel targets are the **DV-** rows in `01-feature-inventory.md` → "Decided deviations".
 
 | # | Area | Finding | Recommendation |
 |---|---|---|---|

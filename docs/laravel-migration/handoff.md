@@ -3,10 +3,10 @@
 ## Now (overwrite this section at the end of every session)
 
 - **Updated:** 2026-11-18
-- **Phase:** Phase 0 (brownfield capture), scan complete. Gate open: waiting for owner calls on findings F-1…F-14.
-- **Done this session:** `brownfield/` (index plus 8 docs, every API route, lib module and page read from source). Inventory corrected and extended (A-17, A-18, X-16…X-19 added; K-13 and N-13 resolved). `test-port-ledger.md` (110 files, all mapped). Test strategy E0 list extended (golden upload corpus, shared rule fixtures, snapshot schema, Origin architecture test, Next test seams).
-- **Next step:** (1) the owner answers F-1…F-14 (`brownfield/index.md`), each logged as a decision; (2) read the remaining `apps/web/docs/*` runbooks for anything not visible in code (sweep checklist item 4); (3) Phase 1: BMAD `create-product-brief` (migration brief; success criteria = security, robustness, ecosystem per D1), then `technical-research` (versions, Hetzner provisioning, MinIO conditional writes, PHP Stripe/S3 specifics).
-- **Blockers:** owner decisions F-1…F-14 (the defaults in the index apply if the owner says "parity first").
+- **Phase:** Phase 0 complete. Phase 1 next.
+- **Done this session:** Owner ruled on the findings → DV-1…DV-11 deviations in `01-feature-inventory.md`. Owner added a **full redesign** to scope (DV-UX): BMAD UX step 2.2 is now in, the parity suite is behavioural with per-app page objects, L7 baselines against the UX spec, and accessibility (L7a) and design-system lint (L7b) added.
+- **Next step:** (1) read the remaining `apps/web/docs/*` runbooks (sweep item 4); (2) BMAD `create-product-brief` for the migration (success criteria: security, robustness, ecosystem, plus a coherent redesigned UI); (3) `technical-research`; (4) `create-ux-design` can start alongside the research. It needs the owner for the look and feel.
+- **Blockers:** none.
 - **Half-finished:** none.
 
 ## Verify the baseline
@@ -24,6 +24,8 @@ npm run test:e2e                                        # last recorded: 5–6 P
 | 2026-11-18 | not re-run | not re-run | n/a (suite not built) | n/a | Figures above are from `docs/TODO.md`, not re-verified in this session |
 
 ## Session log (newest first, one line each)
+
+- 2026-11-18: Findings ruled → DV- deviations. Redesign added to scope (UX phase, behavioural parity, page objects).
 
 - 2026-11-18: Phase 0 deep scan of apps/web, `brownfield/` docs, test-port ledger, inventory v2, findings F-1…F-14.
 

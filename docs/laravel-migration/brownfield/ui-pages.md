@@ -2,6 +2,8 @@
 
 Phase 0 capture, 2026-11-18. Covers **A-15, A-16, C-01…C-20, D-01…D-20, K-02, K-03, K-10**. Paths are relative to `apps/web/src/app/`.
 
+> **Redesign (DV-UX, 2026-11-18):** the Laravel screens are designed fresh (BMAD UX step 2.2). Treat this document as the **behaviour spec** for each screen: what it shows, what it lets people do, its guards, polling, storage and copy that states rules. It is **not** a layout to copy. The markup and classes from `apps/web` aren't ported.
+
 ## 1. How pages move to Laravel and Inertia
 
 There are two kinds of page today:
@@ -54,6 +56,6 @@ There are two kinds of page today:
 
 `app-frame`, `header-nav` (logo, nav, logout with verified-logout behaviour), `page-shell`, `ui` (Card, SubCard, PageHeader with breadcrumbs, EmptyLine, …), `icons`, `project-status-badge`, `project-welcome`, `allowances`, `revision-purchase`, `brief-document`, `brief-field-input`, `brief-progress`, `auth-shell`, `feature-notice-card`, `theme-switcher`, `safe-performance-measure`, `frame-context`. The design tokens (`globals.css`: `portal-*` classes, colour variables, light and dark) move unchanged into `resources/css/app.css` (Tailwind 4).
 
-## 5. Visual parity targets (L7)
+## 5. Screens that need L7 baselines and design approval (formerly "visual parity targets")
 
 Screenshots at 1280 px and 390 px, light and dark: login, dashboard (each section state), project hub (awaiting brief with welcome; concepts ready with badges; revisions exhausted with upsell; final files ready), brief wizard step 1 and review, concept detail with thread, messages, settings, invoices, admin dashboard, admin project overview, admin concepts inbox, admin health, checkout success (pending and troubleshooting).

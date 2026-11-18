@@ -1,6 +1,6 @@
 # Logo Fountain: Next.js → Laravel migration plan (BMAD)
 
-Status: **v0.3. Phase 0 brownfield scan complete (2026-11-18); findings F-1…F-14 awaiting owner calls; Phase 1 next**
+Status: **v0.4. Phase 0 complete; findings ruled on (DV- deviations); UI redesign added to scope (2026-11-18); Phase 1 next**
 Created: 2026-11-18
 Scope: `apps/web` (client portal, admin portal, checkout/payments backend). `apps/site` (Eleventy marketing) is not in scope.
 
@@ -9,6 +9,10 @@ Scope: `apps/web` (client portal, admin portal, checkout/payments backend). `app
 ## 1. Goal and definition of done
 
 Replace the Next.js app in `apps/web` with a Laravel app that does **everything the current app does, for clients and for the admin**, with the same security properties. Nothing gets silently dropped, and every feature is proven by automated tests before cutover.
+
+Two deliberate exceptions to "same as today":
+- the **decided behaviour fixes** (DV- rows in `01-feature-inventory.md`: promo codes, additive upgrades, reprocess emails, unpublished concepts unreachable, revision-upload email, and so on);
+- a **full visual redesign and re-layout** (DV-UX). The Laravel UI is designed first (BMAD UX, step 2.2) and every screen is built to that design system. The current half-finished redesign in `apps/web` is **input** to that work, not something to copy.
 
 The migration is done when:
 
@@ -42,7 +46,7 @@ Because nothing is live, **there is no data migration** (confirmed by the owner,
 | Concern | Recommendation | Why |
 |---|---|---|
 | Framework | Laravel, the current stable major at solutioning time, on PHP 8.4+ | Pin the exact versions in ADR-001 after technical research, not from memory |
-| UI | **Inertia.js + React + TypeScript + Tailwind 4** (accepted, D2) | Reuses the 31 React components, design tokens and the just-finished premium polish (`globals.css` portal tokens). Blade or Livewire would mean rewriting every screen and re-doing the visual work |
+| UI | **Inertia.js + React + TypeScript + Tailwind 4** (accepted, D2) | With the redesign (DV-UX), the markup is rebuilt anyway, but Inertia + React still keeps the **tested TS behaviour modules** (brief wizard, hub rules, chat, upload-key, and so on, with their Vitest suites) and the component behaviour. The *look* is new; the *logic* is reused |
 | JSON API | Keep **the same `/api/*` paths, methods, status codes and the `{ error: { message, code?, details? } }` shape** | The client components keep calling them unchanged, and one black-box contract suite can run against both apps |
 | Auth | Laravel session guard, **database** session driver, custom actions for setup, magic and reset links, fencing and proofs. No Breeze or Jetstream UI | The app's semantics are stricter than any starter kit: 7-day **absolute** cap (Laravel sessions slide, so this needs middleware), single-use hashed one-hour links, revoking older tokens, credential versions |
 | DB | PostgreSQL, Laravel migrations own the schema, snake_case tables | Fresh install, so the schema can follow Laravel conventions. Advisory locks (`pg_advisory_xact_lock`) are ported as-is |
@@ -60,6 +64,7 @@ Because nothing is live, **there is no data migration** (confirmed by the owner,
 
 - A strangler (proxying some paths to Laravel and the rest to Next) would make both apps share Better Auth sessions and cookies, which means building throwaway cross-framework auth. Since nothing is live, nothing pushes us to ship piece by piece.
 - Instead, Laravel is built **slice by slice** in `apps/portal`. Each slice is proven by its tagged part of the shared parity suite, plus all earlier slices (no regressions), before the next slice starts.
+- **No more visual work in `apps/web`.** The redesign continues in Laravel only, so effort isn't spent twice.
 - **Freeze `apps/web` during the migration.** Any change that has to go into `apps/web` gets a parity test and an inventory row in the same commit, then goes into the Laravel backlog. Otherwise the target keeps moving.
 
 ## 5. BMAD phase sequence
@@ -85,7 +90,7 @@ Each step names the BMAD workflow (`_bmad/bmm/module-help.csv`), its output, and
 | Step | Workflow | Output | Gate |
 |---|---|---|---|
 | 2.1 | `create-prd` (CP), a migration PRD. **The functional requirements are the inventory rows, cited by ID.** The NFRs are the X-series security and robustness rows | `laravel-migration/prd.md` | `validate-prd` (VP) passes |
-| 2.2 | UX: **skipped by design.** The UI is ported as-is. Any visual change needs a decision | Line in the PRD | n/a |
+| 2.2 | `create-ux-design` (CU), **in scope (DV-UX)**. Inputs: `apps/web/docs/design-system.md` (Linear-style layout; parchment, white and warm ink; brand purple shared with `apps/site`), the recent redesign commits, the marketing site's look, `brownfield/ui-pages.md` (what every screen must let people do). Outputs: the UX spec (principles, tokens for colour, type and space, light and dark, components, page patterns, every screen's layout and states, responsive rules, accessibility target WCAG 2.2 AA) plus visual mockups for owner approval | `ux-design.md` plus `ux/` mockups | **Owner approves the look** of the key screens before E6/E7 start |
 
 ### Phase 3: Solutioning
 | Step | Workflow | Output | Gate |
@@ -111,13 +116,13 @@ Ordered by dependency. Each epic lists the inventory IDs it covers.
 | # | Epic | Covers | Notes |
 |---|---|---|---|
 | E0 | **Parity harness on Next.js** (before any Laravel code) | All, as tests | Build the shared Playwright E2E and contract suite, seed scenarios, Mailpit, MinIO, Stripe fixture signing, and make it all **green against Next**. This is the executable spec |
-| E1 | Laravel foundations | X-01…X-06, X-14 | Skeleton in `apps/portal`, Docker or Sail for local PHP (PHP is not installed on this machine), CI, Pint/Larastan/Pest, error shape, origin guard, security headers, canonical origin, trusted proxy IP |
+| E1 | Laravel foundations | X-01…X-06, X-14 | Skeleton in `apps/portal`, **the design system as code** (Tailwind 4 tokens, base components, page shells, from the UX spec), L7/L7a/L7b tooling, Docker or Sail for local PHP (PHP is not installed on this machine), CI, Pint/Larastan/Pest, error shape, origin guard, security headers, canonical origin, trusted proxy IP |
 | E2 | Data layer | X-07, X-08, all tables | Migrations, models, factories, state machine, audit writer, advisory-lock helper, `parity:seed` command matching the Next scenarios |
 | E3 | Storage and uploads | X-10…X-12 | R2 client, immutable conditional PUT, presign rules, image and ZIP validation limits, health HEAD |
 | E4 | Auth and identity | A-01…A-12 | Every sign-in, setup and reset flow, fencing, sessions, rate limits, admin bootstrap command, safe-next, auth emails |
 | E5 | Checkout and payments | K-01…K-12 | Checkout start, webhook ledger, fulfilment and provisioning, success/continue polling, checkout emails, upsells and entitlement deltas, invoices, admin reprocess |
-| E6 | Client portal | C-01…C-12 | Dashboard, project hub, brief wizard and drafts, concepts, comments, revisions, approval, finals, messages, read state, settings, invoices page |
-| E7 | Admin portal | D-01…D-15 | Dashboard, project overview, status, brief view, concepts manager, revisions, uploads, finals, entitlement overrides, reset, audit, messages, health |
+| E6 | Client portal, **built to the new design** | C-01…C-20 | Dashboard, project hub, brief wizard and drafts, concepts, comments, revisions, approval, finals, messages, read state, settings, invoices page |
+| E7 | Admin portal, **built to the new design** | D-01…D-20 | Dashboard, project overview, status, brief view, concepts manager, revisions, uploads, finals, entitlement overrides, reset, audit, messages, health |
 | E8 | Notifications | N-01…N-16 | Lifecycle emails and system messages. Built inside E5–E7 stories, with this epic as the catch-all verification pass |
 | E9 | Ops, dev tooling and cutover | O-01…O-08 | Local run and seed scripts, security check, deploy runbook, queue worker, release gates, archive `apps/web` |
 

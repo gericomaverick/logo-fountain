@@ -37,19 +37,19 @@ Actors: **P** public / anonymous · **C** client (project member) · **A** admin
 
 | ID | Actor | Feature and behaviour to preserve | Next.js source | Tag | Laravel | Status |
 |---|---|---|---|---|---|---|
-| K-01 | P | `GET /checkout/start?package_code=essential\|professional\|complete[&campaign_slug=]` creates a Checkout Session from the server allowlist only (raw price IDs rejected). Success URL `/checkout/success?session_id=…`, cancel URL marketing origin `/#packages` | `app/checkout/start/route.ts`, `lib/stripe-price-allowlist.ts` | `@checkout` | | Not started |
+| K-01 | P | `GET /checkout/start?package_code=essential\|professional\|complete[&campaign_slug=]` creates a Checkout Session from the server allowlist only (raw price IDs rejected). Success URL `/checkout/success?session_id=…`, cancel URL marketing origin `/#packages` | `app/checkout/start/route.ts`, `lib/stripe-price-allowlist.ts` | `@checkout` `@deviation` | | Not started (DV-4/DV-5) |
 | K-02 | P | Checkout success page polls `GET /api/checkout/status`, which returns minimal coarse data | `app/checkout/success`, `api/checkout/status`, `lib/checkout-success.ts` | `@checkout` | | Not started |
 | K-03 | P | Checkout continue page and `POST /api/checkout/magic-link`: possession of the session ID → **emails** the link, never returns it. Normal sign-in for existing accounts | `app/checkout/continue`, `api/checkout/magic-link` | `@checkout @security` | | Not started |
 | K-04 | P | `POST /api/checkout/resend-magic-link`, bounded per-session and per-destination limits | `api/checkout/resend-magic-link`, `lib/checkout-auth-email-rate-limit.ts` | `@checkout` | | Not started |
 | K-05 | S | Stripe webhook: raw-body signature check, `StripeEvent` idempotency ledger. A transient failure stays retryable (it's never stuck "in flight"). Handles `checkout.session.completed`, `async_payment_succeeded`, `async_payment_failed`. Fulfils only when `payment_status=paid` | `api/stripe/webhook`, `lib/webhook-error-classification.ts`, `docs/webhook-delivery-semantics.md` | `@webhook @pg-race` | | Not started |
 | K-06 | S | Fulfilment: Client, Project (`AWAITING_BRIEF`), Order (`FULFILLED`/`NEEDS_CONTACT`), entitlements per package, message thread, user, profile and membership provisioned by normalized email (concurrent retries converge). The required emails are sent after durable fulfilment and can be retried | `lib/checkout-fulfillment.ts` | `@webhook @checkout` | | Not started |
 | K-07 | S | Package entitlements: Essential 1 direction / 1 revision, Professional 2/2, Complete 3/3 (verify the current values in code during Phase 0) | `lib/entitlements.ts` | `@entitlements` | | Not started |
-| K-08 | C | Upsell checkout `POST /api/projects/[id]/checkout/session`: extra revision £95, Essential→Professional £495, Professional→Complete £750. The display price lives beside the price ID | `api/projects/[id]/checkout/session`, `lib/stripe-price-allowlist.ts`, `components/revision-purchase.tsx` | `@upsell` | | Not started |
-| K-09 | S | Upsell fulfilment: add-on +1 revision limit. Upgrade **sets** the limits to the target tier (consumed and reserved kept; this differs from the logged decision, finding F-2), order `campaignSlug` set to `addon:…`/`upgrade:a->b`, audit `entitlement_addon_applied`/`package_upgrade_applied` | `lib/checkout-fulfillment.ts` | `@upsell @webhook` | | Not started |
+| K-08 | C | Upsell checkout `POST /api/projects/[id]/checkout/session`: extra revision £95, Essential→Professional £495, Professional→Complete £750. The display price lives beside the price ID | `api/projects/[id]/checkout/session`, `lib/stripe-price-allowlist.ts`, `components/revision-purchase.tsx` | `@upsell` `@deviation` | | Not started (DV-5) |
+| K-09 | S | Upsell fulfilment: add-on +1 revision limit. Upgrade **sets** the limits to the target tier (consumed and reserved kept; this differs from the logged decision, finding F-2), order `campaignSlug` set to `addon:…`/`upgrade:a->b`, audit `entitlement_addon_applied`/`package_upgrade_applied` | `lib/checkout-fulfillment.ts` | `@upsell @webhook` `@deviation` | | Not started (DV-2) |
 | K-10 | C | Post-purchase return to `/project/[id]?upsell…&session_id`, a confirmation banner that polls until fulfilled, double-click guard, survives refresh, shows the delayed-webhook pending state | `app/project/[id]`, `lib/project-hub.ts` | `@upsell` | | Not started |
 | K-11 | C/A | Invoices and receipts pulled from Stripe (invoice PDF, hosted invoice or receipt URL; settled only). VAT number shown when present, at £0 VAT | `api/invoices`, `api/projects/[id]/invoices`, `api/admin/projects/[id]/invoices`, `lib/client-invoices.ts`, `docs/invoice-email-behavior.md` | `@invoices` | | Not started |
-| K-12 | A | Admin reprocess of a stuck purchase `POST /api/admin/checkout/reprocess` | `api/admin/checkout/reprocess` | `@admin @webhook` | | Not started |
-| K-13 | S | Promotion codes: **not enabled today** (no `allow_promotion_codes`), although `PRO40FIRST5` was decided on 2026-03-01. Finding F-1 | `app/checkout/start/route.ts` | `@checkout` | | Owner decision (F-1) |
+| K-12 | A | Admin reprocess of a stuck purchase `POST /api/admin/checkout/reprocess` | `api/admin/checkout/reprocess` | `@admin @webhook` `@deviation` | | Not started (DV-6) |
+| K-13 | S | Promotion codes: **not enabled today** (no `allow_promotion_codes`), although `PRO40FIRST5` was decided on 2026-03-01. Finding F-1 | `app/checkout/start/route.ts` | `@checkout` `@deviation` | | Not started (DV-1) |
 | K-14 | S | Revision accounting: **reserve on request, consume on delivery**. The UI shows pending vs delivered | `lib/entitlements.ts`, `lib/concept-entitlement.ts` | `@revisions` | | Not started |
 
 ## C: Client portal
@@ -64,9 +64,9 @@ Actors: **P** public / anonymous · **C** client (project member) · **A** admin
 | C-06 | C | Server-side brief draft `GET/PUT/DELETE /api/projects/[id]/brief/draft` | `api/projects/[id]/brief/draft`, `lib/brief-draft.ts` | `@brief @contract` | | Not started |
 | C-07 | C | Brief submit `POST /api/projects/[id]/brief` (versioned `ProjectBrief`), status → `BRIEF_SUBMITTED`, system message, confirmation, admin notification. `GET` returns the current brief | `api/projects/[id]/brief`, `lib/brief.ts`, `lib/brief-submission-confirmation.ts` | `@brief` | | Not started |
 | C-08 | C | Concepts gallery `/project/[id]/concepts`, `GET /api/projects/[id]/concepts` (published only) | `app/project/[id]/concepts`, `api/projects/[id]/concepts` | `@concepts` | | Not started |
-| C-09 | C | Concept detail `/project/[id]/concept/[conceptId]`: signed asset URLs `GET …/assets` (authorization rechecked before every presign) | `app/project/[id]/concept/[conceptId]`, `api/projects/[id]/concepts/[conceptId]/assets` | `@concepts @security` | | Not started |
-| C-10 | C | Concept comments `GET/POST …/comments` (concept thread vs project thread) | `api/projects/[id]/concepts/[conceptId]/comments`, `lib/concept-thread.ts` | `@concepts` | | Not started |
-| C-11 | C | Revision request `POST /api/projects/[id]/revision-requests`, scoped to a concept: reserves an entitlement, status → `REVISIONS_IN_PROGRESS`, admin email | `api/projects/[id]/revision-requests` | `@revisions` | | Not started |
+| C-09 | C | Concept detail `/project/[id]/concept/[conceptId]`: signed asset URLs `GET …/assets` (authorization rechecked before every presign) | `app/project/[id]/concept/[conceptId]`, `api/projects/[id]/concepts/[conceptId]/assets` | `@concepts @security` `@deviation` | | Not started (DV-7) |
+| C-10 | C | Concept comments `GET/POST …/comments` (concept thread vs project thread) | `api/projects/[id]/concepts/[conceptId]/comments`, `lib/concept-thread.ts` | `@concepts` `@deviation` | | Not started (DV-7) |
+| C-11 | C | Revision request `POST /api/projects/[id]/revision-requests`, scoped to a concept: reserves an entitlement, status → `REVISIONS_IN_PROGRESS`, admin email | `api/projects/[id]/revision-requests` | `@revisions` `@deviation` | | Not started (DV-7) |
 | C-12 | C | Approve a **published** concept `POST /api/projects/[id]/approve` with the acknowledgement-confirmation copy: every other visible concept → `archived`, this one → `approved`, project → `AWAITING_APPROVAL`, audits `concept_approved` and `state_changed`, client (N-07) and admin (N-08) emails | `api/projects/[id]/approve`, `lib/final-approval.ts` | `@approval` | | Not started |
 | C-13 | C | Final files download `POST /api/projects/[id]/finals`: serializable guarded transaction (membership, approved concept, newest `final_zip` exact id and path), presigned 3600 s, sanitized Content-Disposition `{brand}-{YYYY-MM-DD}.zip`. **The first client download moves FINAL_FILES_READY → DELIVERED** | `api/projects/[id]/finals`, `lib/final-deliverable-access.ts`, `lib/final-deliverable-filename.ts` | `@finals @security` | | Not started |
 | C-14 | C | Messages `/project/[id]/messages`, `GET/POST /api/projects/[id]/messages`: chat with system messages shown, admin notification | `app/project/[id]/messages`, `api/projects/[id]/messages`, `lib/chat-messages.ts` | `@messages` | | Not started |
@@ -74,7 +74,7 @@ Actors: **P** public / anonymous · **C** client (project member) · **A** admin
 | C-16 | C | Entitlements view `GET /api/projects/[id]/entitlements` | `api/projects/[id]/entitlements` | `@entitlements @contract` | | Not started |
 | C-17 | C | Settings `/settings`: profile `GET/PUT /api/profile` (first and last name only, max 80; **no VAT field exists**, finding F-3), change password (A-09) | `app/settings`, `api/profile` | `@settings` | | Not started |
 | C-18 | C | Invoices page `/settings/invoices` (K-11) | `app/settings/invoices` | `@invoices` | | Not started |
-| C-19 | C/A | App frame, header nav, theme switcher (light/dark), feature notice cards, status badges, premium design tokens | `components/app-frame.tsx`, `header-nav.tsx`, `theme-switcher.tsx`, `ui.tsx`, `app/globals.css` | `@visual` | | Not started |
+| C-19 | C/A | App frame, header nav, theme switcher (light/dark), feature notice cards, status badges, premium design tokens | `components/app-frame.tsx`, `header-nav.tsx`, `theme-switcher.tsx`, `ui.tsx`, `app/globals.css` | `@visual` `@deviation` | | Not started (DV-UX) |
 | C-20 | C | Tenant isolation: a client can never read or mutate another client's project, concept, asset, message or invoice | all `api/projects/**` | `@authz` | | Not started |
 
 ## D: Admin portal
@@ -88,10 +88,10 @@ Actors: **P** public / anonymous · **C** client (project member) · **A** admin
 | D-05 | A | Concepts manager `/admin/projects/[id]/concepts`, `GET/POST …/concepts`: upload with durable request receipts and advisory locks, a pending-feedback inbox with one-click actions | `app/admin/projects/[id]/concepts`, `api/admin/projects/[id]/concepts`, `lib/concept-upload-request.ts`, `lib/concept-upload-key.ts` | `@admin @concepts` | | Not started |
 | D-06 | A | Publish a **draft** concept `POST …/concepts/[conceptId]/publish` (idempotent; a legacy path, because upload publishes immediately, finding F-10): consumes a concept slot, first visible concept → `CONCEPTS_READY`, system message, client email N-04 | `api/admin/projects/[id]/concepts/[conceptId]/publish` | `@admin @concepts @email` | | Not started |
 | D-07 | A | Delete a concept `DELETE …/concepts/[conceptId]`, audit `concept_deleted` (receipt-backed objects kept) | `api/admin/projects/[id]/concepts/[conceptId]` | `@admin @concepts` | | Not started |
-| D-08 | A | Revision page `/admin/projects/[id]/concepts/[conceptId]/revision`: upload the revised concept, `GET …/revision-requests` | `app/admin/projects/[id]/concepts/[conceptId]/revision`, `api/admin/projects/[id]/revision-requests` | `@admin @revisions` | | Not started |
+| D-08 | A | Revision page `/admin/projects/[id]/concepts/[conceptId]/revision`: upload the revised concept, `GET …/revision-requests` | `app/admin/projects/[id]/concepts/[conceptId]/revision`, `api/admin/projects/[id]/revision-requests` | `@admin @revisions` `@deviation` | | Not started (DV-9) |
 | D-09 | A | Mark a revision delivered `POST …/revision-requests/[rid]/delivered`: reserved → consumed, client email "Your revised concept is ready" | `api/admin/projects/[id]/revision-requests/[rid]/delivered` | `@admin @revisions` | | Not started |
 | D-10 | A | Upload page `/admin/projects/[id]/upload` | `app/admin/projects/[id]/upload` | `@admin @concepts` | | Not started |
-| D-11 | A | Final files upload `POST …/finals`: ZIP validation, immutable versioned assets, guarded publication, newest-asset selection, superseded records and objects kept, repair or replace in `FINAL_FILES_READY`/`DELIVERED` | `api/admin/projects/[id]/finals`, `lib/admin-final-publication.ts`, `docs/upload-lifecycle-hardening.md` | `@admin @finals` | | Not started |
+| D-11 | A | Final files upload `POST …/finals`: ZIP validation, immutable versioned assets, guarded publication, newest-asset selection, superseded records and objects kept, repair or replace in `FINAL_FILES_READY`/`DELIVERED` | `api/admin/projects/[id]/finals`, `lib/admin-final-publication.ts`, `docs/upload-lifecycle-hardening.md` | `@admin @finals` `@deviation` | | Not started (DV-11) |
 | D-12 | A | Retry the final-files notification `POST …/finals/notify` (notification only) | `api/admin/projects/[id]/finals/notify` | `@admin @finals @email` | | Not started |
 | D-13 | A | Admin final download `POST …/finals/download` | `api/admin/projects/[id]/finals/download` | `@admin @finals` | | Not started |
 | D-14 | A | Entitlement override `PATCH …/entitlements` (0–1000 or null = unlimited, reason 1–500, audit `entitlement_limit_overridden`). `POST …/entitlements/reset` is a **disabled stub** that always returns `409 ENTITLEMENT_USAGE_RESET_DISABLED` | `api/admin/projects/[id]/entitlements*`, `lib/admin-override-inputs.ts` | `@admin @entitlements` | | Not started |
@@ -110,7 +110,7 @@ Actors: **P** public / anonymous · **C** client (project member) · **A** admin
 | N-02 | C | Sign-in link: "Your Logo Fountain sign-in link" | `lib/auth/mail.ts` | `@email @auth` | Not started |
 | N-03 | C | Reset: "Reset your Logo Fountain password" | `lib/auth/mail.ts` | `@email @auth` | Not started |
 | N-04 | C | "Your concept is ready for review" | `lib/project-lifecycle-email.ts` | `@email` | Not started |
-| N-05 | C | "Your revised concept is ready" | ″ | `@email` | Not started |
+| N-05 | C | "Your revised concept is ready" | ″ | `@email` `@deviation` | Not started (DV-9) |
 | N-06 | C | "New message from your Logo Fountain designer" | ″ | `@email` | Not started |
 | N-07 | C | "Concept approved - final files in progress" | ″ | `@email` | Not started |
 | N-08 | A | "Client approved a concept" | ″ | `@email` | Not started |
@@ -159,6 +159,26 @@ Actors: **P** public / anonymous · **C** client (project member) · **A** admin
 | O-06 | DB runtime grants (least-privilege runtime role) | `ops/postgres/runtime-grants.sql` | Not started |
 | O-07 | Environment variables: `DATABASE_URL`, `DIRECT_URL`, `PUBLIC_SITE_URL`, `PUBLIC_MARKETING_SITE_URL`, `STRIPE_*`, `POSTMARK_*`, R2 vars, `ADMIN_NOTIFICATION_EMAILS`, `EMAIL_LOGO_URL`, `AUTH_CLIENT_IP_HEADER`, `AUTH_TRUSTED_PROXY_HOPS` (the full list comes from `grep process.env` in Phase 0) | | Not started |
 | O-08 | Runbooks: auth, checkout troubleshooting, webhook ops, R2, test runbook, all rewritten for Laravel | `apps/web/docs/*` | Not started |
+
+## Decided deviations from the Next.js behaviour
+
+These rows deliberately **don't** reproduce today's behaviour. Their parity tests are tagged `@deviation`: they assert the **new** behaviour, run against Laravel only, and are expected to fail against Next (`02-test-strategy.md` §3). Source: `DECISIONS.md` 2026-11-18. Finding details are in `brownfield/index.md`.
+
+| Dev | Rows | Next.js today | Laravel target | Decided by |
+|---|---|---|---|---|
+| DV-1 | K-13 | Promotion codes can't be entered | `allow_promotion_codes: true` on **every** Checkout Session (packages and upsells). Codes are managed only in the Stripe dashboard. Fulfilment stores the discounted `amount_total` | Owner (F-1) |
+| DV-2 | K-09 | An upgrade sets the limits to the target tier, so a bought add-on is lost | For each key: **new limit = current limit + (target tier limit − current tier limit)**; unlimited (null) stays null; consumed and reserved untouched. Example: Essential 1/1 plus 1 add-on revision (1/2) → Professional = 2/3 | Owner (F-2) |
+| DV-3 | C-17 | No VAT field | **Unchanged** (out of migration scope; a post-launch story) | Owner (F-3) |
+| DV-4 | K-01, K-06 | `campaign_slug` stays in Stripe metadata only | Copied to `project_orders.campaign_slug` on package fulfilment | Recommendation (F-4) |
+| DV-5 | K-01, K-08 | Stripe success and cancel URLs come from forwarded headers | Built from the canonical `PUBLIC_SITE_URL` (and the marketing URL for cancel) | Recommendation (F-5) |
+| DV-6 | K-12 | Admin reprocess sends no emails | Reprocess runs the **same post-fulfilment steps as the webhook** (one shared action): customer setup or sign-in email and the admin new-project email, with the same idempotency markers, so a retry never double-sends | Owner (F-6) |
+| DV-7 | C-09, C-10, C-11 (and every client route that takes a concept ID) | A client can reach draft or deleted concepts by UUID | **Can't happen, by construction:** client routes resolve concepts only through one `visibleToClient` scope (`published`, `approved`). Anything else → `404 CONCEPT_NOT_FOUND`, indistinguishable from a missing concept. Revision requests need `published`. Enforced by (1) the scope plus a policy, (2) a Pest architecture test that client controllers never query concepts or concept files outside the scope, and (3) an L6 matrix test: every client endpoint × concept status (draft, deleted, archived, published, approved) | Owner (F-7) |
+| DV-8 | N-04…N-12 | Emails sent inline after commit | Queued jobs dispatched after commit, with retries. Same recipients, subjects, markers | Recommendation (F-8) |
+| DV-9 | D-08, N-05 | A revision delivered by **upload** sends no client email | The revision upload sends "Your revised concept is ready" **once per upload** (marker `email_sent:client_revision_ready:upload:{fileAssetId}`). The mark-delivered route keeps its per-request marker | Owner (F-9) |
+| DV-11 | D-11 | The finals upload returns `{error:"…", code}` in three places | The standard `{error:{message, code}}` everywhere | Recommendation (F-11) |
+| DV-UX | C-19 and every page | The portal mid-redesign, with inconsistent markup | **Redesigned from the start in Laravel:** a design system and layouts defined in BMAD UX design (step 2.2), and every screen built to it. **Behaviour stays identical**, only the look changes | Owner (2026-11-18) |
+
+F-10, F-12, F-13 and F-14 keep the current behaviour (parity). See `ASSUMPTIONS.md` 2026-11-18.
 
 ## Phase 0 sweep checklist
 

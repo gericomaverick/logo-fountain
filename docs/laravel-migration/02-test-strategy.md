@@ -10,6 +10,13 @@ A parity test may only change when:
 
 A test may never be edited just to make Laravel pass.
 
+**Behavioural parity, not visual parity (decision 2026-11-18, DV-UX).** The Laravel UI is redesigned from the start, so the parity suite proves that **the same things happen** (data, state transitions, emails, files, permissions, error codes, what the person can do at each step), **not** that the screens look the same. Consequences:
+- Browser tests never depend on markup, CSS classes or layout. They drive the app through **page objects** (`tests/parity/pages/`), such as `hub.requestRevision(conceptNo, text)` and `admin.publishConcept(file)`, with **one implementation per target** (`pages/next/*`, `pages/laravel/*`). The journeys (`tests/parity/journeys/*`) are shared and never branch on the target.
+- Page objects use accessible locators first (`getByRole`, `getByLabel`). Where the new design adds `data-testid`, only the Laravel page object uses it.
+- Copy that **states a rule, a price or a legal fact** (prices, allowance counts, "single-use link expires in one hour", error messages from the API) is still asserted. Marketing and UI wording isn't, unless the UX spec freezes it.
+
+**Decided deviations** (`01-feature-inventory.md` → DV- rows) are tests tagged `@deviation`. They assert the **new** behaviour, run against Laravel only, and are listed in `tests/parity/expected-next-failures.txt`. The Next run fails if any of those tests *starts passing* (that would mean the deviation isn't what we think).
+
 ## 2. Test layers
 
 | Layer | Tool | Runs against | What it proves | When |
@@ -21,7 +28,9 @@ A test may never be edited just to make Laravel pass.
 | L4 Contract | Playwright `request` (no browser) in the **shared parity suite** | **Both apps** | Paths, methods, status codes, JSON shapes, error codes, headers, cookies, for all 49 endpoints | Every story |
 | L5 E2E browser | Playwright in the **shared parity suite** | **Both apps** | Real journeys for client and admin (§4) | Every story |
 | L6 Authz matrix | Generated Playwright contract tests | **Both apps** | Every endpoint × {anonymous, client A, client B (other tenant), admin} → expected status. Builds on `docs/rls-matrix-v1.0.md` | Every story |
-| L7 Visual | Playwright screenshots of key screens, light and dark, desktop and 390px mobile | **Both apps** (Next as the baseline) | The ported UI looks the same, within a pixel-diff tolerance agreed in E0 | Client/admin UI stories |
+| L7 Visual | Playwright screenshots of every screen, light and dark, 1280 px and 390 px | **Laravel only**: baselines are approved against the **UX design spec** when each screen's story is done, then guarded against unintended change | The redesign is built as specified and doesn't regress | Every UI story |
+| L7a Accessibility | `@axe-core/playwright` on every screen and state (WCAG 2.2 AA), plus keyboard-only runs of the main journeys | Laravel | No serious or critical violations; focus order and visible focus | Every UI story |
+| L7b Design-system lint | ESLint rule plus grep check: no raw colours, pixel font sizes or ad-hoc gradients outside the token files (the rules from the UX spec) | Laravel | The design system is followed everywhere | Every commit |
 | L8 External sandbox | Mailpit, MinIO, Stripe test-mode fixtures | **Both apps** | Emails (subject, recipient, link works), object storage behaviour, webhook handling | Every story with email, storage or payment |
 | L9 Owner-run live | Manual checklist | Laravel staging/prod | Live R2, live Postmark, Stripe live webhook, proxy headers, HSTS | Release gates only |
 
