@@ -62,7 +62,7 @@ Laravel: `php artisan admin:bootstrap --prepare --email=` / `--email= --confirm-
 | `PUBLIC_SITE_URL` (`NEXT_PUBLIC_SITE_URL` fallback) | `APP_URL` **plus** a strict validator, or keep `PUBLIC_SITE_URL` | Canonical origin, HTTPS in production |
 | `PUBLIC_MARKETING_SITE_URL` (`NEXT_PUBLIC_…`) | same | Checkout cancel URL |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | same | |
-| `POSTMARK_SERVER_TOKEN`, `POSTMARK_FROM` | `POSTMARK_TOKEN` (Laravel mailer), `MAIL_FROM_ADDRESS` | Message stream `outbound` |
+| `POSTMARK_SERVER_TOKEN`, `POSTMARK_FROM` | `POSTMARK_API_KEY` (Laravel mailer), `MAIL_FROM_ADDRESS` | Message stream `outbound` |
 | `ADMIN_NOTIFICATION_EMAILS` | same | Recipients only, never authorization |
 | `EMAIL_LOGO_URL` | same | |
 | `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_CONCEPTS_BUCKET`, `R2_FINAL_DELIVERABLES_BUCKET`, `R2_JURISDICTION` | same | |

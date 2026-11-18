@@ -14,7 +14,7 @@ Phase 0 capture, 2026-11-18. Covers **X-10…X-13, C-09, C-13, D-05, D-11, D-13*
 `PutObject` with `IfNoneMatch: "*"` (fails if the key exists), `ContentType` (canonical MIME), `ContentLength`, `CacheControl: "private, max-age=3600"`, `ContentMD5` (base64), and metadata `sha256` (hex). **There's no overwrite path** (`upsert` must be false).
 - Concept path: `{projectId}/{conceptId}/v{N}.{uuid}.{ext}`. Legacy readers also accept `{projectId}/{conceptId}.{ext}` (v1).
 - Final path: `{projectId}/finals/{uuid}.zip`.
-- Laravel: the AWS SDK for PHP `putObject` with `IfNoneMatch => '*'`, `ContentMD5`, `Metadata => ['sha256' => …]`. Flysystem can't pass `If-None-Match`, so it isn't used for writes. **E0 task:** confirm MinIO honours `If-None-Match: *` (if not, test the conditional write against a stub at L3 and leave the live check to L9).
+- Laravel: the AWS SDK for PHP `putObject` with `IfNoneMatch => '*'`, `ContentMD5`, `Metadata => ['sha256' => …]`. Flysystem can't pass `If-None-Match`, so it isn't used for writes. **E0 task:** confirm SeaweedFS honours `If-None-Match: *` (if not, test the conditional write against a stub at L3 and leave the live check to L9).
 
 ## 3. Reads (presigned only)
 

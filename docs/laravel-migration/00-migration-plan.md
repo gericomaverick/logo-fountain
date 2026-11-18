@@ -41,21 +41,23 @@ Because nothing is live, **there is no data migration** (confirmed by the owner,
 
 **Security semantics that must survive the port.** These are documented in `apps/web/docs/security-boundaries.md`, `auth-runbook.md`, `checkout-auth-security.md`, `webhook-delivery-semantics.md`, `upload-lifecycle-hardening.md`, `private-r2-runbook.md`. They're the hardest part of the port, and they're why the test plan below is as heavy as it is. Each one is an inventory row with its own tests (X-series).
 
-## 3. Recommended target stack (to be confirmed in Architecture, ADRs)
+## 3. Target stack (researched 2026-11-18 in `research-technical.md`; exact pins in its §2 table; ADRs finalise)
 
 | Concern | Recommendation | Why |
 |---|---|---|
-| Framework | Laravel, the current stable major at solutioning time, on PHP 8.4+ | Pin the exact versions in ADR-001 after technical research, not from memory |
+| Framework | **Laravel 13** (`^13.39`, security fixes to 2028-03-17) on **PHP 8.5** (at least the 2026-11-19 security patch; 8.4 is the floor) | CONFIRMED by research. PHP patching needs its own runbook, because Forge's automatic updates don't upgrade PHP |
 | UI | **Inertia.js + React + TypeScript + Tailwind 4** (accepted, D2) | With the redesign (DV-UX), the markup is rebuilt anyway, but Inertia + React still keeps the **tested TS behaviour modules** (brief wizard, hub rules, chat, upload-key, and so on, with their Vitest suites) and the component behaviour. The *look* is new; the *logic* is reused |
 | JSON API | Keep **the same `/api/*` paths, methods, status codes and the `{ error: { message, code?, details? } }` shape** | The client components keep calling them unchanged, and one black-box contract suite can run against both apps |
-| Auth | Laravel session guard, **database** session driver, custom actions for setup, magic and reset links, fencing and proofs. No Breeze or Jetstream UI | The app's semantics are stricter than any starter kit: 7-day **absolute** cap (Laravel sessions slide, so this needs middleware), single-use hashed one-hour links, revoking older tokens, credential versions |
+| Auth | CONFIRMED: Laravel session guard, **database** session driver, bcrypt with a 72-byte limit, custom actions for setup, magic and reset links, fencing and proofs. No Breeze or Jetstream UI | The app's semantics are stricter than any starter kit: 7-day **absolute** cap (Laravel sessions slide, so this needs middleware), single-use hashed one-hour links, revoking older tokens, credential versions |
 | DB | PostgreSQL, Laravel migrations own the schema, snake_case tables | Fresh install, so the schema can follow Laravel conventions. Advisory locks (`pg_advisory_xact_lock`) are ported as-is |
-| Payments | `stripe/stripe-php` directly. **Not Cashier** | Cashier is built around subscriptions and customers. This app is one-off Checkout Sessions with a custom idempotent webhook ledger |
-| Storage | AWS SDK for PHP (S3 client) against R2 | Flysystem doesn't expose `IfNoneMatch: *` conditional writes, and immutable writes are a hard requirement |
-| Email | Laravel Mail, Postmark transport, `afterCommit` queued mailables | Matches send-after-commit. Mailpit catches mail in tests |
+| Payments | CONFIRMED: `stripe/stripe-php ^22.1`, client pinned to `stripe_version 2026-02-25.clover` (the live webhook endpoint must be registered on the same version). **Not Cashier** | Cashier is built around subscriptions and customers. This app is one-off Checkout Sessions with a custom idempotent webhook ledger |
+| Storage | CONFIRMED: AWS SDK for PHP v3 (`^3.402`) against R2. R2 honours `If-None-Match: *` atomically. Checksum calculation and validation `when_required`. **Local and CI stand-in: SeaweedFS (MinIO's repo was archived 2026-04-25)**, behind a probe test | Flysystem doesn't expose `IfNoneMatch: *` conditional writes, and immutable writes are a hard requirement |
+| Email | Laravel Mail, Postmark transport (`POSTMARK_API_KEY`). **Lifecycle** emails: queued `afterCommit` mailables. **Auth-link** emails: **synchronous after commit** (a send failure must delete the proof and return an error, which a queued job can't do) | CHANGED (refined) by research. Mailpit catches mail in tests |
 | Queue | Database queue driver plus a supervised worker | A new runtime component: deployment must run it |
-| Rate limiting | Laravel `RateLimiter` on a shared store | Closes the "process-local only" residual risk in `security-boundaries.md` |
-| Tests | Pest (unit and feature) on real PostgreSQL, Larastan, Pint; Playwright for the shared parity suite | See `02-test-strategy.md` |
+| Rate limiting | **The existing atomic Postgres buckets ported** (`auth_rate_limits`, a single `INSERT … ON CONFLICT … RETURNING`), run on their own connection **outside** the credential fence | CHANGED by research: Laravel's cache-backed `RateLimiter` would roll back inside the fence's transaction, so failed logins would stop counting. Also replaces the process-local checkout limiter |
+| Tests | Pest 5 on real PostgreSQL 18, Larastan level 9, Pint; Playwright 1.64 plus `@axe-core/playwright` for the shared parity suite; CI runs `docker compose` inside the job | See `02-test-strategy.md` |
+| CSRF | The strict Origin/Referer guard **is** the CSRF control for `/api/*` (excluded from Laravel 13's `PreventRequestForgery`, which would return 419 and break parity status codes). Laravel's check stays on for any non-API web forms | OPEN → architecture ADR (research recommendation) |
+| Hosting | **Recommended: Laravel Forge provisioning one Hetzner Cloud server** (nginx + PHP 8.5-FPM over a unix socket, so there's no app port; PG 18 local; queue and scheduler daemons), Hetzner Cloud Firewall, **pgBackRest → a dedicated R2 bucket plus a Hetzner Storage Box**, restore-drill gate. Ploi Pro is equal if already paid for | OPEN: owner questions in `research-technical.md` §9 |
 | Location | New app in `apps/portal`, running next to `apps/web` until cutover | Both apps run at once, so the parity suite can compare them |
 
 ## 4. Migration strategy

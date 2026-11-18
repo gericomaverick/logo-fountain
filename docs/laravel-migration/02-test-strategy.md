@@ -31,7 +31,7 @@ A test may never be edited just to make Laravel pass.
 | L7 Visual | Playwright screenshots of every screen, light and dark, 1280 px and 390 px | **Laravel only**: baselines are approved against the **UX design spec** when each screen's story is done, then guarded against unintended change | The redesign is built as specified and doesn't regress | Every UI story |
 | L7a Accessibility | `@axe-core/playwright` on every screen and state (WCAG 2.2 AA), plus keyboard-only runs of the main journeys | Laravel | No serious or critical violations; focus order and visible focus | Every UI story |
 | L7b Design-system lint | ESLint rule plus grep check: no raw colours, pixel font sizes or ad-hoc gradients outside the token files (the rules from the UX spec) | Laravel | The design system is followed everywhere | Every commit |
-| L8 External sandbox | Mailpit, MinIO, Stripe test-mode fixtures | **Both apps** | Emails (subject, recipient, link works), object storage behaviour, webhook handling | Every story with email, storage or payment |
+| L8 External sandbox | Mailpit, SeaweedFS, Stripe test-mode fixtures | **Both apps** | Emails (subject, recipient, link works), object storage behaviour, webhook handling | Every story with email, storage or payment |
 | L9 Owner-run live | Manual checklist | Laravel staging/prod | Live R2, live Postmark, Stripe live webhook, proxy headers, HSTS | Release gates only |
 
 ## 3. The shared parity suite
@@ -42,7 +42,7 @@ A test may never be edited just to make Laravel pass.
   `fresh-purchase`, `awaiting-brief`, `brief-draft`, `brief-submitted`, `concepts-ready`, `revision-reserved`, `revisions-exhausted`, `awaiting-approval`, `final-files-ready`, `delivered`, `on-hold`, `two-tenants` (client A and client B), `admin-only`.
 - **Sign-in in tests** goes through the real login form or API. There's no test-only auth backdoor in production code.
 - **Email:** both apps send to **Mailpit** in test (SMTP). The `mail` adapter waits for a message, asserts recipient and subject (N-series), pulls out the link and follows it. That's how setup, magic and reset links are tested for real.
-- **Storage:** **MinIO** stands in for R2. E0 must verify MinIO honours `If-None-Match: *` on PUT. If it doesn't, X-10 conditional-write tests move to L3 using a stub, plus the live L9 check.
+- **Storage:** **SeaweedFS** stands in for R2 (MinIO's repository was archived on 2026-04-25; see research §6.2). E0 must verify with a probe test that SeaweedFS honours `If-None-Match: *` on PUT (412 on conflict). If it doesn't, X-10 conditional-write tests move to L3 using a stub, plus the live L9 check.
 - **Stripe:** fixture `checkout.session.*` events are signed locally with the test webhook secret and POSTed to `/api/stripe/webhook`. So it's deterministic and offline. Checkout Session lookups go to Stripe **test mode** (`STRIPE_SECRET_KEY=sk_test_…`). A smaller `@stripe-live-test` set runs through real Checkout with `stripe listen`, and is opt-in.
 - **Tags** (Playwright `--grep`) match the inventory: `@smoke @auth @authz @security @contract @checkout @webhook @upsell @entitlements @revisions @brief @concepts @approval @finals @messages @settings @invoices @admin @state @audit @email @storage @uploads @visual @ops @cli @pg-race`.
 - **Traceability:** every test title starts with its inventory ID(s), e.g. `test('K-05 webhook retry after transient failure is processed @webhook', …)`. A script `tests/parity/scripts/coverage.mjs` fails if any inventory row (other than O-series) has no test.
@@ -68,7 +68,7 @@ A test may never be edited just to make Laravel pass.
 14. Upload a concept: retry with the same receipt is idempotent. Delete a concept. (D-05/07, X-13)
 15. Replace finals in `DELIVERED`: the newest asset is served, the old download link is still valid until it expires, notification retry. (D-11/12/13)
 16. Entitlement override and reset; project reset keeps the stored objects; audit log shows each action. (D-14/15/16, X-08)
-17. Health page with MinIO up and with MinIO down. (D-18)
+17. Health page with SeaweedFS up and with SeaweedFS down. (D-18)
 18. Reprocess a stuck purchase. (K-12)
 
 **Abuse and security**
@@ -87,7 +87,7 @@ A test may never be edited just to make Laravel pass.
 | Epic done | The full parity suite against Laravel for everything converted so far, L7 visual for that epic's screens, and the retrospective |
 | Pre-cutover | The **entire** parity suite green on both apps, three consecutive runs (flake check), L3 nightly green for 7 days, the L9 checklist signed off by the owner |
 
-CI: a GitHub Actions workflow with jobs `laravel-ci` (Pint, Larastan, Pest with a Postgres service) and `parity` (matrix `target: [next, laravel]` with Postgres, Mailpit and MinIO services; runs the tags for converted slices from `tests/parity/converted-tags.txt`, which each story updates).
+CI: a GitHub Actions workflow with jobs `laravel-ci` (Pint, Larastan, Pest with a Postgres service) and `parity` (matrix `target: [next, laravel]` with Postgres, Mailpit and SeaweedFS services; runs the tags for converted slices from `tests/parity/converted-tags.txt`, which each story updates).
 
 ## 6. Test-port ledger
 
@@ -97,11 +97,11 @@ The 95 Vitest files and their 614 tests encode a lot of edge cases. **Done in Ph
 
 - [ ] `tests/parity/` Playwright project, adapters, tag conventions, coverage script
 - [ ] `docker-compose.test.yml`: postgres, mailpit, minio (bucket bootstrap), plus later the Laravel app and queue worker
-- [ ] Next.js: point SMTP at Mailpit in test mode (Postmark stays for production), point R2 at MinIO, `parity:seed` scenarios
+- [ ] Next.js: point SMTP at Mailpit in test mode (Postmark stays for production), point R2 at SeaweedFS, `parity:seed` scenarios
 - [ ] Stripe fixture signer (`tests/parity/stripe/sign.mjs`) and fixture events
 - [ ] **Golden upload corpus** `tests/parity/fixtures/uploads/` (valid and malicious PNG/JPEG/WebP/ZIP), each with its expected error code captured from Next. Run by Vitest (Next), Pest (Laravel) and an HTTP subset in the parity suite (see `brownfield/storage-and-uploads.md` §7)
 - [ ] **Shared rule fixtures** `tests/parity/fixtures/rules/*.json` for the logic that exists in both PHP and TS: the state-machine transition table, `safeAuthNextPath` cases, brief normalisation and validation, display status, entitlement usage. Both test suites must agree on every case
 - [ ] **Snapshot contract:** a JSON-schema of the full `GET /api/projects/{id}` snapshot shape (`brownfield/business-rules-and-notifications.md` §3), asserted against both apps for each seed scenario
 - [ ] **Origin-guard architecture test** (replaces `route-guards.test.ts`): Pest asserts every non-exempt mutating route carries the Origin middleware, plus the L6 matrix checks it over HTTP
-- [ ] **Next.js test seams** (the only allowed `apps/web` changes during the freeze, each with an inventory note): a Postmark → SMTP (Mailpit) switch in test mode, an R2 endpoint override → MinIO, and the `parity:seed` script
+- [ ] **Next.js test seams** (the only allowed `apps/web` changes during the freeze, each with an inventory note): a Postmark → SMTP (Mailpit) switch in test mode, an R2 endpoint override → SeaweedFS, and the `parity:seed` script
 - [ ] The full suite green against Next.js, then recorded as the baseline in `handoff.md` with counts
