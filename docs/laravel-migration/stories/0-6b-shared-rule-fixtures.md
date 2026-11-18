@@ -1,6 +1,6 @@
 # Story 0.6b: Shared rule fixtures
 
-Status: review
+Status: done
 
 ## Story
 
@@ -74,3 +74,7 @@ Case counts: `state-machine.json` 494 (3 constants, 16 getAllowedTransitions, 13
 ### Open items
 - Not covered: a brief value whose truncation would split a surrogate pair (TS produces a lone surrogate, which JSON/PHP cannot represent cleanly). Needs an owner/parent decision before it becomes a fixture or a DV.
 - Not covered (out of scope): `nextStageCopy`, `missingRequiredFields` with a section, `requiredFieldLabels`, `isKnownProjectState`.
+
+
+## Parent review (2026-11-18)
+Cherry-picked to main as `4d854db`. Re-run on main: 10/10. Parity check OK. The open item (a brief value truncated through the middle of an emoji) is logged in ASSUMPTIONS.md and is to be decided before story 6.5.

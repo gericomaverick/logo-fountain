@@ -3,7 +3,7 @@
 ## Now (overwrite this section at the end of every session)
 
 - **Updated:** 2026-11-18 (night session; the owner is away and asked for autonomous progress with tracking)
-- **Phase:** Epic 0 in progress. **0.1 done** (@smoke 2/2 on Next). **0.3 done** (seams). **0.4 done** (13 scenarios, seed plus migrate scripts, verified with login on Next).
+- **Phase:** Epic 0 in progress. **0.1 done** (@smoke 2/2 on Next). **0.3 done** (seams). **0.4 done** (seed). **0.6b done** (rule fixtures, 933 cases).
 - **Running:** sub-agents on 0.2, 0.6a and 0.6b in separate worktrees (branches `story/0-2`, `story/0-6a`, `story/0-6b`). The parent reviews and merges.
 - **Next:** merge them → 0.3 (Next seams) → 0.4 → 0.5 → 0.7a–d → 0.8a–e → 0.9.
 - **Run the suite:** `cd tests/parity && npm ci && PARITY_TARGET=next PARITY_START_NEXT=1 node scripts/run.mjs "@smoke"`.
@@ -25,6 +25,7 @@ npm run test:e2e                                        # last recorded: 5–6 P
 
 ## Session log (newest first, one line each)
 
+- 2026-11-18: 0.6b merged (rule fixtures, 933 cases).
 - 2026-11-18: 0.4 done (seed verified: login, snapshot, tenancy 404).
 - 2026-11-18: 0.3 done (Next seams a–c, inert unless PARITY_MODE=1).
 - 2026-11-18: 0.1 done (parity scaffold, smoke green on Next). Next agent-nudge workaround.

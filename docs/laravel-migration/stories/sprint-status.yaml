@@ -22,7 +22,7 @@ development_status:
   0-4-seed-scenarios-next: done
   0-5-stripe-fixtures-and-webhook-scenarios: backlog
   0-6a-golden-upload-corpus: backlog
-  0-6b-shared-rule-fixtures: backlog
+  0-6b-shared-rule-fixtures: done
   0-7a-contract-suite-auth-checkout-webhook: backlog
   0-7b-contract-suite-client-project-endpoints-plus-the-snapshot-sc: backlog
   0-7c-contract-suite-admin-endpoints: backlog
