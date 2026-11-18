@@ -1,0 +1,4 @@
+# Exact test titles that must FAIL on Next.js because they assert a decided deviation (DV- rows in
+# docs/laravel-migration/01-feature-inventory.md). On Next a listed test is marked as an expected
+# failure; if it passes, the run fails. On Laravel this list is ignored: every test must pass.
+# One title per line. Lines starting with # are comments.

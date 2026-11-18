@@ -29,7 +29,7 @@ Actors: **P** public / anonymous · **C** client (project member) · **A** admin
 | A-12 | S | One-time admin bootstrap CLI: verified mailbox only, single winner, locks after first use, no HTTP route, no automatic first-user admin, no `ADMIN_EMAILS` escalation | `scripts/bootstrap-admin.mjs`, `AuthAdminBootstrap` | `@cli` | | Not started |
 | A-13 | P | Safe `next` redirect: app-relative only, rejects encoded external-navigation shapes, keeps query and fragment | `lib/auth/safe-next.ts` | `@auth @security` | | Not started |
 | A-14 | S | No extra auth endpoints exposed. Next allowlists Better Auth's catch-all; Laravel must not register starter-kit routes | `lib/auth/proxy-config.mjs` | `@security` | | Not started |
-| A-15 | P | `/` redirects to `/login` | `app/page.tsx` | `@smoke` | | Not started |
+| A-15 | P | `/` redirects to `/login` | `app/page.tsx` | `@smoke` | test: `parity/journeys/smoke.spec.ts:3` | Not started |
 | A-17 | S | Production fail-closed: auth endpoints return `503 AUTH_UNAVAILABLE` when no trusted client address can be derived. Auth JSON wrapper: `application/json` required (`400 INVALID_JSON`), 8192-byte body cap (`413 PAYLOAD_TOO_LARGE`), generic error message, `no-store` and `no-referrer` headers | `lib/auth/http.ts` | `@auth @security` | | Not started |
 | A-18 | C | Magic-link callback asks for an explicit "Confirm sign-in" click (so link scanners can't burn it). Tokens are read from the URL **fragment** and removed from history before rendering | `app/auth/callback`, `lib/auth/client.ts` | `@auth @security` | | Not started |
 | A-19 | S | DB trigger: only the migration (owner) role can set or change `profiles.is_admin`. Email check constraints (lowercase and trimmed) | `prisma/migrations/20260901000000_portable_core` | `@pg-race @security` | | Not started |
@@ -130,7 +130,7 @@ Actors: **P** public / anonymous · **C** client (project member) · **A** admin
 | ID | Feature and behaviour to preserve | Next.js source | Tag | Status |
 |---|---|---|---|---|
 | X-01 | Mutation Origin and Referer guard runs **before** auth, body parsing or I/O. `403 INVALID_ORIGIN`, `503 PUBLIC_SITE_URL_REQUIRED`. The documented exemptions (webhook, checkout email flows, `/checkout/start`, GETs, health) | `lib/request-origin.ts`, `docs/security-boundaries.md` | `@security` | Not started |
-| X-02 | Response headers: report-only CSP (same directives), X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy. `no-referrer` and `no-store` on `/auth/callback`, `/set-password`, `/reset-password` | `next.config.ts` | `@security` | Not started |
+| X-02 | Response headers: report-only CSP (same directives), X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy. `no-referrer` and `no-store` on `/auth/callback`, `/set-password`, `/reset-password` | `next.config.ts` | `@security` | Not started (test: `parity/journeys/smoke.spec.ts:8`) |
 | X-03 | JSON error shape `{error:{message,code?,details?}}` and status codes per endpoint | `lib/api-error.ts` | `@contract` | Not started |
 | X-04 | Canonical origin from server-only `PUBLIC_SITE_URL` (HTTPS in production). Loopback-only HTTP in dev | `lib/request-origin.ts` | `@security` | Not started |
 | X-05 | Trusted client IP only from `AUTH_CLIENT_IP_HEADER` or `AUTH_TRUSTED_PROXY_HOPS`; otherwise per-IP limits are off | `lib/auth/client-address.ts` | `@security` | Not started |

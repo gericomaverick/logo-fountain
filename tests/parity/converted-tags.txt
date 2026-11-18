@@ -1,0 +1,3 @@
+# Tag expressions whose every selected test has its prerequisites built on Laravel.
+# Each converted story adds its gate here (see docs/laravel-migration/epics.md). The CI parity job
+# runs these against Laravel. One expression per line, for example: @auth&@api
