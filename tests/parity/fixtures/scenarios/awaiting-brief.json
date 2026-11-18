@@ -1,0 +1,60 @@
+{
+  "name": "awaiting-brief",
+  "description": "Paid, signed-up customer, brief not started.",
+  "users": [
+    {
+      "key": "admin",
+      "email": "admin@parity.test",
+      "password": "Parity-Pass-2026!",
+      "firstName": "Dana",
+      "lastName": "Designer",
+      "admin": true,
+      "emailVerified": true
+    },
+    {
+      "key": "clientA",
+      "email": "client.a@parity.test",
+      "password": "Parity-Pass-2026!",
+      "firstName": "Ada",
+      "lastName": "Client",
+      "admin": false,
+      "emailVerified": true
+    }
+  ],
+  "projects": [
+    {
+      "key": "p1",
+      "client": {
+        "name": "Ada Client",
+        "billingEmail": "client.a@parity.test",
+        "members": [
+          "clientA"
+        ]
+      },
+      "package": "professional",
+      "status": "AWAITING_BRIEF",
+      "createdDaysAgo": 10,
+      "order": {
+        "status": "FULFILLED",
+        "totalCents": 79500,
+        "sessionId": "cs_test_parity_p1_clientA",
+        "paymentIntentId": "pi_test_parity_p1_clientA"
+      },
+      "entitlements": {
+        "concepts": [
+          2,
+          0,
+          0
+        ],
+        "revisions": [
+          2,
+          0,
+          0
+        ]
+      },
+      "stateHistory": [
+        "AWAITING_BRIEF"
+      ]
+    }
+  ]
+}

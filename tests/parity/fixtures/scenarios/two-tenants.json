@@ -1,0 +1,205 @@
+{
+  "name": "two-tenants",
+  "description": "Clients A and B each own a CONCEPTS_READY project (authorisation matrix).",
+  "users": [
+    {
+      "key": "admin",
+      "email": "admin@parity.test",
+      "password": "Parity-Pass-2026!",
+      "firstName": "Dana",
+      "lastName": "Designer",
+      "admin": true,
+      "emailVerified": true
+    },
+    {
+      "key": "clientA",
+      "email": "client.a@parity.test",
+      "password": "Parity-Pass-2026!",
+      "firstName": "Ada",
+      "lastName": "Client",
+      "admin": false,
+      "emailVerified": true
+    },
+    {
+      "key": "clientB",
+      "email": "client.b@parity.test",
+      "password": "Parity-Pass-2026!",
+      "firstName": "Ben",
+      "lastName": "Other",
+      "admin": false,
+      "emailVerified": true
+    }
+  ],
+  "projects": [
+    {
+      "key": "pA",
+      "client": {
+        "name": "Ada Client",
+        "billingEmail": "client.a@parity.test",
+        "members": [
+          "clientA"
+        ]
+      },
+      "package": "professional",
+      "status": "CONCEPTS_READY",
+      "createdDaysAgo": 10,
+      "order": {
+        "status": "FULFILLED",
+        "totalCents": 79500,
+        "sessionId": "cs_test_parity_pA_clientA",
+        "paymentIntentId": "pi_test_parity_pA_clientA"
+      },
+      "entitlements": {
+        "concepts": [
+          2,
+          2,
+          0
+        ],
+        "revisions": [
+          2,
+          0,
+          0
+        ]
+      },
+      "stateHistory": [
+        "AWAITING_BRIEF",
+        "BRIEF_SUBMITTED",
+        "CONCEPTS_READY"
+      ],
+      "brief": {
+        "answers": {
+          "brandName": "Northvale Coffee",
+          "tagline": "",
+          "industry": "Coffee roastery",
+          "offerSummary": "We roast and deliver single-origin coffee to independent cafes.",
+          "audiencePrimary": "Independent cafe owners in the North West.",
+          "audienceSecondary": "",
+          "businessGoals": "Look established enough to win standing orders.",
+          "brandPersonality": "Modern, Premium, Approachable",
+          "styleDirection": "Icon with wordmark",
+          "colorPreferences": "Earthy and natural",
+          "mustInclude": "",
+          "avoidanceNotes": "",
+          "usageContexts": "Packaging, Website",
+          "deliverablesContext": "",
+          "competitors": "",
+          "additionalNotes": ""
+        }
+      },
+      "concepts": [
+        {
+          "number": 1,
+          "status": "published",
+          "notes": "Concept 1 notes"
+        },
+        {
+          "number": 2,
+          "status": "published",
+          "notes": "Concept 2 notes"
+        }
+      ],
+      "messages": [
+        {
+          "sender": "admin",
+          "kind": "system",
+          "body": "Brief received. Your designer will review and reply soon."
+        },
+        {
+          "sender": "admin",
+          "kind": "system",
+          "body": "Concept 1 is ready for review."
+        },
+        {
+          "sender": "admin",
+          "kind": "user",
+          "body": "Hi Ada, your first concepts are ready."
+        }
+      ]
+    },
+    {
+      "key": "pB",
+      "client": {
+        "name": "Ben Other",
+        "billingEmail": "client.b@parity.test",
+        "members": [
+          "clientB"
+        ]
+      },
+      "package": "professional",
+      "status": "CONCEPTS_READY",
+      "createdDaysAgo": 10,
+      "order": {
+        "status": "FULFILLED",
+        "totalCents": 79500,
+        "sessionId": "cs_test_parity_pB_clientB",
+        "paymentIntentId": "pi_test_parity_pB_clientB"
+      },
+      "entitlements": {
+        "concepts": [
+          2,
+          2,
+          0
+        ],
+        "revisions": [
+          2,
+          0,
+          0
+        ]
+      },
+      "stateHistory": [
+        "AWAITING_BRIEF",
+        "BRIEF_SUBMITTED",
+        "CONCEPTS_READY"
+      ],
+      "brief": {
+        "answers": {
+          "brandName": "Harbour Physio",
+          "tagline": "",
+          "industry": "Coffee roastery",
+          "offerSummary": "We roast and deliver single-origin coffee to independent cafes.",
+          "audiencePrimary": "Independent cafe owners in the North West.",
+          "audienceSecondary": "",
+          "businessGoals": "Look established enough to win standing orders.",
+          "brandPersonality": "Modern, Premium, Approachable",
+          "styleDirection": "Icon with wordmark",
+          "colorPreferences": "Earthy and natural",
+          "mustInclude": "",
+          "avoidanceNotes": "",
+          "usageContexts": "Packaging, Website",
+          "deliverablesContext": "",
+          "competitors": "",
+          "additionalNotes": ""
+        }
+      },
+      "concepts": [
+        {
+          "number": 1,
+          "status": "published",
+          "notes": "Concept 1 notes"
+        },
+        {
+          "number": 2,
+          "status": "published",
+          "notes": "Concept 2 notes"
+        }
+      ],
+      "messages": [
+        {
+          "sender": "admin",
+          "kind": "system",
+          "body": "Brief received. Your designer will review and reply soon."
+        },
+        {
+          "sender": "admin",
+          "kind": "system",
+          "body": "Concept 1 is ready for review."
+        },
+        {
+          "sender": "admin",
+          "kind": "user",
+          "body": "Hi Ada, your first concepts are ready."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "name": "brief-submitted",
+  "description": "Brief submitted, waiting for the designer.",
+  "users": [
+    {
+      "key": "admin",
+      "email": "admin@parity.test",
+      "password": "Parity-Pass-2026!",
+      "firstName": "Dana",
+      "lastName": "Designer",
+      "admin": true,
+      "emailVerified": true
+    },
+    {
+      "key": "clientA",
+      "email": "client.a@parity.test",
+      "password": "Parity-Pass-2026!",
+      "firstName": "Ada",
+      "lastName": "Client",
+      "admin": false,
+      "emailVerified": true
+    }
+  ],
+  "projects": [
+    {
+      "key": "p1",
+      "client": {
+        "name": "Ada Client",
+        "billingEmail": "client.a@parity.test",
+        "members": [
+          "clientA"
+        ]
+      },
+      "package": "professional",
+      "status": "BRIEF_SUBMITTED",
+      "createdDaysAgo": 10,
+      "order": {
+        "status": "FULFILLED",
+        "totalCents": 79500,
+        "sessionId": "cs_test_parity_p1_clientA",
+        "paymentIntentId": "pi_test_parity_p1_clientA"
+      },
+      "entitlements": {
+        "concepts": [
+          2,
+          0,
+          0
+        ],
+        "revisions": [
+          2,
+          0,
+          0
+        ]
+      },
+      "stateHistory": [
+        "AWAITING_BRIEF",
+        "BRIEF_SUBMITTED"
+      ],
+      "brief": {
+        "answers": {
+          "brandName": "Northvale Coffee",
+          "tagline": "",
+          "industry": "Coffee roastery",
+          "offerSummary": "We roast and deliver single-origin coffee to independent cafes.",
+          "audiencePrimary": "Independent cafe owners in the North West.",
+          "audienceSecondary": "",
+          "businessGoals": "Look established enough to win standing orders.",
+          "brandPersonality": "Modern, Premium, Approachable",
+          "styleDirection": "Icon with wordmark",
+          "colorPreferences": "Earthy and natural",
+          "mustInclude": "",
+          "avoidanceNotes": "",
+          "usageContexts": "Packaging, Website",
+          "deliverablesContext": "",
+          "competitors": "",
+          "additionalNotes": ""
+        }
+      },
+      "messages": [
+        {
+          "sender": "admin",
+          "kind": "system",
+          "body": "Brief received. Your designer will review and reply soon."
+        }
+      ]
+    }
+  ]
+}

@@ -154,7 +154,7 @@ Actors: **P** public / anonymous · **C** client (project member) · **A** admin
 | ID | Feature | Next.js source | Status |
 |---|---|---|---|
 | O-01 | Local run with a disposable PG cluster | `scripts/local-run.mjs`, `scripts/local-dev-pg.mjs`, `docs/local-dev-pg-handoff.md` | Not started |
-| O-02 | Seed fixtures (packages, projects with allowances drawn down, extra project), with a guard against running on non-local DBs | `lib/local-dev-seed*`, `lib/local-dev-fixture-guard.ts` | Not started |
+| O-02 | Seed fixtures (packages, projects with allowances drawn down, extra project), with a guard against running on non-local DBs | `lib/local-dev-seed*`, `lib/local-dev-fixture-guard.ts` | Not started (parity: `tests/parity/fixtures/scenarios/`, `apps/web/scripts/parity-seed.mjs`; test `parity-seed-guard.test.ts`) |
 | O-03 | Isolated real-Postgres test runner | `scripts/isolated-postgres-test.mjs` | Not started |
 | O-04 | Security check and predeploy check | `scripts/security-check.mjs` | Not started |
 | O-05 | Production proxy-config preflight | `scripts/auth-proxy-preflight.mjs` | Not started |

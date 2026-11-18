@@ -1,0 +1,16 @@
+{
+  "name": "admin-only",
+  "description": "Only the admin exists; no projects.",
+  "users": [
+    {
+      "key": "admin",
+      "email": "admin@parity.test",
+      "password": "Parity-Pass-2026!",
+      "firstName": "Dana",
+      "lastName": "Designer",
+      "admin": true,
+      "emailVerified": true
+    }
+  ],
+  "projects": []
+}
