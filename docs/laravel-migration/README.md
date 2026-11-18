@@ -15,6 +15,8 @@ The marketing site (`apps/site`, Eleventy) is **out of scope** and stays as it i
 
 **Location note:** `_bmad-output/` is git-ignored in this repo, so BMAD would normally write there and nothing would survive between agents. For this migration, every BMAD output (brief, PRD, architecture, epics, story files, `sprint-status.yaml`) is written to **`docs/laravel-migration/`**, with story files in `stories/`. When you run a BMAD workflow, override its output path to this folder.
 
+**BMAD config resolution (phase 4).** The phase-4 workflow files declare `config_source: {project-root}/_bmad/bmm/config.yaml`, but `_bmad/bmm` is a **symlink to the shared BMAD plugin** (`~/.openclaw/extensions/bmad-method/…`). **Never write files into `_bmad/bmm` or `_bmad/core`**, because that changes every project using the plugin. Always resolve config values from this project's **`_bmad/config.yaml`**: `planning_artifacts` = `docs/laravel-migration`, `implementation_artifacts` = `docs/laravel-migration/stories`, so `sprint_status` = `docs/laravel-migration/stories/sprint-status.yaml`.
+
 If what you find in the code disagrees with these files, the files are wrong or stale:
 fix them in the same commit as the work, and say so in `handoff.md`.
 
