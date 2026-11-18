@@ -139,7 +139,7 @@ Actors: **P** public / anonymous · **C** client (project member) · **A** admin
 | X-09 | Transaction advisory locks and bounded retries on fulfilment, auth fencing and concept uploads | `lib/checkout-fulfillment.ts`, `lib/auth/fence.ts`, `api/admin/projects/[id]/concepts` | `@pg-race` | Not started |
 | X-10 | R2 storage: two private logical buckets (`concepts`, `final-deliverables`), random immutable version paths, `IfNoneMatch:*`, canonical MIME, SHA-256 metadata, never overwrite, collision fails closed | `lib/storage/r2.ts`, `docs/private-r2-runbook.md` | `@storage` | Not started |
 | X-11 | Presigned GET: expiry an integer from 1 to 3600, never persisted or logged, authorization rechecked right before issuing | `lib/storage/r2.ts` | `@storage @security` | Not started |
-| X-12 | Upload validation: concept image ≤10 MiB and ≤40 MP; final ZIP ≤100 MiB, ≤1000 entries, ≤500 MiB uncompressed, compression ratio ≤100, CRC checks | `lib/upload-validation.ts`, `lib/zip-validation.ts` | `@uploads` | Not started |
+| X-12 | Upload validation: concept image ≤10 MiB and ≤40 MP; final ZIP ≤95 MB (DV-13; was 100 MiB), ≤1000 entries, ≤500 MiB uncompressed, compression ratio ≤100, CRC checks | `lib/upload-validation.ts`, `lib/zip-validation.ts` | `@uploads` `@deviation` | Not started (DV-13) |
 | X-13 | Ambiguous-commit object retention, upload before publication, committed-receipt recovery | `docs/upload-lifecycle-hardening.md` | `@uploads @pg-race` | Not started |
 | X-14 | No secrets, signed URLs or bearer links in API responses, logs or audit payloads | everywhere | `@security` | Not started |
 | X-16 | System messages are deduplicated by exact body within a project thread. The sender is the first admin profile | `lib/system-messages.ts` | `@messages` | Not started |
@@ -178,6 +178,7 @@ These rows deliberately **don't** reproduce today's behaviour. Their parity test
 | DV-9 | D-08, N-05 | A revision delivered by **upload** sends no client email | The revision upload sends "Your revised concept is ready" **once per upload** (marker `email_sent:client_revision_ready:upload:{fileAssetId}`). The mark-delivered route keeps its per-request marker | Owner (F-9) |
 | DV-11 | D-11 | The finals upload returns `{error:"…", code}` in three places | The standard `{error:{message, code}}` everywhere | Recommendation (F-11) |
 | DV-12 | C-03, C-08, C-09, D-02, D-05 | Every poll re-signs image URLs, so images re-download and flicker | Snapshot and concept payloads add a stable `imageKey`. The UI keeps the existing signed URL until the key changes or the URL nears expiry (adding a field is backward-compatible for the contract) | Recommendation (F-15), within the owner's R2 intent |
+| DV-13 | X-12, D-11 | Final ZIP limit 100 MiB | Final ZIP limit **95 MB** (95,000,000 bytes), so uploads fit Cloudflare's 100 MB request cap with the multipart overhead. Error `FILE_TOO_LARGE` with the new figure | Owner (Cloudflare proxy, 2026-11-18) |
 | DV-UX | C-19 and every page | The portal mid-redesign, with inconsistent markup | **Redesigned from the start in Laravel:** a design system and layouts defined in BMAD UX design (step 2.2), and every screen built to it. **Behaviour stays identical**, only the look changes | Owner (2026-11-18) |
 
 F-10, F-12, F-13 and F-14 keep the current behaviour (parity). See `ASSUMPTIONS.md` 2026-11-18.

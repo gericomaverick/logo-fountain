@@ -1,6 +1,6 @@
 # Logo Fountain: Next.js → Laravel migration plan (BMAD)
 
-Status: **v0.5 (2026-11-18). Phase 0 done. Phase 1 brief drafted, technical research in progress. Phase 2.2 UX spec drafted (design direction awaiting owner choice)**
+Status: **v0.6 (2026-11-18). Phases 0–2 drafted (brief, research, PRD, UX with direction A). Phase 3.1 architecture drafted (28 ADRs). Next: PRD validation fixes → epics and stories (3.2) → readiness (3.3)**
 Created: 2026-11-18
 Scope: `apps/web` (client portal, admin portal, checkout/payments backend). `apps/site` (Eleventy marketing) is not in scope.
 
@@ -57,7 +57,7 @@ Because nothing is live, **there is no data migration** (confirmed by the owner,
 | Rate limiting | **The existing atomic Postgres buckets ported** (`auth_rate_limits`, a single `INSERT … ON CONFLICT … RETURNING`), run on their own connection **outside** the credential fence | CHANGED by research: Laravel's cache-backed `RateLimiter` would roll back inside the fence's transaction, so failed logins would stop counting. Also replaces the process-local checkout limiter |
 | Tests | Pest 5 on real PostgreSQL 18, Larastan level 9, Pint; Playwright 1.64 plus `@axe-core/playwright` for the shared parity suite; CI runs `docker compose` inside the job | See `02-test-strategy.md` |
 | CSRF | The strict Origin/Referer guard **is** the CSRF control for `/api/*` (excluded from Laravel 13's `PreventRequestForgery`, which would return 419 and break parity status codes). Laravel's check stays on for any non-API web forms | OPEN → architecture ADR (research recommendation) |
-| Hosting | **Recommended: Laravel Forge provisioning one Hetzner Cloud server** (nginx + PHP 8.5-FPM over a unix socket, so there's no app port; PG 18 local; queue and scheduler daemons), Hetzner Cloud Firewall, **pgBackRest → a dedicated R2 bucket plus a Hetzner Storage Box**, restore-drill gate. Ploi Pro is equal if already paid for | OPEN: owner questions in `research-technical.md` §9 |
+| Hosting | **Recommended: Laravel Forge provisioning one Hetzner Cloud server** (nginx + PHP 8.5-FPM over a unix socket, so there's no app port; PG 18 local; queue and scheduler daemons), Hetzner Cloud Firewall, **pgBackRest → a dedicated R2 bucket plus a Hetzner Storage Box**, restore-drill gate. Ploi Pro is equal if already paid for | **DECIDED 2026-11-18:** Forge → one Hetzner Cloud server, PG on the box; **Cloudflare proxy** in front (Full strict, firewall limited to Cloudflare ranges, `cf-connecting-ip`); backups via pgBackRest → R2 plus a Storage Box (30 days PITR plus 12 monthly), nightly R2 → Storage Box copy, quarterly restore drill; email alerts |
 | Location | New app in `apps/portal`, running next to `apps/web` until cutover | Both apps run at once, so the parity suite can compare them |
 
 ## 4. Migration strategy

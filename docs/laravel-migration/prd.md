@@ -100,7 +100,7 @@ Defined in `ux-design.md` §10 (J1 purchase → first visit, J2 brief, J3 concep
 ### 6.6 Files and storage
 - **FR51:** The system stores concept images and final files privately and never overwrites or deletes a stored file during normal operation. [X-10, X-13]
 - **FR52:** The system gives access to stored files only through short-lived links, issued after a fresh permission check, with safe download names. [X-11, C-13]
-- **FR53:** The system accepts only valid PNG, JPEG or WebP images (≤ 10 MB, ≤ 40 MP) and only safe ZIP archives (≤ 100 MB, ≤ 1,000 entries, ≤ 500 MB expanded), and rejects malformed or malicious files with clear reasons. [X-12]
+- **FR53:** The system accepts only valid PNG, JPEG or WebP images (≤ 10 MB, ≤ 40 MP) and only safe ZIP archives (≤ 95 MB (DV-13), ≤ 1,000 entries, ≤ 500 MB expanded), and rejects malformed or malicious files with clear reasons. [X-12]
 - **FR54:** Polling never re-downloads an image that hasn't changed. [DV-12]
 
 ### 6.7 Platform and operations
