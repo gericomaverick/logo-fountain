@@ -16,6 +16,7 @@ PARITY_TARGET=laravel PARITY_BASE_URL=http://127.0.0.1:8000 node scripts/run.mjs
 | `pages/` | Page objects: `index.ts` (interfaces and resolver), `next/`, `laravel/` |
 | `adapters/` | Target resolution (later: seed, mail, storage, Stripe adapters) |
 | `fixtures.ts` | `test`/`expect` with the `target` fixture and expected-failure marking |
+| `fixtures/rules/*.json` | Shared rule fixtures (story 0.6b). Generated from Next: `CAPTURE=1 npx vitest run src/lib/__tests__/shared-rule-fixtures.test.ts` in `apps/web`; Next's `npm run test` asserts them; the PHP ports must agree case-for-case |
 | `expected-next-failures.txt` | Exact titles of `@deviation` tests that must fail on Next |
 | `converted-tags.txt` | Gate expressions that are green on Laravel (run by CI) |
 

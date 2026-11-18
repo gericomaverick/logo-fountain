@@ -1,0 +1,1014 @@
+{
+  "source": "apps/web/src/lib/project-status.ts",
+  "generatedFrom": "347ef34fc0000902dbbad2b6c2686253a08a07d8",
+  "cases": [
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "AWAITING_BRIEF",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": false
+      },
+      "expected": "AWAITING_BRIEF"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "AWAITING_BRIEF",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": true
+      },
+      "expected": "AWAITING_BRIEF"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "AWAITING_BRIEF",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": false
+      },
+      "expected": "AWAITING_BRIEF"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "AWAITING_BRIEF",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": true
+      },
+      "expected": "AWAITING_BRIEF"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "BRIEF_SUBMITTED",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": false
+      },
+      "expected": "BRIEF_SUBMITTED"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "BRIEF_SUBMITTED",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": true
+      },
+      "expected": "BRIEF_SUBMITTED"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "BRIEF_SUBMITTED",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": false
+      },
+      "expected": "BRIEF_SUBMITTED"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "BRIEF_SUBMITTED",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": true
+      },
+      "expected": "BRIEF_SUBMITTED"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "IN_DESIGN",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": false
+      },
+      "expected": "IN_DESIGN"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "IN_DESIGN",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": true
+      },
+      "expected": "IN_DESIGN"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "IN_DESIGN",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": false
+      },
+      "expected": "IN_DESIGN"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "IN_DESIGN",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": true
+      },
+      "expected": "IN_DESIGN"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "CONCEPTS_READY",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": false
+      },
+      "expected": "CONCEPTS_READY"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "CONCEPTS_READY",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": true
+      },
+      "expected": "CONCEPTS_READY"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "CONCEPTS_READY",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": false
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "CONCEPTS_READY",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": true
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "REVISIONS_IN_PROGRESS",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": false
+      },
+      "expected": "REVISIONS_IN_PROGRESS"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "REVISIONS_IN_PROGRESS",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": true
+      },
+      "expected": "REVISIONS_IN_PROGRESS"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "REVISIONS_IN_PROGRESS",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": false
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "REVISIONS_IN_PROGRESS",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": true
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "AWAITING_APPROVAL",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": false
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "AWAITING_APPROVAL",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": true
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "AWAITING_APPROVAL",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": false
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "AWAITING_APPROVAL",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": true
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "FINAL_FILES_READY",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": false
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "FINAL_FILES_READY",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": true
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "FINAL_FILES_READY",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": false
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "FINAL_FILES_READY",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": true
+      },
+      "expected": "FINAL_FILES_READY"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "DELIVERED",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": false
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "DELIVERED",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": true
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "DELIVERED",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": false
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "DELIVERED",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": true
+      },
+      "expected": "DELIVERED"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "ON_HOLD",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": false
+      },
+      "expected": "ON_HOLD"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "ON_HOLD",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": true
+      },
+      "expected": "ON_HOLD"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "ON_HOLD",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": false
+      },
+      "expected": "ON_HOLD"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "ON_HOLD",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": true
+      },
+      "expected": "ON_HOLD"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "CANCELLED",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": false
+      },
+      "expected": "CANCELLED"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "CANCELLED",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": true
+      },
+      "expected": "CANCELLED"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "CANCELLED",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": false
+      },
+      "expected": "CANCELLED"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "CANCELLED",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": true
+      },
+      "expected": "CANCELLED"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "REFUNDED",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": false
+      },
+      "expected": "REFUNDED"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "REFUNDED",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": true
+      },
+      "expected": "REFUNDED"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "REFUNDED",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": false
+      },
+      "expected": "REFUNDED"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "REFUNDED",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": true
+      },
+      "expected": "REFUNDED"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "APPROVED",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": false
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "APPROVED",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": true
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "APPROVED",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": false
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "APPROVED",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": true
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "UNKNOWN",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": false
+      },
+      "expected": "UNKNOWN"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "UNKNOWN",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": true
+      },
+      "expected": "UNKNOWN"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "UNKNOWN",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": false
+      },
+      "expected": "UNKNOWN"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "UNKNOWN",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": true
+      },
+      "expected": "UNKNOWN"
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": false
+      },
+      "expected": ""
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": true
+      },
+      "expected": ""
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": false
+      },
+      "expected": ""
+    },
+    {
+      "fn": "deriveDisplayProjectStatus",
+      "input": {
+        "persistedStatus": "",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": true
+      },
+      "expected": ""
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "AWAITING_BRIEF",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": false
+      },
+      "expected": "AWAITING_BRIEF"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "AWAITING_BRIEF",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": true
+      },
+      "expected": "AWAITING_BRIEF"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "AWAITING_BRIEF",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": false
+      },
+      "expected": "AWAITING_BRIEF"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "AWAITING_BRIEF",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": true
+      },
+      "expected": "AWAITING_BRIEF"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "BRIEF_SUBMITTED",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": false
+      },
+      "expected": "BRIEF_SUBMITTED"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "BRIEF_SUBMITTED",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": true
+      },
+      "expected": "BRIEF_SUBMITTED"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "BRIEF_SUBMITTED",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": false
+      },
+      "expected": "BRIEF_SUBMITTED"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "BRIEF_SUBMITTED",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": true
+      },
+      "expected": "BRIEF_SUBMITTED"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "IN_DESIGN",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": false
+      },
+      "expected": "IN_DESIGN"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "IN_DESIGN",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": true
+      },
+      "expected": "IN_DESIGN"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "IN_DESIGN",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": false
+      },
+      "expected": "IN_DESIGN"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "IN_DESIGN",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": true
+      },
+      "expected": "IN_DESIGN"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "CONCEPTS_READY",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": false
+      },
+      "expected": "CONCEPTS_READY"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "CONCEPTS_READY",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": true
+      },
+      "expected": "CONCEPTS_READY"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "CONCEPTS_READY",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": false
+      },
+      "expected": "APPROVED"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "CONCEPTS_READY",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": true
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "REVISIONS_IN_PROGRESS",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": false
+      },
+      "expected": "REVISIONS_IN_PROGRESS"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "REVISIONS_IN_PROGRESS",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": true
+      },
+      "expected": "REVISIONS_IN_PROGRESS"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "REVISIONS_IN_PROGRESS",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": false
+      },
+      "expected": "APPROVED"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "REVISIONS_IN_PROGRESS",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": true
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "AWAITING_APPROVAL",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": false
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "AWAITING_APPROVAL",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": true
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "AWAITING_APPROVAL",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": false
+      },
+      "expected": "APPROVED"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "AWAITING_APPROVAL",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": true
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "FINAL_FILES_READY",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": false
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "FINAL_FILES_READY",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": true
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "FINAL_FILES_READY",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": false
+      },
+      "expected": "APPROVED"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "FINAL_FILES_READY",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": true
+      },
+      "expected": "FINAL_FILES_READY"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "DELIVERED",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": false
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "DELIVERED",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": true
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "DELIVERED",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": false
+      },
+      "expected": "APPROVED"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "DELIVERED",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": true
+      },
+      "expected": "DELIVERED"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "ON_HOLD",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": false
+      },
+      "expected": "ON_HOLD"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "ON_HOLD",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": true
+      },
+      "expected": "ON_HOLD"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "ON_HOLD",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": false
+      },
+      "expected": "ON_HOLD"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "ON_HOLD",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": true
+      },
+      "expected": "ON_HOLD"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "CANCELLED",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": false
+      },
+      "expected": "CANCELLED"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "CANCELLED",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": true
+      },
+      "expected": "CANCELLED"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "CANCELLED",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": false
+      },
+      "expected": "CANCELLED"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "CANCELLED",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": true
+      },
+      "expected": "CANCELLED"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "REFUNDED",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": false
+      },
+      "expected": "REFUNDED"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "REFUNDED",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": true
+      },
+      "expected": "REFUNDED"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "REFUNDED",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": false
+      },
+      "expected": "REFUNDED"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "REFUNDED",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": true
+      },
+      "expected": "REFUNDED"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "APPROVED",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": false
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "APPROVED",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": true
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "APPROVED",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": false
+      },
+      "expected": "APPROVED"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "APPROVED",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": true
+      },
+      "expected": "AWAITING_APPROVAL"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "UNKNOWN",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": false
+      },
+      "expected": "UNKNOWN"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "UNKNOWN",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": true
+      },
+      "expected": "UNKNOWN"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "UNKNOWN",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": false
+      },
+      "expected": "UNKNOWN"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "UNKNOWN",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": true
+      },
+      "expected": "UNKNOWN"
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": false
+      },
+      "expected": ""
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "",
+        "hasApprovedConcept": false,
+        "hasFinalDeliverable": true
+      },
+      "expected": ""
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": false
+      },
+      "expected": ""
+    },
+    {
+      "fn": "deriveOverviewBadgeStatus",
+      "input": {
+        "persistedStatus": "",
+        "hasApprovedConcept": true,
+        "hasFinalDeliverable": true
+      },
+      "expected": ""
+    }
+  ]
+}

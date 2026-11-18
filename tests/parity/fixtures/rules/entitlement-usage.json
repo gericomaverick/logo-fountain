@@ -1,0 +1,732 @@
+{
+  "source": "apps/web/src/lib/entitlements.ts",
+  "generatedFrom": "347ef34fc0000902dbbad2b6c2686253a08a07d8",
+  "cases": [
+    {
+      "fn": "computeEntitlementUsage",
+      "input": {
+        "entitlements": [],
+        "packageCode": "essential"
+      },
+      "expected": {
+        "concepts": {
+          "limit": 1,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 1,
+          "configured": false
+        },
+        "revisions": {
+          "limit": 1,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 1,
+          "configured": false
+        }
+      }
+    },
+    {
+      "fn": "computeEntitlementUsage",
+      "input": {
+        "entitlements": [],
+        "packageCode": "professional"
+      },
+      "expected": {
+        "concepts": {
+          "limit": 2,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 2,
+          "configured": false
+        },
+        "revisions": {
+          "limit": 2,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 2,
+          "configured": false
+        }
+      }
+    },
+    {
+      "fn": "computeEntitlementUsage",
+      "input": {
+        "entitlements": [],
+        "packageCode": "complete"
+      },
+      "expected": {
+        "concepts": {
+          "limit": 3,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 3,
+          "configured": false
+        },
+        "revisions": {
+          "limit": 3,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 3,
+          "configured": false
+        }
+      }
+    },
+    {
+      "fn": "computeEntitlementUsage",
+      "input": {
+        "entitlements": [],
+        "packageCode": "unknown"
+      },
+      "expected": {
+        "concepts": {
+          "limit": 0,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 0,
+          "configured": false
+        },
+        "revisions": {
+          "limit": 0,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 0,
+          "configured": false
+        }
+      }
+    },
+    {
+      "fn": "computeEntitlementUsage",
+      "input": {
+        "entitlements": [],
+        "packageCode": ""
+      },
+      "expected": {
+        "concepts": {
+          "limit": 0,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 0,
+          "configured": false
+        },
+        "revisions": {
+          "limit": 0,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 0,
+          "configured": false
+        }
+      }
+    },
+    {
+      "fn": "computeEntitlementUsage",
+      "input": {
+        "entitlements": [],
+        "packageCode": "Essential"
+      },
+      "expected": {
+        "concepts": {
+          "limit": 0,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 0,
+          "configured": false
+        },
+        "revisions": {
+          "limit": 0,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 0,
+          "configured": false
+        }
+      }
+    },
+    {
+      "fn": "computeEntitlementUsage",
+      "input": {
+        "entitlements": [
+          {
+            "key": "finals",
+            "limitInt": 9,
+            "consumedInt": 1
+          }
+        ],
+        "packageCode": "complete"
+      },
+      "expected": {
+        "concepts": {
+          "limit": 3,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 3,
+          "configured": false
+        },
+        "revisions": {
+          "limit": 3,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 3,
+          "configured": false
+        }
+      }
+    },
+    {
+      "fn": "computeEntitlementUsage",
+      "input": {
+        "entitlements": [
+          {
+            "key": "finals",
+            "limitInt": 9,
+            "consumedInt": 1
+          }
+        ],
+        "packageCode": "unknown"
+      },
+      "expected": {
+        "concepts": {
+          "limit": 0,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 0,
+          "configured": false
+        },
+        "revisions": {
+          "limit": 0,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 0,
+          "configured": false
+        }
+      }
+    },
+    {
+      "fn": "computeEntitlementUsage",
+      "input": {
+        "entitlements": [
+          {
+            "key": "concepts",
+            "limitInt": 3,
+            "consumedInt": 1,
+            "reservedInt": 0
+          },
+          {
+            "key": "revisions",
+            "limitInt": 2,
+            "consumedInt": 0,
+            "reservedInt": 1
+          }
+        ],
+        "packageCode": "complete"
+      },
+      "expected": {
+        "concepts": {
+          "limit": 3,
+          "consumed": 1,
+          "reserved": 0,
+          "remaining": 2,
+          "unlimited": false,
+          "configured": true
+        },
+        "revisions": {
+          "limit": 2,
+          "consumed": 0,
+          "reserved": 1,
+          "remaining": 1,
+          "unlimited": false,
+          "configured": true
+        }
+      }
+    },
+    {
+      "fn": "computeEntitlementUsage",
+      "input": {
+        "entitlements": [
+          {
+            "key": "concepts",
+            "limitInt": 3,
+            "consumedInt": 5
+          },
+          {
+            "key": "revisions",
+            "limitInt": 2,
+            "consumedInt": 1
+          }
+        ],
+        "packageCode": "professional"
+      },
+      "expected": {
+        "concepts": {
+          "limit": 3,
+          "consumed": 5,
+          "reserved": 0,
+          "remaining": 0,
+          "unlimited": false,
+          "configured": true
+        },
+        "revisions": {
+          "limit": 2,
+          "consumed": 1,
+          "reserved": 0,
+          "remaining": 1,
+          "unlimited": false,
+          "configured": true
+        }
+      }
+    },
+    {
+      "fn": "computeEntitlementUsage",
+      "input": {
+        "entitlements": [
+          {
+            "key": "concepts",
+            "limitInt": null,
+            "consumedInt": 7,
+            "reservedInt": 2
+          },
+          {
+            "key": "revisions",
+            "limitInt": 0,
+            "consumedInt": 4,
+            "reservedInt": 1
+          }
+        ],
+        "packageCode": "complete"
+      },
+      "expected": {
+        "concepts": {
+          "limit": 0,
+          "consumed": 7,
+          "reserved": 2,
+          "remaining": 0,
+          "unlimited": true,
+          "configured": true
+        },
+        "revisions": {
+          "limit": 0,
+          "consumed": 4,
+          "reserved": 1,
+          "remaining": 0,
+          "unlimited": false,
+          "configured": true
+        }
+      }
+    },
+    {
+      "fn": "computeEntitlementUsage",
+      "input": {
+        "entitlements": [
+          {
+            "key": "concepts",
+            "limitInt": null,
+            "consumedInt": 0
+          },
+          {
+            "key": "revisions",
+            "limitInt": null,
+            "consumedInt": 0
+          }
+        ],
+        "packageCode": "essential"
+      },
+      "expected": {
+        "concepts": {
+          "limit": 0,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 0,
+          "unlimited": true,
+          "configured": true
+        },
+        "revisions": {
+          "limit": 0,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 0,
+          "unlimited": true,
+          "configured": true
+        }
+      }
+    },
+    {
+      "fn": "computeEntitlementUsage",
+      "input": {
+        "entitlements": [
+          {
+            "key": "concepts",
+            "limitInt": -2,
+            "consumedInt": -1,
+            "reservedInt": -3
+          },
+          {
+            "key": "revisions",
+            "limitInt": 2,
+            "consumedInt": -5,
+            "reservedInt": -1
+          }
+        ],
+        "packageCode": "essential"
+      },
+      "expected": {
+        "concepts": {
+          "limit": 0,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 0,
+          "unlimited": false,
+          "configured": true
+        },
+        "revisions": {
+          "limit": 2,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 2,
+          "unlimited": false,
+          "configured": true
+        }
+      }
+    },
+    {
+      "fn": "computeEntitlementUsage",
+      "input": {
+        "entitlements": [
+          {
+            "key": "concepts",
+            "limitInt": 5,
+            "consumedInt": 2,
+            "reservedInt": -4
+          }
+        ],
+        "packageCode": "essential"
+      },
+      "expected": {
+        "concepts": {
+          "limit": 5,
+          "consumed": 2,
+          "reserved": 0,
+          "remaining": 3,
+          "unlimited": false,
+          "configured": true
+        },
+        "revisions": {
+          "limit": 0,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 0,
+          "configured": false
+        }
+      }
+    },
+    {
+      "fn": "computeEntitlementUsage",
+      "input": {
+        "entitlements": [
+          {
+            "key": "revisions",
+            "limitInt": 3,
+            "consumedInt": 1,
+            "reservedInt": 1
+          }
+        ],
+        "packageCode": "complete"
+      },
+      "expected": {
+        "concepts": {
+          "limit": 0,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 0,
+          "configured": false
+        },
+        "revisions": {
+          "limit": 3,
+          "consumed": 1,
+          "reserved": 1,
+          "remaining": 1,
+          "unlimited": false,
+          "configured": true
+        }
+      }
+    },
+    {
+      "fn": "computeEntitlementUsage",
+      "input": {
+        "entitlements": [
+          {
+            "key": "revisions",
+            "limitInt": 3,
+            "consumedInt": 1,
+            "reservedInt": null
+          }
+        ],
+        "packageCode": "complete"
+      },
+      "expected": {
+        "concepts": {
+          "limit": 0,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 0,
+          "configured": false
+        },
+        "revisions": {
+          "limit": 3,
+          "consumed": 1,
+          "reserved": 0,
+          "remaining": 2,
+          "unlimited": false,
+          "configured": true
+        }
+      }
+    },
+    {
+      "fn": "computeEntitlementUsage",
+      "input": {
+        "entitlements": [
+          {
+            "key": "revisions",
+            "limitInt": 3,
+            "consumedInt": 1,
+            "reservedInt": 5
+          }
+        ],
+        "packageCode": "complete"
+      },
+      "expected": {
+        "concepts": {
+          "limit": 0,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 0,
+          "configured": false
+        },
+        "revisions": {
+          "limit": 3,
+          "consumed": 1,
+          "reserved": 5,
+          "remaining": 0,
+          "unlimited": false,
+          "configured": true
+        }
+      }
+    },
+    {
+      "fn": "computeEntitlementUsage",
+      "input": {
+        "entitlements": [
+          {
+            "key": "revisions",
+            "limitInt": 3,
+            "consumedInt": 3,
+            "reservedInt": 0
+          }
+        ],
+        "packageCode": "complete"
+      },
+      "expected": {
+        "concepts": {
+          "limit": 0,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 0,
+          "configured": false
+        },
+        "revisions": {
+          "limit": 3,
+          "consumed": 3,
+          "reserved": 0,
+          "remaining": 0,
+          "unlimited": false,
+          "configured": true
+        }
+      }
+    },
+    {
+      "fn": "computeEntitlementUsage",
+      "input": {
+        "entitlements": [
+          {
+            "key": "concepts",
+            "limitInt": 2,
+            "consumedInt": null
+          }
+        ],
+        "packageCode": "professional"
+      },
+      "expected": {
+        "concepts": {
+          "limit": 2,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 2,
+          "unlimited": false,
+          "configured": true
+        },
+        "revisions": {
+          "limit": 0,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 0,
+          "configured": false
+        }
+      }
+    },
+    {
+      "fn": "computeEntitlementUsage",
+      "input": {
+        "entitlements": [
+          {
+            "key": "concepts",
+            "limitInt": 2,
+            "consumedInt": 1
+          }
+        ],
+        "packageCode": "complete"
+      },
+      "expected": {
+        "concepts": {
+          "limit": 2,
+          "consumed": 1,
+          "reserved": 0,
+          "remaining": 1,
+          "unlimited": false,
+          "configured": true
+        },
+        "revisions": {
+          "limit": 0,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 0,
+          "configured": false
+        }
+      }
+    },
+    {
+      "fn": "computeEntitlementUsage",
+      "input": {
+        "entitlements": [
+          {
+            "key": "revisions",
+            "limitInt": 2,
+            "consumedInt": 1
+          }
+        ],
+        "packageCode": "complete"
+      },
+      "expected": {
+        "concepts": {
+          "limit": 0,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 0,
+          "configured": false
+        },
+        "revisions": {
+          "limit": 2,
+          "consumed": 1,
+          "reserved": 0,
+          "remaining": 1,
+          "unlimited": false,
+          "configured": true
+        }
+      }
+    },
+    {
+      "fn": "computeEntitlementUsage",
+      "input": {
+        "entitlements": [
+          {
+            "key": "concepts",
+            "limitInt": 2,
+            "consumedInt": 1
+          },
+          {
+            "key": "finals",
+            "limitInt": 1,
+            "consumedInt": 0
+          }
+        ],
+        "packageCode": "complete"
+      },
+      "expected": {
+        "concepts": {
+          "limit": 2,
+          "consumed": 1,
+          "reserved": 0,
+          "remaining": 1,
+          "unlimited": false,
+          "configured": true
+        },
+        "revisions": {
+          "limit": 0,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 0,
+          "configured": false
+        }
+      }
+    },
+    {
+      "fn": "computeEntitlementUsage",
+      "input": {
+        "entitlements": [
+          {
+            "key": "concepts",
+            "limitInt": 1,
+            "consumedInt": 0
+          },
+          {
+            "key": "concepts",
+            "limitInt": 4,
+            "consumedInt": 1
+          }
+        ],
+        "packageCode": "essential"
+      },
+      "expected": {
+        "concepts": {
+          "limit": 4,
+          "consumed": 1,
+          "reserved": 0,
+          "remaining": 3,
+          "unlimited": false,
+          "configured": true
+        },
+        "revisions": {
+          "limit": 0,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 0,
+          "configured": false
+        }
+      }
+    },
+    {
+      "fn": "computeEntitlementUsage",
+      "input": {
+        "entitlements": [
+          {
+            "key": "Concepts",
+            "limitInt": 4,
+            "consumedInt": 1
+          }
+        ],
+        "packageCode": "professional"
+      },
+      "expected": {
+        "concepts": {
+          "limit": 2,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 2,
+          "configured": false
+        },
+        "revisions": {
+          "limit": 2,
+          "consumed": 0,
+          "reserved": 0,
+          "remaining": 2,
+          "configured": false
+        }
+      }
+    }
+  ]
+}

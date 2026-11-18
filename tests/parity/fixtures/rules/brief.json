@@ -1,0 +1,2698 @@
+{
+  "source": "apps/web/src/lib/brief.ts",
+  "generatedFrom": "347ef34fc0000902dbbad2b6c2686253a08a07d8",
+  "cases": [
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": null
+      },
+      "expected": null
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {},
+      "expected": null
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": "brief"
+      },
+      "expected": null
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": 42
+      },
+      "expected": null
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": true
+      },
+      "expected": null
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": false
+      },
+      "expected": null
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": []
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": [
+          "Northvale"
+        ]
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {}
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "brandName": "Northvale Analytics",
+          "tagline": "Numbers, minus the headache",
+          "industry": "B2B SaaS",
+          "offerSummary": "Subscription accounting software for UK freelancers.",
+          "audiencePrimary": "Freelancers and sole traders.",
+          "audienceSecondary": "Small agencies.",
+          "businessGoals": "Look more premium.",
+          "brandPersonality": "Modern, Trustworthy — calm",
+          "styleDirection": "Wordmark",
+          "colorPreferences": "Cool blues and greens",
+          "mustInclude": "The ® mark",
+          "avoidanceNotes": "No gradients",
+          "usageContexts": "Website, App icon",
+          "deliverablesContext": "Icon-first",
+          "competitors": "Xero, FreeAgent",
+          "additionalNotes": "Launch in March"
+        }
+      },
+      "expected": {
+        "brandName": "Northvale Analytics",
+        "tagline": "Numbers, minus the headache",
+        "industry": "B2B SaaS",
+        "offerSummary": "Subscription accounting software for UK freelancers.",
+        "audiencePrimary": "Freelancers and sole traders.",
+        "audienceSecondary": "Small agencies.",
+        "businessGoals": "Look more premium.",
+        "brandPersonality": "Modern, Trustworthy — calm",
+        "styleDirection": "Wordmark",
+        "colorPreferences": "Cool blues and greens",
+        "mustInclude": "The ® mark",
+        "avoidanceNotes": "No gradients",
+        "usageContexts": "Website, App icon",
+        "deliverablesContext": "Icon-first",
+        "competitors": "Xero, FreeAgent",
+        "additionalNotes": "Launch in March"
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "brandName": "Acme",
+          "extra": "x",
+          "__proto__x": "y",
+          "BrandName": "wrong case"
+        }
+      },
+      "expected": {
+        "brandName": "Acme",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "brandName": 123,
+          "tagline": null,
+          "industry": true,
+          "offerSummary": [
+            "a"
+          ],
+          "audiencePrimary": {
+            "a": 1
+          },
+          "audienceSecondary": 0
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "brandName": "  Acme  ",
+          "tagline": "\t\nTag\r\n",
+          "industry": " Retail ",
+          "offerSummary": "﻿BOM",
+          "audiencePrimary": "　Ideographic　",
+          "audienceSecondary": " line ",
+          "businessGoals": "   "
+        }
+      },
+      "expected": {
+        "brandName": "Acme",
+        "tagline": "Tag",
+        "industry": "Retail",
+        "offerSummary": "BOM",
+        "audiencePrimary": "Ideographic",
+        "audienceSecondary": "line",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "brandName": "Acme   Co",
+          "offerSummary": "Line one\n\nLine two"
+        }
+      },
+      "expected": {
+        "brandName": "Acme   Co",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "Line one\n\nLine two",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "brandName": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "expected": {
+        "brandName": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "brandName": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      },
+      "expected": {
+        "brandName": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "brandName": "   cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc   "
+        }
+      },
+      "expected": {
+        "brandName": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "tagline": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "tagline": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "tagline": "   cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc   "
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "industry": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "industry": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "industry": "   cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc   "
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "offerSummary": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "offerSummary": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "offerSummary": "   cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc   "
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "audiencePrimary": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "audiencePrimary": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "audiencePrimary": "   cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc   "
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "audienceSecondary": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "audienceSecondary": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "audienceSecondary": "   cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc   "
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "businessGoals": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "businessGoals": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "businessGoals": "   cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc   "
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "brandPersonality": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "brandPersonality": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "brandPersonality": "   cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc   "
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "styleDirection": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "styleDirection": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "styleDirection": "   cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc   "
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "colorPreferences": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "colorPreferences": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "colorPreferences": "   cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc   "
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "mustInclude": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "mustInclude": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "mustInclude": "   cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc   "
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "avoidanceNotes": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "avoidanceNotes": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "avoidanceNotes": "   cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc   "
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "usageContexts": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "usageContexts": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "usageContexts": "   cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc   "
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "deliverablesContext": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "deliverablesContext": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "deliverablesContext": "   cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc   "
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "competitors": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "competitors": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "competitors": "   cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc   "
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "additionalNotes": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "additionalNotes": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "additionalNotes": "   cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc   "
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "brandName": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa b"
+        }
+      },
+      "expected": {
+        "brandName": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "brandName": "éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé"
+        }
+      },
+      "expected": {
+        "brandName": "éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "brandName": "✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓"
+        }
+      },
+      "expected": {
+        "brandName": "✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "brandName": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+        }
+      },
+      "expected": {
+        "brandName": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "brandName": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+        }
+      },
+      "expected": {
+        "brandName": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "description": "Legacy offer",
+          "styleNotes": "Legacy style"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "Legacy offer",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "Legacy style",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "offerSummary": "New offer",
+          "description": "Legacy offer",
+          "styleDirection": "New style",
+          "styleNotes": "Legacy style"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "New offer",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "New style",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "offerSummary": "   ",
+          "description": "  Legacy offer  ",
+          "styleDirection": "",
+          "styleNotes": "Legacy style"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "Legacy offer",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "Legacy style",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "description": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "styleNotes": "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "description": 5,
+          "styleNotes": null
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "normalizeBriefAnswers",
+      "input": {
+        "value": {
+          "offerSummary": 7,
+          "description": "Legacy used when offerSummary is not a string"
+        }
+      },
+      "expected": {
+        "brandName": "",
+        "tagline": "",
+        "industry": "",
+        "offerSummary": "Legacy used when offerSummary is not a string",
+        "audiencePrimary": "",
+        "audienceSecondary": "",
+        "businessGoals": "",
+        "brandPersonality": "",
+        "styleDirection": "",
+        "colorPreferences": "",
+        "mustInclude": "",
+        "avoidanceNotes": "",
+        "usageContexts": "",
+        "deliverablesContext": "",
+        "competitors": "",
+        "additionalNotes": ""
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": null
+      },
+      "expected": {
+        "ok": false,
+        "missing": [
+          "brandName",
+          "industry",
+          "offerSummary"
+        ]
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {},
+      "expected": {
+        "ok": false,
+        "missing": [
+          "brandName",
+          "industry",
+          "offerSummary"
+        ]
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": "brief"
+      },
+      "expected": {
+        "ok": false,
+        "missing": [
+          "brandName",
+          "industry",
+          "offerSummary"
+        ]
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": 1
+      },
+      "expected": {
+        "ok": false,
+        "missing": [
+          "brandName",
+          "industry",
+          "offerSummary"
+        ]
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": []
+      },
+      "expected": {
+        "ok": false,
+        "missing": [
+          "brandName",
+          "industry",
+          "offerSummary"
+        ]
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": {}
+      },
+      "expected": {
+        "ok": false,
+        "missing": [
+          "brandName",
+          "industry",
+          "offerSummary"
+        ]
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": {
+          "brandName": "Northvale Analytics",
+          "tagline": "Numbers, minus the headache",
+          "industry": "B2B SaaS",
+          "offerSummary": "Subscription accounting software for UK freelancers.",
+          "audiencePrimary": "Freelancers and sole traders.",
+          "audienceSecondary": "Small agencies.",
+          "businessGoals": "Look more premium.",
+          "brandPersonality": "Modern, Trustworthy — calm",
+          "styleDirection": "Wordmark",
+          "colorPreferences": "Cool blues and greens",
+          "mustInclude": "The ® mark",
+          "avoidanceNotes": "No gradients",
+          "usageContexts": "Website, App icon",
+          "deliverablesContext": "Icon-first",
+          "competitors": "Xero, FreeAgent",
+          "additionalNotes": "Launch in March"
+        }
+      },
+      "expected": {
+        "ok": true,
+        "answers": {
+          "brandName": "Northvale Analytics",
+          "tagline": "Numbers, minus the headache",
+          "industry": "B2B SaaS",
+          "offerSummary": "Subscription accounting software for UK freelancers.",
+          "audiencePrimary": "Freelancers and sole traders.",
+          "audienceSecondary": "Small agencies.",
+          "businessGoals": "Look more premium.",
+          "brandPersonality": "Modern, Trustworthy — calm",
+          "styleDirection": "Wordmark",
+          "colorPreferences": "Cool blues and greens",
+          "mustInclude": "The ® mark",
+          "avoidanceNotes": "No gradients",
+          "usageContexts": "Website, App icon",
+          "deliverablesContext": "Icon-first",
+          "competitors": "Xero, FreeAgent",
+          "additionalNotes": "Launch in March"
+        }
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": {
+          "brandName": "Northvale Analytics",
+          "industry": "B2B SaaS",
+          "offerSummary": "Subscription accounting software for UK freelancers.",
+          "audiencePrimary": "Freelancers and sole traders.",
+          "businessGoals": "Look more premium.",
+          "brandPersonality": "Modern, Trustworthy — calm",
+          "styleDirection": "Wordmark",
+          "usageContexts": "Website, App icon"
+        }
+      },
+      "expected": {
+        "ok": true,
+        "answers": {
+          "brandName": "Northvale Analytics",
+          "tagline": "",
+          "industry": "B2B SaaS",
+          "offerSummary": "Subscription accounting software for UK freelancers.",
+          "audiencePrimary": "Freelancers and sole traders.",
+          "audienceSecondary": "",
+          "businessGoals": "Look more premium.",
+          "brandPersonality": "Modern, Trustworthy — calm",
+          "styleDirection": "Wordmark",
+          "colorPreferences": "",
+          "mustInclude": "",
+          "avoidanceNotes": "",
+          "usageContexts": "Website, App icon",
+          "deliverablesContext": "",
+          "competitors": "",
+          "additionalNotes": ""
+        }
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": {
+          "tagline": "Numbers, minus the headache",
+          "industry": "B2B SaaS",
+          "offerSummary": "Subscription accounting software for UK freelancers.",
+          "audiencePrimary": "Freelancers and sole traders.",
+          "audienceSecondary": "Small agencies.",
+          "businessGoals": "Look more premium.",
+          "brandPersonality": "Modern, Trustworthy — calm",
+          "styleDirection": "Wordmark",
+          "colorPreferences": "Cool blues and greens",
+          "mustInclude": "The ® mark",
+          "avoidanceNotes": "No gradients",
+          "usageContexts": "Website, App icon",
+          "deliverablesContext": "Icon-first",
+          "competitors": "Xero, FreeAgent",
+          "additionalNotes": "Launch in March"
+        }
+      },
+      "expected": {
+        "ok": false,
+        "missing": [
+          "brandName",
+          "industry",
+          "offerSummary"
+        ]
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": {
+          "brandName": "   ",
+          "tagline": "Numbers, minus the headache",
+          "industry": "B2B SaaS",
+          "offerSummary": "Subscription accounting software for UK freelancers.",
+          "audiencePrimary": "Freelancers and sole traders.",
+          "audienceSecondary": "Small agencies.",
+          "businessGoals": "Look more premium.",
+          "brandPersonality": "Modern, Trustworthy — calm",
+          "styleDirection": "Wordmark",
+          "colorPreferences": "Cool blues and greens",
+          "mustInclude": "The ® mark",
+          "avoidanceNotes": "No gradients",
+          "usageContexts": "Website, App icon",
+          "deliverablesContext": "Icon-first",
+          "competitors": "Xero, FreeAgent",
+          "additionalNotes": "Launch in March"
+        }
+      },
+      "expected": {
+        "ok": false,
+        "missing": [
+          "brandName",
+          "industry",
+          "offerSummary"
+        ]
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": {
+          "brandName": "Northvale Analytics",
+          "tagline": "Numbers, minus the headache",
+          "offerSummary": "Subscription accounting software for UK freelancers.",
+          "audiencePrimary": "Freelancers and sole traders.",
+          "audienceSecondary": "Small agencies.",
+          "businessGoals": "Look more premium.",
+          "brandPersonality": "Modern, Trustworthy — calm",
+          "styleDirection": "Wordmark",
+          "colorPreferences": "Cool blues and greens",
+          "mustInclude": "The ® mark",
+          "avoidanceNotes": "No gradients",
+          "usageContexts": "Website, App icon",
+          "deliverablesContext": "Icon-first",
+          "competitors": "Xero, FreeAgent",
+          "additionalNotes": "Launch in March"
+        }
+      },
+      "expected": {
+        "ok": false,
+        "missing": [
+          "brandName",
+          "industry",
+          "offerSummary"
+        ]
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": {
+          "brandName": "Northvale Analytics",
+          "tagline": "Numbers, minus the headache",
+          "industry": "   ",
+          "offerSummary": "Subscription accounting software for UK freelancers.",
+          "audiencePrimary": "Freelancers and sole traders.",
+          "audienceSecondary": "Small agencies.",
+          "businessGoals": "Look more premium.",
+          "brandPersonality": "Modern, Trustworthy — calm",
+          "styleDirection": "Wordmark",
+          "colorPreferences": "Cool blues and greens",
+          "mustInclude": "The ® mark",
+          "avoidanceNotes": "No gradients",
+          "usageContexts": "Website, App icon",
+          "deliverablesContext": "Icon-first",
+          "competitors": "Xero, FreeAgent",
+          "additionalNotes": "Launch in March"
+        }
+      },
+      "expected": {
+        "ok": false,
+        "missing": [
+          "brandName",
+          "industry",
+          "offerSummary"
+        ]
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": {
+          "brandName": "Northvale Analytics",
+          "tagline": "Numbers, minus the headache",
+          "industry": "B2B SaaS",
+          "audiencePrimary": "Freelancers and sole traders.",
+          "audienceSecondary": "Small agencies.",
+          "businessGoals": "Look more premium.",
+          "brandPersonality": "Modern, Trustworthy — calm",
+          "styleDirection": "Wordmark",
+          "colorPreferences": "Cool blues and greens",
+          "mustInclude": "The ® mark",
+          "avoidanceNotes": "No gradients",
+          "usageContexts": "Website, App icon",
+          "deliverablesContext": "Icon-first",
+          "competitors": "Xero, FreeAgent",
+          "additionalNotes": "Launch in March"
+        }
+      },
+      "expected": {
+        "ok": false,
+        "missing": [
+          "brandName",
+          "industry",
+          "offerSummary"
+        ]
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": {
+          "brandName": "Northvale Analytics",
+          "tagline": "Numbers, minus the headache",
+          "industry": "B2B SaaS",
+          "offerSummary": "   ",
+          "audiencePrimary": "Freelancers and sole traders.",
+          "audienceSecondary": "Small agencies.",
+          "businessGoals": "Look more premium.",
+          "brandPersonality": "Modern, Trustworthy — calm",
+          "styleDirection": "Wordmark",
+          "colorPreferences": "Cool blues and greens",
+          "mustInclude": "The ® mark",
+          "avoidanceNotes": "No gradients",
+          "usageContexts": "Website, App icon",
+          "deliverablesContext": "Icon-first",
+          "competitors": "Xero, FreeAgent",
+          "additionalNotes": "Launch in March"
+        }
+      },
+      "expected": {
+        "ok": false,
+        "missing": [
+          "brandName",
+          "industry",
+          "offerSummary"
+        ]
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": {
+          "brandName": "Northvale Analytics",
+          "tagline": "Numbers, minus the headache",
+          "industry": "B2B SaaS",
+          "offerSummary": "Subscription accounting software for UK freelancers.",
+          "audienceSecondary": "Small agencies.",
+          "businessGoals": "Look more premium.",
+          "brandPersonality": "Modern, Trustworthy — calm",
+          "styleDirection": "Wordmark",
+          "colorPreferences": "Cool blues and greens",
+          "mustInclude": "The ® mark",
+          "avoidanceNotes": "No gradients",
+          "usageContexts": "Website, App icon",
+          "deliverablesContext": "Icon-first",
+          "competitors": "Xero, FreeAgent",
+          "additionalNotes": "Launch in March"
+        }
+      },
+      "expected": {
+        "ok": false,
+        "missing": [
+          "audiencePrimary"
+        ]
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": {
+          "brandName": "Northvale Analytics",
+          "tagline": "Numbers, minus the headache",
+          "industry": "B2B SaaS",
+          "offerSummary": "Subscription accounting software for UK freelancers.",
+          "audiencePrimary": "   ",
+          "audienceSecondary": "Small agencies.",
+          "businessGoals": "Look more premium.",
+          "brandPersonality": "Modern, Trustworthy — calm",
+          "styleDirection": "Wordmark",
+          "colorPreferences": "Cool blues and greens",
+          "mustInclude": "The ® mark",
+          "avoidanceNotes": "No gradients",
+          "usageContexts": "Website, App icon",
+          "deliverablesContext": "Icon-first",
+          "competitors": "Xero, FreeAgent",
+          "additionalNotes": "Launch in March"
+        }
+      },
+      "expected": {
+        "ok": false,
+        "missing": [
+          "audiencePrimary"
+        ]
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": {
+          "brandName": "Northvale Analytics",
+          "tagline": "Numbers, minus the headache",
+          "industry": "B2B SaaS",
+          "offerSummary": "Subscription accounting software for UK freelancers.",
+          "audiencePrimary": "Freelancers and sole traders.",
+          "audienceSecondary": "Small agencies.",
+          "brandPersonality": "Modern, Trustworthy — calm",
+          "styleDirection": "Wordmark",
+          "colorPreferences": "Cool blues and greens",
+          "mustInclude": "The ® mark",
+          "avoidanceNotes": "No gradients",
+          "usageContexts": "Website, App icon",
+          "deliverablesContext": "Icon-first",
+          "competitors": "Xero, FreeAgent",
+          "additionalNotes": "Launch in March"
+        }
+      },
+      "expected": {
+        "ok": false,
+        "missing": [
+          "businessGoals"
+        ]
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": {
+          "brandName": "Northvale Analytics",
+          "tagline": "Numbers, minus the headache",
+          "industry": "B2B SaaS",
+          "offerSummary": "Subscription accounting software for UK freelancers.",
+          "audiencePrimary": "Freelancers and sole traders.",
+          "audienceSecondary": "Small agencies.",
+          "businessGoals": "   ",
+          "brandPersonality": "Modern, Trustworthy — calm",
+          "styleDirection": "Wordmark",
+          "colorPreferences": "Cool blues and greens",
+          "mustInclude": "The ® mark",
+          "avoidanceNotes": "No gradients",
+          "usageContexts": "Website, App icon",
+          "deliverablesContext": "Icon-first",
+          "competitors": "Xero, FreeAgent",
+          "additionalNotes": "Launch in March"
+        }
+      },
+      "expected": {
+        "ok": false,
+        "missing": [
+          "businessGoals"
+        ]
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": {
+          "brandName": "Northvale Analytics",
+          "tagline": "Numbers, minus the headache",
+          "industry": "B2B SaaS",
+          "offerSummary": "Subscription accounting software for UK freelancers.",
+          "audiencePrimary": "Freelancers and sole traders.",
+          "audienceSecondary": "Small agencies.",
+          "businessGoals": "Look more premium.",
+          "styleDirection": "Wordmark",
+          "colorPreferences": "Cool blues and greens",
+          "mustInclude": "The ® mark",
+          "avoidanceNotes": "No gradients",
+          "usageContexts": "Website, App icon",
+          "deliverablesContext": "Icon-first",
+          "competitors": "Xero, FreeAgent",
+          "additionalNotes": "Launch in March"
+        }
+      },
+      "expected": {
+        "ok": false,
+        "missing": [
+          "brandPersonality"
+        ]
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": {
+          "brandName": "Northvale Analytics",
+          "tagline": "Numbers, minus the headache",
+          "industry": "B2B SaaS",
+          "offerSummary": "Subscription accounting software for UK freelancers.",
+          "audiencePrimary": "Freelancers and sole traders.",
+          "audienceSecondary": "Small agencies.",
+          "businessGoals": "Look more premium.",
+          "brandPersonality": "   ",
+          "styleDirection": "Wordmark",
+          "colorPreferences": "Cool blues and greens",
+          "mustInclude": "The ® mark",
+          "avoidanceNotes": "No gradients",
+          "usageContexts": "Website, App icon",
+          "deliverablesContext": "Icon-first",
+          "competitors": "Xero, FreeAgent",
+          "additionalNotes": "Launch in March"
+        }
+      },
+      "expected": {
+        "ok": false,
+        "missing": [
+          "brandPersonality"
+        ]
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": {
+          "brandName": "Northvale Analytics",
+          "tagline": "Numbers, minus the headache",
+          "industry": "B2B SaaS",
+          "offerSummary": "Subscription accounting software for UK freelancers.",
+          "audiencePrimary": "Freelancers and sole traders.",
+          "audienceSecondary": "Small agencies.",
+          "businessGoals": "Look more premium.",
+          "brandPersonality": "Modern, Trustworthy — calm",
+          "colorPreferences": "Cool blues and greens",
+          "mustInclude": "The ® mark",
+          "avoidanceNotes": "No gradients",
+          "usageContexts": "Website, App icon",
+          "deliverablesContext": "Icon-first",
+          "competitors": "Xero, FreeAgent",
+          "additionalNotes": "Launch in March"
+        }
+      },
+      "expected": {
+        "ok": false,
+        "missing": [
+          "styleDirection"
+        ]
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": {
+          "brandName": "Northvale Analytics",
+          "tagline": "Numbers, minus the headache",
+          "industry": "B2B SaaS",
+          "offerSummary": "Subscription accounting software for UK freelancers.",
+          "audiencePrimary": "Freelancers and sole traders.",
+          "audienceSecondary": "Small agencies.",
+          "businessGoals": "Look more premium.",
+          "brandPersonality": "Modern, Trustworthy — calm",
+          "styleDirection": "   ",
+          "colorPreferences": "Cool blues and greens",
+          "mustInclude": "The ® mark",
+          "avoidanceNotes": "No gradients",
+          "usageContexts": "Website, App icon",
+          "deliverablesContext": "Icon-first",
+          "competitors": "Xero, FreeAgent",
+          "additionalNotes": "Launch in March"
+        }
+      },
+      "expected": {
+        "ok": false,
+        "missing": [
+          "styleDirection"
+        ]
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": {
+          "brandName": "Northvale Analytics",
+          "tagline": "Numbers, minus the headache",
+          "industry": "B2B SaaS",
+          "offerSummary": "Subscription accounting software for UK freelancers.",
+          "audiencePrimary": "Freelancers and sole traders.",
+          "audienceSecondary": "Small agencies.",
+          "businessGoals": "Look more premium.",
+          "brandPersonality": "Modern, Trustworthy — calm",
+          "styleDirection": "Wordmark",
+          "colorPreferences": "Cool blues and greens",
+          "mustInclude": "The ® mark",
+          "avoidanceNotes": "No gradients",
+          "deliverablesContext": "Icon-first",
+          "competitors": "Xero, FreeAgent",
+          "additionalNotes": "Launch in March"
+        }
+      },
+      "expected": {
+        "ok": false,
+        "missing": [
+          "usageContexts"
+        ]
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": {
+          "brandName": "Northvale Analytics",
+          "tagline": "Numbers, minus the headache",
+          "industry": "B2B SaaS",
+          "offerSummary": "Subscription accounting software for UK freelancers.",
+          "audiencePrimary": "Freelancers and sole traders.",
+          "audienceSecondary": "Small agencies.",
+          "businessGoals": "Look more premium.",
+          "brandPersonality": "Modern, Trustworthy — calm",
+          "styleDirection": "Wordmark",
+          "colorPreferences": "Cool blues and greens",
+          "mustInclude": "The ® mark",
+          "avoidanceNotes": "No gradients",
+          "usageContexts": "   ",
+          "deliverablesContext": "Icon-first",
+          "competitors": "Xero, FreeAgent",
+          "additionalNotes": "Launch in March"
+        }
+      },
+      "expected": {
+        "ok": false,
+        "missing": [
+          "usageContexts"
+        ]
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": {
+          "brandName": "Northvale Analytics",
+          "tagline": "Numbers, minus the headache",
+          "industry": "B2B SaaS",
+          "offerSummary": "Subscription accounting software for UK freelancers.",
+          "audienceSecondary": "Small agencies.",
+          "businessGoals": "Look more premium.",
+          "brandPersonality": "Modern, Trustworthy — calm",
+          "colorPreferences": "Cool blues and greens",
+          "mustInclude": "The ® mark",
+          "avoidanceNotes": "No gradients",
+          "deliverablesContext": "Icon-first",
+          "competitors": "Xero, FreeAgent",
+          "additionalNotes": "Launch in March"
+        }
+      },
+      "expected": {
+        "ok": false,
+        "missing": [
+          "audiencePrimary",
+          "styleDirection",
+          "usageContexts"
+        ]
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": {
+          "brandName": "Northvale Analytics",
+          "tagline": "Numbers, minus the headache",
+          "industry": "B2B SaaS",
+          "offerSummary": "Subscription accounting software for UK freelancers.",
+          "audienceSecondary": "Small agencies.",
+          "colorPreferences": "Cool blues and greens",
+          "mustInclude": "The ® mark",
+          "avoidanceNotes": "No gradients",
+          "deliverablesContext": "Icon-first",
+          "competitors": "Xero, FreeAgent",
+          "additionalNotes": "Launch in March"
+        }
+      },
+      "expected": {
+        "ok": false,
+        "missing": [
+          "audiencePrimary",
+          "businessGoals",
+          "brandPersonality",
+          "styleDirection",
+          "usageContexts"
+        ]
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": {
+          "tagline": "Numbers, minus the headache",
+          "industry": "B2B SaaS",
+          "offerSummary": "Subscription accounting software for UK freelancers.",
+          "audiencePrimary": "Freelancers and sole traders.",
+          "audienceSecondary": "Small agencies.",
+          "businessGoals": "Look more premium.",
+          "brandPersonality": "Modern, Trustworthy — calm",
+          "styleDirection": "Wordmark",
+          "colorPreferences": "Cool blues and greens",
+          "mustInclude": "The ® mark",
+          "avoidanceNotes": "No gradients",
+          "deliverablesContext": "Icon-first",
+          "competitors": "Xero, FreeAgent",
+          "additionalNotes": "Launch in March"
+        }
+      },
+      "expected": {
+        "ok": false,
+        "missing": [
+          "brandName",
+          "industry",
+          "offerSummary"
+        ]
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": {
+          "brandName": "Northvale Analytics",
+          "industry": "B2B SaaS",
+          "offerSummary": "Subscription accounting software for UK freelancers.",
+          "audiencePrimary": "Freelancers and sole traders.",
+          "businessGoals": "Look more premium.",
+          "brandPersonality": "Modern, Trustworthy — calm",
+          "styleDirection": "Wordmark",
+          "usageContexts": "Website, App icon"
+        }
+      },
+      "expected": {
+        "ok": true,
+        "answers": {
+          "brandName": "Northvale Analytics",
+          "tagline": "",
+          "industry": "B2B SaaS",
+          "offerSummary": "Subscription accounting software for UK freelancers.",
+          "audiencePrimary": "Freelancers and sole traders.",
+          "audienceSecondary": "",
+          "businessGoals": "Look more premium.",
+          "brandPersonality": "Modern, Trustworthy — calm",
+          "styleDirection": "Wordmark",
+          "colorPreferences": "",
+          "mustInclude": "",
+          "avoidanceNotes": "",
+          "usageContexts": "Website, App icon",
+          "deliverablesContext": "",
+          "competitors": "",
+          "additionalNotes": ""
+        }
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": {
+          "brandName": "Northvale Analytics",
+          "tagline": "Numbers, minus the headache",
+          "industry": "B2B SaaS",
+          "audiencePrimary": "Freelancers and sole traders.",
+          "audienceSecondary": "Small agencies.",
+          "businessGoals": "Look more premium.",
+          "brandPersonality": "Modern, Trustworthy — calm",
+          "colorPreferences": "Cool blues and greens",
+          "mustInclude": "The ® mark",
+          "avoidanceNotes": "No gradients",
+          "usageContexts": "Website, App icon",
+          "deliverablesContext": "Icon-first",
+          "competitors": "Xero, FreeAgent",
+          "additionalNotes": "Launch in March",
+          "description": "Legacy offer",
+          "styleNotes": "Legacy style"
+        }
+      },
+      "expected": {
+        "ok": true,
+        "answers": {
+          "brandName": "Northvale Analytics",
+          "tagline": "Numbers, minus the headache",
+          "industry": "B2B SaaS",
+          "offerSummary": "Legacy offer",
+          "audiencePrimary": "Freelancers and sole traders.",
+          "audienceSecondary": "Small agencies.",
+          "businessGoals": "Look more premium.",
+          "brandPersonality": "Modern, Trustworthy — calm",
+          "styleDirection": "Legacy style",
+          "colorPreferences": "Cool blues and greens",
+          "mustInclude": "The ® mark",
+          "avoidanceNotes": "No gradients",
+          "usageContexts": "Website, App icon",
+          "deliverablesContext": "Icon-first",
+          "competitors": "Xero, FreeAgent",
+          "additionalNotes": "Launch in March"
+        }
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": {
+          "brandName": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "tagline": "Numbers, minus the headache",
+          "industry": "B2B SaaS",
+          "offerSummary": "Subscription accounting software for UK freelancers.",
+          "audiencePrimary": "Freelancers and sole traders.",
+          "audienceSecondary": "Small agencies.",
+          "businessGoals": "Look more premium.",
+          "brandPersonality": "Modern, Trustworthy — calm",
+          "styleDirection": "Wordmark",
+          "colorPreferences": "Cool blues and greens",
+          "mustInclude": "The ® mark",
+          "avoidanceNotes": "No gradients",
+          "usageContexts": "Website, App icon",
+          "deliverablesContext": "Icon-first",
+          "competitors": "Xero, FreeAgent",
+          "additionalNotes": "Launch in March"
+        }
+      },
+      "expected": {
+        "ok": true,
+        "answers": {
+          "brandName": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "tagline": "Numbers, minus the headache",
+          "industry": "B2B SaaS",
+          "offerSummary": "Subscription accounting software for UK freelancers.",
+          "audiencePrimary": "Freelancers and sole traders.",
+          "audienceSecondary": "Small agencies.",
+          "businessGoals": "Look more premium.",
+          "brandPersonality": "Modern, Trustworthy — calm",
+          "styleDirection": "Wordmark",
+          "colorPreferences": "Cool blues and greens",
+          "mustInclude": "The ® mark",
+          "avoidanceNotes": "No gradients",
+          "usageContexts": "Website, App icon",
+          "deliverablesContext": "Icon-first",
+          "competitors": "Xero, FreeAgent",
+          "additionalNotes": "Launch in March"
+        }
+      }
+    },
+    {
+      "fn": "validateBriefSubmission",
+      "input": {
+        "value": {
+          "brandName": "Northvale Analytics",
+          "tagline": "Numbers, minus the headache",
+          "industry": 12,
+          "offerSummary": "Subscription accounting software for UK freelancers.",
+          "audiencePrimary": "Freelancers and sole traders.",
+          "audienceSecondary": "Small agencies.",
+          "businessGoals": "Look more premium.",
+          "brandPersonality": "Modern, Trustworthy — calm",
+          "styleDirection": "Wordmark",
+          "colorPreferences": "Cool blues and greens",
+          "mustInclude": "The ® mark",
+          "avoidanceNotes": "No gradients",
+          "usageContexts": "Website, App icon",
+          "deliverablesContext": "Icon-first",
+          "competitors": "Xero, FreeAgent",
+          "additionalNotes": "Launch in March"
+        }
+      },
+      "expected": {
+        "ok": false,
+        "missing": [
+          "brandName",
+          "industry",
+          "offerSummary"
+        ]
+      }
+    }
+  ]
+}

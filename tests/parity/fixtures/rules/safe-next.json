@@ -1,0 +1,645 @@
+{
+  "source": "apps/web/src/lib/auth/safe-next.ts",
+  "generatedFrom": "347ef34fc0000902dbbad2b6c2686253a08a07d8",
+  "cases": [
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/dashboard"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/project/p1?tab=brief#top"
+      },
+      "expected": "/project/p1?tab=brief#top"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/project/brand%20name"
+      },
+      "expected": "/project/brand%20name"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/discount%25"
+      },
+      "expected": "/discount%25"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/project/p1?note=%5C"
+      },
+      "expected": "/project/p1?note=%5C"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/project/p1#example%5Ctext"
+      },
+      "expected": "/project/p1#example%5Ctext"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/project/p1?value=%2525"
+      },
+      "expected": "/project/p1?value=%2525"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/project/p1?return=https://evil.example/a#//evil.example"
+      },
+      "expected": "/project/p1?return=https://evil.example/a#//evil.example"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/project/p1?note=\\literal#fragment"
+      },
+      "expected": "/project/p1?note=\\literal#fragment"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": null
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": ""
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "https://evil.example/path"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "javascript:alert(1)"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "//evil.example/path"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "///evil.example/path"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/\\evil.example/path"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "\\\\evil.example/path"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%2fevil.example/path"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%2Fevil.example/path"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%5cevil.example/path"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%255cevil.example/path"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%25252525252fevil.example/path"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "%2f%2fevil.example/path"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%00evil"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%250aevil"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/line\nbreak"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/bad%"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/"
+      },
+      "expected": "/"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "dashboard"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "?next=/dashboard"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "#/dashboard"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/?"
+      },
+      "expected": "/?"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/#"
+      },
+      "expected": "/#"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": " /dashboard"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/dashboard "
+      },
+      "expected": "/dashboard "
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/a//b"
+      },
+      "expected": "/a//b"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/a\\b"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/a?x=\\y"
+      },
+      "expected": "/a?x=\\y"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/a#\\y"
+      },
+      "expected": "/a#\\y"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/a\tb"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/a\rb"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/a\u0000b"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/a\u001fb"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/ab"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/a?x=\u0001"
+      },
+      "expected": "/a?x=\u0001"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/foo%2fbar"
+      },
+      "expected": "/foo%2fbar"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/foo%5cbar"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/foo%2f%2fbar"
+      },
+      "expected": "/foo%2f%2fbar"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%2f"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%5C"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%2F%2Fevil.example"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%0a"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%0D"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%09evil"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%1f"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%7f"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%7F"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%20ok"
+      },
+      "expected": "/%20ok"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%25"
+      },
+      "expected": "/%25"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%2525"
+      },
+      "expected": "/%2525"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%25252f"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%252f"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%25255c"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%2500"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%25257f"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%2525252525252525252525"
+      },
+      "expected": "/%2525252525252525252525"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%25%"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%zz"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%2"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%u002f"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/caf%C3%A9"
+      },
+      "expected": "/caf%C3%A9"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/caf%c3%a9"
+      },
+      "expected": "/caf%c3%a9"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/bad%C3"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/bad%C3%28"
+      },
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%E2%82%AC"
+      },
+      "expected": "/%E2%82%AC"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%F0%9F%98%80"
+      },
+      "expected": "/%F0%9F%98%80"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/café"
+      },
+      "expected": "/café"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/a+b"
+      },
+      "expected": "/a+b"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/a+b%2520c"
+      },
+      "expected": "/a+b%2520c"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%3F//evil.example"
+      },
+      "expected": "/%3F//evil.example"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%23//evil.example"
+      },
+      "expected": "/%23//evil.example"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/a%3Fb=1"
+      },
+      "expected": "/a%3Fb=1"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/a?x=%2f%2f"
+      },
+      "expected": "/a?x=%2f%2f"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/a?x=%zz"
+      },
+      "expected": "/a?x=%zz"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/a#%"
+      },
+      "expected": "/a#%"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/a?next=//evil.example"
+      },
+      "expected": "/a?next=//evil.example"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {},
+      "expected": "/dashboard"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "//evil.example",
+        "fallback": "/login"
+      },
+      "expected": "/login"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": null,
+        "fallback": "/login"
+      },
+      "expected": "/login"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/projects",
+        "fallback": "/login"
+      },
+      "expected": "/projects"
+    },
+    {
+      "fn": "safeAuthNextPath",
+      "input": {
+        "raw": "/%2f",
+        "fallback": "/settings?x=1"
+      },
+      "expected": "/settings?x=1"
+    }
+  ]
+}
