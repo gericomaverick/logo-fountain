@@ -1,6 +1,6 @@
 # Logo Fountain: Next.js → Laravel migration plan (BMAD)
 
-Status: **v0.2. Owner decisions resolved (§7); Phase 0 next**
+Status: **v0.3. Phase 0 brownfield scan complete (2026-11-18); findings F-1…F-14 awaiting owner calls; Phase 1 next**
 Created: 2026-11-18
 Scope: `apps/web` (client portal, admin portal, checkout/payments backend). `apps/site` (Eleventy marketing) is not in scope.
 
@@ -72,6 +72,8 @@ Each step names the BMAD workflow (`_bmad/bmm/module-help.csv`), its output, and
 | 0.1 | `document-project` (DP), deep scan of `apps/web` | `docs/` project documentation (index, architecture, source tree, API, data models) | Reviewed against `01-feature-inventory.md`, and gaps added to the inventory |
 | 0.2 | `generate-project-context` (GPC) for `apps/web` | `docs/laravel-migration/project-context.md` | Exists |
 | 0.3 | Inventory audit (no workflow: manual sweep of every route, page, lib module and test file) | `01-feature-inventory.md` complete, with no `TBC` rows | Owner sign-off |
+
+**Phase 0 status (2026-11-18):** 0.1 done, written to `brownfield/` (9 docs; a deep scan that read every route, lib module and page). 0.3 sweep done, except reading the remaining runbooks for behaviour not visible in code. The test-port ledger is done. 0.2 (`generate-project-context`) is deferred to E1, because it should describe the **Laravel** app's conventions for agents and there's nothing to scan yet. The gate is open until the owner rules on findings F-1…F-14 (`brownfield/index.md`).
 
 ### Phase 1: Analysis
 | Step | Workflow | Output | Gate |

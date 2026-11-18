@@ -82,7 +82,7 @@ CI: a GitHub Actions workflow with jobs `laravel-ci` (Pint, Larastan, Pest with 
 
 ## 6. Test-port ledger
 
-The 95 Vitest files and their 614 tests encode a lot of edge cases. Phase 0 produces `laravel-migration/test-port-ledger.md`: one row per Vitest file → its inventory IDs → where its intent lives after the port (Pest unit, Pest feature, parity test, or "not applicable: framework-specific", with a reason). Every row must be resolved before its epic closes. The 18 real-PG integration tests map one-to-one to L3 tests.
+The 95 Vitest files and their 614 tests encode a lot of edge cases. **Done in Phase 0 (2026-11-18):** `test-port-ledger.md` maps all 110 test files (Vitest plus Playwright): one row per Vitest file → its inventory IDs → where its intent lives after the port (Pest unit, Pest feature, parity test, or "not applicable: framework-specific", with a reason). Every row must be resolved before its epic closes. The 18 real-PG integration tests map one-to-one to L3 tests.
 
 ## 7. Test infrastructure to build in E0
 
@@ -90,4 +90,9 @@ The 95 Vitest files and their 614 tests encode a lot of edge cases. Phase 0 prod
 - [ ] `docker-compose.test.yml`: postgres, mailpit, minio (bucket bootstrap), plus later the Laravel app and queue worker
 - [ ] Next.js: point SMTP at Mailpit in test mode (Postmark stays for production), point R2 at MinIO, `parity:seed` scenarios
 - [ ] Stripe fixture signer (`tests/parity/stripe/sign.mjs`) and fixture events
+- [ ] **Golden upload corpus** `tests/parity/fixtures/uploads/` (valid and malicious PNG/JPEG/WebP/ZIP), each with its expected error code captured from Next. Run by Vitest (Next), Pest (Laravel) and an HTTP subset in the parity suite (see `brownfield/storage-and-uploads.md` §7)
+- [ ] **Shared rule fixtures** `tests/parity/fixtures/rules/*.json` for the logic that exists in both PHP and TS: the state-machine transition table, `safeAuthNextPath` cases, brief normalisation and validation, display status, entitlement usage. Both test suites must agree on every case
+- [ ] **Snapshot contract:** a JSON-schema of the full `GET /api/projects/{id}` snapshot shape (`brownfield/business-rules-and-notifications.md` §3), asserted against both apps for each seed scenario
+- [ ] **Origin-guard architecture test** (replaces `route-guards.test.ts`): Pest asserts every non-exempt mutating route carries the Origin middleware, plus the L6 matrix checks it over HTTP
+- [ ] **Next.js test seams** (the only allowed `apps/web` changes during the freeze, each with an inventory note): a Postmark → SMTP (Mailpit) switch in test mode, an R2 endpoint override → MinIO, and the `parity:seed` script
 - [ ] The full suite green against Next.js, then recorded as the baseline in `handoff.md` with counts

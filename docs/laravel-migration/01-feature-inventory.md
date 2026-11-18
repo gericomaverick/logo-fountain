@@ -1,7 +1,7 @@
 # Feature inventory and parity ledger
 
 Every behaviour the Laravel app must reproduce. **This is the functional requirements list for the PRD and the checklist for cutover.**
-Paths are relative to `apps/web/src/` unless shown otherwise. Inventory first drafted 2026-11-18 from the code. Phase 0 (`document-project` and the manual sweep) must complete it: add rows, never delete them (mark them `Dropped` with a decision reference instead).
+Paths are relative to `apps/web/src/` unless shown otherwise. Inventory first drafted 2026-11-18 from the code, and **verified line by line against the source in the Phase 0 scan the same day** (see `brownfield/`). Add rows, never delete them (mark them `Dropped` with a decision reference instead). Findings F-1…F-14 (code vs. decisions, and gaps) are listed in `brownfield/index.md` and need owner calls before stories are written.
 
 **Status values:** `Not started` → `In progress` → `Converted` (code exists, tests not yet passing) → `Verified` (parity tags pass against both apps) | `Dropped (DECISIONS.md YYYY-MM-DD)`.
 **Tag** = the parity-suite tag (`02-test-strategy.md` §3) that proves the row. The story fills in the **Laravel** column with file references.
@@ -29,6 +29,8 @@ Actors: **P** public / anonymous · **C** client (project member) · **A** admin
 | A-13 | P | Safe `next` redirect: app-relative only, rejects encoded external-navigation shapes, keeps query and fragment | `lib/auth/safe-next.ts` | `@auth @security` | | Not started |
 | A-14 | S | No extra auth endpoints exposed. Next allowlists Better Auth's catch-all; Laravel must not register starter-kit routes | `lib/auth/proxy-config.mjs` | `@security` | | Not started |
 | A-15 | P | `/` redirects to `/login` | `app/page.tsx` | `@smoke` | | Not started |
+| A-17 | S | Production fail-closed: auth endpoints return `503 AUTH_UNAVAILABLE` when no trusted client address can be derived. Auth JSON wrapper: `application/json` required (`400 INVALID_JSON`), 8192-byte body cap (`413 PAYLOAD_TOO_LARGE`), generic error message, `no-store` and `no-referrer` headers | `lib/auth/http.ts` | `@auth @security` | | Not started |
+| A-18 | C | Magic-link callback asks for an explicit "Confirm sign-in" click (so link scanners can't burn it). Tokens are read from the URL **fragment** and removed from history before rendering | `app/auth/callback`, `lib/auth/client.ts` | `@auth @security` | | Not started |
 | A-16 | C/A | Route guards: pages and APIs require a session. Admin areas require `isAdmin`. SSR guards and API checks are both enforced | `lib/auth/require.ts`, `app/admin/layout.tsx` | `@authz` | | Not started |
 
 ## K: Checkout, payments, entitlements
@@ -43,11 +45,11 @@ Actors: **P** public / anonymous · **C** client (project member) · **A** admin
 | K-06 | S | Fulfilment: Client, Project (`AWAITING_BRIEF`), Order (`FULFILLED`/`NEEDS_CONTACT`), entitlements per package, message thread, user, profile and membership provisioned by normalized email (concurrent retries converge). The required emails are sent after durable fulfilment and can be retried | `lib/checkout-fulfillment.ts` | `@webhook @checkout` | | Not started |
 | K-07 | S | Package entitlements: Essential 1 direction / 1 revision, Professional 2/2, Complete 3/3 (verify the current values in code during Phase 0) | `lib/entitlements.ts` | `@entitlements` | | Not started |
 | K-08 | C | Upsell checkout `POST /api/projects/[id]/checkout/session`: extra revision £95, Essential→Professional £495, Professional→Complete £750. The display price lives beside the price ID | `api/projects/[id]/checkout/session`, `lib/stripe-price-allowlist.ts`, `components/revision-purchase.tsx` | `@upsell` | | Not started |
-| K-09 | S | Upsell fulfilment: **additive-from-current** deltas, consumed counts kept, order `campaignSlug` set to `addon:…`/`upgrade:a->b`, audit `entitlement_addon_applied`/`package_upgrade_applied` | `lib/checkout-fulfillment.ts` | `@upsell @webhook` | | Not started |
+| K-09 | S | Upsell fulfilment: add-on +1 revision limit. Upgrade **sets** the limits to the target tier (consumed and reserved kept; this differs from the logged decision, finding F-2), order `campaignSlug` set to `addon:…`/`upgrade:a->b`, audit `entitlement_addon_applied`/`package_upgrade_applied` | `lib/checkout-fulfillment.ts` | `@upsell @webhook` | | Not started |
 | K-10 | C | Post-purchase return to `/project/[id]?upsell…&session_id`, a confirmation banner that polls until fulfilled, double-click guard, survives refresh, shows the delayed-webhook pending state | `app/project/[id]`, `lib/project-hub.ts` | `@upsell` | | Not started |
 | K-11 | C/A | Invoices and receipts pulled from Stripe (invoice PDF, hosted invoice or receipt URL; settled only). VAT number shown when present, at £0 VAT | `api/invoices`, `api/projects/[id]/invoices`, `api/admin/projects/[id]/invoices`, `lib/client-invoices.ts`, `docs/invoice-email-behavior.md` | `@invoices` | | Not started |
 | K-12 | A | Admin reprocess of a stuck purchase `POST /api/admin/checkout/reprocess` | `api/admin/checkout/reprocess` | `@admin @webhook` | | Not started |
-| K-13 | S | Promotion codes handled by Stripe (e.g. `PRO40FIRST5`). Phase 0: confirm how the session enables them | `app/checkout/start/route.ts` | `@checkout` | | TBC |
+| K-13 | S | Promotion codes: **not enabled today** (no `allow_promotion_codes`), although `PRO40FIRST5` was decided on 2026-03-01. Finding F-1 | `app/checkout/start/route.ts` | `@checkout` | | Owner decision (F-1) |
 | K-14 | S | Revision accounting: **reserve on request, consume on delivery**. The UI shows pending vs delivered | `lib/entitlements.ts`, `lib/concept-entitlement.ts` | `@revisions` | | Not started |
 
 ## C: Client portal
@@ -65,12 +67,12 @@ Actors: **P** public / anonymous · **C** client (project member) · **A** admin
 | C-09 | C | Concept detail `/project/[id]/concept/[conceptId]`: signed asset URLs `GET …/assets` (authorization rechecked before every presign) | `app/project/[id]/concept/[conceptId]`, `api/projects/[id]/concepts/[conceptId]/assets` | `@concepts @security` | | Not started |
 | C-10 | C | Concept comments `GET/POST …/comments` (concept thread vs project thread) | `api/projects/[id]/concepts/[conceptId]/comments`, `lib/concept-thread.ts` | `@concepts` | | Not started |
 | C-11 | C | Revision request `POST /api/projects/[id]/revision-requests`, scoped to a concept: reserves an entitlement, status → `REVISIONS_IN_PROGRESS`, admin email | `api/projects/[id]/revision-requests` | `@revisions` | | Not started |
-| C-12 | C | Approve a concept `POST /api/projects/[id]/approve` with the acknowledgement-confirmation copy, the resulting status transition (Phase 0: record the exact one from code), audit `concept_approved`, client and admin emails | `api/projects/[id]/approve`, `lib/final-approval.ts` | `@approval` | | Not started |
-| C-13 | C | Final files download `POST /api/projects/[id]/finals`: paid plus lifecycle plus exact active-asset guard, presigned ≤3600 s, sanitized Content-Disposition filename | `api/projects/[id]/finals`, `lib/final-deliverable-access.ts`, `lib/final-deliverable-filename.ts` | `@finals @security` | | Not started |
+| C-12 | C | Approve a **published** concept `POST /api/projects/[id]/approve` with the acknowledgement-confirmation copy: every other visible concept → `archived`, this one → `approved`, project → `AWAITING_APPROVAL`, audits `concept_approved` and `state_changed`, client (N-07) and admin (N-08) emails | `api/projects/[id]/approve`, `lib/final-approval.ts` | `@approval` | | Not started |
+| C-13 | C | Final files download `POST /api/projects/[id]/finals`: serializable guarded transaction (membership, approved concept, newest `final_zip` exact id and path), presigned 3600 s, sanitized Content-Disposition `{brand}-{YYYY-MM-DD}.zip`. **The first client download moves FINAL_FILES_READY → DELIVERED** | `api/projects/[id]/finals`, `lib/final-deliverable-access.ts`, `lib/final-deliverable-filename.ts` | `@finals @security` | | Not started |
 | C-14 | C | Messages `/project/[id]/messages`, `GET/POST /api/projects/[id]/messages`: chat with system messages shown, admin notification | `app/project/[id]/messages`, `api/projects/[id]/messages`, `lib/chat-messages.ts` | `@messages` | | Not started |
 | C-15 | C | Read state `POST /api/projects/[id]/read-state {area: messages\|concepts}` clears the badges | `api/projects/[id]/read-state` | `@messages @concepts` | | Not started |
 | C-16 | C | Entitlements view `GET /api/projects/[id]/entitlements` | `api/projects/[id]/entitlements` | `@entitlements @contract` | | Not started |
-| C-17 | C | Settings `/settings`: profile `GET/PUT /api/profile` (first and last name, VAT number), change password (A-09) | `app/settings`, `api/profile` | `@settings` | | Not started |
+| C-17 | C | Settings `/settings`: profile `GET/PUT /api/profile` (first and last name only, max 80; **no VAT field exists**, finding F-3), change password (A-09) | `app/settings`, `api/profile` | `@settings` | | Not started |
 | C-18 | C | Invoices page `/settings/invoices` (K-11) | `app/settings/invoices` | `@invoices` | | Not started |
 | C-19 | C/A | App frame, header nav, theme switcher (light/dark), feature notice cards, status badges, premium design tokens | `components/app-frame.tsx`, `header-nav.tsx`, `theme-switcher.tsx`, `ui.tsx`, `app/globals.css` | `@visual` | | Not started |
 | C-20 | C | Tenant isolation: a client can never read or mutate another client's project, concept, asset, message or invoice | all `api/projects/**` | `@authz` | | Not started |
@@ -81,10 +83,10 @@ Actors: **P** public / anonymous · **C** client (project member) · **A** admin
 |---|---|---|---|---|---|---|
 | D-01 | A | Admin dashboard `/admin`, `GET /api/admin/projects`: sections needs-action / in-progress / delivered, urgency sort (pending feedback and unread first), unread-message badges, a "Resolve pending feedback" link | `app/admin/page.tsx`, `lib/admin-dashboard.ts` | `@admin` | | Not started |
 | D-02 | A | Project overview `/admin/projects/[id]`, `GET /api/admin/projects/[id]`: summary cards, quick-action grid, pending feedback, thread-choice cues | `app/admin/projects/[id]/page.tsx` | `@admin` | | Not started |
-| D-03 | A | Status change `POST …/status`: state-machine transitions only, `ON_HOLD` remembers the previous state, reason, audit `state_changed` | `api/admin/projects/[id]/status`, `lib/project-state-machine.ts` | `@admin @state` | | Not started |
+| D-03 | A | Status change `POST …/status`: **only `ON_HOLD`, `CANCELLED`, `RESUME`** (everything else → `DOMAIN_ACTION_REQUIRED`). Reason 1–500 is required. RESUME restores the audited previous state after revalidating its domain evidence. Version-guarded, audit `state_changed` | `api/admin/projects/[id]/status`, `lib/project-state-machine.ts` | `@admin @state` | | Not started |
 | D-04 | A | Brief view `/admin/projects/[id]/brief` (brief document rendering) | `app/admin/projects/[id]/brief`, `components/brief-document.tsx` | `@admin @brief` | | Not started |
 | D-05 | A | Concepts manager `/admin/projects/[id]/concepts`, `GET/POST …/concepts`: upload with durable request receipts and advisory locks, a pending-feedback inbox with one-click actions | `app/admin/projects/[id]/concepts`, `api/admin/projects/[id]/concepts`, `lib/concept-upload-request.ts`, `lib/concept-upload-key.ts` | `@admin @concepts` | | Not started |
-| D-06 | A | Publish a concept `POST …/concepts/[conceptId]/publish`: status → `CONCEPTS_READY`, system message, client email "Your concept is ready for review" | `api/admin/projects/[id]/concepts/[conceptId]/publish` | `@admin @concepts @email` | | Not started |
+| D-06 | A | Publish a **draft** concept `POST …/concepts/[conceptId]/publish` (idempotent; a legacy path, because upload publishes immediately, finding F-10): consumes a concept slot, first visible concept → `CONCEPTS_READY`, system message, client email N-04 | `api/admin/projects/[id]/concepts/[conceptId]/publish` | `@admin @concepts @email` | | Not started |
 | D-07 | A | Delete a concept `DELETE …/concepts/[conceptId]`, audit `concept_deleted` (receipt-backed objects kept) | `api/admin/projects/[id]/concepts/[conceptId]` | `@admin @concepts` | | Not started |
 | D-08 | A | Revision page `/admin/projects/[id]/concepts/[conceptId]/revision`: upload the revised concept, `GET …/revision-requests` | `app/admin/projects/[id]/concepts/[conceptId]/revision`, `api/admin/projects/[id]/revision-requests` | `@admin @revisions` | | Not started |
 | D-09 | A | Mark a revision delivered `POST …/revision-requests/[rid]/delivered`: reserved → consumed, client email "Your revised concept is ready" | `api/admin/projects/[id]/revision-requests/[rid]/delivered` | `@admin @revisions` | | Not started |
@@ -92,7 +94,7 @@ Actors: **P** public / anonymous · **C** client (project member) · **A** admin
 | D-11 | A | Final files upload `POST …/finals`: ZIP validation, immutable versioned assets, guarded publication, newest-asset selection, superseded records and objects kept, repair or replace in `FINAL_FILES_READY`/`DELIVERED` | `api/admin/projects/[id]/finals`, `lib/admin-final-publication.ts`, `docs/upload-lifecycle-hardening.md` | `@admin @finals` | | Not started |
 | D-12 | A | Retry the final-files notification `POST …/finals/notify` (notification only) | `api/admin/projects/[id]/finals/notify` | `@admin @finals @email` | | Not started |
 | D-13 | A | Admin final download `POST …/finals/download` | `api/admin/projects/[id]/finals/download` | `@admin @finals` | | Not started |
-| D-14 | A | Entitlement override `PATCH …/entitlements` (validated inputs, audit `entitlement_limit_overridden`), and reset `POST …/entitlements/reset` | `api/admin/projects/[id]/entitlements*`, `lib/admin-override-inputs.ts` | `@admin @entitlements` | | Not started |
+| D-14 | A | Entitlement override `PATCH …/entitlements` (0–1000 or null = unlimited, reason 1–500, audit `entitlement_limit_overridden`). `POST …/entitlements/reset` is a **disabled stub** that always returns `409 ENTITLEMENT_USAGE_RESET_DISABLED` | `api/admin/projects/[id]/entitlements*`, `lib/admin-override-inputs.ts` | `@admin @entitlements` | | Not started |
 | D-15 | A | Project reset `POST …/reset`: a clean slate that **keeps** immutable final bytes and receipt-backed concept objects, audit `project_reset` | `api/admin/projects/[id]/reset` | `@admin` | | Not started |
 | D-16 | A | Audit log `/admin/projects/[id]/audit`, `GET …/audit` | `app/admin/projects/[id]/audit`, `lib/admin-audit.ts` | `@admin @audit` | | Not started |
 | D-17 | A | Admin messages `/admin/projects/[id]/messages`: reply in the right thread, client email "New message from your Logo Fountain designer" | `app/admin/projects/[id]/messages` | `@admin @messages` | | Not started |
@@ -116,7 +118,7 @@ Actors: **P** public / anonymous · **C** client (project member) · **A** admin
 | N-10 | A | "New project created" | ″ | `@email` | Not started |
 | N-11 | A | "New client message" | ″ | `@email` | Not started |
 | N-12 | A | "New concept feedback submitted" | ″ | `@email` | Not started |
-| N-13 | C | Brief submission confirmation (Phase 0: confirm whether this is an email, a UI message or both) | `lib/brief-submission-confirmation.ts` | `@email @brief` | TBC |
+| N-13 | C | Brief submission confirmation is **UI only** (confirmation dialog). **No email is sent on brief submit**, to anyone | `lib/brief-submission-confirmation.ts` | `@brief` | Not started |
 | N-14 | All | Email branding (logo, HTML and text bodies), HTTPS-only CTA URLs, recipients from `ADMIN_NOTIFICATION_EMAILS` | `lib/email-branding.ts` | `@email` | Not started |
 | N-15 | C/A | System messages in the thread: brief received, concept ready, revision requested/delivered, final files ready (`Message.kind=system`) | `lib/system-messages.ts`, `lib/message-kind.ts` | `@messages` | Not started |
 | N-16 | S | Email matrix: `docs/email-lifecycle-verification-matrix.md` is the cross-check for N-01…N-15 | | `@email` | Not started |
@@ -132,13 +134,17 @@ Actors: **P** public / anonymous · **C** client (project member) · **A** admin
 | X-05 | Trusted client IP only from `AUTH_CLIENT_IP_HEADER` or `AUTH_TRUSTED_PROXY_HOPS`; otherwise per-IP limits are off | `lib/auth/client-address.ts` | `@security` | Not started |
 | X-06 | Rate limits (auth, forgot password, checkout emails). Laravel version is shared-store, not process-local | `lib/auth/rate-limit.ts`, `AuthRateLimit` | `@security` | Not started |
 | X-07 | Project state machine: the 11 states, the transition table, the timeline labels and primary CTA per state | `lib/project-state-machine.ts`, `lib/project-status.ts`, `docs/state-machine-v1.0.md` | `@state` | Not started |
-| X-08 | Audit events: every type written today (`brief_submitted`, `concept_published`, `concept_deleted`, `concept_revision_uploaded`, `concept_upload_request`, `concept_approved`, `entitlement_*`, `finals_uploaded`, `message_sent`, `order_fulfilled`, `package_upgrade_applied`, `project_reset`, `revision_requested`, `revision_delivered`, `state_changed`, `auth.password_changed`, `auth.password_reset`, Stripe event types) with equivalent payloads | `lib/audit.ts` | `@audit` | Not started |
+| X-08 | Audit events: every type written today (`concept_uploaded`, `email_sent:*` idempotency markers, `brief_submitted`, `concept_published`, `concept_deleted`, `concept_revision_uploaded`, `concept_upload_request`, `concept_approved`, `entitlement_*`, `finals_uploaded`, `message_sent`, `order_fulfilled`, `package_upgrade_applied`, `project_reset`, `revision_requested`, `revision_delivered`, `state_changed`, `auth.password_changed`, `auth.password_reset`, Stripe event types) with equivalent payloads | `lib/audit.ts` | `@audit` | Not started |
 | X-09 | Transaction advisory locks and bounded retries on fulfilment, auth fencing and concept uploads | `lib/checkout-fulfillment.ts`, `lib/auth/fence.ts`, `api/admin/projects/[id]/concepts` | `@pg-race` | Not started |
 | X-10 | R2 storage: two private logical buckets (`concepts`, `final-deliverables`), random immutable version paths, `IfNoneMatch:*`, canonical MIME, SHA-256 metadata, never overwrite, collision fails closed | `lib/storage/r2.ts`, `docs/private-r2-runbook.md` | `@storage` | Not started |
 | X-11 | Presigned GET: expiry an integer from 1 to 3600, never persisted or logged, authorization rechecked right before issuing | `lib/storage/r2.ts` | `@storage @security` | Not started |
 | X-12 | Upload validation: concept image ≤10 MiB and ≤40 MP; final ZIP ≤100 MiB, ≤1000 entries, ≤500 MiB uncompressed, compression ratio ≤100, CRC checks | `lib/upload-validation.ts`, `lib/zip-validation.ts` | `@uploads` | Not started |
 | X-13 | Ambiguous-commit object retention, upload before publication, committed-receipt recovery | `docs/upload-lifecycle-hardening.md` | `@uploads @pg-race` | Not started |
 | X-14 | No secrets, signed URLs or bearer links in API responses, logs or audit payloads | everywhere | `@security` | Not started |
+| X-16 | System messages are deduplicated by exact body within a project thread. The sender is the first admin profile | `lib/system-messages.ts` | `@messages` | Not started |
+| X-17 | Optimistic project version (`updatedAt` guard) plus serializable transactions on lifecycle mutations. Conflicts → route-specific 409 codes | admin and client lifecycle routes | `@pg-race @contract` | Not started |
+| X-18 | Lifecycle email exactly-once-ish markers (`AuditEvent type=email_sent:*`), with `already_sent` / `skipped` results | `lib/project-lifecycle-email.ts` | `@email` | Not started |
+| X-19 | Concept upload idempotency: UUID v4 `requestKey`, a content digest, a durable receipt in audit, advisory lock, ambiguous-commit recovery, client key persisted in sessionStorage | `api/admin/projects/[id]/concepts`, `lib/concept-upload-*.ts` | `@uploads @pg-race` | Not started |
 | X-15 | UUID primary keys throughout. `Profile.id` equals the auth user ID | `prisma/schema.prisma` | `@contract` | Not started |
 
 ## O: Ops and developer tooling
@@ -156,8 +162,8 @@ Actors: **P** public / anonymous · **C** client (project member) · **A** admin
 
 ## Phase 0 sweep checklist
 
-- [ ] Every `route.ts` (49) and `page.tsx` (27) maps to a row above.
-- [ ] Every `src/lib/*.ts` module maps to a row (or is marked UI-only and ported with its component).
-- [ ] Every Vitest file (95) and its test names are listed in the test-port ledger (`02-test-strategy.md` §6).
-- [ ] Every doc in `docs/` and `apps/web/docs/` has been read for behaviour that isn't visible in code.
-- [ ] `TBC` rows resolved.
+- [x] Every `route.ts` (49) and `page.tsx` (27) maps to a row above (2026-11-18, `brownfield/api-*.md`, `ui-pages.md`).
+- [x] Every `src/lib/*.ts` module maps to a row, or is marked UI-only (`brownfield/business-rules-and-notifications.md` §1).
+- [x] Every test file (110 including Playwright) is listed in `test-port-ledger.md`.
+- [ ] Every doc in `docs/` and `apps/web/docs/` has been read for behaviour that isn't visible in code. (Read so far: security-boundaries, the supabase-exit report, test-runbook, TODO. The rest is still to do.)
+- [x] `TBC` rows resolved (2026-11-18: K-13 → F-1, N-13 → UI only).
