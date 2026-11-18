@@ -99,7 +99,7 @@ Purchase → set password → brief → concepts → feedback and revisions (wit
 
 ### In scope
 - Every feature in `01-feature-inventory.md` (A, K, C, D, N, X, O series), for customers and the admin.
-- The decided deviations DV-1, DV-2, DV-4…DV-9, DV-11.
+- The decided deviations DV-1, DV-2, DV-4…DV-9, DV-11, DV-12, DV-13.
 - The full redesign (DV-UX): design system, information architecture, every screen, light and dark, responsive, accessible.
 - The shared parity test suite plus Laravel unit, feature, concurrency, visual and accessibility tests. Documentation as defined in `03-documentation-protocol.md`.
 - Hetzner deployment, backups and restore drill, queue worker, monitoring basics, runbooks.
