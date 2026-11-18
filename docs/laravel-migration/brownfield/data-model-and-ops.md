@@ -31,7 +31,7 @@ All IDs are UUID unless noted. `createdAt` and `updatedAt` are timestamps (Prism
 | AuthVerification | none | Better Auth internal token store. Laravel uses `auth_proofs` alone | |
 | AuthProof | `auth_proofs` | token_hash char(64) PK (sha256), user_id (cascade), kind (`setup`/`reset`/`magic`), credential_version, expires_at | idx user_id |
 | AuthAdminBootstrap | `auth_admin_bootstrap` | id int PK (single row), user_id, created_at | **The runtime role is revoked** |
-| AuthRateLimit | `auth_rate_limits` | key char(64) PK, hits, window_start | idx window_start. Or use the Laravel cache `RateLimiter` on the DB or Redis store (decide in the architecture ADR) |
+| AuthRateLimit | `auth_rate_limits` | key char(64) PK, hits, window_start | idx window_start. **Decided:** the ported PG buckets on the `pgsql_limits` connection (ADR-009), not Laravel's cache RateLimiter |
 
 Laravel migrations must reproduce the FK `onDelete` behaviours exactly (cascade, restrict, set null). Restrict on `profiles` means profiles are never deleted while they authored anything.
 
@@ -74,7 +74,7 @@ Laravel: `php artisan admin:bootstrap --prepare --email=` / `--email= --confirm-
 
 | Script | What it does | Laravel replacement |
 |---|---|---|
-| `scripts/local-run.mjs` | Loads `.env.local`, requires the secrets, runs `stripe listen` and captures the webhook secret, starts `next dev` | `docker compose up` (app, queue worker, postgres, mailpit, minio) plus a `stripe listen` sidecar profile |
+| `scripts/local-run.mjs` | Loads `.env.local`, requires the secrets, runs `stripe listen` and captures the webhook secret, starts `next dev` | `docker compose up` (app, queue worker, postgres, mailpit, seaweedfs, stripe-fake) plus a `stripe listen` sidecar profile |
 | `scripts/local-dev-pg.mjs` + `docs/local-dev-pg-handoff.md` | Owner-private persistent local PG cluster (port 45232, a 0700 directory, distinct roles), with init/start/seed/app/stop/reset | A Docker volume-backed Postgres. Seeding via `php artisan parity:seed` / `dev:seed` guarded to non-production |
 | `lib/local-dev-fixture-guard.ts`, seeds | Refuse to seed anything except the private local cluster. Owner identities come from a private file | An artisan guard: refuse unless `APP_ENV=local\|testing` **and** the DB host is the compose service |
 | `scripts/isolated-postgres-test.mjs` | A throwaway PG cluster with roles plus grants, checks zero schema drift, runs the PG integration tests and the golden Playwright path | Pest with a `pgsql` test service in compose/CI plus a schema-drift check (`migrate:fresh` then compare with `schema:dump`) |

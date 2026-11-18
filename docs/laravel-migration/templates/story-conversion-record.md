@@ -5,6 +5,8 @@ Add these sections to the story file that `create-story` generates (as the "Dev 
 ## Inventory scope
 IDs covered: e.g. `A-07, A-08, N-03`. Each one must end up `Verified` or be explicitly deferred to a named story.
 
+**Test-only and foundation stories:** for E0, *Behaviour notes* = the Next behaviour each test pins, and *Laravel implementation* = none. For E1–E3, *Next.js source* = the module being ported, or "none".
+
 ## Next.js source read
 Files read (with paths), plus the docs read.
 

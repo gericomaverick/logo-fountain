@@ -41,7 +41,7 @@ Order matters: the size check comes **before** the bytes are read.
 
 ## 6. Final ZIP validation (`prepareFinalZip`, `validateZip`)
 
-1. Size 0 → `FILE_REQUIRED`. Over **100 MiB** → `FILE_TOO_LARGE`. The extension must be `zip` and the MIME `application/zip` or `application/x-zip-compressed`, otherwise `INVALID_FILE_TYPE`. The first 4 bytes must be `PK\x03\x04`, otherwise `FILE_SIGNATURE_MISMATCH`.
+1. Size 0 → `FILE_REQUIRED`. Over **100 MiB** → `FILE_TOO_LARGE` (Next; **Laravel: 95,000,000 bytes, DV-13**). The extension must be `zip` and the MIME `application/zip` or `application/x-zip-compressed`, otherwise `INVALID_FILE_TYPE`. The first 4 bytes must be `PK\x03\x04`, otherwise `FILE_SIGNATURE_MISMATCH`.
 2. A structural walk (`MALFORMED_ZIP` unless stated otherwise):
    - EOCD found within the last 65,557 bytes, with the comment ending exactly at the end of file. Single volume. Entry count is non-zero and **≤ 1000** (otherwise `ZIP_LIMIT_EXCEEDED`). The central directory ends exactly at the EOCD.
    - Per entry: no ZIP64, no split, no encryption. Methods are only stored (0) or deflate (8), with allowed flags `0x800|8|6`. Names are UTF-8 (flag 0x800, strict) or CP437. **Name safety:** NFKC-canonical, no `\`, controls or `:`, no leading `/`, no empty, `.` or `..` segments, no trailing dot or space, no Windows reserved names. **Case-insensitive collision** rejected. A file used as a parent directory is rejected.

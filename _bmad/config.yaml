@@ -7,8 +7,8 @@ communication_language: "English"
 document_output_language: "markdown"
 user_skill_level: "intermediate"
 output_folder: "_bmad-output"
-planning_artifacts: "/home/openclaw/.openclaw/workspace/projects/logo-fountain/_bmad-output/planning-artifacts"
-implementation_artifacts: "/home/openclaw/.openclaw/workspace/projects/logo-fountain/_bmad-output/implementation-artifacts"
+planning_artifacts: "/home/openclaw/.openclaw/workspace/projects/logo-fountain/docs/laravel-migration"
+implementation_artifacts: "/home/openclaw/.openclaw/workspace/projects/logo-fountain/docs/laravel-migration/stories"
 product_knowledge: "/home/openclaw/.openclaw/workspace/projects/logo-fountain/docs"
 gitEnabled: true
 gitCreateRemote: true

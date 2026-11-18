@@ -5,7 +5,7 @@
 
 ## Decision
 
-Design system as code: Tailwind 4 `@theme` tokens from `ux-design.md` §8 (direction A), Radix UI primitives for dialog, menu, tabs, popover and tooltip, components in `resources/js/Components/ui`, a `/dev/ui` catalogue (local only), and the design-system lint
+Design system as code: Tailwind 4 `@theme` tokens from `ux-design.md` §8 (direction A), Radix UI primitives for dialog, menu, tabs, popover, tooltip and select (a phone sheet is a dialog variant), components in `resources/js/Components/ui`, a `/dev/ui` catalogue (local only), and the design-system lint
 
 ## Context and rationale
 

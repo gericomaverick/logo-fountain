@@ -111,7 +111,7 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 103 | `src/lib/project-state-machine.test.ts` | 6 | X-07 | Pest unit + keep TS (shared fixture) | | Not started |
 | 104 | `src/lib/project-status.test.ts` | 10 | X-07,C-03 | Pest unit | | Not started |
 | 105 | `src/lib/request-origin.test.ts` | 15 | X-01,X-04 | Pest unit + feature | | Not started |
-| 106 | `src/lib/storage/r2.test.ts` | 10 | X-10,X-11 | Pest unit (S3 mock) + L3 MinIO | | Not started |
+| 106 | `src/lib/storage/r2.test.ts` | 10 | X-10,X-11 | Pest unit (S3 mock) + L3 SeaweedFS | | Not started |
 | 107 | `src/lib/system-messages.test.ts` | 2 | N-15 | Pest feature | | Not started |
 | 108 | `src/lib/upload-validation.test.ts` | 12 | X-12 | Pest unit + shared golden corpus | | Not started |
 | 109 | `src/lib/webhook-error-classification.test.ts` | 2 | K-05 | Pest unit | | Not started |

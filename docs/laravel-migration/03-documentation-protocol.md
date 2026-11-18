@@ -37,6 +37,8 @@ Sessions end, contexts compact, and agents get swapped. **The files are the memo
 
 ## 3. Definition of done (story)
 
+There are **three variants** (E0 spec / Laravel-only / Conversion), defined in `epics.md` → Overview. The checklist below is the **Conversion** variant. For E0, "green on Laravel" doesn't apply, and the inventory status stays `Not started` (fill in Tag and Tests). For Laravel-only stories, "green on Next" doesn't apply.
+
 - [ ] Story parity tags green against **Laravel** and **Next**; all earlier tags green against Laravel
 - [ ] L0–L2 green; L3 green if the story touches concurrency (X-09, A-10, K-05, X-13)
 - [ ] Test-port ledger rows for this story resolved

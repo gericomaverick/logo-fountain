@@ -17,7 +17,7 @@ Each decision below has its own ADR file in `adr/` (one decision per file, super
 
 ## 1. Project context
 
-- **Requirements:** 57 FRs and 22 NFRs (`prd.md`), backed by 116 inventory rows plus the DV-1…DV-13 deviations.
+- **Requirements:** 58 FRs and 22 NFRs (`prd.md`), backed by 116 inventory rows plus the DV-1…DV-13 deviations.
 - **Shape:** one Laravel monolith serving Inertia pages (React) and a cookie-authenticated JSON API under `/api/*`, a public Stripe webhook, queue workers, a scheduler, and operator CLI commands.
 - **Hard constraints:**
   - The `/api/*` contracts must stay byte-compatible, because the parity suite runs against both apps.
@@ -62,7 +62,7 @@ Each decision below has its own ADR file in `adr/` (one decision per file, super
 | 019 | Queue: the `database` driver (SKIP LOCKED) with `after_commit=true`. One supervised worker (Forge daemon). Scheduler for pruning and checks. No Redis, no Horizon | NFR-R5 |
 | 020 | Client concept visibility: every client-path concept or asset lookup goes through `Concept::visibleToClient()` (published and approved) plus a policy. An architecture test forbids other queries from client controllers. 404 is indistinguishable | DV-7, FR26–FR28, FR34 |
 | 021 | Snapshot and concept payloads add a stable `imageKey`. The React `<PrivateImage>` keeps its `src` until the key changes or the URL is ≤ 5 min from expiry | DV-12, FR54 |
-| 022 | Design system as code: Tailwind 4 `@theme` tokens from `ux-design.md` §8 (direction A), Radix UI primitives for dialog, menu, tabs, popover and tooltip, components in `resources/js/Components/ui`, a `/dev/ui` catalogue (local only), and the design-system lint | DV-UX, NFR-A1…A4 |
+| 022 | Design system as code: Tailwind 4 `@theme` tokens from `ux-design.md` §8 (direction A), Radix UI primitives for dialog, menu, tabs, popover, tooltip and select (a phone sheet is a dialog variant), components in `resources/js/Components/ui`, a `/dev/ui` catalogue (local only), and the design-system lint | DV-UX, NFR-A1…A4 |
 | 023 | Polling kept (10 s hub, 2 s admin project, 2.5 s audit) through one `usePolling` hook (pauses when the tab is hidden, backs off after errors, `aria-live` announcements). Realtime is post-launch | C-03, D-02, D-16 |
 | 024 | Hosting: **Forge** provisions **one Hetzner Cloud server** (Ubuntu LTS, nginx, PHP 8.5-FPM over a unix socket, PG 18 local), the **Cloudflare proxy** (Full strict), the Hetzner Cloud Firewall, and HSTS at Cloudflare | FR56, NFR-S2 |
 | 025 | Backups: pgBackRest (weekly full, daily diff, continuous WAL, encrypted) to two repos, a dedicated R2 bucket and a Hetzner Storage Box. 30 days PITR plus 12 monthly fulls. Nightly copy-only sync of both R2 buckets to the Storage Box. Hetzner server backups as an extra. Restore drill before launch and quarterly | NFR-R4 |
@@ -128,7 +128,7 @@ Theme init runs as an inline script in the Blade root before paint. Fonts are se
 - `app` (php-fpm + nginx, or `artisan serve`)
 - `worker`
 - `vite`
-- `postgres:18` (an init script creating the runtime, migrate and limits roles)
+- `postgres:18` (an init script creating the runtime and migrate roles; the `pgsql_limits` connection uses the runtime role, ADR-009/013)
 - `mailpit`
 - `seaweedfs` (bucket bootstrap)
 - optional `stripe-cli` (profile)
@@ -183,11 +183,11 @@ tests/parity/   (repo root: shared Playwright suite, adapters, page objects, fix
 ## 7. Validation
 
 - **Coherence:** the decisions don't conflict. The CSRF exclusion (008) depends on the origin middleware (008) and the arch test (020/028). Rate limits on their own connection (009) avoid the fence rollback (007). The email modes (018) respect the fence contract.
-- **Coverage:** every FR and NFR maps to at least one ADR (table §3, "Satisfies"). FR12–FR22 → 014/015. FR23–FR34 → 002/003/020/021/023. FR35–FR48 → 011/016/017. FR49–FR50 → 018. FR51–FR54 → 016/017/021. FR55–FR57 → 010/013/024–028.
+- **Coverage:** every FR and NFR maps to at least one ADR (table §3, "Satisfies"). FR12–FR22 → 014/015. FR23–FR34 → 002/003/020/021/023. FR35–FR48 → 011/016/017. FR49–FR50 → 018. FR51–FR54 → 016/017/021. FR55–FR57 → 010/013/024–028. FR58 → 023.
 - **Gaps / to settle in E0–E1 spikes:**
   1. The SeaweedFS `If-None-Match` probe.
   2. R2 honouring the presigned `response-content-disposition` (L8/L9).
   3. nginx overwrite of `cf-connecting-ip` / forged-header test (L9).
   4. Whether Sfizia's licence covers app use (owner).
   5. Server size.
-- **Readiness:** ready for epics and stories (BMAD 3.2) once the owner has reviewed this document and the PRD validation fixes are applied.
+- **Readiness:** checked 2026-11-18 (reports/readiness-report.md: READY WITH CONDITIONS; doc fixes applied). Remaining conditions are owner reviews: ADRs Proposed → Accepted, the Sfizia licence, key-screen approval before Epics 6 and 7.

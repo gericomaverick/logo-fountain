@@ -13,4 +13,6 @@ See `../architecture.md` §3–§5 and `../research-technical.md` (the sources a
 
 ## Consequences
 
+- 2026-11-18 (readiness m3): the `pgsql_limits` connection uses the **runtime** DB role (two roles in total, ADR-013 unchanged). Its purpose is a separate connection that isn't inside the business transaction, not a separate privilege.
+
 Record any consequences discovered during implementation here, in the story that hits them.

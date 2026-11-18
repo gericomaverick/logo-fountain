@@ -4,6 +4,7 @@ Every behaviour the Laravel app must reproduce. **This is the functional require
 Paths are relative to `apps/web/src/` unless shown otherwise. Inventory first drafted 2026-11-18 from the code, and **verified line by line against the source in the Phase 0 scan the same day** (see `brownfield/`). Add rows, never delete them (mark them `Dropped` with a decision reference instead). Findings F-1…F-14 (code vs. decisions, and gaps) are listed in `brownfield/index.md` and need owner calls before stories are written.
 
 **Status values:** `Not started` → `In progress` → `Converted` (code exists, tests not yet passing) → `Verified` (parity tags pass against both apps) | `Dropped (DECISIONS.md YYYY-MM-DD)`.
+**Tests:** the **Laravel** column holds the Laravel file references **and** the titles of the tests that verify the row (parity test IDs, plus Pest or Vitest names for Laravel-only layers).
 **Tag** = the parity-suite tag (`02-test-strategy.md` §3) that proves the row. The story fills in the **Laravel** column with file references.
 
 Actors: **P** public / anonymous · **C** client (project member) · **A** admin · **S** system (webhook, CLI, job).
@@ -44,7 +45,7 @@ Actors: **P** public / anonymous · **C** client (project member) · **A** admin
 | K-04 | P | `POST /api/checkout/resend-magic-link`, bounded per-session and per-destination limits | `api/checkout/resend-magic-link`, `lib/checkout-auth-email-rate-limit.ts` | `@checkout` | | Not started |
 | K-05 | S | Stripe webhook: raw-body signature check, `StripeEvent` idempotency ledger. A transient failure stays retryable (it's never stuck "in flight"). Handles `checkout.session.completed`, `async_payment_succeeded`, `async_payment_failed`. Fulfils only when `payment_status=paid` | `api/stripe/webhook`, `lib/webhook-error-classification.ts`, `docs/webhook-delivery-semantics.md` | `@webhook @pg-race` | | Not started |
 | K-06 | S | Fulfilment: Client, Project (`AWAITING_BRIEF`), Order (`FULFILLED`/`NEEDS_CONTACT`), entitlements per package, message thread, user, profile and membership provisioned by normalized email (concurrent retries converge). The required emails are sent after durable fulfilment and can be retried | `lib/checkout-fulfillment.ts` | `@webhook @checkout` | | Not started |
-| K-07 | S | Package entitlements: Essential 1 direction / 1 revision, Professional 2/2, Complete 3/3 (verify the current values in code during Phase 0) | `lib/entitlements.ts` | `@entitlements` | | Not started |
+| K-07 | S | Package entitlements: Essential 1 direction / 1 revision, Professional 2/2, Complete 3/3 (verified 2026-11-18: `lib/checkout-fulfillment.ts` PACKAGE_ENTITLEMENTS and `lib/entitlements.ts` defaults) | `lib/entitlements.ts` | `@entitlements` | | Not started |
 | K-08 | C | Upsell checkout `POST /api/projects/[id]/checkout/session`: extra revision £95, Essential→Professional £495, Professional→Complete £750. The display price lives beside the price ID | `api/projects/[id]/checkout/session`, `lib/stripe-price-allowlist.ts`, `components/revision-purchase.tsx` | `@upsell` `@deviation` | | Not started (DV-5) |
 | K-09 | S | Upsell fulfilment: add-on +1 revision limit. Upgrade **sets** the limits to the target tier (consumed and reserved kept; this differs from the logged decision, finding F-2), order `campaignSlug` set to `addon:…`/`upgrade:a->b`, audit `entitlement_addon_applied`/`package_upgrade_applied` | `lib/checkout-fulfillment.ts` | `@upsell @webhook` `@deviation` | | Not started (DV-2) |
 | K-10 | C | Post-purchase return to `/project/[id]?upsell…&session_id`, a confirmation banner that polls until fulfilled, double-click guard, survives refresh, shows the delayed-webhook pending state | `app/project/[id]`, `lib/project-hub.ts` | `@upsell` | | Not started |
@@ -159,11 +160,12 @@ Actors: **P** public / anonymous · **C** client (project member) · **A** admin
 | O-05 | Production proxy-config preflight | `scripts/auth-proxy-preflight.mjs` | Not started |
 | O-06 | DB runtime grants (least-privilege runtime role) | `ops/postgres/runtime-grants.sql` | Not started |
 | O-07 | Environment variables: `DATABASE_URL`, `DIRECT_URL`, `PUBLIC_SITE_URL`, `PUBLIC_MARKETING_SITE_URL`, `STRIPE_*`, `POSTMARK_*`, R2 vars, `ADMIN_NOTIFICATION_EMAILS`, `EMAIL_LOGO_URL`, `AUTH_CLIENT_IP_HEADER`, `AUTH_TRUSTED_PROXY_HOPS` (the full list comes from `grep process.env` in Phase 0) | | Not started |
+| O-09 | **Parity test seams in `apps/web`** (freeze exceptions, inert unless `PARITY_MODE=1`): `POSTMARK_API_URL` in `lib/auth/mail.ts` and `lib/project-lifecycle-email.ts`; `R2_ENDPOINT` plus `forcePathStyle` in `lib/storage/r2.ts`; `STRIPE_API_BASE` in `lib/stripe.ts` and `app/api/admin/health/route.ts`; `scripts/parity-seed.mjs` | story 0.3 | Not started |
 | O-08 | Runbooks: auth, checkout troubleshooting, webhook ops, R2, test runbook, all rewritten for Laravel | `apps/web/docs/*` | Not started |
 
 ## Decided deviations from the Next.js behaviour
 
-These rows deliberately **don't** reproduce today's behaviour. Their parity tests are tagged `@deviation`: they assert the **new** behaviour, run against Laravel only, and are expected to fail against Next (`02-test-strategy.md` §3). Source: `DECISIONS.md` 2026-11-18. Finding details are in `brownfield/index.md`.
+These rows deliberately **don't** reproduce today's behaviour. Their parity tests are tagged `@deviation`: they assert the **new** behaviour and run on both targets: they must pass on Laravel, and on Next they're expected to fail (listed in `expected-next-failures.txt`; an unexpected pass fails the run, `02-test-strategy.md` §1). Source: `DECISIONS.md` 2026-11-18. Finding details are in `brownfield/index.md`.
 
 | Dev | Rows | Next.js today | Laravel target | Decided by |
 |---|---|---|---|---|

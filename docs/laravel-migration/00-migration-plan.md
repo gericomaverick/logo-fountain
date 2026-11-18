@@ -1,6 +1,6 @@
 # Logo Fountain: Next.js → Laravel migration plan (BMAD)
 
-Status: **v0.6 (2026-11-18). Phases 0–2 drafted (brief, research, PRD, UX with direction A). Phase 3.1 architecture drafted (28 ADRs). Next: PRD validation fixes → epics and stories (3.2) → readiness (3.3)**
+Status: **v0.7 (2026-11-18). Planning complete: brief, research, PRD (validated), UX (direction A), architecture (28 ADRs, Proposed), epics v2 (94 stories), readiness READY WITH CONDITIONS (fixes applied). Next: BMAD 4 sprint planning → story 0.1**
 Created: 2026-11-18
 Scope: `apps/web` (client portal, admin portal, checkout/payments backend). `apps/site` (Eleventy marketing) is not in scope.
 
@@ -34,7 +34,7 @@ The migration is done when:
 | Email | Postmark (auth emails plus about 9 lifecycle emails), sent after commit |
 | Surface | 27 pages, 49 API route handlers (§ inventory), 31 client components |
 | Code size | About 17k lines of app code, about 10k lines of tests |
-| Tests | Vitest 95 files / 614 tests; 18 opt-in real-PG integration tests; Playwright: 3 specs (smoke, client flows, auth golden path) |
+| Tests | Vitest 107 files / 742 tests (722 pass, 20 opt-in PG skipped; re-verified 2026-11-18); 18 opt-in real-PG integration tests; Playwright: 3 specs (smoke, client flows, auth golden path) |
 | Deployment | **Not live.** The Supabase-exit owner gates (live PG, secrets, R2 acceptance, deploy) were never run, and no customer data exists. See `docs/reports/supabase-exit-5649.md` |
 
 Because nothing is live, **there is no data migration** (confirmed by the owner, D3). Laravel is a fresh install, which removes the largest risk in most migrations.
@@ -56,7 +56,7 @@ Because nothing is live, **there is no data migration** (confirmed by the owner,
 | Queue | Database queue driver plus a supervised worker | A new runtime component: deployment must run it |
 | Rate limiting | **The existing atomic Postgres buckets ported** (`auth_rate_limits`, a single `INSERT … ON CONFLICT … RETURNING`), run on their own connection **outside** the credential fence | CHANGED by research: Laravel's cache-backed `RateLimiter` would roll back inside the fence's transaction, so failed logins would stop counting. Also replaces the process-local checkout limiter |
 | Tests | Pest 5 on real PostgreSQL 18, Larastan level 9, Pint; Playwright 1.64 plus `@axe-core/playwright` for the shared parity suite; CI runs `docker compose` inside the job | See `02-test-strategy.md` |
-| CSRF | The strict Origin/Referer guard **is** the CSRF control for `/api/*` (excluded from Laravel 13's `PreventRequestForgery`, which would return 419 and break parity status codes). Laravel's check stays on for any non-API web forms | OPEN → architecture ADR (research recommendation) |
+| CSRF | The strict Origin/Referer guard **is** the CSRF control for `/api/*` (excluded from Laravel 13's `PreventRequestForgery`, which would return 419 and break parity status codes). Laravel's check stays on for any non-API web forms | DECIDED: ADR-008 |
 | Hosting | **Recommended: Laravel Forge provisioning one Hetzner Cloud server** (nginx + PHP 8.5-FPM over a unix socket, so there's no app port; PG 18 local; queue and scheduler daemons), Hetzner Cloud Firewall, **pgBackRest → a dedicated R2 bucket plus a Hetzner Storage Box**, restore-drill gate. Ploi Pro is equal if already paid for | **DECIDED 2026-11-18:** Forge → one Hetzner Cloud server, PG on the box; **Cloudflare proxy** in front (Full strict, firewall limited to Cloudflare ranges, `cf-connecting-ip`); backups via pgBackRest → R2 plus a Storage Box (30 days PITR plus 12 monthly), nightly R2 → Storage Box copy, quarterly restore drill; email alerts |
 | Location | New app in `apps/portal`, running next to `apps/web` until cutover | Both apps run at once, so the parity suite can compare them |
 
@@ -85,8 +85,8 @@ Each step names the BMAD workflow (`_bmad/bmm/module-help.csv`), its output, and
 ### Phase 1: Analysis
 | Step | Workflow | Output | Gate |
 |---|---|---|---|
-| 1.1 | `create-product-brief` (CB), migration brief: why Laravel, success criteria, non-goals (no new features, no redesign) | `laravel-migration/product-brief.md` | Owner approval logged |
-| 1.2 | `technical-research` (TR): Laravel and PHP versions, Inertia/React setup, database sessions with an absolute cap, R2 conditional PUT through the PHP SDK, MinIO conditional-write support for tests, Stripe PHP webhook verification, hosting options, Postmark transport | `laravel-migration/research-technical.md` | Every §3 row has evidence |
+| 1.1 | `create-product-brief` (CB), migration brief: why Laravel, success criteria, non-goals (no new features; the redesign is in scope, DV-UX) | `laravel-migration/product-brief.md` | Owner approval logged |
+| 1.2 | `technical-research` (TR): Laravel and PHP versions, Inertia/React setup, database sessions with an absolute cap, R2 conditional PUT through the PHP SDK, MinIO conditional-write support for tests (→ SeaweedFS, research §6.2), Stripe PHP webhook verification, hosting options, Postmark transport | `laravel-migration/research-technical.md` | Every §3 row has evidence |
 
 ### Phase 2: Planning
 | Step | Workflow | Output | Gate |
@@ -117,7 +117,7 @@ Ordered by dependency. Each epic lists the inventory IDs it covers.
 
 | # | Epic | Covers | Notes |
 |---|---|---|---|
-| E0 | **Parity harness on Next.js** (before any Laravel code) | All, as tests | Build the shared Playwright E2E and contract suite, seed scenarios, Mailpit, MinIO, Stripe fixture signing, and make it all **green against Next**. This is the executable spec |
+| E0 | **Parity harness on Next.js** (before any Laravel code) | All, as tests | Build the shared Playwright E2E and contract suite, seed scenarios, Mailpit, SeaweedFS, stripe-fake and postmark-shim, and make it all **green against Next**. This is the executable spec |
 | E1 | Laravel foundations | X-01…X-06, X-14 | Skeleton in `apps/portal`, **the design system as code** (Tailwind 4 tokens, base components, page shells, from the UX spec), L7/L7a/L7b tooling, Docker or Sail for local PHP (PHP is not installed on this machine), CI, Pint/Larastan/Pest, error shape, origin guard, security headers, canonical origin, trusted proxy IP |
 | E2 | Data layer | X-07, X-08, all tables | Migrations, models, factories, state machine, audit writer, advisory-lock helper, `parity:seed` command matching the Next scenarios |
 | E3 | Storage and uploads | X-10…X-12 | R2 client, immutable conditional PUT, presign rules, image and ZIP validation limits, health HEAD |

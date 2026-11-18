@@ -40,7 +40,7 @@ What the migration is: **the same product, the same guarantees, a better foundat
 ### Solution
 
 A Laravel application (`apps/portal`) that:
-- implements **every** feature in `01-feature-inventory.md` for customers and the admin, with the same behaviour, except the deliberate fixes logged as DV-1…DV-11 (promo codes, additive upgrades, reprocess emails, unpublished concepts unreachable, revision-upload email, standard error shape and so on);
+- implements **every** feature in `01-feature-inventory.md` for customers and the admin, with the same behaviour, except the deliberate fixes logged as DV-1, DV-2, DV-4…DV-9, DV-11…DV-13 (promo codes, additive upgrades, reprocess emails, unpublished concepts unreachable, revision-upload email, standard error shape and so on);
 - keeps the **same JSON API contracts**, so one black-box parity test suite proves both apps behave the same;
 - is built on Inertia + React + TypeScript, so the tested TypeScript behaviour modules (brief wizard, hub rules, chat, upload keys) carry over;
 - has a **new design system and information architecture**, defined in the UX spec before any screen is built, with light and dark themes, WCAG 2.2 AA, and phone-first ergonomics for customers;

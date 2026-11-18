@@ -10,7 +10,7 @@ The Phase 0 output of BMAD `document-project` (deep scan, apps/web only), 2026-1
 | [api-admin.md](api-admin.md) | Every `/api/admin/*` endpoint: concept upload, replace and revision, publish, delete, revision delivery, finals, entitlements, status, reset, audit, health |
 | [storage-and-uploads.md](storage-and-uploads.md) | The private R2 client, immutable writes, presigning, the byte-level image and ZIP validators, the golden fixture corpus plan |
 | [business-rules-and-notifications.md](business-rules-and-notifications.md) | Where each `lib` module goes (PHP or TS), the state machine, the snapshot contract, entitlements, system messages, lifecycle emails, the brief, admin grouping, DB roles |
-| [ui-pages.md](ui-pages.md) | Every page: server vs client, guards, polling intervals, browser storage, components, visual parity targets |
+| [ui-pages.md](ui-pages.md) | Every page: server vs client, guards, polling intervals, browser storage, components, screens needing L7 baselines (ui-pages §5) |
 | [data-model-and-ops.md](data-model-and-ops.md) | Tables → Laravel tables, roles and grants, admin bootstrap, env vars, dev scripts, the existing tests |
 | [../test-port-ledger.md](../test-port-ledger.md) | All 110 test files → inventory IDs → their destination after the port |
 

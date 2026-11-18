@@ -340,7 +340,7 @@ For each screen, content is listed **in priority order** (the order a person nee
 ## 15. Owner input needed (UX)
 1. ~~Choose a design direction~~ **Done: A (Studio paper), 2026-11-18.** The §8.1 tokens as written are final for A. B and C are discarded.
 2. Turnaround copy for empty states ("usually within N working days") and the "what happens next" lines. Customers need realistic times.
-3. Approve the IA changes that alter flows: **one-project shortcut** (§5.3.1) and the **Files** tab (§5.1).
+3. Approve the IA change that alters flows: the **one-project shortcut** (§5.3.1). (The **Files** tab (§5.1) was decided 2026-11-18.)
 4. Is the Sfizia display serif licensed for app (web-app) use as well as the marketing site? (It's already in the repo for both.)
 5. Optional: the brief reference uploads from the original user stories (US-BRIEF-02), now or post-launch?
 

@@ -90,7 +90,7 @@ Laravel: **don't** use `TrustProxies` with `*`. Implement this exact rule, or co
 The shared, atomic PG store: buckets are keyed by sha256 (no clear-text emails, IPs or tokens), the window is **15 min**, counts are capped at 100000, and rows older than 1 h are pruned on each call.
 - General auth (`allowAuthAttempt`): scope = request path. Buckets: address (**20**/15 min, only when the address is known) and identity (**5**/15 min). Identity = the lowercase email, token or user ID.
 - Login: an address bucket (20) plus a **failure** bucket keyed `login:failures:{email}:{address|unknown-address}` (**5**). It's reserved before the password check and **deleted on success**.
-- Checkout auth emails (`lib/checkout-auth-email-rate-limit.ts`, **process-local**): per session ID **3 / 15 min**, per destination email **5 / 60 min**. The quota is consumed before sending (failed sends count). Blocked → `429 RATE_LIMITED` with a `retry-after` header, "Please wait before requesting another sign-in email.". **Laravel must use a shared store** (cache or DB), which closes the residual risk.
+- Checkout auth emails (`lib/checkout-auth-email-rate-limit.ts`, **process-local**): per session ID **3 / 15 min**, per destination email **5 / 60 min**. The quota is consumed before sending (failed sends count). Blocked → `429 RATE_LIMITED` with a `retry-after` header, "Please wait before requesting another sign-in email.". **Laravel uses the ported PG limiter** (ADR-009, not the cache), which closes the residual risk.
 - `lib/forgot-password-rate-limit.ts` is **dead code** (nothing imports it). Forgot password uses the general DB limiter. **Don't port it.**
 
 ## 9. Password policy (`lib/auth/validation.ts`)

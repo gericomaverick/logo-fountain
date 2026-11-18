@@ -1,0 +1,140 @@
+# generated: 2026-11-18
+# project: Logo Fountain
+# project_key: LF-LARAVEL
+# tracking_system: file-system
+# story_location: docs/laravel-migration/stories
+#
+# Status definitions: epic backlog|in-progress|done; story backlog|ready-for-dev|in-progress|review|done; retrospective optional|done.
+# Story keys are '{epic}-{story}-{kebab-title}', with letter suffixes kept (e.g. 0-6a-golden-upload-corpus).
+# Each story's gate and DoD variant are in epics.md. Update the status here in the same commit as the story record.
+
+generated: 2026-11-18
+project: Logo Fountain
+project_key: LF-LARAVEL
+tracking_system: file-system
+story_location: "docs/laravel-migration/stories"
+
+development_status:
+  epic-0: backlog
+  0-1-parity-suite-scaffold: backlog
+  0-2-test-infrastructure-stack: backlog
+  0-3-next-js-test-seams-freeze-exceptions: backlog
+  0-4-seed-scenarios-next: backlog
+  0-5-stripe-fixtures-and-webhook-scenarios: backlog
+  0-6a-golden-upload-corpus: backlog
+  0-6b-shared-rule-fixtures: backlog
+  0-7a-contract-suite-auth-checkout-webhook: backlog
+  0-7b-contract-suite-client-project-endpoints-plus-the-snapshot-sc: backlog
+  0-7c-contract-suite-admin-endpoints: backlog
+  0-7d-authorisation-matrix-plus-dv-7: backlog
+  0-8a-page-objects-adapters-journeys-1-2: backlog
+  0-8b-journeys-3-6-brief-concepts-revisions-upsell: backlog
+  0-8c-journeys-7-11-approval-finals-messages-settings-reset-and-lo: backlog
+  0-8d-admin-journeys-12-18: backlog
+  0-8e-abuse-cases-19-23-and-every-remaining-deviation-test: backlog
+  0-9-coverage-gate-ci-parity-job-baseline: backlog
+  epic-0-retrospective: optional
+
+  epic-1: backlog
+  1-1a-skeleton-compose-pins: backlog
+  1-1b-ci-workflow: backlog
+  1-2-agent-guide-and-project-context: backlog
+  1-3-config-validation-and-canonical-origin: backlog
+  1-4-origin-guard-as-the-csrf-control: backlog
+  1-5-trusted-client-address: backlog
+  1-6-error-shape-security-headers-auth-json-boundary-log-scrubber: backlog
+  1-7-design-tokens-and-theming: backlog
+  1-8a-form-and-action-primitives: backlog
+  1-8b-status-components: backlog
+  1-8c-media-data-components-and-usepolling: backlog
+  1-9-app-shells-design-lint-ui-ci-job-lighthouse: backlog
+  epic-1-retrospective: optional
+
+  epic-2: backlog
+  2-1-schema-migrations-and-roles: backlog
+  2-2-models-policies-client-concept-scope: backlog
+  2-3-project-state-machine-and-display-status: backlog
+  2-4-transactions-locks-versioning-audit: backlog
+  2-5-shared-rate-limit-store: backlog
+  2-6-laravel-seed-scenarios: backlog
+  2-7-lifecycle-mail-pipeline: backlog
+  epic-2-retrospective: optional
+
+  epic-3: backlog
+  3-1-private-object-store: backlog
+  3-2-image-validator: backlog
+  3-3-zip-validator: backlog
+  3-4-stable-private-images: backlog
+  epic-3-retrospective: optional
+
+  epic-4: backlog
+  4-1-sessions-with-an-absolute-cap: backlog
+  4-2-credential-fence-and-proofs: backlog
+  4-3-login: backlog
+  4-4-auth-link-requests-auth-emails-base-mail-layout: backlog
+  4-5-magic-link-confirm: backlog
+  4-6-forgot-reset-and-set-password: backlog
+  4-7-change-password-and-logout: backlog
+  4-8-safe-next-route-guards-endpoint-allowlist: backlog
+  4-9a-admin-bootstrap-cli: backlog
+  4-9b-auth-screens: backlog
+  epic-4-retrospective: optional
+
+  epic-5: backlog
+  5-1-checkout-start: backlog
+  5-2-webhook-ledger-and-classification: backlog
+  5-3-fulfilment-and-access-provisioning: backlog
+  5-4-checkout-success-continue-resend: backlog
+  5-5-upsell-checkout-and-additive-fulfilment: backlog
+  5-6-admin-reprocess-with-full-follow-up: backlog
+  5-7-invoices-and-receipts-api: backlog
+  epic-5-retrospective: optional
+
+  epic-6: backlog
+  6-1-project-list-api-home-and-one-project-shortcut: backlog
+  6-2a-project-snapshot-api: backlog
+  6-2b-project-overview: backlog
+  6-3-upsell-panel: backlog
+  6-4-post-purchase-confirmation: backlog
+  6-5-brief-wizard-and-drafts: backlog
+  6-6-brief-submission-and-read-only-brief: backlog
+  6-7-concepts-gallery-and-viewer: backlog
+  6-8-comments-and-revision-requests: backlog
+  6-9-approval: backlog
+  6-10-messages-and-read-state: backlog
+  6-11-files-tab-and-final-download: backlog
+  6-12-account-theme-and-invoices-page: backlog
+  epic-6-retrospective: optional
+
+  epic-7: backlog
+  7-1-admin-queue: backlog
+  7-2-project-workspace-overview-and-properties: backlog
+  7-3-status-actions-hold-cancel-resume: backlog
+  7-4-brief-view: backlog
+  7-5a-upload-a-new-concept: backlog
+  7-5b-replace-a-concept: backlog
+  7-5c-revision-upload: backlog
+  7-6-publish-draft-and-delete-concept: backlog
+  7-7-feedback-inbox-and-mark-delivered: backlog
+  7-8a-finals-upload-and-replace: backlog
+  7-8b-notify-retry-and-admin-download: backlog
+  7-9-entitlement-override-and-clean-slate-reset: backlog
+  7-10-audit-log-and-admin-messages: backlog
+  7-11-health: backlog
+  epic-7-retrospective: optional
+
+  epic-8: backlog
+  8-1-verify-every-email-template: backlog
+  8-2-email-matrix-end-to-end: backlog
+  epic-8-retrospective: optional
+
+  epic-9: backlog
+  9-1-production-provisioning: backlog
+  9-2-backups-and-restore-drill: backlog
+  9-3-observability-alerts-runbooks: backlog
+  9-4a-performance: backlog
+  9-4b-usability-and-manual-accessibility-owner-run: backlog
+  9-4c-final-parity-and-security-runs: backlog
+  9-5a-owner-release-gates: backlog
+  9-5b-launch-and-archive: backlog
+  epic-9-retrospective: optional

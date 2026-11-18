@@ -8,7 +8,7 @@ inputDocuments:
   - docs/laravel-migration/02-test-strategy.md
 workflowType: prd
 workflow: bmad-bmm-create-prd (BMAD step 2.1)
-status: Draft for owner review (validate with bmad-bmm-validate-prd next)
+status: Validated 2026-11-18 (PASS WITH FIXES; fixes applied, reports/prd-validation-report.md)
 date: 2026-11-18
 ---
 
@@ -146,9 +146,9 @@ Defined in `ux-design.md` §10 (J1 purchase → first visit, J2 brief, J3 concep
 
 ## 8. Assumptions and open items
 - A single admin at launch (brief, open question 2).
-- The **one-project shortcut** (ux §5.3.1) and the **Files tab** are pending explicit owner approval (UX §15 item 3).
+- The **one-project shortcut** (ux §5.3.1) is pending explicit owner approval (UX §15 item 3). The **Files tab** is decided (DECISIONS 2026-11-18).
 - Turnaround copy for empty states is pending from the owner (UX §15.2).
 - Exact versions, hosting tool and backup tooling come from `research-technical.md` and the architecture ADRs.
 
 ## 9. Traceability check
-Every inventory row in the A, K, C, D, N, X and O series is cited by at least one FR or NFR above. The coverage script (`tests/parity/scripts/coverage.mjs`, E0) enforces inventory → test coverage. **PRD validation (`bmad-bmm-validate-prd`) must confirm FR → inventory coverage before architecture is finalised.**
+Every inventory row in the A, K, C, D, N, X and O series is cited by at least one FR or NFR above. The coverage script (`tests/parity/scripts/coverage.mjs`, E0) enforces inventory → test coverage. **Confirmed 2026-11-18:** FR ↔ inventory coverage complete in both directions (reports/prd-validation-report.md, re-checked by script).
