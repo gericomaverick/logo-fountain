@@ -1,6 +1,6 @@
 # Logo Fountain: Next.js → Laravel migration plan (BMAD)
 
-Status: **Draft v0.1, awaiting owner decisions (§7)**
+Status: **v0.2. Owner decisions resolved (§7); Phase 0 next**
 Created: 2026-11-18
 Scope: `apps/web` (client portal, admin portal, checkout/payments backend). `apps/site` (Eleventy marketing) is not in scope.
 
@@ -33,7 +33,7 @@ The migration is done when:
 | Tests | Vitest 95 files / 614 tests; 18 opt-in real-PG integration tests; Playwright: 3 specs (smoke, client flows, auth golden path) |
 | Deployment | **Not live.** The Supabase-exit owner gates (live PG, secrets, R2 acceptance, deploy) were never run, and no customer data exists. See `docs/reports/supabase-exit-5649.md` |
 
-Because nothing is live, **there is no data migration**. Laravel can be a fresh install, which removes the largest risk in most migrations. The assumption is logged in `ASSUMPTIONS.md`. Confirm it in §7.
+Because nothing is live, **there is no data migration** (confirmed by the owner, D3). Laravel is a fresh install, which removes the largest risk in most migrations.
 
 **Security semantics that must survive the port.** These are documented in `apps/web/docs/security-boundaries.md`, `auth-runbook.md`, `checkout-auth-security.md`, `webhook-delivery-semantics.md`, `upload-lifecycle-hardening.md`, `private-r2-runbook.md`. They're the hardest part of the port, and they're why the test plan below is as heavy as it is. Each one is an inventory row with its own tests (X-series).
 
@@ -42,7 +42,7 @@ Because nothing is live, **there is no data migration**. Laravel can be a fresh 
 | Concern | Recommendation | Why |
 |---|---|---|
 | Framework | Laravel, the current stable major at solutioning time, on PHP 8.4+ | Pin the exact versions in ADR-001 after technical research, not from memory |
-| UI | **Inertia.js + React + TypeScript + Tailwind 4** | Reuses the 31 React components, design tokens and the just-finished premium polish (`globals.css` portal tokens). Blade or Livewire would mean rewriting every screen and re-doing the visual work |
+| UI | **Inertia.js + React + TypeScript + Tailwind 4** (accepted, D2) | Reuses the 31 React components, design tokens and the just-finished premium polish (`globals.css` portal tokens). Blade or Livewire would mean rewriting every screen and re-doing the visual work |
 | JSON API | Keep **the same `/api/*` paths, methods, status codes and the `{ error: { message, code?, details? } }` shape** | The client components keep calling them unchanged, and one black-box contract suite can run against both apps |
 | Auth | Laravel session guard, **database** session driver, custom actions for setup, magic and reset links, fencing and proofs. No Breeze or Jetstream UI | The app's semantics are stricter than any starter kit: 7-day **absolute** cap (Laravel sessions slide, so this needs middleware), single-use hashed one-hour links, revoking older tokens, credential versions |
 | DB | PostgreSQL, Laravel migrations own the schema, snake_case tables | Fresh install, so the schema can follow Laravel conventions. Advisory locks (`pg_advisory_xact_lock`) are ported as-is |
@@ -122,17 +122,17 @@ Ordered by dependency. Each epic lists the inventory IDs it covers.
 ## 6. Release gates (owner-run, not agent-run)
 
 These carry over from the Supabase-exit report and are re-pointed at Laravel. Each needs explicit owner approval at the time:
-provision production PostgreSQL and run the migrations · set secrets (app key, Stripe, Postmark, R2) · one-time admin bootstrap on the live DB · live R2 acceptance and restore drill · proxy strips and overwrites forwarding headers · HSTS at the TLS edge · Stripe live webhook endpoint registered · DNS and cutover · archive `apps/web`.
+provision production PostgreSQL on Hetzner and run the migrations · automated off-box Postgres backups plus a tested restore · set secrets (app key, Stripe, Postmark, R2) · one-time admin bootstrap on the live DB · live R2 acceptance and restore drill · proxy strips and overwrites forwarding headers · HSTS at the TLS edge · Stripe live webhook endpoint registered · DNS and cutover · archive `apps/web`.
 
-## 7. Open decisions (owner)
+## 7. Owner decisions (resolved 2026-11-18)
 
-| # | Decision | Recommendation |
+| # | Decision | Answer |
 |---|---|---|
-| D1 | **Why Laravel?** (maintainability, hosting cost, your own PHP fluency, ecosystem.) This sets the success criteria in the brief | Owner answer needed |
-| D2 | UI approach: Inertia + React (port) or Blade/Livewire (rewrite) | Inertia + React |
-| D3 | Confirm there's no live data or customers, so it's a fresh install with no data migration | Confirm |
-| D4 | Do we launch on Next first, or freeze Next and launch on Laravel? | Freeze and launch on Laravel. Launching first means doing the release gates twice |
-| D5 | Laravel hosting (Laravel Cloud / Forge + VPS / other) | Decide after the step 1.2 research |
-| D6 | Local PHP: Docker (Sail) or native PHP install in WSL | Docker. It matches CI |
-| D7 | Table naming: Laravel snake_case or keep the Prisma PascalCase names | snake_case (fresh install) |
-| D8 | BMAD outputs for this migration go to the tracked `docs/laravel-migration/` (since `_bmad-output/` is git-ignored), or un-ignore `_bmad-output/` | Use `docs/laravel-migration/` (already in place) |
+| D1 | Why Laravel | **Security, robustness and a mature ecosystem.** These are the success criteria the migration brief (step 1.1) must measure against |
+| D2 | UI approach | **Inertia + React + TypeScript.** The owner's requirement is "robust and maintainable", and porting keeps the tested components and design work |
+| D3 | Live data or customers | **None. Fresh install, no data migration** |
+| D4 | Launch on Next first? | **No. Freeze Next.js and launch on Laravel.** The release gates (§6) are done once, for Laravel |
+| D5 | Hosting | **Hetzner.** The owner already pays for several hosting options. Step 1.2 decides how to provision it (a Forge/Ploi-style manager vs Docker images on a Hetzner VPS) and where PostgreSQL runs. Because Postgres will be self-managed, **automated off-box backups and a restore drill are release gates** (lesson from the 2026-07 Supabase pause incident in `RISKS.md`). Storage stays on Cloudflare R2 |
+| D6 | Local PHP | **Docker** (installed). The same compose stack serves local dev, the parity suite and CI |
+| D7 | Table naming | **Laravel snake_case** |
+| D8 | Location of BMAD outputs | **`docs/laravel-migration/`** (tracked) |
