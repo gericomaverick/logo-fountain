@@ -3,8 +3,8 @@
 ## Now (overwrite this section at the end of every session)
 
 - **Updated:** 2026-11-18 (night session; the owner is away and asked for autonomous progress with tracking)
-- **Phase:** Epic 0 in progress. **0.1 done** (@smoke 2/2 on Next). **0.3 done** (seams). **0.4 done** (seed). **0.6b done** (rule fixtures, 933 cases).
-- **Running (sub-agents, separate worktrees):** 0.2 infra stack, 0.6a upload corpus, 0.7b client contracts (PG 55510 / Next 4320), 0.7c admin contracts (PG 55520 / Next 4330 / SeaweedFS 8343). The parent cherry-picks each after review.
+- **Phase:** Epic 0 in progress. **0.1 done** (@smoke 2/2 on Next). **0.3 done** (seams). **0.4 done** (seed). **0.6b done** (rule fixtures, 933 cases). **0.2 done** (stack: `cd tests/parity && npm run infra:up|probe|down`; ports PG 55432, Mailpit 58025/SMTP 51025, S3 58333, postmark-shim 58090, stripe-fake 58091; test-only creds in `infra/docker-compose.test.yml`; Next-on-stack recipe in `tests/parity/README.md`).
+- **Running (sub-agents, separate worktrees):** 0.6a upload corpus, 0.5 Stripe scenarios (Next 4340), 0.7b client contracts (PG 55510 / Next 4320), 0.7c admin contracts (PG 55520 / Next 4330 / SeaweedFS 8343). The parent cherry-picks each after review.
 - **Next:** 0.5 Stripe fixtures (after 0.2) → 0.7a auth/checkout contracts → 0.7d authz matrix → 0.8a–e journeys → 0.9 coverage and baseline. Epic 1 starts only after Epic 0 (and the owner's ADR review).
 - **Run the suite:** `cd tests/parity && npm ci && PARITY_TARGET=next PARITY_START_NEXT=1 node scripts/run.mjs "@smoke"`.
 - **Owner items:** unchanged (see the previous entry in the session log).
@@ -24,6 +24,8 @@ npm run test:e2e                                        # last recorded: 5–6 P
 | 2026-11-18 | **107 files (103 passed, 4 skipped opt-in PG); 722 passed, 20 skipped.** typecheck ✓, lint ✓ (0 warnings) | not re-run (Playwright needs a dev server) | n/a (suite not built) | n/a | Re-verified for readiness m24. Earlier "95 files / 614" in TODO.md is stale |
 
 ## Session log (newest first, one line each)
+
+- 2026-11-19: 0.2 merged (offline stack; SeaweedFS conditional PUT verified).
 
 - 2026-11-18: 0.6b merged (rule fixtures, 933 cases).
 - 2026-11-18: 0.4 done (seed verified: login, snapshot, tenancy 404).

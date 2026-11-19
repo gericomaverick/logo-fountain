@@ -1,6 +1,6 @@
 # Story 0.2: Test infrastructure stack
 
-Status: review
+Status: done
 
 ## Story
 
@@ -85,3 +85,7 @@ None. The fake has no `charge.invoice` field (removed in recent API versions); N
 ### Open items
 - Test strategy §3/§7 still say MinIO and a separate `stripe/sign.mjs`. Both are now SeaweedFS and the stripe-fake signer (for the parent to edit).
 - `docker-compose.test.yml` will later gain the Laravel app and queue worker (architecture §131).
+
+
+## Parent review (2026-11-19)
+Cherry-picked as `7079975` (README conflict merged with the Next-on-stack recipe). `infra:probe` re-run on main: all OK.

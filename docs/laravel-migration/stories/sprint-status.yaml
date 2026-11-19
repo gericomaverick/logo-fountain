@@ -17,7 +17,7 @@ story_location: "docs/laravel-migration/stories"
 development_status:
   epic-0: in-progress
   0-1-parity-suite-scaffold: done
-  0-2-test-infrastructure-stack: backlog
+  0-2-test-infrastructure-stack: done
   0-3-next-js-test-seams-freeze-exceptions: done
   0-4-seed-scenarios-next: done
   0-5-stripe-fixtures-and-webhook-scenarios: backlog
