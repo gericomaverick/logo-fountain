@@ -61,6 +61,11 @@ const forwarder = net.createServer((client) => {
 let status = 1;
 try {
   await waitFor(`http://127.0.0.1:${PORT}/login`, 240_000);
+  // Warm up: next dev compiles each route on first request and can drop a connection meanwhile (A-15 flake).
+  for (const path of ["/", "/login", "/dashboard", "/admin", "/forgot-password", "/set-password", "/reset-password", "/auth/callback",
+    "/checkout/success", "/settings", "/settings/invoices", "/api/auth/session", "/api/health"]) {
+    await fetch(`http://127.0.0.1:${PORT}${path}`, { redirect: "manual" }).catch(() => {});
+  }
   await fetch("http://127.0.0.1:58091/__config", { method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ webhookUrl: `http://host.docker.internal:${FORWARD}/api/stripe/webhook` }) });
   const suiteEnv = { ...process.env, ...r2, PARITY_TARGET: "next", PARITY_BASE_URL: `http://127.0.0.1:${PORT}`, PARITY_DATABASE_URL: M };

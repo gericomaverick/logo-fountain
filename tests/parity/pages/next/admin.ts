@@ -135,7 +135,11 @@ export function createAdmin(page: Page): AdminPages {
         if (!(await button.isVisible())) return NOT_OFFERED("resume (the project is not on hold)");
         page.once("dialog", (dialog) => void dialog.accept(reason));
         const { res } = await act(() => button.click(), (r) => r.url().endsWith(`/api/admin/projects/${id}/status`));
-        return res.ok() ? { done: true } : { done: false, message: await alertText() };
+        if (res.ok()) return { done: true };
+        // The overview's 2 s poll clears the alert (admin/projects/[id]/page.tsx:174), so the DOM read can race;
+        // the alert shows exactly the response's error.message, so read that (story 0.9 flake fix).
+        const body = await res.json().catch(() => null);
+        return { done: false, message: body?.error?.message ?? (await alertText()) };
       }
       // No hold or cancel control on the Next overview (only Resume, page.tsx:365); the API is the only way.
       return viaSession("POST", `/api/admin/projects/${id}/status`, { status: action === "hold" ? "ON_HOLD" : "CANCELLED", reason });

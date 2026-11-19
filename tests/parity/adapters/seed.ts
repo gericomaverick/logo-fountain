@@ -69,7 +69,10 @@ export const coordinationDir = join(tmpdir(), `lf-parity-db-${createHash("sha256
 const writerDir = join(coordinationDir, "writer");
 const readersDir = join(coordinationDir, "readers");
 const baselineFile = join(coordinationDir, "baseline");
-const LOCK_TIMEOUT_MS = 600_000;
+// Waiters are served first-come-first-served (queue below), so a wait is bounded by the exclusive work queued
+// ahead of it. The timeout only catches a genuinely stuck holder; override with PARITY_LOCK_TIMEOUT_MS.
+const LOCK_TIMEOUT_MS = Number(process.env.PARITY_LOCK_TIMEOUT_MS) || 30 * 60_000;
+const queueDir = join(coordinationDir, "queue");
 
 type Lease = { mode: "exclusive"; scope: string } | { mode: "shared"; scope: string; scenario: string; readerFile: string };
 let lease: Lease | null = null;
@@ -113,9 +116,38 @@ function liveReaders(): string[] {
   });
 }
 
+/** Live writer tickets, oldest first; removes tickets whose process died. */
+function liveTickets(): string[] {
+  let names: string[] = [];
+  try { names = readdirSync(queueDir); } catch { return []; }
+  return names.filter((name) => {
+    if (pidAlive(Number(name.split("-")[1]))) return true;
+    rmSync(join(queueDir, name), { force: true });
+    return false;
+  }).sort();
+}
+
 async function takeWriter(deadline: number) {
-  mkdirSync(coordinationDir, { recursive: true });
+  mkdirSync(queueDir, { recursive: true });
+  // Ticket: zero-padded wall-clock ms (comparable across processes), then pid as tie-break, so lexical order is
+  // arrival order (story 0.9 fairness fix).
+  const ticketName = `${String(Date.now()).padStart(15, "0")}-${process.pid}-${randomBytes(4).toString("hex")}`;
+  const ticket = join(queueDir, ticketName);
+  writeFileSync(ticket, "");
+  try {
+    await takeWriterInTurn(ticketName, deadline);
+  } finally {
+    rmSync(ticket, { force: true });
+  }
+}
+
+async function takeWriterInTurn(ticketName: string, deadline: number) {
   for (;;) {
+    if (liveTickets()[0] !== ticketName) {
+      if (Date.now() > deadline) throw new Error(`timed out waiting for the DB lock queue (${queueDir})`);
+      await sleep(100);
+      continue;
+    }
     try {
       mkdirSync(writerDir);
       // Atomic: a reader never sees a half-written (empty) pid and mistakes it for a dead holder.
