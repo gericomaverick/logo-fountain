@@ -47,3 +47,16 @@ Phase 0 capture, 2026-11-18. Covers **C-02, C-05…C-16, K-14, N-04…N-12 (trig
 |---|---|---|
 | F-7 | Clients can list asset URLs for, comment on, and request revisions against concepts that **aren't published** (drafts the admin uploaded but hasn't released). They'd need the concept UUID, which isn't exposed to clients, so the exposure is low | Laravel: limit the client paths to `published`/`approved` concepts (a security deviation; log a decision). Admins are unchanged |
 | F-8 | Lifecycle emails after commit are best-effort (sent inline after the transaction). Check `project-lifecycle-email.ts` for whether failures are swallowed | Laravel: queued mailables dispatched `afterCommit`, with retries. Document it as an improvement with the same visible behaviour |
+
+## Corrections verified by the contract suite (story 0.7b, 2026-11-19)
+
+These are pinned by `tests/parity/journeys/contract/client-*.spec.ts` and the snapshot schema `tests/parity/fixtures/contracts/snapshot.schema.json`. Paths are under `apps/web/src/`.
+1. **BUG, F-17:** an admin posting a concept comment or a project message gets a **500**. `…/concepts/[conceptId]/comments/route.ts:76` and `…/messages/route.ts:70` upsert the admin's Profile with `isAdmin:true`, which the DB trigger `protect_operator_admin_flag` refuses for the runtime role (`prisma/migrations/20260901000000_portable_core/migration.sql:527,537`). The admin messages page uses this route (`app/admin/projects/[id]/messages/page.tsx:107`), so **admin replies don't work**. Laravel fixes this (DV-14).
+2. Brief POST, revision-requests and approve validate the body **before** membership, so a non-member with a bad body gets 400, not 404 (`…/brief/route.ts:60`, `…/revision-requests/route.ts:33`, `…/approve/route.ts:41`).
+3. `POST …/finals` returns `404 FINAL_ZIP_NOT_AVAILABLE` for non-members, admins and unknown projects, never `PROJECT_NOT_FOUND` (`…/finals/route.ts:34`).
+4. A missing concept on a revision request is **400** `CONCEPT_NOT_FOUND` (`…/revision-requests/route.ts:62`). Comments and approve return 404. DV-7 wording to be checked in 0.7d.
+5. The snapshot **omits** `readState.*`, `latestMessageAt`, `latestConceptAt` and `timeline[].timestamp` rather than sending null (`lib/project-snapshot.ts:28`).
+6. With an approved concept, the current timeline step is the derived `APPROVED` step.
+7. Profile names are **truncated** to 80 characters, not rejected (`app/api/profile/route.ts:19`).
+8. `GET /api/projects` is membership-only, so an admin gets `[]`.
+9. Assets for an unknown concept return `200 []` (see F-7).

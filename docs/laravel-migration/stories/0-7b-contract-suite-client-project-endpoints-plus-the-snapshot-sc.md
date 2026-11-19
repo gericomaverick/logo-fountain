@@ -1,6 +1,6 @@
 # Story 0.7b: Contract suite: client project endpoints, plus the snapshot schema
 
-Status: review
+Status: done
 
 **Covers:** C-02…C-18, K-11, X-03 · **Gate:** `@client&@api`, `@concepts&@api`, `@brief&@api`, `@messages&@api` (also green: `@revisions`, `@approval`, `@finals`, `@settings`, `@invoices`, `@entitlements`, `@authz`, `@contract` each `&@api`) · **After:** 0.4 · **DoD:** E0
 
@@ -59,3 +59,7 @@ This file. Parent: inventory (Tag/Tests for C-02…C-18, K-11, X-03), sprint-sta
 - Owner/parent: decide the admin comment/message 500 (fix Next under the freeze, or record the documented contract as a DV) and un-fixme the two tests.
 - 0.5: un-fixme the K-11 Stripe receipt test.
 - 0.7d: confirm DV-7 wording vs revision-requests' **400** `CONCEPT_NOT_FOUND` for a missing concept.
+
+
+## Parent review (2026-11-19)
+Cherry-picked to main. `npm run check` OK (25 specs, 192 tests). Corrections copied to `brownfield/api-client.md`. The admin-POST 500 is raised as F-17 → DV-14 (fix in Laravel). Lock consolidation (`useScenario`) is handed to the 0.8a agent.
