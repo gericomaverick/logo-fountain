@@ -47,7 +47,7 @@ There is no DV-10 row (F-10 keeps current behaviour).
 |---|---|
 | `@security&@ui` | 7/7 passed (3.1 min) |
 | `@deviation` | 29/29 "passed" = all 29 listed tests failed on Next as expected (17 earlier + 12 new), none passed (2.8 min) |
-| `@ui\|@deviation` (57 tests), one run, default workers | Run 1: 54 passed, 3 failed (J15, J18, DV-UX admin); run 2: 56 passed, 1 failed (J16). Run 2's failure is `timed out waiting for the DB lock` (`adapters/seed.ts:129`, 600 s); all four pass when re-run (5/5 in 1.9 min). See open items |
+| `@ui\|@deviation` (57 tests), one run, default workers | Run 1: 54 passed, 3 failed (J15, J18, DV-UX admin); run 2: 56 passed, 1 failed (J16). Run 2's failure is `timed out waiting for the DB lock` (`adapters/seed.ts:129`, 600 s); all four pass when re-run (5/5 in 1.9 min). Run 3: 55 passed, 2 failed, both in earlier stories' tests: J13 `D-03` (refusal alert read as `""`: the 0.8d overview-poll flake, `admin/projects/[id]/page.tsx:174`) and smoke `A-15` (one `ERR_CONNECTION_REFUSED` from `next dev`). **Every 0.8e test passed in runs 2 and 3.** See open items |
 - Each new deviation test was also run with an **empty** expected list to read its Next failure: every one fails at the deviating assertion (e.g. DV-1 `allow_promotion_codes: null`, DV-2 revisions limit 2, DV-5 `success: https://evil.example`, DV-8 `500`, DV-13 `200`).
 - `npm run check`: OK (57 spec files, 261 titles, 29 expected Next failures). Strict `tsc` (`--strict --noUnusedLocals`, bundler resolution) clean for every new file.
 
