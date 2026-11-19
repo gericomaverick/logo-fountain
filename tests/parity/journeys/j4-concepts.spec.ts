@@ -48,9 +48,11 @@ test("D-06/N-04/C-03/C-08/C-09/N-15 J4 a published concept is emailed, flagged a
   expect(await portal.currentTurn()).toBe("client");
 
   // C-08/C-09: the gallery lists it; the concept's image is a signed object-store URL that really loads.
-  expect(await concepts.openGallery()).toEqual([{ number: 1, version: 1 }]);
+  // Record before the gallery opens: its thumbnail can fetch the same object first, and the concept view then
+  // shows it from the browser cache with no new network response (story 0.9 flake fix).
   const images: Response[] = [];
   page.on("response", (r) => { if (r.request().resourceType() === "image") images.push(r); });
+  expect(await concepts.openGallery()).toEqual([{ number: 1, version: 1 }]);
   await concepts.openConcept(1);
   const image = await concepts.shownImage();
   expect(image).toMatchObject({ naturalWidth: 2, naturalHeight: 2 }); // makePng is 2x2
