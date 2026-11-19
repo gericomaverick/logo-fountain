@@ -25,6 +25,8 @@ npm run test:e2e                                        # last recorded: 5–6 P
 
 ## Session log (newest first, one line each)
 
+- 2026-11-19: Added `RESUME.md` (restart checklist) and a repo-root `CLAUDE.md` pointer.
+
 - 2026-11-19: The owner accepted the architecture: all 28 ADRs → Accepted.
 
 - 2026-11-19: 0.9: FIFO DB lock queue (30 min timeout), J13 race fix, dev warm-up. Full-suite dry run in progress.

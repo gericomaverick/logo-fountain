@@ -3,7 +3,7 @@
 This folder holds the BMAD plan for moving the portal app (`apps/web`, Next.js) to Laravel.
 The marketing site (`apps/site`, Eleventy) is **out of scope** and stays as it is.
 
-**Every agent, every session, reads these in this order before touching anything:**
+**New session or agent? Start with [`RESUME.md`](RESUME.md)** (the restart checklist), then read these in order:
 
 1. `handoff.md`: where the work is right now, what's next and what's blocking it. **Always current.**
 2. `00-migration-plan.md`: goal, constraints, BMAD phase sequence, epics, gates, open decisions.
