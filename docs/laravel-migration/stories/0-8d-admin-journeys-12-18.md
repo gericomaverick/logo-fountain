@@ -1,6 +1,6 @@
 # Story 0.8d: Admin journeys 12–18
 
-Status: review
+Status: done
 
 **Covers:** D-01, D-03, D-05, D-06, D-07, D-11…D-16, D-18, K-12, X-07, X-08, X-13 · **Gate:** `@admin&@ui` · **After:** 0.8a · **DoD:** E0
 
@@ -42,3 +42,7 @@ Status: review
 - **Parent:** update the inventory and ledger for the covered rows, and copy Next points 1–3 and 7 into `brownfield/ui-pages.md` / `api-admin.md` (point 1 corrects ui-pages.md §2).
 - J17 really stops SeaweedFS for a few seconds. Tests that use `db: "none"` and storage could fail in that window if they run in parallel.
 - Laravel admin page objects: Epic 7 (7.1–7.11). STRIPE_FAKE_PUBLIC_URL isn't needed by these journeys (J18 loads the session directly).
+
+
+## Parent review (2026-11-19)
+Merged into main as `7c67fc0` (the pages/index.ts export conflict resolved by keeping both). `npm run check` OK (46 specs, 242 tests). Surprises copied into `brownfield/ui-pages.md` and `api-admin.md`. **For 0.9:** J17 really stops SeaweedFS, so it must run isolated (serial, or its own stack) in the full-suite baseline.

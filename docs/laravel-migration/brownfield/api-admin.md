@@ -104,3 +104,4 @@ The contract tests (`tests/parity/journeys/contract/admin-*.spec.ts`) pin the **
 - GET audit, revision-requests, invoices and concepts return **200 with empty lists** for an unknown project ID, not 404.
 - Unlimited (null) limits appear in `entitlementUsage` as `limit:0, unlimited:true` (`lib/entitlements.ts:26`).
 - Without Postmark configured (non-production), notify returns `503 FINAL_NOTIFICATION_SKIPPED`, while a finals upload returns 200 with `email.status:"skipped"` (503 only in production, `finals/route.ts:236`).
+- (story 0.8d) An upgrade webhook writes the project while it is ON_HOLD, which moves `updatedAt` so a later RESUME is refused as stale (`lib/checkout-fulfillment.ts:278`). Upsell provisioning also requires the buyer to be the client's billing email (`:452`, see F-16).

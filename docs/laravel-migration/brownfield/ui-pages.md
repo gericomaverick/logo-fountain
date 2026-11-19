@@ -80,3 +80,11 @@ Screenshots at 1280 px and 390 px, light and dark: login, dashboard (each sectio
 - After approval the hub badge reads "Approved" (the overview badge state).
 - Signed out, `/project/{id}/messages` still renders its shell with "Unauthorized — Sign in and retry." and no data (client page, API-guarded). Laravel redirects to sign-in instead (DV-UX).
 - The reset email's "one hour" wording is in the HTML part only (`lib/auth/mail.ts:32`), not the text part (`:25-27`).
+
+## Verified by admin journeys 12–18 (story 0.8d, 2026-11-19)
+Paths are under `apps/web/src/app/`.
+- **The admin UI has no Hold or Cancel control**, only Resume (`admin/projects/[id]/page.tsx:365`). It also has **no concept delete or publish control**. Those actions exist only as API endpoints. §2 overstated the admin overview. The Laravel admin workspace (UX §5.2) provides them.
+- An admin's **own** messages count as unread for the admin until Messages is opened (`admin/page.tsx:300,331`).
+- The overview's 2 s poll clears the error alert (`admin/projects/[id]/page.tsx:174`), so errors vanish before they can be read. Not to copy.
+- A lost upload response leaves the concepts page stuck on "Uploading…" (`admin/projects/[id]/concepts/page.tsx:113-130`).
+- Reprocess is only reachable from a stuck project's page (`admin/projects/[id]/page.tsx:510`).
