@@ -1,0 +1,21 @@
+{
+  "A-04": "L3 Pest (clock-controlled absolute session cap) — story 4.1",
+  "A-12": "Pest CLI tests (admin:bootstrap on pgsql_migrate) — story 4.9a",
+  "A-14": "Pest arch/route-list test (only documented auth routes) — story 4.8",
+  "A-18": "L5 Laravel journey (fragment stripped, confirm button) — story 4.9b; Next behaviour exercised by journeys/j2-*",
+  "A-19": "L3 Pest (runtime role cannot change is_admin; email check constraints) — story 2.1",
+  "C-19": "L7 visual baselines + theme first-paint check — stories 1.7, 1.9",
+  "N-14": "Pest mail-view tests (branded layout, HTTPS-only CTAs) — stories 4.4, 8.1",
+  "N-16": "Email matrix run on both apps — story 8.2",
+  "X-04": "Pest config validation (canonical origin, production HTTPS) — story 1.3",
+  "X-05": "Pest trusted-address cases — story 1.5; L9 forged-header check — story 9.1",
+  "X-09": "L3 Pest race tests (advisory locks, bounded retries) — stories 2.4, 4.2, 5.2",
+  "X-10": "L3 Pest + SeaweedFS (conditional PUT, immutability) — story 3.1; live R2 L9 — story 9.5a",
+  "X-11": "Pest (presign expiry bounds, disposition sanitiser) — story 3.1",
+  "X-14": "Pest log/audit scrubber + CI log grep — stories 1.1b, 1.6, 2.4",
+  "X-15": "Pest schema tests (UUID keys, profile id = user id) — story 2.1",
+  "X-17": "L3 Pest (version guard, SERIALIZABLE retries → 409) — story 2.4",
+  "X-18": "Pest (email_sent markers, already_sent) — story 2.7",
+  "X-19": "L3 Pest (concept upload receipts, advisory lock, ambiguous commit) — story 7.5a; Next replay covered by contract/admin-concepts",
+  "DV-3": "None: VAT capture deferred (no behaviour change in migration scope)"
+}

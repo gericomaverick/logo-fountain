@@ -25,6 +25,8 @@ npm run test:e2e                                        # last recorded: 5–6 P
 
 ## Session log (newest first, one line each)
 
+- 2026-11-19: 0.9 started. `npm run coverage` (`tests/parity/scripts/coverage.mjs`) gives 104/108 rows and 5/14 DV rows. 19 Laravel-only destinations are in `fixtures/laravel-only-destinations.json`. Open: K-13 and the DVs (0.8e), and D-04, D-10, X-16 (0.9 tests).
+
 - 2026-11-19: 0.8d merged. All 18 journeys are green on Next. 4 new scenarios (draft-concept, finals-ready-no-approval, stale-hold, admin-queue).
 
 - 2026-11-19: 0.8c merged (journeys 7–11). All customer journeys J1–J11 are green on Next.
