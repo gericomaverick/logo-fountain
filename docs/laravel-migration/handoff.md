@@ -25,6 +25,8 @@ npm run test:e2e                                        # last recorded: 5–6 P
 
 ## Session log (newest first, one line each)
 
+- 2026-11-19: 0.9: FIFO DB lock queue (30 min timeout), J13 race fix, dev warm-up. Full-suite dry run in progress.
+
 - 2026-11-19: 0.8e merged. DV-15 tests written. Coverage 108/108 rows, 15/15 DVs (strict).
 
 - 2026-11-19: Owner approved DV-15 (F-16 webhook hopeless-retry fix) and confirmed DV-14.
