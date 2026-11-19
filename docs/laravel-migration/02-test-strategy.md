@@ -54,9 +54,9 @@ A test may never be edited just to make Laravel pass.
 **Client**
 1. Buy a package → success page polls → setup email (Mailpit) → set password → dashboard shows the project `AWAITING_BRIEF`. (K-01/02/05/06, A-06, N-01, C-01)
 2. Existing account buys again → sign-in link, not setup. (A-06, N-02)
-3. Brief: start, autosave a draft, reload, draft restored, submit → status, system message, admin email. (C-05/06/07, N-15)
+3. Brief: start, autosave a draft, reload, draft restored, submit → status, system message, **no email** (N-13). (C-05/06/07, N-15)
 4. Admin publishes a concept → client gets the email, sees the badge, opens the concept, signed image loads, badge clears. (D-06, N-04, C-08/09/15)
-5. Comment on a concept → admin gets the email. Request a revision → allowance shows reserved → admin marks it delivered → shows consumed, client email. (C-10/11, D-09, K-14, N-05/12)
+5. Comment on a concept (**no email**). Request a revision → allowance shows reserved → admin marks it delivered → shows consumed, client email. (C-10/11, D-09, K-14, N-05/12)
 6. Revisions exhausted → add-on upsell shows → buy (fixture webhook) → banner polls → allowance increases. Upgrade path the same. (C-04, K-08/09/10)
 9. Settings: update the name, see the invoices, change password → every session ends, including the current one. (C-17/18, K-11, A-09)
 8. Messages both ways, with system messages interleaved. (C-14, D-17, N-06/11)
