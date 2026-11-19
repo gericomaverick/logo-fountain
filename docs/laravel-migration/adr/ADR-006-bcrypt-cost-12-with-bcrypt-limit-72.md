@@ -1,6 +1,6 @@
 # ADR-006: bcrypt cost 12 with BCRYPT_LIMIT=72
 
-- **Status:** Proposed (2026-11-18), pending owner review of `architecture.md`
+- **Status:** Accepted (owner, 2026-11-19)
 - **Satisfies:** A-01, FR1
 
 ## Decision

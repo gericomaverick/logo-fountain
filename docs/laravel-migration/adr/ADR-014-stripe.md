@@ -1,6 +1,6 @@
 # ADR-014: Stripe
 
-- **Status:** Proposed (2026-11-18), pending owner review of `architecture.md`
+- **Status:** Accepted (owner, 2026-11-19)
 - **Satisfies:** K-series, DV-1, DV-4, DV-5
 
 ## Decision

@@ -5,7 +5,7 @@
 - **Updated:** 2026-11-18 (night session; the owner is away and asked for autonomous progress with tracking)
 - **Phase:** Epic 0 in progress. **0.1 done** (@smoke 2/2 on Next). **0.3 done** (seams). **0.4 done** (seed). **0.6b done** (rule fixtures, 933 cases). **0.8e done** (12 DV plus 5 abuse tests). DV-15 tests added. **0.8d done** (admin journeys 12–18, 4 new scenarios). **0.8c done** (journeys 7–11, DV-14 test). **0.8b done** (journeys 3–6). **0.8a done** (page objects, J1/J2, unified DB lock: `test.use({ db })`). **0.7d done** (authz 224-cell matrix, origin guard 237, concept-status 26, 16 deviation tests). **0.7b done** (client contracts: 175 pass / 3 fixme). **0.5 done** (webhook 20 tests, 11 Stripe fixtures). **0.7a done** (auth 27 + checkout 10). **0.7c done** (admin contracts 55 pass / 4 fixme). **0.6a done** (267-case upload corpus). **0.2 done** (stack: `cd tests/parity && npm run infra:up|probe|down`; ports PG 55432, Mailpit 58025/SMTP 51025, S3 58333, postmark-shim 58090, stripe-fake 58091; test-only creds in `infra/docker-compose.test.yml`; Next-on-stack recipe in `tests/parity/README.md`).
 - **Running:** none. The parent is finishing 0.9 (lock fairness, flake fixes, 3-run baseline, CI workflow).
-- **Next:** 0.8b–e journeys (after 0.8a) → 0.9 coverage gate and 3-run baseline. **Owner decisions:** F-16 → DV-15 approved, and DV-14 confirmed (both 2026-11-19). DV-15 deviation tests to be added after 0.8e merges. Epic 1 after Epic 0 plus the owner's ADR review.
+- **Next:** 0.8b–e journeys (after 0.8a) → 0.9 coverage gate and 3-run baseline. **Owner decisions:** F-16 → DV-15 approved, and DV-14 confirmed (both 2026-11-19). DV-15 deviation tests to be added after 0.8e merges. Epic 1 starts after Epic 0. **The architecture (28 ADRs) was accepted by the owner on 2026-11-19.**
 - **Run the suite:** `cd tests/parity && npm ci && PARITY_TARGET=next PARITY_START_NEXT=1 node scripts/run.mjs "@smoke"`.
 - **Owner items:** unchanged (see the previous entry in the session log).
 
@@ -24,6 +24,8 @@ npm run test:e2e                                        # last recorded: 5–6 P
 | 2026-11-18 | **107 files (103 passed, 4 skipped opt-in PG); 722 passed, 20 skipped.** typecheck ✓, lint ✓ (0 warnings) | not re-run (Playwright needs a dev server) | n/a (suite not built) | n/a | Re-verified for readiness m24. Earlier "95 files / 614" in TODO.md is stale |
 
 ## Session log (newest first, one line each)
+
+- 2026-11-19: The owner accepted the architecture: all 28 ADRs → Accepted.
 
 - 2026-11-19: 0.9: FIFO DB lock queue (30 min timeout), J13 race fix, dev warm-up. Full-suite dry run in progress.
 

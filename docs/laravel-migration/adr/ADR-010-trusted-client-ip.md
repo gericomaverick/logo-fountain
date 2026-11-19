@@ -1,6 +1,6 @@
 # ADR-010: Trusted client IP
 
-- **Status:** Proposed (2026-11-18), pending owner review of `architecture.md`
+- **Status:** Accepted (owner, 2026-11-19)
 - **Satisfies:** X-05, A-17, FR57
 
 ## Decision

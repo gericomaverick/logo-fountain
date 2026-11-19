@@ -1,6 +1,6 @@
 # ADR-002: Inertia v3 + React 19 + TypeScript
 
-- **Status:** Proposed (2026-11-18), pending owner review of `architecture.md`
+- **Status:** Accepted (owner, 2026-11-19)
 - **Satisfies:** D2, DV-UX
 
 ## Decision

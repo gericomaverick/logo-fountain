@@ -1,6 +1,6 @@
 # ADR-022: Design system as code
 
-- **Status:** Proposed (2026-11-18), pending owner review of `architecture.md`
+- **Status:** Accepted (owner, 2026-11-19)
 - **Satisfies:** DV-UX, NFR-A1…A4
 
 ## Decision

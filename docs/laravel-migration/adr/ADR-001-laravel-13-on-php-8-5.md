@@ -1,6 +1,6 @@
 # ADR-001: Laravel 13 on PHP 8.5
 
-- **Status:** Proposed (2026-11-18), pending owner review of `architecture.md`
+- **Status:** Accepted (owner, 2026-11-19)
 - **Satisfies:** NFR-S6, NFR-M1
 
 ## Decision

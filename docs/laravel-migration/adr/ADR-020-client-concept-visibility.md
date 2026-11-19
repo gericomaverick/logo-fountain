@@ -1,6 +1,6 @@
 # ADR-020: Client concept visibility
 
-- **Status:** Proposed (2026-11-18), pending owner review of `architecture.md`
+- **Status:** Accepted (owner, 2026-11-19)
 - **Satisfies:** DV-7, FR26–FR28, FR34
 
 ## Decision

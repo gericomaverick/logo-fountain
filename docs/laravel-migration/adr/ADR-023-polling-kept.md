@@ -1,6 +1,6 @@
 # ADR-023: Polling kept
 
-- **Status:** Proposed (2026-11-18), pending owner review of `architecture.md`
+- **Status:** Accepted (owner, 2026-11-19)
 - **Satisfies:** C-03, D-02, D-16
 
 ## Decision

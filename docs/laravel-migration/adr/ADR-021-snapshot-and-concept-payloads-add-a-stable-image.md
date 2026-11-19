@@ -1,6 +1,6 @@
 # ADR-021: Snapshot and concept payloads add a stable imageKey
 
-- **Status:** Proposed (2026-11-18), pending owner review of `architecture.md`
+- **Status:** Accepted (owner, 2026-11-19)
 - **Satisfies:** DV-12, FR54
 
 ## Decision

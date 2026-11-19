@@ -1,6 +1,6 @@
 # ADR-026: Observability
 
-- **Status:** Proposed (2026-11-18), pending owner review of `architecture.md`
+- **Status:** Accepted (owner, 2026-11-19)
 - **Satisfies:** ops
 
 ## Decision

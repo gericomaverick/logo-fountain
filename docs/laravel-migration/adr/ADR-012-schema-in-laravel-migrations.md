@@ -1,6 +1,6 @@
 # ADR-012: Schema in Laravel migrations
 
-- **Status:** Proposed (2026-11-18), pending owner review of `architecture.md`
+- **Status:** Accepted (owner, 2026-11-19)
 - **Satisfies:** data model, A-19, X-15
 
 ## Decision

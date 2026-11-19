@@ -1,6 +1,6 @@
 # ADR-016: R2 through the AWS SDK for PHP v3 directly
 
-- **Status:** Proposed (2026-11-18), pending owner review of `architecture.md`
+- **Status:** Accepted (owner, 2026-11-19)
 - **Satisfies:** X-10…X-13, FR51–FR52
 
 ## Decision

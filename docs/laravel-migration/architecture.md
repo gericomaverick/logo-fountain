@@ -7,7 +7,7 @@ inputDocuments:
   - docs/laravel-migration/ux-design.md
   - docs/laravel-migration/02-test-strategy.md
 workflow: bmad-bmm-create-architecture (BMAD step 3.1)
-status: Draft for owner review
+status: Accepted by the owner 2026-11-19 (all 28 ADRs)
 date: 2026-11-18
 ---
 
@@ -190,4 +190,4 @@ tests/parity/   (repo root: shared Playwright suite, adapters, page objects, fix
   3. nginx overwrite of `cf-connecting-ip` / forged-header test (L9).
   4. Whether Sfizia's licence covers app use (owner).
   5. Server size.
-- **Readiness:** checked 2026-11-18 (reports/readiness-report.md: READY WITH CONDITIONS; doc fixes applied). Remaining conditions are owner reviews: ADRs Proposed → Accepted, the Sfizia licence, key-screen approval before Epics 6 and 7.
+- **Readiness:** checked 2026-11-18 (reports/readiness-report.md: READY WITH CONDITIONS; doc fixes applied). **Architecture accepted by the owner on 2026-11-19.** Remaining owner conditions: the Sfizia licence (before 1.7), key-screen approval and the one-project shortcut (before Epics 6 and 7), turnaround copy.

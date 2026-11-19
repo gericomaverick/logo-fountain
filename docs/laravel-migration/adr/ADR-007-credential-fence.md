@@ -1,6 +1,6 @@
 # ADR-007: Credential fence
 
-- **Status:** Proposed (2026-11-18), pending owner review of `architecture.md`
+- **Status:** Accepted (owner, 2026-11-19)
 - **Satisfies:** A-10, FR10
 
 ## Decision

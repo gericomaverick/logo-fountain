@@ -1,6 +1,6 @@
 # ADR-005: 7-day absolute session cap enforced by middleware
 
-- **Status:** Proposed (2026-11-18), pending owner review of `architecture.md`
+- **Status:** Accepted (owner, 2026-11-19)
 - **Satisfies:** A-03, A-04, FR7
 
 ## Decision

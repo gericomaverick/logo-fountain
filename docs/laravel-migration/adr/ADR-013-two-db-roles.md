@@ -1,6 +1,6 @@
 # ADR-013: Two DB roles
 
-- **Status:** Proposed (2026-11-18), pending owner review of `architecture.md`
+- **Status:** Accepted (owner, 2026-11-19)
 - **Satisfies:** O-06, A-12, FR9
 
 ## Decision

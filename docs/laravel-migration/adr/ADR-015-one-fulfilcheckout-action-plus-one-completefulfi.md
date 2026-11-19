@@ -1,6 +1,6 @@
 # ADR-015: One FulfilCheckout action plus one CompleteFulfilmentSideEffects action
 
-- **Status:** Proposed (2026-11-18), pending owner review of `architecture.md`
+- **Status:** Accepted (owner, 2026-11-19)
 - **Satisfies:** K-05…K-12
 
 ## Decision

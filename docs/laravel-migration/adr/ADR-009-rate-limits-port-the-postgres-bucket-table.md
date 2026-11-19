@@ -1,6 +1,6 @@
 # ADR-009: Rate limits port the Postgres bucket table
 
-- **Status:** Proposed (2026-11-18), pending owner review of `architecture.md`
+- **Status:** Accepted (owner, 2026-11-19)
 - **Satisfies:** X-06, NFR-S4
 
 ## Decision
