@@ -25,6 +25,8 @@ npm run test:e2e                                        # last recorded: 5–6 P
 
 ## Session log (newest first, one line each)
 
+- 2026-11-19: 0.8b/c/d cut off by the usage limit again, then resumed with instructions to push their story branches as they go.
+
 - 2026-11-19: 0.8a merged. One DB lock for all specs; combined 12-worker run 433 passed, 0 failed.
 
 - 2026-11-19: 0.7d merged (all 0.7 contract suites done). The DV-7 wording now uses the route's own missing-concept response.
