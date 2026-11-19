@@ -77,3 +77,5 @@ export { messagesPagesFor, type MessageEntry, type MessagesPages } from "./messa
 export { accountPagesFor, settingsPagesFor, type AccountPages, type InvoiceRow, type SettingsPages } from "./settings";
 // Admin page objects (story 0.8d): adminPagesFor(page), interfaces in ./admin.
 export * from "./admin";
+// Story 0.8e: navigation and sign-in edges (abuse cases 19/21, DV-UX landings); interface and resolver in ./navigation.
+export { navigationPagesFor, type NavigationPages } from "./navigation";
