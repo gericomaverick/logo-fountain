@@ -1,6 +1,6 @@
 # Story 0.7d: Authorisation matrix plus DV-7
 
-Status: review
+Status: done
 
 **Covers:** C-20, D-20, A-16, X-01, DV-7 (+ DV-14) · **Gate:** `@authz&@api`, `@security&@api` (+ `@deviation`) · **After:** 0.7a–c · **DoD:** E0
 
@@ -42,3 +42,7 @@ Status: review
 - Generated titles must start with a literal ID (`check-structure.mjs` parses source titles), and deviation titles must be fully literal so they can be listed.
 - The Origin sweeps don't seed (the guard answers before I/O). Everything else reseeds per test through `useScenario`, so run with `--workers=1` until the shared DB lock lands in `fixtures.ts`.
 - The old `test.fixme` admin-reply tests in `client-concepts.spec.ts:80` and `client-messages.spec.ts:65` duplicate the DV-14 tests. The parent can delete them (not my files).
+
+
+## Parent review (2026-11-19)
+Cherry-picked to main. `npm run check` OK (28 specs, 221 tests, 16 expected failures). Confirmed the reading of DV-7 ("indistinguishable" = the route's own missing-concept response) and updated the inventory row. Note for story 2.6: `concept-statuses` must be inserted as given (no state checks), with v1 files and objects for every concept, and deleted means `status=deleted`.

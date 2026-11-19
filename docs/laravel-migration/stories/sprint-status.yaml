@@ -26,7 +26,7 @@ development_status:
   0-7a-contract-suite-auth-checkout-webhook: done
   0-7b-contract-suite-client-project-endpoints-plus-the-snapshot-sc: done
   0-7c-contract-suite-admin-endpoints: done
-  0-7d-authorisation-matrix-plus-dv-7: backlog
+  0-7d-authorisation-matrix-plus-dv-7: done
   0-8a-page-objects-adapters-journeys-1-2: backlog
   0-8b-journeys-3-6-brief-concepts-revisions-upsell: backlog
   0-8c-journeys-7-11-approval-finals-messages-settings-reset-and-lo: backlog

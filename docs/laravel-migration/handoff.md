@@ -3,8 +3,8 @@
 ## Now (overwrite this section at the end of every session)
 
 - **Updated:** 2026-11-18 (night session; the owner is away and asked for autonomous progress with tracking)
-- **Phase:** Epic 0 in progress. **0.1 done** (@smoke 2/2 on Next). **0.3 done** (seams). **0.4 done** (seed). **0.6b done** (rule fixtures, 933 cases). **0.7b done** (client contracts: 175 pass / 3 fixme). **0.5 done** (webhook 20 tests, 11 Stripe fixtures). **0.7a done** (auth 27 + checkout 10). **0.7c done** (admin contracts 55 pass / 4 fixme). **0.6a done** (267-case upload corpus). **0.2 done** (stack: `cd tests/parity && npm run infra:up|probe|down`; ports PG 55432, Mailpit 58025/SMTP 51025, S3 58333, postmark-shim 58090, stripe-fake 58091; test-only creds in `infra/docker-compose.test.yml`; Next-on-stack recipe in `tests/parity/README.md`).
-- **Running (sub-agents):** 0.8a page objects, journeys 1–2 and the unified DB lock (compose `lf08a`, Next 4360) · 0.7d authz matrix plus DV-7/DV-14 deviation tests (compose `lf07d`, Next 4370).
+- **Phase:** Epic 0 in progress. **0.1 done** (@smoke 2/2 on Next). **0.3 done** (seams). **0.4 done** (seed). **0.6b done** (rule fixtures, 933 cases). **0.7d done** (authz 224-cell matrix, origin guard 237, concept-status 26, 16 deviation tests). **0.7b done** (client contracts: 175 pass / 3 fixme). **0.5 done** (webhook 20 tests, 11 Stripe fixtures). **0.7a done** (auth 27 + checkout 10). **0.7c done** (admin contracts 55 pass / 4 fixme). **0.6a done** (267-case upload corpus). **0.2 done** (stack: `cd tests/parity && npm run infra:up|probe|down`; ports PG 55432, Mailpit 58025/SMTP 51025, S3 58333, postmark-shim 58090, stripe-fake 58091; test-only creds in `infra/docker-compose.test.yml`; Next-on-stack recipe in `tests/parity/README.md`).
+- **Running (sub-agents):** 0.8a page objects, journeys 1–2 and the unified DB lock (compose `lf08a`, Next 4360).
 - **Next:** 0.8b–e journeys (after 0.8a) → 0.9 coverage gate and 3-run baseline. **Owner decisions pending:** F-16 (webhook retry-forever cases, before 5.5) and the DV-14 veto (if any). Epic 1 after Epic 0 plus the owner's ADR review.
 - **Run the suite:** `cd tests/parity && npm ci && PARITY_TARGET=next PARITY_START_NEXT=1 node scripts/run.mjs "@smoke"`.
 - **Owner items:** unchanged (see the previous entry in the session log).
@@ -24,6 +24,8 @@ npm run test:e2e                                        # last recorded: 5–6 P
 | 2026-11-18 | **107 files (103 passed, 4 skipped opt-in PG); 722 passed, 20 skipped.** typecheck ✓, lint ✓ (0 warnings) | not re-run (Playwright needs a dev server) | n/a (suite not built) | n/a | Re-verified for readiness m24. Earlier "95 files / 614" in TODO.md is stale |
 
 ## Session log (newest first, one line each)
+
+- 2026-11-19: 0.7d merged (all 0.7 contract suites done). The DV-7 wording now uses the route's own missing-concept response.
 
 - 2026-11-19: 0.7d and 0.8a were cut off by an account usage limit, then resumed after it reset.
 

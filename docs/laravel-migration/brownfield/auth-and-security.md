@@ -63,7 +63,7 @@ All auth endpoints respond through `authJson`: headers `Cache-Control: no-store`
 
 ## 5. Mutation Origin guard (`lib/request-origin.ts`)
 
-Applied to **23 route files** (every cookie-authenticated mutation). It runs **before** auth, body parsing and I/O.
+Applied to **29 route files / 30 endpoints** (verified by `origin-guard.spec.ts`, story 0.7d; includes the 6 `authMutation` auth endpoints and brief/draft PUT and DELETE) (every cookie-authenticated mutation). It runs **before** auth, body parsing and I/O.
 - Canonical origin = `getSecuritySensitivePublicOrigin()`:
   - `PUBLIC_SITE_URL` set: it must parse, be http(s) and have no credentials, otherwise 503. In production it **must be https**, otherwise 503.
   - Not set: in non-production, the request's own origin, but only if it's loopback (`localhost`, `127.0.0.1`, `[::1]`). Default `http://localhost:3000` when there's no request. In production, not set → 503 `PUBLIC_SITE_URL_REQUIRED` ("Request validation is temporarily unavailable.").

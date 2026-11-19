@@ -126,3 +126,5 @@ Pinned by `tests/parity/journeys/contract/webhook-*.spec.ts`. Paths are under `a
 5. A new session reusing a payment-intent ID hits the `@unique` constraint (`prisma/schema.prisma:128`) and is also retried forever as transient.
 6. Read from code, not tested: an upsell paid with an email that differs from the client's billing email commits the order, then fails provisioning (`lib/checkout-fulfillment.ts:452`). Every retry dedupes and fails again, so the 500 repeats forever. **Finding F-16** (owner decision before story 5.5).
 7. More than 5 parallel sign-ins of one account are refused even with the right password (`lib/auth/rate-limit.ts:46`, failure bucket reserved before the check).
+
+8. (story 0.7d) Admin reprocess with a session Stripe doesn't know returns an uncaught **500** (`app/api/admin/checkout/reprocess/route.ts:27,63`). A missing `session_id` returns 400 with **no** error code (`:24`).

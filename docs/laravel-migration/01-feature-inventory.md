@@ -33,7 +33,7 @@ Actors: **P** public / anonymous · **C** client (project member) · **A** admin
 | A-17 | S | Production fail-closed: auth endpoints return `503 AUTH_UNAVAILABLE` when no trusted client address can be derived. Auth JSON wrapper: `application/json` required (`400 INVALID_JSON`), 8192-byte body cap (`413 PAYLOAD_TOO_LARGE`), generic error message, `no-store` and `no-referrer` headers | `lib/auth/http.ts` | `@auth @security` | | Not started (contract: `contract/auth-session.spec.ts`, `auth-links.spec.ts`) |
 | A-18 | C | Magic-link callback asks for an explicit "Confirm sign-in" click (so link scanners can't burn it). Tokens are read from the URL **fragment** and removed from history before rendering | `app/auth/callback`, `lib/auth/client.ts` | `@auth @security` | | Not started |
 | A-19 | S | DB trigger: only the migration (owner) role can set or change `profiles.is_admin`. Email check constraints (lowercase and trimmed) | `prisma/migrations/20260901000000_portable_core` | `@pg-race @security` | | Not started |
-| A-16 | C/A | Route guards: pages and APIs require a session. Admin areas require `isAdmin`. SSR guards and API checks are both enforced | `lib/auth/require.ts`, `app/admin/layout.tsx` | `@authz` | | Not started |
+| A-16 | C/A | Route guards: pages and APIs require a session. Admin areas require `isAdmin`. SSR guards and API checks are both enforced | `lib/auth/require.ts`, `app/admin/layout.tsx` | `@authz` | | Not started (matrix: `contract/authz-matrix.spec.ts`, `origin-guard.spec.ts`) |
 
 ## K: Checkout, payments, entitlements
 
@@ -77,7 +77,7 @@ Actors: **P** public / anonymous · **C** client (project member) · **A** admin
 | C-17 | C | Settings `/settings`: profile `GET/PUT /api/profile` (first and last name only, max 80; **no VAT field exists**, finding F-3), change password (A-09) | `app/settings`, `api/profile` | `@settings` | | Not started (contract: `contract/client-*.spec.ts`) |
 | C-18 | C | Invoices page `/settings/invoices` (K-11) | `app/settings/invoices` | `@invoices` | | Not started (contract: `contract/client-*.spec.ts`) |
 | C-19 | C/A | App frame, header nav, theme switcher (light/dark), feature notice cards, status badges, premium design tokens | `components/app-frame.tsx`, `header-nav.tsx`, `theme-switcher.tsx`, `ui.tsx`, `app/globals.css` | `@visual` `@deviation` | | Not started (DV-UX) |
-| C-20 | C | Tenant isolation: a client can never read or mutate another client's project, concept, asset, message or invoice | all `api/projects/**` | `@authz` | | Not started |
+| C-20 | C | Tenant isolation: a client can never read or mutate another client's project, concept, asset, message or invoice | all `api/projects/**` | `@authz` | | Not started (matrix: `contract/authz-matrix.spec.ts`, `origin-guard.spec.ts`) |
 
 ## D: Admin portal
 
@@ -102,7 +102,7 @@ Actors: **P** public / anonymous · **C** client (project member) · **A** admin
 | D-17 | A | Admin messages `/admin/projects/[id]/messages`: reply in the right thread, client email "New message from your Logo Fountain designer" | `app/admin/projects/[id]/messages` | `@admin @messages` | | Not started (contract: `journeys/contract/admin-*.spec.ts`) |
 | D-18 | A | Health `/admin/health`, `GET /api/admin/health` (env config, DB, Stripe account check, R2 bucket HEAD; no secrets leaked). Public `GET /api/health` | `app/admin/health`, `api/admin/health`, `api/health`, `docs/admin-health.md` | `@admin @ops` | | Not started (contract: `journeys/contract/admin-*.spec.ts`) |
 | D-19 | A | Admin invoices view (K-11) | `api/admin/projects/[id]/invoices` | `@admin @invoices` | | Not started (contract: `journeys/contract/admin-*.spec.ts`) |
-| D-20 | A | Admin-only enforcement on every `/admin/**` page and `/api/admin/**` route | `app/admin/layout.tsx`, `lib/auth/admin.ts` | `@authz` | | Not started (contract: `journeys/contract/admin-*.spec.ts`) |
+| D-20 | A | Admin-only enforcement on every `/admin/**` page and `/api/admin/**` route | `app/admin/layout.tsx`, `lib/auth/admin.ts` | `@authz` | | Not started (contract: `journeys/contract/admin-*.spec.ts`) (matrix: `contract/authz-matrix.spec.ts`, `origin-guard.spec.ts`) |
 
 ## N: Notifications (email and system messages)
 
@@ -129,7 +129,7 @@ Actors: **P** public / anonymous · **C** client (project member) · **A** admin
 
 | ID | Feature and behaviour to preserve | Next.js source | Tag | Status |
 |---|---|---|---|---|
-| X-01 | Mutation Origin and Referer guard runs **before** auth, body parsing or I/O. `403 INVALID_ORIGIN`, `503 PUBLIC_SITE_URL_REQUIRED`. The documented exemptions (webhook, checkout email flows, `/checkout/start`, GETs, health) | `lib/request-origin.ts`, `docs/security-boundaries.md` | `@security` | Not started (contract: `contract/auth-session.spec.ts`, `auth-links.spec.ts`) |
+| X-01 | Mutation Origin and Referer guard runs **before** auth, body parsing or I/O. `403 INVALID_ORIGIN`, `503 PUBLIC_SITE_URL_REQUIRED`. The documented exemptions (webhook, checkout email flows, `/checkout/start`, GETs, health) | `lib/request-origin.ts`, `docs/security-boundaries.md` | `@security` | Not started (contract: `contract/auth-session.spec.ts`, `auth-links.spec.ts`) (matrix: `contract/authz-matrix.spec.ts`, `origin-guard.spec.ts`) |
 | X-02 | Response headers: report-only CSP (same directives), X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy. `no-referrer` and `no-store` on `/auth/callback`, `/set-password`, `/reset-password` | `next.config.ts` | `@security` | Not started (test: `parity/journeys/smoke.spec.ts:8`) |
 | X-03 | JSON error shape `{error:{message,code?,details?}}` and status codes per endpoint | `lib/api-error.ts` | `@contract` | Not started (contract: `contract/client-*.spec.ts`) |
 | X-04 | Canonical origin from server-only `PUBLIC_SITE_URL` (HTTPS in production). Loopback-only HTTP in dev | `lib/request-origin.ts` | `@security` | Not started |
@@ -175,7 +175,7 @@ These rows deliberately **don't** reproduce today's behaviour. Their parity test
 | DV-4 | K-01, K-06 | `campaign_slug` stays in Stripe metadata only | Copied to `project_orders.campaign_slug` on package fulfilment | Recommendation (F-4) |
 | DV-5 | K-01, K-08 | Stripe success and cancel URLs come from forwarded headers | Built from the canonical `PUBLIC_SITE_URL` (and the marketing URL for cancel) | Recommendation (F-5) |
 | DV-6 | K-12 | Admin reprocess sends no emails | Reprocess runs the **same post-fulfilment steps as the webhook** (one shared action): customer setup or sign-in email and the admin new-project email, with the same idempotency markers, so a retry never double-sends | Owner (F-6) |
-| DV-7 | C-09, C-10, C-11 (and every client route that takes a concept ID) | A client can reach draft or deleted concepts by UUID | **Can't happen, by construction:** client routes resolve concepts only through one `visibleToClient` scope (`published`, `approved`). Anything else → `404 CONCEPT_NOT_FOUND`, indistinguishable from a missing concept. Revision requests need `published`. Enforced by (1) the scope plus a policy, (2) a Pest architecture test that client controllers never query concepts or concept files outside the scope, and (3) an L6 matrix test: every client endpoint × concept status (draft, deleted, archived, published, approved) | Owner (F-7) |
+| DV-7 | C-09, C-10, C-11 (and every client route that takes a concept ID) | A client can reach draft or deleted concepts by UUID | **Can't happen, by construction:** client routes resolve concepts only through one `visibleToClient` scope (`published`, `approved`). Anything else gets **exactly the response that route gives for a non-existent concept** (byte-identical body: 404 `CONCEPT_NOT_FOUND` for assets/comments/approve, 400 `CONCEPT_NOT_FOUND` for revision requests; unknown-concept assets become 404, no longer `200 []`). Pinned by `contract/concept-status-matrix.spec.ts`. Revision requests need `published`. Enforced by (1) the scope plus a policy, (2) a Pest architecture test that client controllers never query concepts or concept files outside the scope, and (3) an L6 matrix test: every client endpoint × concept status (draft, deleted, archived, published, approved) | Owner (F-7) |
 | DV-8 | N-04…N-12 | Emails sent inline after commit | Queued jobs dispatched after commit, with retries. Same recipients, subjects, markers | Recommendation (F-8) |
 | DV-9 | D-08, N-05 | A revision delivered by **upload** sends no client email | The revision upload sends "Your revised concept is ready" **once per upload** (marker `email_sent:client_revision_ready:upload:{fileAssetId}`). The mark-delivered route keeps its per-request marker | Owner (F-9) |
 | DV-11 | D-11 | The finals upload returns `{error:"…", code}` in three places | The standard `{error:{message, code}}` everywhere | Recommendation (F-11) |
