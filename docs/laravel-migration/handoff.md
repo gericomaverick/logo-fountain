@@ -25,6 +25,8 @@ npm run test:e2e                                        # last recorded: 5–6 P
 
 ## Session log (newest first, one line each)
 
+- 2026-11-19: The baseline failed twice at the end of the queue (9 DB lease timeouts per run). Fixed: lease fixture timeout (`6178dea`); idle workers holding file-scoped shared leases (`bed6ea2`). **Baseline restarted** (scratchpad `baseline3.log`; same commands as below).
+
 - 2026-11-19: Dry run 708 pass / 14 fail. Root causes fixed (`db9801f`): blocking spawn froze the webhook forwarder, unbounded networkidle waits, the J4 F-15 race. **3-run baseline started in the background** (log: session scratchpad `baseline.log`; if the session restarts, re-run with `node scripts/next-stack.mjs --repeat 3 -- --grep-invert "@disruptive|@stripe-live-test"`, then `"@disruptive" --repeat 3 -- --workers=1`).
 
 - 2026-11-19: Added `RESUME.md` (restart checklist) and a repo-root `CLAUDE.md` pointer.
