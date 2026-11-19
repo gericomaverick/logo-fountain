@@ -2,7 +2,7 @@
 // …/concepts/page.tsx (concepts manager), …/audit/page.tsx (polls every 2.5 s), app/admin/health/page.tsx.
 // Where the Next UI has NO control for an action the API offers, the object sends that same request from the
 // signed-in browser session (cookies + Origin, like the page's own fetch) and reloads; each such place says so.
-import type { Dialog, Page, Response } from "@playwright/test";
+import type { Dialog, Locator, Page, Response } from "@playwright/test";
 import type {
   AdminAllowance, AdminAuditEntry, AdminConcept, AdminHealthArea, AdminOutcome, AdminPages, AdminQueueRow, AdminQueueSection, AdminSection,
 } from "../admin";
@@ -53,7 +53,8 @@ export function createAdmin(page: Page): AdminPages {
     return { res, body };
   };
   const alertText = async () => {
-    const alert = page.getByRole("alert").first();
+    // Skip Next's (empty) route announcer, which also has role=alert.
+    const alert = page.getByRole("alert").filter({ hasText: /\S/ }).first();
     await alert.waitFor({ timeout: 5_000 }).catch(() => {});
     return (await alert.isVisible()) ? (await alert.innerText()).trim() : "";
   };
@@ -208,9 +209,13 @@ export function createAdmin(page: Page): AdminPages {
     async retryFinalNotification() {
       await ensureSection("files");
       const id = projectId();
+      // While an earlier action is still refreshing the project, the button reads "Sending…" (page.tsx:484).
       const button = page.getByRole("button", { name: "Send/retry client notification" });
+      await button.waitFor({ timeout: 10_000 }).catch(() => {});
       if (!(await button.isVisible())) return NOT_OFFERED("notification retry");
+      await waitEnabled(button);
       const { res } = await act(() => button.click(), (r) => new URL(r.url()).pathname === `/api/admin/projects/${id}/finals/notify`);
+      await button.waitFor({ timeout: 10_000 }); // idle again only after the page refreshed the project
       if (!res.ok()) return { done: false, message: await alertText() };
       await finalsSection().getByText("Final deliverables published").waitFor();
       return { done: true };
@@ -293,6 +298,11 @@ export function createAdmin(page: Page): AdminPages {
     },
   };
   return self;
+}
+
+/** Buttons stay disabled while the page's `busy` flag is set (an earlier action's refresh). */
+async function waitEnabled(locator: Locator) {
+  for (let i = 0; i < 100 && !(await locator.isEnabled()); i++) await locator.page().waitForTimeout(100);
 }
 
 /** health/route.ts labels: env checks are the variable names; then "Database connectivity", "Stripe …", "Private R2 bucket: …". */
