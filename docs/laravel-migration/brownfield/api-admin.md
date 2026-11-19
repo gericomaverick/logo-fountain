@@ -94,3 +94,13 @@ Checks: env presence for `BETTER_AUTH_SECRET` (Laravel: `APP_KEY`), `R2_ACCOUNT_
 | F-10 | `draft` concepts and the publish route are a legacy path with no current UI entry. Upload publishes immediately | Port them for parity (seeded drafts and contract tests), and mark them in the inventory |
 | F-11 | The finals upload uses `{error:"…", code}` (string `error`) in three responses, unlike `{error:{message,code}}` everywhere else | Laravel: normalise to the standard shape **only if** the admin UI is updated in the same story (log a deviation). Otherwise reproduce |
 | F-12 | Finals re-upload while `FINAL_FILES_READY` re-sends the "final files ready" email every time | Keep (it's arguably correct for a repair), and document it |
+
+## Corrections verified by the contract suite (story 0.7c, 2026-11-19)
+
+The contract tests (`tests/parity/journeys/contract/admin-*.spec.ts`) pin the **actual** Next behaviour, and Laravel must match these:
+- Idempotent publish returns `{ok, concept, projectStatus:null}`, with no `publishedNow` field (`app/api/admin/projects/[id]/concepts/[conceptId]/publish/route.ts:43,104`).
+- **Every** refused status transition (e.g. CANCELLED→ON_HOLD, DELIVERED→CANCELLED) returns `409 INVALID_HOLD_RESUME`, not only resume failures (`…/status/route.ts:59,76`).
+- Concept upload: the same abort codes return **400** when raised inside the transaction and **409** from the pre-checks (`…/concepts/route.ts:369`). `FILE_REQUIRED` is checked **before** `REQUEST_KEY_REQUIRED` (`:176`).
+- GET audit, revision-requests, invoices and concepts return **200 with empty lists** for an unknown project ID, not 404.
+- Unlimited (null) limits appear in `entitlementUsage` as `limit:0, unlimited:true` (`lib/entitlements.ts:26`).
+- Without Postmark configured (non-production), notify returns `503 FINAL_NOTIFICATION_SKIPPED`, while a finals upload returns 200 with `email.status:"skipped"` (503 only in production, `finals/route.ts:236`).

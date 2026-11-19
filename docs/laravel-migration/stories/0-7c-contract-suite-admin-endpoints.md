@@ -1,6 +1,6 @@
 # Story 0.7c: Contract suite: admin endpoints
 
-Status: review
+Status: done
 
 **Covers:** D-01…D-19, K-12 (+ D-20/X-01 guards) · **Gate:** `@admin&@api` · **After:** 0.4 (0.5 for reprocess success) · **DoD:** E0
 
@@ -30,3 +30,8 @@ Status: review
 ## Gotchas
 - Worktree `next dev` needs `--webpack`: Turbopack rejects the symlinked `node_modules` (root is `apps/web`).
 - Shared scratchpad directories collide between parallel agents; keep stack scripts in a per-story subfolder.
+
+
+## Parent review (2026-11-19)
+Cherry-picked to main. `npm run check` OK (10 specs, 61 tests). The Next-vs-doc corrections were copied into `brownfield/api-admin.md`.
+**Follow-ups (assigned to 0.8a):** move the DB run-lock from `_admin-helpers.ts` into `fixtures.ts`, so every API suite serialises on the shared DB. **Assigned to 0.8d:** add scenarios with a draft concept, FINAL_FILES_READY without an approved concept, and a stale hold, then turn the 4 fixme cases into real tests.
