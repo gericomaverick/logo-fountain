@@ -25,6 +25,8 @@ npm run test:e2e                                        # last recorded: 5–6 P
 
 ## Session log (newest first, one line each)
 
+- 2026-11-19: All 5 running agents (0.5, 0.6a, 0.7a, 0.7b, 0.7c) were cut off by an account usage limit and resumed after it reset. If any story looks half-done, check its worktree under `.claude/worktrees/`.
+
 - 2026-11-19: 0.2 merged (offline stack; SeaweedFS conditional PUT verified).
 
 - 2026-11-18: 0.6b merged (rule fixtures, 933 cases).
