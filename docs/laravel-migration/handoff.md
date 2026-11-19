@@ -4,7 +4,7 @@
 
 - **Updated:** 2026-11-18 (night session; the owner is away and asked for autonomous progress with tracking)
 - **Phase:** Epic 0 in progress. **0.1 done** (@smoke 2/2 on Next). **0.3 done** (seams). **0.4 done** (seed). **0.6b done** (rule fixtures, 933 cases). **0.8d done** (admin journeys 12–18, 4 new scenarios). **0.8c done** (journeys 7–11, DV-14 test). **0.8b done** (journeys 3–6). **0.8a done** (page objects, J1/J2, unified DB lock: `test.use({ db })`). **0.7d done** (authz 224-cell matrix, origin guard 237, concept-status 26, 16 deviation tests). **0.7b done** (client contracts: 175 pass / 3 fixme). **0.5 done** (webhook 20 tests, 11 Stripe fixtures). **0.7a done** (auth 27 + checkout 10). **0.7c done** (admin contracts 55 pass / 4 fixme). **0.6a done** (267-case upload corpus). **0.2 done** (stack: `cd tests/parity && npm run infra:up|probe|down`; ports PG 55432, Mailpit 58025/SMTP 51025, S3 58333, postmark-shim 58090, stripe-fake 58091; test-only creds in `infra/docker-compose.test.yml`; Next-on-stack recipe in `tests/parity/README.md`).
-- **Running (sub-agents):** 0.8e abuse cases plus the remaining DV deviation tests.
+- **Running (sub-agents):** 0.8e abuse cases plus the remaining DV deviation tests (compose `lf08e`, Next 4410). Launched 2026-11-19 after 0.8d.
 - **Next:** 0.8b–e journeys (after 0.8a) → 0.9 coverage gate and 3-run baseline. **Owner decisions pending:** F-16 (webhook retry-forever cases, before 5.5) and the DV-14 veto (if any). Epic 1 after Epic 0 plus the owner's ADR review.
 - **Run the suite:** `cd tests/parity && npm ci && PARITY_TARGET=next PARITY_START_NEXT=1 node scripts/run.mjs "@smoke"`.
 - **Owner items:** unchanged (see the previous entry in the session log).
