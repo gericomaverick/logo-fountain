@@ -24,7 +24,7 @@ async function waitHealthy(container: string) {
 
 const area = (report: AdminHealthReport, name: string) => report.checks.filter((c) => c.area === name).map((c) => c.passed);
 
-test("D-18 J17 the health page shows storage healthy, then failing while SeaweedFS is down, then healthy again @admin @ui @ops @storage", async ({ page }) => {
+test("D-18 J17 the health page shows storage healthy, then failing while SeaweedFS is down, then healthy again @admin @ui @ops @storage @disruptive", async ({ page }) => {
   seed("admin-only");
   const container = docker("ps", "--filter", `publish=${s3Port}`, "--format", "{{.ID}}");
   expect(container, `no running container publishes the S3 port ${s3Port}`).toMatch(/^[0-9a-f]+$/);
