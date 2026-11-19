@@ -19,6 +19,7 @@ PARITY_TARGET=laravel PARITY_BASE_URL=http://127.0.0.1:8000 node scripts/run.mjs
 | `fixtures/rules/*.json` | Shared rule fixtures (story 0.6b). Generated from Next: `CAPTURE=1 npx vitest run src/lib/__tests__/shared-rule-fixtures.test.ts` in `apps/web`; Next's `npm run test` asserts them; the PHP ports must agree case-for-case |
 | `expected-next-failures.txt` | Exact titles of `@deviation` tests that must fail on Next |
 | `converted-tags.txt` | Gate expressions that are green on Laravel (run by CI) |
+| `fixtures/uploads/` | X-12 golden upload corpus: `manifest.json` (expected code per file, captured from Next), `generate.mjs` (builds every file; large ones into git-ignored `.generated/`). Asserted by apps/web `src/lib/__tests__/golden-upload-corpus.test.ts` and, later, the Laravel Pest suite (stories 3.2/3.3) |
 
 **Titles** start with inventory IDs and end with tags: `A-15 root sends an anonymous visitor to sign-in @smoke @ui`. Layer tags: `@unit`, `@api`, `@ui`, `@pg-race`, `@visual`. Gates combine tags with `&` (and) and `|` (or).
 
