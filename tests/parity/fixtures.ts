@@ -45,7 +45,9 @@ export const test = base.extend<Fixtures & { dbLease: void; expectedFailureGuard
       await use();
       if (leaseScope() === "test") releaseDb();
     },
-    { auto: true, timeout: 660_000 },
+    // Waiting for the lease can take as long as the exclusive work queued ahead (FIFO, adapters/seed.ts), so this
+    // must exceed the lock timeout, not cut it short (story 0.9: an 11-minute cap starved the tail of the queue).
+    { auto: true, timeout: (Number(process.env.PARITY_LOCK_TIMEOUT_MS) || 30 * 60_000) + 60_000 },
   ],
   dbWorkerLease: [
     async ({}, use) => {
