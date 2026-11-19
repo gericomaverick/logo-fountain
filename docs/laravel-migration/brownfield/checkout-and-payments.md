@@ -115,3 +115,14 @@ These need an owner decision **before** stories are written. Default for the por
 | F-4 | `campaign_slug` from `/checkout/start` never reaches `ProjectOrder.campaignSlug` | 2026-03-01: campaign attribution into orders | Only in Stripe metadata | Recommend fixing in Laravel (copy from metadata), logged as a deviation |
 | F-5 | `success_url` and upsell URLs are built from `X-Forwarded-*`/`Host` headers, not the canonical `PUBLIC_SITE_URL` | Security boundary docs prefer the canonical origin | Header-derived | Recommend the canonical origin in Laravel (a deviation, low risk) |
 | F-6 | Admin reprocess fulfils and provisions but sends no customer or admin email | none | Silent | Recommend reprocess runs the same post-fulfilment steps as the webhook |
+
+## Verified by the webhook suite (story 0.5, 2026-11-19)
+
+Pinned by `tests/parity/journeys/contract/webhook-*.spec.ts`. Paths are under `apps/web/src/`.
+1. A Postmark **failure** (not just "unconfigured") makes the webhook return 500 `retry:true` **after** the order has committed (`app/api/stripe/webhook/route.ts:148` runs before `:174`). Status reads FULFILLED during the 500. The retry returns `deduped:true` and sends exactly one setup email and one admin email (§3 step 7 confirmed).
+2. **Upsell purchases also send the checkout auth email** (`route.ts:166-196`), so a buyer without a password gets another setup email.
+3. A `NEEDS_CONTACT` order still sends the admin new-project email, and `/api/checkout/status` reads PENDING for it.
+4. A session Stripe doesn't know (line items 404) is classified **transient**, so it's retried forever.
+5. A new session reusing a payment-intent ID hits the `@unique` constraint (`prisma/schema.prisma:128`) and is also retried forever as transient.
+6. Read from code, not tested: an upsell paid with an email that differs from the client's billing email commits the order, then fails provisioning (`lib/checkout-fulfillment.ts:452`). Every retry dedupes and fails again, so the 500 repeats forever. **Finding F-16** (owner decision before story 5.5).
+7. More than 5 parallel sign-ins of one account are refused even with the right password (`lib/auth/rate-limit.ts:46`, failure bucket reserved before the check).

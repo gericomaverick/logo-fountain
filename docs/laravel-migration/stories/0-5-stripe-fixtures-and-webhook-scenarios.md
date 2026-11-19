@@ -1,6 +1,6 @@
 # Story 0.5: Stripe fixtures and webhook scenarios
 
-Status: review
+Status: done
 
 **Covers:** K-01 (fixtures only), K-05, K-06 (plus K-07, K-09, K-02 status, N-01, N-02, N-10 as asserted) · **Gate:** `@webhook&@api` · **After:** 0.2, 0.3, 0.4 · **DoD:** E0
 
@@ -51,3 +51,7 @@ Private stack `docker compose -p lf05` (PG 55530, Mailpit 58050, S3 58350, shim 
 - Any other spec that calls `seed()` in the same run would truncate under these tests. Contract suites should share `seedOnceForRun` (or a global setup), and parent coordination is needed with 0.7a–c.
 - The returning-customer test shares `client.a@parity.test` in Mailpit with other suites. It filters by the test's start time.
 - Parent to update: inventory K-05, K-06, K-07, K-09, K-02, N-01, N-02, N-10 (Next parity tests exist, `@webhook&@api`); brownfield §3/§4.4 with points 1, 2, 5 and 6; test-strategy §3 (Mailpit adapter); sprint-status.
+
+
+## Parent review (2026-11-19)
+Cherry-picked to main. `npm run check` OK (17 specs, 112 tests). Findings copied into `brownfield/checkout-and-payments.md`, and F-16 raised. **Follow-ups:** (0.8a) one shared seed and DB lock in `fixtures.ts` (`seedOnceForRun` plus the auth and admin locks); (5.2/5.3) the email-failure test needs a Laravel path, either Mailpit chaos mode or an SMTP shim.
