@@ -1,5 +1,6 @@
 // POST /api/admin/projects/{id}/status (brownfield/api-admin.md "Status changes"; D-03).
-import { UNKNOWN_ID, api, auditEvents, expect, expectError, expectOk, snapshot, test } from "./_admin-helpers";
+import { buildEvent, deliverEvent, loadStripeFixture } from "../../adapters/stripe";
+import { CLIENT_A, UNKNOWN_ID, api, auditEvents, expect, expectError, expectOk, snapshot, test } from "./_admin-helpers";
 
 test.describe.configure({ mode: "default" });
 
@@ -80,8 +81,33 @@ test("D-03 CANCELLED from DELIVERED is refused with 409 INVALID_HOLD_RESUME @adm
   expect((await expectOk(await post(s.admin, s.projectId(), { status: "ON_HOLD", reason: "Billing query" }))).project.status).toBe("ON_HOLD");
 });
 
-test.fixme("D-03 RESUME revalidates domain evidence and the held version (409 INVALID_HOLD_RESUME) @admin @api @state", async () => {
-  // Needs a scenario whose hold audit has a stale heldVersion or whose evidence (brief, visible concept, pending
-  // revision, approved concept, final ZIP) is missing; no seed scenario provides one and no admin API can remove
-  // evidence while ON_HOLD. Add an "on-hold-stale" scenario (story 0.4 follow-up) or cover at L3 (@pg-race).
+test("D-03 RESUME revalidates the domain evidence of the recorded phase (409 INVALID_HOLD_RESUME) @admin @api @state", async ({ scenario }) => {
+  // Scenario stale-hold (story 0.8d): each project's last state_changed is a hold whose recorded phase lacks its evidence.
+  const s = await scenario("stale-hold");
+  for (const [key, missing] of [["p1", "final ZIP"], ["p2", "visible concept"], ["p3", "pending revision"], ["p4", "brief"]] as const) {
+    const p = s.projectId(key);
+    const before = await auditEvents(s.admin, p, "state_changed");
+    await expectError(await post(s.admin, p, { status: "RESUME", reason: `Resume without ${missing}` }), 409, "INVALID_HOLD_RESUME");
+    expect((await snapshot(s.admin, p)).status, key).toBe("ON_HOLD");
+    expect(await auditEvents(s.admin, p, "state_changed"), key).toHaveLength(before.length);
+  }
+});
+
+test("D-03 RESUME is refused when the project changed after the hold (stale heldVersion) @admin @api @state @webhook", async ({ scenario }) => {
+  const s = await scenario("concepts-ready");
+  const p = s.projectId();
+  await expectOk(await post(s.admin, p, { status: "ON_HOLD", reason: "Waiting for trademark check" }));
+  const [hold] = await auditEvents(s.admin, p, "state_changed");
+  const heldAt = (await snapshot(s.admin, p)).updatedAt;
+  expect(hold.payload.heldVersion).toBe(heldAt);
+  // An upgrade paid while on hold writes the project (packageCode), which moves its version past heldVersion.
+  // The buyer is the seeded client (provisioning requires the client's billing email, lib/checkout-fulfillment.ts:452).
+  const customer_details = { address: null, email: CLIENT_A, name: null, phone: null, tax_exempt: "none", tax_ids: [] };
+  const upgrade = await loadStripeFixture("upsell-upgrade-professional-complete", { vars: { projectId: p }, sessionOverrides: { customer_details } });
+  const delivered = await deliverEvent(buildEvent("checkout.session.completed", upgrade.session));
+  expect(delivered.body, delivered.text).toMatchObject({ fulfilled: true, projectId: p });
+  const changed = await snapshot(s.admin, p);
+  expect({ status: changed.status, packageCode: changed.packageCode, moved: changed.updatedAt !== heldAt }).toEqual({ status: "ON_HOLD", packageCode: "complete", moved: true });
+  await expectError(await post(s.admin, p, { status: "RESUME", reason: "Trademark cleared" }), 409, "INVALID_HOLD_RESUME");
+  expect((await snapshot(s.admin, p)).status).toBe("ON_HOLD");
 });

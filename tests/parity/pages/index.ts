@@ -75,3 +75,5 @@ export { approvalPagesFor, type ApprovalPages } from "./approval";
 export { finalsPagesFor, type DownloadedFile, type FinalsPages } from "./finals";
 export { messagesPagesFor, type MessageEntry, type MessagesPages } from "./messages";
 export { accountPagesFor, settingsPagesFor, type AccountPages, type InvoiceRow, type SettingsPages } from "./settings";
+// Admin page objects (story 0.8d): adminPagesFor(page), interfaces in ./admin.
+export * from "./admin";

@@ -1,0 +1,299 @@
+{
+  "name": "stale-hold",
+  "description": "ON_HOLD projects whose restore evidence is missing, so RESUME is refused (D-03 INVALID_HOLD_RESUME): p1 held from FINAL_FILES_READY without a final ZIP; p2 held from CONCEPTS_READY with no visible concept; p3 held from REVISIONS_IN_PROGRESS with no pending revision; p4 held from BRIEF_SUBMITTED without a brief. Seeded holds carry no heldVersion (a stale heldVersion is produced at runtime by the tests).",
+  "users": [
+    {
+      "key": "admin",
+      "email": "admin@parity.test",
+      "password": "Parity-Pass-2026!",
+      "firstName": "Dana",
+      "lastName": "Designer",
+      "admin": true,
+      "emailVerified": true
+    },
+    {
+      "key": "clientA",
+      "email": "client.a@parity.test",
+      "password": "Parity-Pass-2026!",
+      "firstName": "Ada",
+      "lastName": "Client",
+      "admin": false,
+      "emailVerified": true
+    }
+  ],
+  "projects": [
+    {
+      "key": "p1",
+      "client": {
+        "name": "Ada Client",
+        "billingEmail": "client.a@parity.test",
+        "members": [
+          "clientA"
+        ]
+      },
+      "package": "professional",
+      "status": "ON_HOLD",
+      "createdDaysAgo": 10,
+      "order": {
+        "status": "FULFILLED",
+        "totalCents": 79500,
+        "sessionId": "cs_test_parity_p1_clientA",
+        "paymentIntentId": "pi_test_parity_p1_clientA"
+      },
+      "entitlements": {
+        "concepts": [
+          2,
+          2,
+          0
+        ],
+        "revisions": [
+          2,
+          0,
+          0
+        ]
+      },
+      "stateHistory": [
+        "AWAITING_BRIEF",
+        "BRIEF_SUBMITTED",
+        "CONCEPTS_READY",
+        "AWAITING_APPROVAL",
+        "FINAL_FILES_READY",
+        "ON_HOLD"
+      ],
+      "brief": {
+        "answers": {
+          "brandName": "Northvale Coffee",
+          "tagline": "",
+          "industry": "Coffee roastery",
+          "offerSummary": "We roast and deliver single-origin coffee to independent cafes.",
+          "audiencePrimary": "Independent cafe owners in the North West.",
+          "audienceSecondary": "",
+          "businessGoals": "Look established enough to win standing orders.",
+          "brandPersonality": "Modern, Premium, Approachable",
+          "styleDirection": "Icon with wordmark",
+          "colorPreferences": "Earthy and natural",
+          "mustInclude": "",
+          "avoidanceNotes": "",
+          "usageContexts": "Packaging, Website",
+          "deliverablesContext": "",
+          "competitors": "",
+          "additionalNotes": ""
+        }
+      },
+      "concepts": [
+        {
+          "number": 1,
+          "status": "approved",
+          "notes": "Concept 1 notes"
+        },
+        {
+          "number": 2,
+          "status": "archived",
+          "notes": "Concept 2 notes"
+        }
+      ],
+      "messages": [
+        {
+          "sender": "admin",
+          "kind": "system",
+          "body": "Brief received. Your designer will review and reply soon."
+        }
+      ],
+      "holdReason": "Final files are being rebuilt."
+    },
+    {
+      "key": "p2",
+      "client": {
+        "name": "Bea Client",
+        "billingEmail": "client.a@parity.test",
+        "members": [
+          "clientA"
+        ]
+      },
+      "package": "professional",
+      "status": "ON_HOLD",
+      "createdDaysAgo": 9,
+      "order": {
+        "status": "FULFILLED",
+        "totalCents": 79500,
+        "sessionId": "cs_test_parity_p2_clientA",
+        "paymentIntentId": "pi_test_parity_p2_clientA"
+      },
+      "entitlements": {
+        "concepts": [
+          2,
+          1,
+          0
+        ],
+        "revisions": [
+          2,
+          0,
+          0
+        ]
+      },
+      "stateHistory": [
+        "AWAITING_BRIEF",
+        "BRIEF_SUBMITTED",
+        "CONCEPTS_READY",
+        "ON_HOLD"
+      ],
+      "brief": {
+        "answers": {
+          "brandName": "Northvale Coffee",
+          "tagline": "",
+          "industry": "Coffee roastery",
+          "offerSummary": "We roast and deliver single-origin coffee to independent cafes.",
+          "audiencePrimary": "Independent cafe owners in the North West.",
+          "audienceSecondary": "",
+          "businessGoals": "Look established enough to win standing orders.",
+          "brandPersonality": "Modern, Premium, Approachable",
+          "styleDirection": "Icon with wordmark",
+          "colorPreferences": "Earthy and natural",
+          "mustInclude": "",
+          "avoidanceNotes": "",
+          "usageContexts": "Packaging, Website",
+          "deliverablesContext": "",
+          "competitors": "",
+          "additionalNotes": ""
+        }
+      },
+      "concepts": [
+        {
+          "number": 1,
+          "status": "deleted",
+          "notes": "Concept 1 notes"
+        }
+      ],
+      "messages": [
+        {
+          "sender": "admin",
+          "kind": "system",
+          "body": "Brief received. Your designer will review and reply soon."
+        }
+      ],
+      "holdReason": "Concept withdrawn."
+    },
+    {
+      "key": "p3",
+      "client": {
+        "name": "Cy Client",
+        "billingEmail": "client.a@parity.test",
+        "members": [
+          "clientA"
+        ]
+      },
+      "package": "professional",
+      "status": "ON_HOLD",
+      "createdDaysAgo": 8,
+      "order": {
+        "status": "FULFILLED",
+        "totalCents": 79500,
+        "sessionId": "cs_test_parity_p3_clientA",
+        "paymentIntentId": "pi_test_parity_p3_clientA"
+      },
+      "entitlements": {
+        "concepts": [
+          2,
+          2,
+          0
+        ],
+        "revisions": [
+          2,
+          1,
+          0
+        ]
+      },
+      "stateHistory": [
+        "AWAITING_BRIEF",
+        "BRIEF_SUBMITTED",
+        "CONCEPTS_READY",
+        "REVISIONS_IN_PROGRESS",
+        "ON_HOLD"
+      ],
+      "brief": {
+        "answers": {
+          "brandName": "Northvale Coffee",
+          "tagline": "",
+          "industry": "Coffee roastery",
+          "offerSummary": "We roast and deliver single-origin coffee to independent cafes.",
+          "audiencePrimary": "Independent cafe owners in the North West.",
+          "audienceSecondary": "",
+          "businessGoals": "Look established enough to win standing orders.",
+          "brandPersonality": "Modern, Premium, Approachable",
+          "styleDirection": "Icon with wordmark",
+          "colorPreferences": "Earthy and natural",
+          "mustInclude": "",
+          "avoidanceNotes": "",
+          "usageContexts": "Packaging, Website",
+          "deliverablesContext": "",
+          "competitors": "",
+          "additionalNotes": ""
+        }
+      },
+      "concepts": [
+        {
+          "number": 1,
+          "status": "published",
+          "notes": "Concept 1 notes"
+        },
+        {
+          "number": 2,
+          "status": "published",
+          "notes": "Concept 2 notes"
+        }
+      ],
+      "revisionRequests": [
+        {
+          "concept": 1,
+          "status": "delivered",
+          "body": "Could the icon be a little bolder?"
+        }
+      ],
+      "messages": [
+        {
+          "sender": "admin",
+          "kind": "system",
+          "body": "Brief received. Your designer will review and reply soon."
+        }
+      ],
+      "holdReason": "Waiting for the client."
+    },
+    {
+      "key": "p4",
+      "client": {
+        "name": "Di Client",
+        "billingEmail": "client.a@parity.test",
+        "members": [
+          "clientA"
+        ]
+      },
+      "package": "professional",
+      "status": "ON_HOLD",
+      "createdDaysAgo": 7,
+      "order": {
+        "status": "FULFILLED",
+        "totalCents": 79500,
+        "sessionId": "cs_test_parity_p4_clientA",
+        "paymentIntentId": "pi_test_parity_p4_clientA"
+      },
+      "entitlements": {
+        "concepts": [
+          2,
+          0,
+          0
+        ],
+        "revisions": [
+          2,
+          0,
+          0
+        ]
+      },
+      "stateHistory": [
+        "AWAITING_BRIEF",
+        "BRIEF_SUBMITTED",
+        "ON_HOLD"
+      ],
+      "holdReason": "Brief withdrawn."
+    }
+  ]
+}

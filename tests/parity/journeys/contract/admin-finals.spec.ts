@@ -139,6 +139,17 @@ test("D-13 admin final download is 404 FINAL_ZIP_NOT_AVAILABLE without a publish
   await expectError(await s.admin.post(api(UNKNOWN_ID, "/finals/download")), 404, "FINAL_ZIP_NOT_AVAILABLE");
 });
 
-test.fixme("D-11 finals repair without an approved concept is 400 FINAL_REPAIR_REQUIRES_APPROVAL @admin @api @finals", async () => {
-  // Needs a FINAL_FILES_READY/DELIVERED scenario with no approved concept; none exists (shared change to fixtures/scenarios).
+test("D-11 finals repair without an approved concept is 400 FINAL_REPAIR_REQUIRES_APPROVAL @admin @api @finals", async ({ scenario }) => {
+  // Scenario finals-ready-no-approval (story 0.8d): FINAL_FILES_READY with a final ZIP, concepts published but none approved.
+  const s = await scenario("finals-ready-no-approval");
+  const p = s.projectId();
+  const before = await snapshot(s.admin, p);
+  await expectError(await uploadFinals(s.admin, p), 400, "FINAL_REPAIR_REQUIRES_APPROVAL");
+  const after = await snapshot(s.admin, p);
+  // Without an approved concept the snapshot derives the display status AWAITING_APPROVAL and hides the ZIP
+  // (finalZip.assetId null); the persisted status (admin list) stays FINAL_FILES_READY. Nothing was written.
+  expect({ status: after.status, updatedAt: after.updatedAt, assetId: after.finalZip.assetId }).toEqual({ status: before.status, updatedAt: before.updatedAt, assetId: before.finalZip.assetId });
+  const { projects } = await expectOk(await s.admin.get("/api/admin/projects"));
+  expect(projects.find((row: any) => row.id === p).status).toBe("FINAL_FILES_READY");
+  expect(await auditEvents(s.admin, p, "finals_uploaded")).toEqual([]);
 });
