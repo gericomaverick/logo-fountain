@@ -209,7 +209,7 @@ As the team, I want stripe-fake fixtures for every purchase scenario (package, a
 
 ### Story 1.7: Design tokens and theming
 **Covers:** C-19, NFR-A4, ADR-022, UX §8 · **Gate:** `@visual` · **After:** 1.1a
-- **Given** system dark mode, **then** the first paint is dark (Playwright with emulated `prefers-color-scheme`). The UX §8.1 contrast pairs are asserted by a unit test. Inter, Sfizia and Geist Mono are self-hosted.
+- **Given** system dark mode, **then** the first paint is dark (Playwright with emulated `prefers-color-scheme`). The UX §8.1 contrast pairs are asserted by a unit test. Inter, Sfizia and Geist Mono are self-hosted. Sfizia is exposed only via `DisplayTitle` (three allowed uses, at least 32/28 px, UX §8.2), and the L7b lint rejects any other use of the display font token.
 
 ### Story 1.8a: Form and action primitives
 **Covers:** UX §11 · **Gate:** `@visual` · **After:** 1.7

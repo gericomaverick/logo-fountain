@@ -180,7 +180,17 @@ Rules: every text and background pairing used must be one of the verified pairs 
 **Theme:** System (default) / Light / Dark, chosen in Account and the user menu. It's stored in `localStorage` and applied before first paint (as today with `theme-init.js`), so there's no flash. The `prefers-color-scheme` media query is the default.
 
 ### 8.2 Typography
-- **Sans: Inter** (variable, self-hosted) for all UI. **Display: Sfizia** (brand serif, already licensed in the repo), *only* for page-level headlines and celebration moments: at most one Sfizia element per screen. **Mono: Geist Mono** for IDs, order references and file names.
+- **Sans: Inter** (variable, self-hosted) for all UI. **Mono: Geist Mono** for IDs, order references and file names.
+- **Display: Sfizia** (brand serif; the owner confirmed on 2026-11-19 that the licence covers the app). It's for large titles only, for readability, and allowed in **exactly three places**, all customer-facing:
+  1. the project name heading on the customer **Overview**;
+  2. the headline on the **auth screens** (sign in, set or reset password);
+  3. the headline of **celebration** turn banners (first concepts, approval, final files).
+
+  Rules:
+  - minimum **32 px desktop / 28 px phone**, regular weight only, at most **one** Sfizia line per screen;
+  - **never** in the admin UI, section headings, buttons, labels, body copy, tables or email.
+  - Sfizia is available **only** via the `DisplayTitle` component, and the design-system lint (L7b) fails any other use of the display font token.
+  - It's preloaded only on the pages that use it, with `font-display: swap`.
 - Fluid scale (Utopia, 1.2 ratio at 320 px → 1.25 at 1400 px, a 16 → 18 px base, as in the current design-system doc):
 
 | Token | Step | Use |
@@ -191,7 +201,7 @@ Rules: every text and background pairing used must be one of the verified pairs 
 | `text-lg` | 1 | Section titles |
 | `text-xl` | 2 | Card headlines, the turn banner title |
 | `text-2xl` | 3 | Page title (one per page), key numbers (allowances) with `tabular-nums` |
-| `text-3xl`–`4xl` | 4–5 | Sfizia display moments only |
+| `text-3xl`–`4xl` | 4–5 | Sfizia display moments only (the three places above, via `DisplayTitle`) |
 
 - Line length 60–75 characters for reading text (`max-w-prose`). Line height 1.5 for body, 1.2 for headings. Weights: 400 body, 500 labels, 600 headings. Never below 16 px for input text (it stops iOS zoom).
 
@@ -341,7 +351,7 @@ For each screen, content is listed **in priority order** (the order a person nee
 1. ~~Choose a design direction~~ **Done: A (Studio paper), 2026-11-18.** The §8.1 tokens as written are final for A. B and C are discarded.
 2. Turnaround copy for empty states ("usually within N working days") and the "what happens next" lines. Customers need realistic times.
 3. Approve the IA change that alters flows: the **one-project shortcut** (§5.3.1). (The **Files** tab (§5.1) was decided 2026-11-18.)
-4. Is the Sfizia display serif licensed for app (web-app) use as well as the marketing site? (It's already in the repo for both.)
+4. ~~Sfizia licence~~ **Confirmed 2026-11-19** (covers the app). Usage limited to large titles in three places (§8.2).
 5. Optional: the brief reference uploads from the original user stories (US-BRIEF-02), now or post-launch?
 
 ## 16. How this spec is verified
