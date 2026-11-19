@@ -118,3 +118,11 @@ Sent through the Postmark HTTP API (`From: POSTMARK_FROM`), with text and brande
 - Sessions: the database driver, a cookie named per the ADR, `secure` when https, `http_only`, `same_site=lax`. The absolute-cap middleware. Regenerate the session ID on login.
 - No "remember me". It doesn't exist today.
 - Keep the generic auth messages and codes **byte for byte**. The parity contract tests assert on them.
+
+## Corrections verified by the contract suite (story 0.7a, 2026-11-19)
+
+These are pinned by `tests/parity/journeys/contract/auth-*.spec.ts` and `checkout-contracts.spec.ts`, and Laravel must match:
+1. Auth JSON responses actually carry **`Referrer-Policy: strict-origin-when-cross-origin`**. The global header (`next.config.ts:28,44`) overrides `lib/auth/http.ts:7`'s `no-referrer`, so §4's "no-referrer" holds for the auth **pages** only (`/auth/callback`, `/set-password`, `/reset-password`). Laravel reproduces this (an assumption logged 2026-11-19).
+2. `403 INVALID_ORIGIN`, `503 PUBLIC_SITE_URL_REQUIRED` and the checkout email endpoints send **no** `Cache-Control: no-store` (`lib/request-origin.ts:96,102`, `lib/checkout-auth-email.ts:46,65`).
+3. On an email send failure, `/api/auth/magic-link` and `/api/auth/forgot-password` **swallow** the error and return the normal uniform 200 (`magic-link/route.ts:8`, `forgot-password/route.ts:9`). The proof is still deleted (§2), so the link is dead. Only the checkout endpoints surface `500 AUTH_EMAIL_SEND_FAILED`.
+4. `reset-password` validates `WEAK_PASSWORD` **before** the token (`lib/auth/service.ts:75`). `/api/auth/password` returns 401 before reading the body, and **every** attempt, including invalid ones, consumes the per-user limit (`password/route.ts:10-11`).

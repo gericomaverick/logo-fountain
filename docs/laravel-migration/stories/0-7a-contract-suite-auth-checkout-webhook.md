@@ -1,6 +1,6 @@
 # Story 0.7a: Contract suite: auth, checkout, webhook
 
-Status: review
+Status: done
 
 **Covers:** A-01…A-11, A-13, A-17, K-01…K-04, X-01, X-06, N-01…N-03 · **Gate:** `@auth&@api`, `@checkout&@api` · **After:** 0.4, 0.5 · **DoD:** E0
 Webhook cases (K-05, K-06) are in story 0.5's `journeys/contract/webhook-*.spec.ts`, not here.
@@ -36,3 +36,7 @@ Webhook cases (K-05, K-06) are in story 0.5's `journeys/contract/webhook-*.spec.
 
 ## Inventory rows to update (Tag/Tests columns; status stays Not started)
 A-01, A-02, A-03, A-05, A-06, A-07, A-08, A-09, A-11, A-13, A-17: `parity/journeys/contract/auth-session.spec.ts`, `auth-links.spec.ts`. K-01…K-04: `checkout-contracts.spec.ts`. X-01, X-06: both auth files. N-01…N-03: `auth-links.spec.ts`. A-07's source column still cites the dead `lib/forgot-password-rate-limit.ts`.
+
+
+## Parent review (2026-11-19)
+Cherry-picked to main. `npm run check` OK (13 specs, 96 tests). Corrections copied into `brownfield/auth-and-security.md`. **Follow-up (0.8a):** merge the DB locks in `_auth-helpers.ts` and `_admin-helpers.ts` into one lock in `fixtures.ts`.
