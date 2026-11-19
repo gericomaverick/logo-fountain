@@ -344,6 +344,7 @@ As the team, I want stripe-fake fixtures for every purchase scenario (package, a
 ### Story 5.2: Webhook ledger and classification
 **Covers:** K-05, ADR-014, NFR-R1 · **Gate:** `@webhook&@api`, `@pg-race` · **After:** 2.4, 0.5
 - Concurrent duplicate deliveries produce exactly one fulfilment. A transient failure releases the claim. A permanent failure is marked processed. The webhook route has no Origin guard.
+- **DV-15:** an unknown session (Stripe 404) and a payment intent reused by a different session are **permanent**: the event is processed, an audit row is written, the admin is emailed with the session reference, and the project or order is flagged stuck. A payment intent reused for the same fulfilled payment returns `deduped`. Gate adds `@deviation` (DV-15).
 
 ### Story 5.3: Fulfilment and access provisioning
 **Covers:** K-06, K-07, FR15, FR16, DV-4, N-01, N-02, N-10 · **Gate:** `@webhook&@api`, `@email&@api` (checkout emails) · **After:** 5.2, 4.4, 2.7
@@ -356,6 +357,7 @@ As the team, I want stripe-fake fixtures for every purchase scenario (package, a
 ### Story 5.5: Upsell checkout and additive fulfilment
 **Covers:** K-08, K-09, DV-2, DV-5, FR17, FR18 · **Gate:** `@upsell&@api`, `@deviation` (DV-2) · **After:** 5.3
 - **Given** Essential with 1 bought add-on (1/2), **when** an upgrade to Professional is fulfilled, **then** 2/3, with consumed and reserved unchanged.
+- **DV-15:** **given** an upsell paid with an email other than the client's billing email, **then** the entitlements are applied, no account is provisioned for that email, audit `upsell_buyer_email_mismatch` is written, the admin is emailed once, and the webhook returns 200.
 
 ### Story 5.6: Admin reprocess with full follow-up
 **Covers:** K-12, DV-6, FR21, ADR-015 · **Gate:** `@admin&@api` (reprocess), `@deviation` (DV-6) · **After:** 5.3
