@@ -1,0 +1,479 @@
+{
+  "name": "admin-queue",
+  "description": "Admin queue mix (D-01): q1 a pending revision request (score 120), q2 an unread client message (80), q3 a stuck order NEEDS_CONTACT (50), q4 a plain BRIEF_SUBMITTED (0), q5 in progress (AWAITING_APPROVAL), q6 DELIVERED.",
+  "users": [
+    {
+      "key": "admin",
+      "email": "admin@parity.test",
+      "password": "Parity-Pass-2026!",
+      "firstName": "Dana",
+      "lastName": "Designer",
+      "admin": true,
+      "emailVerified": true
+    },
+    {
+      "key": "clientA",
+      "email": "client.a@parity.test",
+      "password": "Parity-Pass-2026!",
+      "firstName": "Ada",
+      "lastName": "Client",
+      "admin": false,
+      "emailVerified": true
+    }
+  ],
+  "projects": [
+    {
+      "key": "q1",
+      "client": {
+        "name": "Feedback Client",
+        "billingEmail": "client.a@parity.test",
+        "members": [
+          "clientA"
+        ]
+      },
+      "package": "professional",
+      "status": "REVISIONS_IN_PROGRESS",
+      "createdDaysAgo": 20,
+      "order": {
+        "status": "FULFILLED",
+        "totalCents": 79500,
+        "sessionId": "cs_test_parity_q1_clientA",
+        "paymentIntentId": "pi_test_parity_q1_clientA"
+      },
+      "entitlements": {
+        "concepts": [
+          2,
+          2,
+          0
+        ],
+        "revisions": [
+          2,
+          0,
+          1
+        ]
+      },
+      "stateHistory": [
+        "AWAITING_BRIEF",
+        "BRIEF_SUBMITTED",
+        "CONCEPTS_READY",
+        "REVISIONS_IN_PROGRESS"
+      ],
+      "brief": {
+        "answers": {
+          "brandName": "Feedback Roasters",
+          "tagline": "",
+          "industry": "Coffee roastery",
+          "offerSummary": "We roast and deliver single-origin coffee to independent cafes.",
+          "audiencePrimary": "Independent cafe owners in the North West.",
+          "audienceSecondary": "",
+          "businessGoals": "Look established enough to win standing orders.",
+          "brandPersonality": "Modern, Premium, Approachable",
+          "styleDirection": "Icon with wordmark",
+          "colorPreferences": "Earthy and natural",
+          "mustInclude": "",
+          "avoidanceNotes": "",
+          "usageContexts": "Packaging, Website",
+          "deliverablesContext": "",
+          "competitors": "",
+          "additionalNotes": ""
+        }
+      },
+      "concepts": [
+        {
+          "number": 1,
+          "status": "published",
+          "notes": "Concept 1 notes"
+        },
+        {
+          "number": 2,
+          "status": "published",
+          "notes": "Concept 2 notes"
+        }
+      ],
+      "revisionRequests": [
+        {
+          "concept": 1,
+          "status": "requested",
+          "body": "Could the icon be a little bolder?"
+        }
+      ],
+      "messages": [
+        {
+          "sender": "admin",
+          "kind": "system",
+          "body": "Brief received. Your designer will review and reply soon."
+        },
+        {
+          "sender": "admin",
+          "kind": "system",
+          "body": "Concept 1 is ready for review."
+        }
+      ]
+    },
+    {
+      "key": "q2",
+      "client": {
+        "name": "Message Client",
+        "billingEmail": "client.a@parity.test",
+        "members": [
+          "clientA"
+        ]
+      },
+      "package": "professional",
+      "status": "AWAITING_APPROVAL",
+      "createdDaysAgo": 19,
+      "order": {
+        "status": "FULFILLED",
+        "totalCents": 79500,
+        "sessionId": "cs_test_parity_q2_clientA",
+        "paymentIntentId": "pi_test_parity_q2_clientA"
+      },
+      "entitlements": {
+        "concepts": [
+          2,
+          2,
+          0
+        ],
+        "revisions": [
+          2,
+          0,
+          0
+        ]
+      },
+      "stateHistory": [
+        "AWAITING_BRIEF",
+        "BRIEF_SUBMITTED",
+        "CONCEPTS_READY",
+        "AWAITING_APPROVAL"
+      ],
+      "brief": {
+        "answers": {
+          "brandName": "Message Bakery",
+          "tagline": "",
+          "industry": "Coffee roastery",
+          "offerSummary": "We roast and deliver single-origin coffee to independent cafes.",
+          "audiencePrimary": "Independent cafe owners in the North West.",
+          "audienceSecondary": "",
+          "businessGoals": "Look established enough to win standing orders.",
+          "brandPersonality": "Modern, Premium, Approachable",
+          "styleDirection": "Icon with wordmark",
+          "colorPreferences": "Earthy and natural",
+          "mustInclude": "",
+          "avoidanceNotes": "",
+          "usageContexts": "Packaging, Website",
+          "deliverablesContext": "",
+          "competitors": "",
+          "additionalNotes": ""
+        }
+      },
+      "concepts": [
+        {
+          "number": 1,
+          "status": "approved",
+          "notes": "Concept 1 notes"
+        },
+        {
+          "number": 2,
+          "status": "archived",
+          "notes": "Concept 2 notes"
+        }
+      ],
+      "messages": [
+        {
+          "sender": "admin",
+          "kind": "system",
+          "body": "Brief received. Your designer will review and reply soon."
+        },
+        {
+          "sender": "admin",
+          "kind": "system",
+          "body": "Concept 1 is ready for review."
+        },
+        {
+          "sender": "clientA",
+          "kind": "user",
+          "body": "Can we talk about the colours?"
+        }
+      ]
+    },
+    {
+      "key": "q3",
+      "client": {
+        "name": "Stuck Client",
+        "billingEmail": "client.a@parity.test",
+        "members": [
+          "clientA"
+        ]
+      },
+      "package": "professional",
+      "status": "BRIEF_SUBMITTED",
+      "createdDaysAgo": 18,
+      "order": {
+        "status": "NEEDS_CONTACT",
+        "totalCents": 79500,
+        "sessionId": "cs_test_parity_q3_clientA",
+        "paymentIntentId": "pi_test_parity_q3_clientA"
+      },
+      "entitlements": {
+        "concepts": [
+          2,
+          0,
+          0
+        ],
+        "revisions": [
+          2,
+          0,
+          0
+        ]
+      },
+      "stateHistory": [
+        "AWAITING_BRIEF",
+        "BRIEF_SUBMITTED"
+      ],
+      "brief": {
+        "answers": {
+          "brandName": "Stuck Studio",
+          "tagline": "",
+          "industry": "Coffee roastery",
+          "offerSummary": "We roast and deliver single-origin coffee to independent cafes.",
+          "audiencePrimary": "Independent cafe owners in the North West.",
+          "audienceSecondary": "",
+          "businessGoals": "Look established enough to win standing orders.",
+          "brandPersonality": "Modern, Premium, Approachable",
+          "styleDirection": "Icon with wordmark",
+          "colorPreferences": "Earthy and natural",
+          "mustInclude": "",
+          "avoidanceNotes": "",
+          "usageContexts": "Packaging, Website",
+          "deliverablesContext": "",
+          "competitors": "",
+          "additionalNotes": ""
+        }
+      },
+      "messages": [
+        {
+          "sender": "admin",
+          "kind": "system",
+          "body": "Brief received. Your designer will review and reply soon."
+        }
+      ]
+    },
+    {
+      "key": "q4",
+      "client": {
+        "name": "Brief Client",
+        "billingEmail": "client.a@parity.test",
+        "members": [
+          "clientA"
+        ]
+      },
+      "package": "professional",
+      "status": "BRIEF_SUBMITTED",
+      "createdDaysAgo": 17,
+      "order": {
+        "status": "FULFILLED",
+        "totalCents": 79500,
+        "sessionId": "cs_test_parity_q4_clientA",
+        "paymentIntentId": "pi_test_parity_q4_clientA"
+      },
+      "entitlements": {
+        "concepts": [
+          2,
+          0,
+          0
+        ],
+        "revisions": [
+          2,
+          0,
+          0
+        ]
+      },
+      "stateHistory": [
+        "AWAITING_BRIEF",
+        "BRIEF_SUBMITTED"
+      ],
+      "brief": {
+        "answers": {
+          "brandName": "Brief Florists",
+          "tagline": "",
+          "industry": "Coffee roastery",
+          "offerSummary": "We roast and deliver single-origin coffee to independent cafes.",
+          "audiencePrimary": "Independent cafe owners in the North West.",
+          "audienceSecondary": "",
+          "businessGoals": "Look established enough to win standing orders.",
+          "brandPersonality": "Modern, Premium, Approachable",
+          "styleDirection": "Icon with wordmark",
+          "colorPreferences": "Earthy and natural",
+          "mustInclude": "",
+          "avoidanceNotes": "",
+          "usageContexts": "Packaging, Website",
+          "deliverablesContext": "",
+          "competitors": "",
+          "additionalNotes": ""
+        }
+      },
+      "messages": [
+        {
+          "sender": "admin",
+          "kind": "system",
+          "body": "Brief received. Your designer will review and reply soon."
+        }
+      ]
+    },
+    {
+      "key": "q5",
+      "client": {
+        "name": "Design Client",
+        "billingEmail": "client.a@parity.test",
+        "members": [
+          "clientA"
+        ]
+      },
+      "package": "professional",
+      "status": "AWAITING_APPROVAL",
+      "createdDaysAgo": 16,
+      "order": {
+        "status": "FULFILLED",
+        "totalCents": 79500,
+        "sessionId": "cs_test_parity_q5_clientA",
+        "paymentIntentId": "pi_test_parity_q5_clientA"
+      },
+      "entitlements": {
+        "concepts": [
+          2,
+          2,
+          0
+        ],
+        "revisions": [
+          2,
+          0,
+          0
+        ]
+      },
+      "stateHistory": [
+        "AWAITING_BRIEF",
+        "BRIEF_SUBMITTED",
+        "CONCEPTS_READY",
+        "AWAITING_APPROVAL"
+      ],
+      "brief": {
+        "answers": {
+          "brandName": "Design Joinery",
+          "tagline": "",
+          "industry": "Coffee roastery",
+          "offerSummary": "We roast and deliver single-origin coffee to independent cafes.",
+          "audiencePrimary": "Independent cafe owners in the North West.",
+          "audienceSecondary": "",
+          "businessGoals": "Look established enough to win standing orders.",
+          "brandPersonality": "Modern, Premium, Approachable",
+          "styleDirection": "Icon with wordmark",
+          "colorPreferences": "Earthy and natural",
+          "mustInclude": "",
+          "avoidanceNotes": "",
+          "usageContexts": "Packaging, Website",
+          "deliverablesContext": "",
+          "competitors": "",
+          "additionalNotes": ""
+        }
+      },
+      "concepts": [
+        {
+          "number": 1,
+          "status": "approved",
+          "notes": "Concept 1 notes"
+        },
+        {
+          "number": 2,
+          "status": "archived",
+          "notes": "Concept 2 notes"
+        }
+      ],
+      "messages": [
+        {
+          "sender": "admin",
+          "kind": "system",
+          "body": "Brief received. Your designer will review and reply soon."
+        }
+      ]
+    },
+    {
+      "key": "q6",
+      "client": {
+        "name": "Done Client",
+        "billingEmail": "client.a@parity.test",
+        "members": [
+          "clientA"
+        ]
+      },
+      "package": "professional",
+      "status": "DELIVERED",
+      "createdDaysAgo": 15,
+      "order": {
+        "status": "FULFILLED",
+        "totalCents": 79500,
+        "sessionId": "cs_test_parity_q6_clientA",
+        "paymentIntentId": "pi_test_parity_q6_clientA"
+      },
+      "entitlements": {
+        "concepts": [
+          2,
+          2,
+          0
+        ],
+        "revisions": [
+          2,
+          0,
+          0
+        ]
+      },
+      "stateHistory": [
+        "AWAITING_BRIEF",
+        "BRIEF_SUBMITTED",
+        "CONCEPTS_READY",
+        "AWAITING_APPROVAL",
+        "FINAL_FILES_READY",
+        "DELIVERED"
+      ],
+      "brief": {
+        "answers": {
+          "brandName": "Done Brewing",
+          "tagline": "",
+          "industry": "Coffee roastery",
+          "offerSummary": "We roast and deliver single-origin coffee to independent cafes.",
+          "audiencePrimary": "Independent cafe owners in the North West.",
+          "audienceSecondary": "",
+          "businessGoals": "Look established enough to win standing orders.",
+          "brandPersonality": "Modern, Premium, Approachable",
+          "styleDirection": "Icon with wordmark",
+          "colorPreferences": "Earthy and natural",
+          "mustInclude": "",
+          "avoidanceNotes": "",
+          "usageContexts": "Packaging, Website",
+          "deliverablesContext": "",
+          "competitors": "",
+          "additionalNotes": ""
+        }
+      },
+      "concepts": [
+        {
+          "number": 1,
+          "status": "approved",
+          "notes": "Concept 1 notes"
+        },
+        {
+          "number": 2,
+          "status": "archived",
+          "notes": "Concept 2 notes"
+        }
+      ],
+      "messages": [
+        {
+          "sender": "admin",
+          "kind": "system",
+          "body": "Brief received. Your designer will review and reply soon."
+        }
+      ],
+      "finalZip": true
+    }
+  ]
+}

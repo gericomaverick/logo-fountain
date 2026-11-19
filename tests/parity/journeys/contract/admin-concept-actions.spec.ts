@@ -27,9 +27,31 @@ test("D-06 publish refuses non-draft concepts with 409 CONCEPT_NOT_PUBLISHABLE a
   expect((await conceptsList(s.admin, p)).concepts.map((c: any) => c.status)).toEqual(["approved", "archived"]);
 });
 
-test.fixme("D-06 publishing a draft consumes a slot, writes concept_published and a system message @admin @api @concepts", async () => {
-  // No seed scenario contains a draft concept (F-10: no UI path creates drafts). Needs a scenario with
-  // concepts:[{status:"draft"}] in BRIEF_SUBMITTED and in CONCEPTS_READY (shared change to fixtures/scenarios).
+test("D-06 publishing a draft consumes a slot, writes concept_published and a system message @admin @api @concepts @audit", async ({ scenario }) => {
+  // Scenario draft-concept (story 0.8d): p1 CONCEPTS_READY with concept 1 published + 2 draft; p2 BRIEF_SUBMITTED, only a draft.
+  const s = await scenario("draft-concept");
+  const p = s.projectId();
+  expect(await expectOk(await publish(s.admin, p, s.conceptId(2)))).toEqual({ ok: true, concept: { id: s.conceptId(2), number: 2, status: "published" }, projectStatus: null });
+  const snap = await snapshot(s.admin, p);
+  expect({ status: snap.status, consumed: snap.entitlementUsage.concepts.consumed }).toEqual({ status: "CONCEPTS_READY", consumed: 2 });
+  expect(snap.messages.map((m: any) => m.body)).toContain("Concept 2 is ready for review.");
+  expect((await auditEvents(s.admin, p, "concept_published")).map((e) => e.payload)).toEqual([{ conceptId: s.conceptId(2) }]);
+  const [consumed] = await auditEvents(s.admin, p, "entitlement_consumed");
+  expect(consumed.payload).toMatchObject({ key: "concepts", reason: "admin_concept_publish", conceptId: s.conceptId(2) });
+  // A retry is idempotent: no second slot, no second audit.
+  expect((await expectOk(await publish(s.admin, p, s.conceptId(2)))).projectStatus).toBeNull();
+  expect(await auditEvents(s.admin, p, "concept_published")).toHaveLength(1);
+  expect((await snapshot(s.admin, p)).entitlementUsage.concepts.consumed).toBe(2);
+});
+
+test("D-06 publishing the first visible concept moves BRIEF_SUBMITTED to CONCEPTS_READY with a state_changed audit @admin @api @concepts @state", async ({ scenario }) => {
+  const s = await scenario("draft-concept");
+  const p = s.projectId("p2");
+  expect(await expectOk(await publish(s.admin, p, s.conceptId(1, "p2")))).toEqual({ ok: true, concept: { id: s.conceptId(1, "p2"), number: 1, status: "published" }, projectStatus: "CONCEPTS_READY" });
+  const [state] = await auditEvents(s.admin, p, "state_changed");
+  expect(state.payload).toEqual({ previousStatus: "BRIEF_SUBMITTED", nextStatus: "CONCEPTS_READY" });
+  const snap = await snapshot(s.admin, p);
+  expect({ status: snap.status, consumed: snap.entitlementUsage.concepts.consumed }).toEqual({ status: "CONCEPTS_READY", consumed: 1 });
 });
 
 test("D-07 deleting a concept soft-deletes it, audits concept_deleted and is idempotent @admin @api @concepts @audit", async ({ scenario }) => {

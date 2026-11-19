@@ -1,4 +1,5 @@
 // Health (D-18) and checkout reprocess (K-12) (brownfield/api-admin.md "Health"; checkout-and-payments.md §7).
+import { loadStripeFixture, projectsForSession } from "../../adapters/stripe";
 import { expect, expectOk, test } from "./_admin-helpers";
 
 test.describe.configure({ mode: "default" });
@@ -42,7 +43,26 @@ test("K-12 reprocess without session_id is 400 'Missing session_id' with no code
   }
 });
 
-test.fixme("K-12 reprocess fulfils a paid session, is deduped on repeat and is 409 CHECKOUT_SESSION_NOT_PAID for unpaid @admin @api @ops", async () => {
-  // Needs the stripe-fake session fixtures (story 0.5) behind STRIPE_API_BASE; the success body is
-  // {ok, deduped, projectId, orderId, clientId, purchaserEmail, orderStatus, provisionedUserId, message}.
+test("K-12 reprocess fulfils a paid session, is deduped on repeat and is 409 CHECKOUT_SESSION_NOT_PAID for unpaid @admin @api @ops @checkout", async ({ scenario }) => {
+  const s = await scenario("admin-only");
+  // A paid session the app never heard about (stripe-fake, no webhook delivered).
+  const paid = await loadStripeFixture("package-essential-paid");
+  expect(await projectsForSession(s.admin, paid.sessionId)).toEqual([]);
+  const first = await expectOk(await s.admin.post("/api/admin/checkout/reprocess", { data: { session_id: ` ${paid.sessionId} ` } }));
+  expect(first).toEqual({
+    ok: true, deduped: false, projectId: expect.any(String), orderId: expect.any(String), clientId: expect.any(String), purchaserEmail: paid.email,
+    orderStatus: "FULFILLED", provisionedUserId: expect.any(String), message: "Session fulfilled successfully.",
+  });
+  const [project] = await projectsForSession(s.admin, paid.sessionId);
+  expect(project).toMatchObject({ id: first.projectId, status: "AWAITING_BRIEF", packageCode: "essential", stuck: false, latestOrder: { id: first.orderId, status: "FULFILLED" } });
+
+  const again = await expectOk(await s.admin.post("/api/admin/checkout/reprocess", { data: { session_id: paid.sessionId } }));
+  expect(again).toMatchObject({ ok: true, deduped: true, projectId: first.projectId, orderId: first.orderId, provisionedUserId: first.provisionedUserId, message: "Session already fulfilled; ensured access provisioning." });
+  expect(await projectsForSession(s.admin, paid.sessionId)).toHaveLength(1);
+
+  const unpaid = await loadStripeFixture("purchase-unpaid");
+  const res = await s.admin.post("/api/admin/checkout/reprocess", { data: { session_id: unpaid.sessionId } });
+  expect(res.status()).toBe(409);
+  expect(await res.json()).toEqual({ error: { code: "CHECKOUT_SESSION_NOT_PAID", message: "Checkout session has not been paid; nothing was provisioned." } });
+  expect(await projectsForSession(s.admin, unpaid.sessionId)).toEqual([]);
 });
