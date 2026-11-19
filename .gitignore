@@ -3,3 +3,6 @@ _bmad-output/
 
 # OS / editor
 .DS_Store
+
+# Agent git worktrees (Claude Code)
+.claude/worktrees/
