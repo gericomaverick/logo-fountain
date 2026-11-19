@@ -4,7 +4,7 @@ import type { Page } from "@playwright/test";
 import { resolveTarget } from "../adapters/target";
 
 /** One thread entry as shown, oldest first. `mine` is set for people's messages: true when the viewer sent it. */
-export type ThreadEntry = { kind: "system"; text: string } | { kind: "message"; text: string; mine: boolean };
+export type MessageEntry = { kind: "system"; text: string } | { kind: "message"; text: string; mine: boolean };
 
 export interface MessagesPages {
   /** Opens the messages of the open project (portal.openProject first). */
@@ -12,7 +12,7 @@ export interface MessagesPages {
   /** Sends `text`. Resolves once the app accepted it and it shows in the thread. */
   send(text: string): Promise<void>;
   /** The thread as the app shows it now (re-read from the app), oldest first. */
-  thread(): Promise<ThreadEntry[]>;
+  thread(): Promise<MessageEntry[]>;
 }
 
 export async function messagesPagesFor(page: Page): Promise<MessagesPages> {

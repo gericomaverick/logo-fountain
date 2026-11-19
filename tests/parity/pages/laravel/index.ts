@@ -3,6 +3,7 @@
 import type { Page } from "@playwright/test";
 import type { AuthPages, CheckoutPages, PageObjects, PortalPages } from "../index";
 import { payOnFakeStripe } from "../stripe-fake";
+import { areas08b } from "./areas-0-8b"; // 0.8b
 
 const todo = (what: string, story: string) => (): never => {
   throw new Error(`Laravel page object ${what}: not implemented (story ${story})`);
@@ -28,5 +29,5 @@ export function create(page: Page): PageObjects {
     projectStatus: todo("portal.projectStatus", "6.2b"),
     currentTurn: todo("portal.currentTurn", "6.2b"),
   };
-  return { page, auth, checkout, portal };
+  return { page, auth, checkout, portal, ...areas08b(page) }; // 0.8b
 }

@@ -2,13 +2,8 @@
 // app/project/[id]/concept/[conceptId]/page.tsx (detail, approve dialog with lib/final-approval.ts copy).
 import type { Page } from "@playwright/test";
 import type { ApprovalPages } from "../approval";
+import { projectIdIn } from "./project-areas";
 
-/** The project ID from any /project/{id}/… URL. */
-export function projectIdIn(page: Page): string {
-  const id = new URL(page.url()).pathname.match(/^\/project\/([0-9a-f-]{36})(\/|$)/i)?.[1];
-  if (!id) throw new Error(`no project is open (at ${page.url()})`);
-  return id;
-}
 
 export function approval(page: Page): ApprovalPages {
   return {

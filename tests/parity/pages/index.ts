@@ -59,8 +59,19 @@ export async function pagesFor(page: Page): Promise<PageObjects> {
   return impl.create(page);
 }
 
+// Story 0.8b: brief, project thread, concepts, upsell (interfaces in ./brief, ./concepts, ./upsell; merged into PageObjects).
+export type { BriefAnswers, BriefFieldKey, BriefPages, ProjectThreadPages } from "./brief";
+export type { Allowance, AllowanceKind, ConceptCard, ConceptPages, ThreadEntry } from "./concepts";
+export type { UpsellOffer, UpsellPages } from "./upsell";
+export interface PageObjects {
+  readonly brief: import("./brief").BriefPages;
+  readonly thread: import("./brief").ProjectThreadPages;
+  readonly concepts: import("./concepts").ConceptPages;
+  readonly upsell: import("./upsell").UpsellPages;
+}
+
 // Story 0.8c: approval, finals, messages, settings/account (each file has its interface and resolver).
 export { approvalPagesFor, type ApprovalPages } from "./approval";
 export { finalsPagesFor, type DownloadedFile, type FinalsPages } from "./finals";
-export { messagesPagesFor, type MessagesPages, type ThreadEntry } from "./messages";
+export { messagesPagesFor, type MessageEntry, type MessagesPages } from "./messages";
 export { accountPagesFor, settingsPagesFor, type AccountPages, type InvoiceRow, type SettingsPages } from "./settings";

@@ -4,7 +4,7 @@
 import { readFile } from "node:fs/promises";
 import type { Download, Page } from "@playwright/test";
 import type { FinalsPages } from "../finals";
-import { projectIdIn } from "./approval";
+import { projectIdIn } from "./project-areas";
 
 export function finals(page: Page): FinalsPages {
   const button = page.getByRole("button", { name: "Download final ZIP" });

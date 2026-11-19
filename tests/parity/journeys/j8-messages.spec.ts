@@ -6,7 +6,7 @@ import { expect, test } from "../fixtures";
 import { apiClient, baseURL, PARITY_PASSWORD } from "../adapters/api";
 import { mailbox } from "../adapters/mail";
 import { withMailInFlight } from "../adapters/stripe";
-import { messagesPagesFor, pagesFor, type ThreadEntry } from "../pages";
+import { messagesPagesFor, pagesFor } from "../pages";
 import { ADMIN, VALID_BRIEF } from "./contract/_client-helpers";
 import { freshCustomer, LIFECYCLE, linksIn, oneNew } from "./_j7-j11-helpers";
 
@@ -49,7 +49,7 @@ test("C-14/C-15/N-11 J8 the client messages the studio, the admin is emailed and
   await withMailInFlight(() => messages.send(second));
   await oneNew(adminBoxAgain, LIFECYCLE.adminClientMessage, projectId);
 
-  expect(await messages.thread()).toEqual<ThreadEntry[]>([
+  expect(await messages.thread()).toEqual([
     { kind: "message", text: first, mine: true },
     { kind: "system", text: BRIEF_RECEIVED },
     { kind: "message", text: second, mine: true },
@@ -76,7 +76,7 @@ test("DV-14/C-14/D-17/N-06 J8 an admin reply succeeds, the client is emailed and
   const notice = await oneNew(clientBox, LIFECYCLE.clientNewMessage);
   expect(linksIn(notice)).toContain(`${baseURL}/project/${projectId}/messages`);
 
-  expect(await messages.thread()).toEqual<ThreadEntry[]>([
+  expect(await messages.thread()).toEqual([
     { kind: "message", text: "Hello, who designs my logo?", mine: true },
     { kind: "system", text: BRIEF_RECEIVED },
     { kind: "message", text: reply, mine: false },

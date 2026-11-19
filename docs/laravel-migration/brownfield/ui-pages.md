@@ -65,3 +65,11 @@ Screenshots at 1280 px and 390 px, light and dark: login, dashboard (each sectio
 2. `next dev` sometimes reloads a page right after its first compile, which loses typed input and the fragment token (`apps/web/src/lib/auth/client.ts:7-13` strips it). The page objects retry. Dev-only, so Laravel needn't copy it.
 3. **The setup link's `next=/project/{id}` is ignored:** `/set-password` always goes to `/login?password=updated` (`app/set-password/page.tsx:47`). After setting a password, a customer lands on the dashboard, not their project. With the UX one-project shortcut, Laravel lands them on the project (DV-UX), so this is a `@deviation` candidate for 0.8e.
 4. The project page has no explicit "whose turn" element, and the status badge has no accessible role. The Next page objects derive the turn from badge text and dashboard grouping (`app/dashboard/page.tsx:38`). The Laravel turn banner (UX §2.5) gives this directly.
+
+## Verified by journeys 3–6 (story 0.8b, 2026-11-19)
+- **Clients have no comment composer.** Only the revision form is shown (`app/project/[id]/concept/[conceptId]/page.tsx:496-535`). The comments API is reachable, but no UI uses it. The Laravel UX adds the free-comment composer (UX §7). The parity journey posts comments via the API.
+- A reload restores the brief from **sessionStorage** (`brief-form.tsx:279`), not the server draft. The server draft only matters in a new tab. There's a `beforeunload` warning (`:299-309`), and the live region announces only the first save (`:102-107`).
+- Choice-button accessible names run the hint straight into the value (`components/brief-field-input.tsx:97`), an a11y defect not to copy.
+- "Feedback sent." shows before the page refresh lands (`page.tsx:156-157`).
+- The allowances card has a permanent "Need more?" footer offering the same purchases as the snoozable upsell panel (`components/revision-purchase.tsx:173`).
+- The hub's new-concepts flag counts comments, but the dashboard badge doesn't (`app/dashboard/page.tsx:106`).

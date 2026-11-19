@@ -2,8 +2,8 @@
 // :138); a system message is a plain line (:141), a person's message is an article headed by the sender label,
 // "You" for the viewer (lib/chat-messages.ts:42). The page loads once (no polling), so thread() reloads.
 import type { Page } from "@playwright/test";
-import type { MessagesPages, ThreadEntry } from "../messages";
-import { projectIdIn } from "./approval";
+import type { MessagesPages, MessageEntry } from "../messages";
+import { projectIdIn } from "./project-areas";
 
 export function messages(page: Page): MessagesPages {
   const items = page.getByRole("list", { name: /^Messages on / }).getByRole("listitem");
@@ -11,6 +11,7 @@ export function messages(page: Page): MessagesPages {
   const settle = async () => {
     await page.getByRole("heading", { name: "Project messages" }).waitFor({ state: "attached" });
     await page.waitForLoadState("networkidle");
+    await page.getByText("Loading…").waitFor({ state: "hidden" }); // :129 until GET messages answered
   };
   const self: MessagesPages = {
     async open() {
@@ -28,7 +29,7 @@ export function messages(page: Page): MessagesPages {
     async thread() {
       await page.reload();
       await settle();
-      const entries: ThreadEntry[] = [];
+      const entries: MessageEntry[] = [];
       for (const item of await items.all()) {
         const article = item.getByRole("article");
         if ((await article.count()) === 0) {
