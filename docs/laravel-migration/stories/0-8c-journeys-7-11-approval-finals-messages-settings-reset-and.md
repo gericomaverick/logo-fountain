@@ -1,6 +1,6 @@
 # Story 0.8c: Journeys 7–11: approval, finals, messages, settings, reset and logout
 
-Status: review
+Status: done
 
 **Covers:** C-12…C-15, C-17, C-18, K-11, A-02, A-03, A-07…A-09, N-03, N-06…N-09, N-11, D-11 (API leg), DV-14 · **Gate:** `@approval&@ui`, `@finals&@ui`, `@messages&@ui`, `@settings&@ui` · **After:** 0.8a · **DoD:** E0
 
@@ -46,3 +46,7 @@ Status: review
 - **Parent:** set the inventory status for C-12…C-15, C-17, C-18, K-11, A-02, A-03, A-07…A-09, N-03, N-06…N-09 and N-11 (L5 journeys exist; N-06 and the D-17 reply only as DV-14 until Laravel), and copy Next points 1–5 into `brownfield/ui-pages.md` (point 2 into `auth-and-security.md` §11).
 - The admin **screen** for replying (D-17) and uploading finals (D-11) belongs to 0.8d. J7 and J8 use the admin API there.
 - `push` was denied to sub-agents. Commits are local on `story/0-8c-journeys-7-11` for the parent to cherry-pick.
+
+
+## Parent review (2026-11-19)
+Fast-forwarded main to `94e89a8` and pushed. `npm run check` OK (39 specs, 17 expected failures). Surprises copied into `brownfield/ui-pages.md`.

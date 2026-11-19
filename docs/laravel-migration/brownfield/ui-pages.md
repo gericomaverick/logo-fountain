@@ -73,3 +73,10 @@ Screenshots at 1280 px and 390 px, light and dark: login, dashboard (each sectio
 - "Feedback sent." shows before the page refresh lands (`page.tsx:156-157`).
 - The allowances card has a permanent "Need more?" footer offering the same purchases as the snoozable upsell panel (`components/revision-purchase.tsx:173`).
 - The hub's new-concepts flag counts comments, but the dashboard badge doesn't (`app/dashboard/page.tsx:106`).
+
+## Verified by journeys 7–11 (story 0.8c, 2026-11-19)
+- The final ZIP download is triggered from the hub, and the result shows on the opener page (`project/[id]/project-hub.tsx:314`).
+- The finals filename uses the **client's name** when the client is named after the person (`ada-client-{UTC date}.zip`, `api/projects/[id]/finals/route.ts:117`). The brand name isn't used.
+- After approval the hub badge reads "Approved" (the overview badge state).
+- Signed out, `/project/{id}/messages` still renders its shell with "Unauthorized — Sign in and retry." and no data (client page, API-guarded). Laravel redirects to sign-in instead (DV-UX).
+- The reset email's "one hour" wording is in the HTML part only (`lib/auth/mail.ts:32`), not the text part (`:25-27`).
