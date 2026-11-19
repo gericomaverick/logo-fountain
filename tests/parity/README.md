@@ -14,8 +14,8 @@ PARITY_TARGET=laravel PARITY_BASE_URL=http://127.0.0.1:8000 node scripts/run.mjs
 |---|---|
 | `journeys/` | Shared tests. Never branch on the target |
 | `pages/` | Page objects: `index.ts` (interfaces and resolver), `next/`, `laravel/` |
-| `adapters/` | `target.ts` (target and URL), `seed.ts` (load a scenario into the target, deterministic IDs), `api.ts` (cookie-isolated clients that sign in through the real login) |
-| `fixtures.ts` | `test`/`expect` with the `target` fixture and expected-failure marking |
+| `adapters/` | `target.ts` (target and URL), `seed.ts` (scenarios, deterministic IDs and the one cross-process DB lock), `api.ts` (cookie-isolated clients that sign in through the real login), `mail.ts` (Mailpit), `stripe.ts` (stripe-fake, signed webhooks, mail-in-flight lock) |
+| `fixtures.ts` | `test`/`expect` with the `target` fixture, the `db` lease option and expected-failure marking |
 | `fixtures/rules/*.json` | Shared rule fixtures (story 0.6b). Generated from Next: `CAPTURE=1 npx vitest run src/lib/__tests__/shared-rule-fixtures.test.ts` in `apps/web`; Next's `npm run test` asserts them; the PHP ports must agree case-for-case |
 | `expected-next-failures.txt` | Exact titles of `@deviation` tests that must fail on Next |
 | `converted-tags.txt` | Gate expressions that are green on Laravel (run by CI) |
@@ -52,4 +52,15 @@ cd ../../apps/web
 env -i PATH="$PATH" HOME="$HOME" PARITY_MODE=1 PARITY_DATABASE_URL=$M PARITY_RUNTIME_DATABASE_URL=$R node scripts/parity-migrate.mjs
 ```
 
-Start `next dev` with `env -i` (so `.env.local` isn't inherited, and without `CLAUDECODE`/`CLAUDE_CODE_ENTRYPOINT`/`AI_AGENT`, which make Next 16.4 refuse to start): `PARITY_MODE=1 DATABASE_URL=$R DIRECT_URL=$M BETTER_AUTH_SECRET=<32+ chars> PUBLIC_SITE_URL=<base url> STRIPE_SECRET_KEY=sk_test_parity STRIPE_API_BASE=http://127.0.0.1:58091 STRIPE_WEBHOOK_SECRET=whsec_parity_test_only_0000000000000000 POSTMARK_SERVER_TOKEN=parity POSTMARK_FROM=portal@parity.test POSTMARK_API_URL=http://127.0.0.1:58090/email R2_ACCOUNT_ID=0123456789abcdef0123456789abcdef R2_ACCESS_KEY_ID=parity-test-only-access-key R2_SECRET_ACCESS_KEY=parity-test-only-secret-key R2_CONCEPTS_BUCKET=lf-parity-concepts R2_FINAL_DELIVERABLES_BUCKET=lf-parity-final-deliverables R2_ENDPOINT=http://127.0.0.1:58333 ADMIN_NOTIFICATION_EMAILS=admin@parity.test`. The suite itself needs `PARITY_TARGET`, `PARITY_BASE_URL`, `PARITY_DATABASE_URL=$M` and the same `R2_*` variables (so seeding uploads objects).
+Start `next dev` with `env -i` (so `.env.local` isn't inherited, and without `CLAUDECODE`/`CLAUDE_CODE_ENTRYPOINT`/`AI_AGENT`, which make Next 16.4 refuse to start): `PARITY_MODE=1 DATABASE_URL=$R DIRECT_URL=$M BETTER_AUTH_SECRET=<32+ chars> PUBLIC_SITE_URL=<base url> STRIPE_SECRET_KEY=sk_test_parity STRIPE_API_BASE=http://127.0.0.1:58091 STRIPE_WEBHOOK_SECRET=whsec_parity_test_only_0000000000000000 POSTMARK_SERVER_TOKEN=parity POSTMARK_FROM=portal@parity.test POSTMARK_API_URL=http://127.0.0.1:58090/email R2_ACCOUNT_ID=0123456789abcdef0123456789abcdef R2_ACCESS_KEY_ID=parity-test-only-access-key R2_SECRET_ACCESS_KEY=parity-test-only-secret-key R2_CONCEPTS_BUCKET=lf-parity-concepts R2_FINAL_DELIVERABLES_BUCKET=lf-parity-final-deliverables R2_ENDPOINT=http://127.0.0.1:58333 ADMIN_NOTIFICATION_EMAILS=admin@parity.test`. For browser (`@ui`) runs bind `next dev` to `--hostname 127.0.0.1`: bound to `0.0.0.0`, Next blocks its HMR socket for a `127.0.0.1` page and client pages reload instead of hydrating. stripe-fake (in Docker) then needs a forwarder on `0.0.0.0` to that port and `POST /__config {"webhookUrl":"http://host.docker.internal:<forwarder>/api/stripe/webhook"}`. The suite itself needs `PARITY_TARGET`, `PARITY_BASE_URL`, `PARITY_DATABASE_URL=$M` and the same `R2_*` variables (so seeding uploads objects).
+
+## The database lock (story 0.8a)
+
+Seeding truncates the one parity database, and files run in parallel workers. Every test that depends on DB contents declares how it uses it; `fixtures.ts` takes the lease (a readers-writer lock across workers, `adapters/seed.ts`):
+
+```ts
+test.use({ db: "exclusive" });                    // per test: seed() as often as you like; nobody else touches the DB
+test.use({ db: { shared: "awaiting-brief" } });   // per file: the scenario is a baseline seeded once; only ADD data (fresh emails/sessions)
+```
+
+`seed()` throws without an exclusive lease. Helpers: `useScenario(name)` (`_client-helpers.ts`: exclusive + reseed in `beforeEach`), the admin `test` (`_admin-helpers.ts`, exclusive), `acquireDbLock()`/`releaseDbLock()` in `beforeAll`/`afterAll` (`_auth-helpers.ts`, file-wide exclusive), `seedOnceForRun()` in `beforeAll` (`adapters/stripe.ts`, file-wide shared). Shared holders that make the app send mail wrap it in `withMailInFlight()` so `withEmailFailures()` tests stay isolated. `PARITY_LOCK_LOG=<file>` logs every lease and seed.

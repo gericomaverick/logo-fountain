@@ -1,9 +1,6 @@
 // Shared helpers for the admin contract suites (story 0.7c). Black-box only: HTTP through
 // adapters/api.ts, state through adapters/seed.ts. Never branch on the target here.
 import { randomUUID } from "node:crypto";
-import { mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import { deflateSync, crc32 } from "node:zlib";
 import type { APIRequestContext, APIResponse } from "@playwright/test";
 import { apiClient, baseURL } from "../../adapters/api";
@@ -18,40 +15,9 @@ export const HOSTILE_ORIGIN = "https://evil.example";
 /** A well-formed v4 UUID that no scenario uses. */
 export const UNKNOWN_ID = "00000000-0000-4000-8000-000000000000";
 
-// ---------------------------------------------------------------------------
-// One database is shared by every worker, and seeding truncates it. Each test therefore holds a
-// cross-process lock (a directory created atomically) for its whole run, so tests in different
-// files never interleave. Stale locks (dead holder or >5 min old) are taken over.
-// ---------------------------------------------------------------------------
-const LOCK_DIR = join(tmpdir(), `lf-parity-db-${Buffer.from(process.env.PARITY_DATABASE_URL ?? "default").toString("hex").slice(-24)}.lock`);
-
-function holderAlive(): boolean {
-  try {
-    const pid = Number(readFileSync(join(LOCK_DIR, "pid"), "utf8"));
-    if (Date.now() - statSync(LOCK_DIR).mtimeMs > 300_000) return false;
-    process.kill(pid, 0);
-    return true;
-  } catch (error) {
-    return (error as NodeJS.ErrnoException).code === "EPERM" || (error as NodeJS.ErrnoException).code === "ENOENT";
-  }
-}
-
-async function acquireDbLock(): Promise<() => void> {
-  for (;;) {
-    try {
-      mkdirSync(LOCK_DIR);
-      writeFileSync(join(LOCK_DIR, "pid"), String(process.pid));
-      return () => rmSync(LOCK_DIR, { recursive: true, force: true });
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
-      if (!holderAlive()) rmSync(LOCK_DIR, { recursive: true, force: true });
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    }
-  }
-}
-
+// Seeding truncates the shared database, so every admin test holds the suite's exclusive DB lease
+// (fixtures.ts `db: "exclusive"`, adapters/seed.ts) for its whole run.
 type AdminFixtures = {
-  dbLock: void;
   /** Seeds a scenario and returns its deterministic IDs plus a signed-in admin client. */
   scenario: (name: string) => Promise<Seeded>;
   /** A cookie-isolated client; `signInAs` logs in through the real login endpoint. */
@@ -68,17 +34,7 @@ export type Seeded = {
 };
 
 export const test = base.extend<AdminFixtures>({
-  dbLock: [
-    async ({}, use) => {
-      const release = await acquireDbLock();
-      try {
-        await use();
-      } finally {
-        release();
-      }
-    },
-    { auto: true, timeout: 600_000 },
-  ],
+  db: async ({}, use) => use("exclusive"),
   client: async ({}, use) => {
     const contexts: APIRequestContext[] = [];
     await use(async (signInAs?: string) => {

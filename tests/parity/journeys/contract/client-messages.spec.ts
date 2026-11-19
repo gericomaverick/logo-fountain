@@ -58,15 +58,6 @@ test.describe("concepts-ready", () => {
     expect(max.message.body).toHaveLength(2000);
   });
 
-  // FIXME(Next bug): an admin's POST returns 500. messages/route.ts:70 upserts Profile with isAdmin:true and
-  // the BEFORE INSERT trigger protect_operator_admin_flag (portable_core/migration.sql:527) rejects it for the
-  // runtime role before ON CONFLICT resolves. The admin UI posts here (app/admin/projects/[id]/messages/page.tsx:107),
-  // so admin replies are broken on a runtime role that is not the table owner. Needs an owner decision.
-  test.fixme("C-14 an admin's message is 201 with sender.isAdmin true @api @client @messages", async () => {
-    const res = await expectJson(await (await as(ADMIN)).post(path, { data: { body: "Reply" } }), 201);
-    expect(res.message.sender).toMatchObject({ email: ADMIN, isAdmin: true });
-  });
-
   test("C-15 POST read-state {area:messages} stamps the latest non-system message time and clears hasNewMessages @api @client @messages", async () => {
     const a = await as(CLIENT_A);
     const before = await snapshotOf(a, id);

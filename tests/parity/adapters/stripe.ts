@@ -3,13 +3,12 @@
 // built, signed (same scheme as infra/stripe-fake/server.mjs signPayload) and POSTed to the target ourselves,
 // so a test controls the event ID (duplicate deliveries) and needs no route from Docker back to the app.
 import { createHash, createHmac, randomBytes } from "node:crypto";
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { APIRequestContext } from "@playwright/test";
+import { test, type APIRequestContext } from "@playwright/test";
 import { apiClient, baseURL } from "./api";
-import { seed } from "./seed";
+import { coordinationDir, leaseEpoch, lockDbForFile, pidAlive } from "./seed";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 export const stripeFakeUrl = (process.env.PARITY_STRIPE_URL || `http://127.0.0.1:${process.env.PARITY_STRIPE_PORT || "58091"}`).replace(/\/$/, "");
@@ -28,29 +27,12 @@ export type LoadedFixture = { run: string; sessionId: string; session: StripeSes
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /**
- * Seeds the scenario once per Playwright run (all workers share the runner as parent process), because
- * seeding truncates the database and spec files run in parallel. Later callers wait for the first.
+ * For beforeAll: a SHARED lease on `scenario` for the whole spec file (adapters/seed.ts). The first holder seeds
+ * it; files that reseed wait until every shared holder is done. Equivalent to `test.use({ db: { shared } })`.
  */
 export async function seedOnceForRun(scenario = WEBHOOK_SCENARIO): Promise<void> {
-  const key = createHash("sha256").update(`${process.ppid}:${baseURL}:${scenario}:${process.env.PARITY_DATABASE_URL ?? ""}`).digest("hex").slice(0, 16);
-  const base = join(tmpdir(), `lf-parity-seed-${key}`);
-  try {
-    writeFileSync(`${base}.lock`, String(process.pid), { flag: "wx" });
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
-    for (const deadline = Date.now() + 180_000; Date.now() < deadline; await sleep(200)) {
-      if (existsSync(`${base}.done`)) return;
-      if (existsSync(`${base}.failed`)) throw new Error(`seeding ${scenario} failed in another worker: ${readFileSync(`${base}.failed`, "utf8")}`);
-    }
-    throw new Error(`timed out waiting for another worker to seed ${scenario}`);
-  }
-  try {
-    seed(scenario);
-    writeFileSync(`${base}.done`, "");
-  } catch (error) {
-    writeFileSync(`${base}.failed`, String((error as Error).message).slice(0, 2000));
-    throw error;
-  }
+  test.setTimeout(660_000);
+  await lockDbForFile({ shared: scenario });
 }
 
 async function fakeAdmin(path: string, body: unknown) {
@@ -118,34 +100,49 @@ export function signPayload(payload: string, secret = WEBHOOK_SECRET, timestamp 
 export type Delivery = { status: number; body: any; text: string };
 
 // The email transport's failure switch (postmark-shim /__fail) is global, so a test that arms it must not
-// run while another worker's webhook is sending mail. Deliveries hold a shared lock (a file per in-flight
-// delivery); withEmailFailures takes it exclusively. Scoped to this run (runner pid) and target.
-const runKey = createHash("sha256").update(`${process.ppid}:${baseURL}`).digest("hex").slice(0, 16);
-const lockDir = join(tmpdir(), `lf-parity-locks-${runKey}`);
+// run while another worker is sending mail. Senders hold a shared mail lock (a file per in-flight send);
+// withEmailFailures takes it exclusively. Under the DB lock's coordination directory (one per database/stack);
+// a dead holder's files are ignored and removed. Tests under the EXCLUSIVE DB lease don't need this: no
+// shared holder runs beside them.
+const lockDir = join(coordinationDir, "mail");
 const exclusiveFile = join(lockDir, "exclusive");
 let holdingExclusive = false;
+const holderPid = (name: string) => Number(name.split("-")[1]);
 
-async function sharedDelivery<T>(fn: () => Promise<T>): Promise<T> {
+function exclusiveHeldByOther(): boolean {
+  let pid: number;
+  try { pid = Number(readFileSync(exclusiveFile, "utf8")); } catch { return false; }
+  if (!(pid > 0) || pidAlive(pid)) return true; // empty: created with "wx", pid not written yet
+  rmSync(exclusiveFile, { force: true });
+  return false;
+}
+
+/**
+ * Runs `fn`, which may cause the app to send email (a webhook delivery, a stripe-fake payment, a magic-link
+ * request), as "mail in flight": it waits while a withEmailFailures test has the transport armed.
+ */
+export async function withMailInFlight<T>(fn: () => Promise<T>): Promise<T> {
   if (holdingExclusive) return fn();
   mkdirSync(lockDir, { recursive: true });
   for (;;) {
-    while (existsSync(exclusiveFile)) await sleep(50);
+    while (exclusiveHeldByOther()) await sleep(50);
     const mine = join(lockDir, `inflight-${process.pid}-${randomBytes(4).toString("hex")}`);
     writeFileSync(mine, "");
-    if (existsSync(exclusiveFile)) { rmSync(mine, { force: true }); continue; }
+    if (exclusiveHeldByOther()) { rmSync(mine, { force: true }); continue; }
     try { return await fn(); } finally { rmSync(mine, { force: true }); }
   }
 }
 
-/** Runs `fn` with no other webhook delivery in flight, so email failures armed inside it hit only this test. */
+/** Runs `fn` with no other mail in flight, so email failures armed inside it hit only this test. */
 export async function withEmailFailures<T>(fn: () => Promise<T>): Promise<T> {
   mkdirSync(lockDir, { recursive: true });
   for (;;) {
-    try { writeFileSync(exclusiveFile, String(process.pid), { flag: "wx" }); break; } catch { await sleep(50); }
+    try { writeFileSync(exclusiveFile, String(process.pid), { flag: "wx" }); break; } catch { exclusiveHeldByOther(); await sleep(50); }
   }
   holdingExclusive = true;
   try {
-    while (readdirSync(lockDir).some((n) => n.startsWith("inflight-"))) await sleep(50);
+    const inflight = () => readdirSync(lockDir).filter((n) => n.startsWith("inflight-")).filter((n) => pidAlive(holderPid(n)) || (rmSync(join(lockDir, n), { force: true }), false));
+    while (inflight().length > 0) await sleep(50);
     return await fn();
   } finally {
     await clearEmailFailures();
@@ -156,7 +153,7 @@ export async function withEmailFailures<T>(fn: () => Promise<T>): Promise<T> {
 
 /** POSTs a signed event to the target's webhook route, like Stripe does. */
 export function deliverEvent(event: StripeEvent, options: { signature?: string | null; secret?: string } = {}): Promise<Delivery> {
-  return sharedDelivery(() => postEvent(event, options));
+  return withMailInFlight(() => postEvent(event, options));
 }
 
 async function postEvent(event: StripeEvent, options: { signature?: string | null; secret?: string }): Promise<Delivery> {
@@ -199,14 +196,22 @@ export async function signInSerialised(email: string): Promise<APIRequestContext
   mkdirSync(lockDir, { recursive: true });
   const file = join(lockDir, `login-${createHash("sha256").update(email).digest("hex").slice(0, 12)}`);
   for (;;) {
-    try { writeFileSync(file, String(process.pid), { flag: "wx" }); break; } catch { await sleep(25); }
+    try { writeFileSync(file, String(process.pid), { flag: "wx" }); break; } catch {
+      let pid = 0;
+      try { pid = Number(readFileSync(file, "utf8")); } catch { continue; }
+      if (pid && !pidAlive(pid)) rmSync(file, { force: true });
+      await sleep(25);
+    }
   }
   try { return await apiClient({ signInAs: email }); } finally { rmSync(file, { force: true }); }
 }
 
-let admin: Promise<APIRequestContext> | null = null;
-/** The seeded admin, signed in once per worker. */
-export const adminClient = (): Promise<APIRequestContext> => (admin ??= signInSerialised(ADMIN_EMAIL));
+let admin: { epoch: number; ctx: Promise<APIRequestContext> } | null = null;
+/** The seeded admin, signed in once per worker and DB lease (a reseed in between ends every session). */
+export function adminClient(): Promise<APIRequestContext> {
+  if (admin?.epoch !== leaseEpoch()) admin = { epoch: leaseEpoch(), ctx: signInSerialised(ADMIN_EMAIL) };
+  return admin.ctx;
+}
 
 /** Every project whose latest order is this Checkout Session (admin GET /api/admin/projects). */
 export async function projectsForSession(admin: APIRequestContext, sessionId: string): Promise<any[]> {
@@ -232,6 +237,26 @@ export async function auditEvents(admin: APIRequestContext, projectId: string): 
   const res = await admin.get(`/api/admin/projects/${projectId}/audit`);
   if (!res.ok()) throw new Error(`GET audit: ${res.status()}`);
   return (await res.json()).events;
+}
+
+export type FakeDelivery = { eventId: string; type: string; sessionId: string; target: string; status: number | null; body: string | null; error: string | null };
+
+/** Webhooks the fake itself sent for a session (its hosted page or /__webhook), oldest first. */
+export async function fakeDeliveries(sessionId: string): Promise<FakeDelivery[]> {
+  const res = await fetch(`${stripeFakeUrl}/__deliveries`);
+  if (!res.ok) throw new Error(`stripe-fake /__deliveries: ${res.status}`);
+  return ((await res.json()) as { deliveries: FakeDelivery[] }).deliveries.filter((d) => d.sessionId === sessionId);
+}
+
+/** The project the app reported fulfilling for a session paid on the fake's hosted page (webhook response body). */
+export async function fulfilledProjectId(sessionId: string): Promise<string> {
+  for (const d of await fakeDeliveries(sessionId)) {
+    try {
+      const body = JSON.parse(d.body ?? "");
+      if (d.status === 200 && body.fulfilled === true && typeof body.projectId === "string") return body.projectId;
+    } catch { /* not JSON */ }
+  }
+  throw new Error(`no fulfilled webhook delivery for ${sessionId}: ${JSON.stringify(await fakeDeliveries(sessionId))}`);
 }
 
 /** Loads a paid package fixture and delivers checkout.session.completed; returns the fulfilled project ID. */

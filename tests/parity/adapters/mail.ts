@@ -86,3 +86,41 @@ export const SUBJECTS = {
   reset: "Reset your Logo Fountain password",
   adminNewProject: "New project created",
 } as const;
+
+// ---------- mailbox snapshots (moved here from journeys/contract/_auth-helpers.ts in story 0.8a) ----------
+export type Mail = { id: string; subject: string; text: string; html: string };
+
+const idsTo = async (to: string) => new Set((await messagesTo(to)).map((m) => m.ID));
+
+/** Snapshot a mailbox, act, then read what arrived after the snapshot. */
+export async function mailbox(to: string) {
+  const before = await idsTo(to);
+  const fresh = async () => [...(await idsTo(to))].filter((id) => !before.has(id));
+  return {
+    /** Waits for at least `count` new messages (default 1) and returns them all, newest first. */
+    async next(count = 1, timeoutMs = 15_000): Promise<Mail[]> {
+      const until = Date.now() + timeoutMs;
+      let ids = await fresh();
+      while (ids.length < count && Date.now() < until) { await sleep(200); ids = await fresh(); }
+      if (ids.length < count) throw new Error(`expected ${count} new email(s) to ${to}, got ${ids.length}`);
+      return Promise.all(ids.map(async (id) => {
+        const m = await getMessage(id);
+        return { id, subject: m.Subject, text: m.Text, html: m.HTML };
+      }));
+    },
+    /** Count of new messages after a settle delay (for "nothing was sent" assertions; allows queued senders). */
+    async countAfterSettle(settleMs = 2_000) {
+      await sleep(settleMs);
+      return (await fresh()).length;
+    },
+  };
+}
+
+/** The single mailbox-proof link in an email (the token travels in the URL fragment): path, token and next. */
+export function proofLink(mail: Pick<Mail, "subject" | "text">) {
+  const urls = [...mail.text.matchAll(/https?:\/\/[^\s"'<>]+/g)].map((m) => m[0]).filter((u) => u.includes("#"));
+  if (urls.length !== 1) throw new Error(`expected one fragment link in "${mail.subject}", found ${urls.length}`);
+  const url = new URL(urls[0]);
+  const fragment = new URLSearchParams(url.hash.slice(1));
+  return { url, origin: url.origin, path: url.pathname, query: url.search, token: fragment.get("token") ?? "", next: fragment.get("next") ?? "" };
+}

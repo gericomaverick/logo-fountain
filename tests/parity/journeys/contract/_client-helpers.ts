@@ -1,12 +1,10 @@
 // Shared helpers for the client contract suites (story 0.7b). Black-box only: HTTP via adapters/api.ts,
 // seeding via adapters/seed.ts. No target branching here.
-import { mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
-import { createHash } from "node:crypto";
-import { tmpdir } from "node:os";
+import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { APIRequestContext, APIResponse } from "@playwright/test";
-import { apiClient, baseURL } from "../../adapters/api";
+import { apiClient } from "../../adapters/api";
 import { scenarioId, seed } from "../../adapters/seed";
 import { expect, test } from "../../fixtures";
 
@@ -23,49 +21,20 @@ export const conceptId = (scenario: string, n: number, key = "p1") => scenarioId
 export const UNKNOWN_ID = "00000000-0000-4000-8000-000000000000";
 
 // ---------------------------------------------------------------------------------------------
-// Seeding. Every seed truncates the whole parity DB, so tests that seed must not overlap, even
-// across Playwright workers. A cross-process lock (mkdir is atomic) is held from seed to test end.
-// SHARED-CHANGE candidate: move this into adapters/seed.ts (or run contract tests with workers=1).
-const lockDir = join(tmpdir(), `lf-parity-seed-${createHash("sha1").update(baseURL).digest("hex").slice(0, 12)}.lock`);
-const STALE_MS = 180_000;
-let holding = false;
+// Seeding. Every seed truncates the whole parity DB, so each test in a useScenario scope holds the
+// suite's exclusive DB lease (fixtures.ts `db: "exclusive"`, adapters/seed.ts) from before its
+// beforeEach to after its afterEach; the lock wait doesn't count against the test timeout.
 const open: APIRequestContext[] = [];
 
-async function acquireSeedLock() {
-  for (;;) {
-    try {
-      mkdirSync(lockDir);
-      writeFileSync(join(lockDir, "owner"), String(process.pid));
-      holding = true;
-      return;
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
-      try {
-        if (Date.now() - statSync(lockDir).mtimeMs > STALE_MS) rmSync(lockDir, { recursive: true, force: true });
-      } catch {
-        // Released between the check and the stat.
-      }
-      await new Promise((r) => setTimeout(r, 50));
-    }
-  }
-}
-
-function releaseSeedLock() {
-  if (!holding) return;
-  holding = false;
-  rmSync(lockDir, { recursive: true, force: true });
-}
-
-/** Register beforeEach/afterEach that seed `scenario` freshly for every test in the current scope. */
+/** Seeds `scenario` freshly for every test in the current scope (file or describe), under the exclusive DB lease. */
 export function useScenario(scenario: string) {
   test.describe.configure({ timeout: 120_000 });
-  test.beforeEach(async () => {
-    await acquireSeedLock();
+  test.use({ db: "exclusive" });
+  test.beforeEach(() => {
     seed(scenario);
   });
   test.afterEach(async () => {
     await Promise.all(open.splice(0).map((ctx) => ctx.dispose()));
-    releaseSeedLock();
   });
 }
 

@@ -1,18 +1,13 @@
 // Story 0.7a helpers for the auth and checkout contract suites (L4, black-box, target-neutral).
-// Own small Mailpit reader on purpose: the shared mail adapter (adapters/mail.ts) belongs to story 0.8a.
-import { closeSync, mkdirSync, openSync, readFileSync, rmSync, writeSync } from "node:fs";
-import { createHash } from "node:crypto";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import { request as pwRequest, type APIRequestContext, type APIResponse } from "@playwright/test";
 import { baseURL } from "../../adapters/api";
-import { seed } from "../../adapters/seed";
+import { mailpitUrl } from "../../adapters/mail";
+import { lockDbForFile, releaseDb, seed } from "../../adapters/seed";
+import { postmarkShimUrl, stripeFakeUrl, withMailInFlight } from "../../adapters/stripe";
 
-const port = (name: string, fallback: string) => process.env[name] || fallback;
-// Same variables and defaults as infra/lib/env.mjs and docker-compose.test.yml.
-export const MAILPIT_URL = `http://127.0.0.1:${port("PARITY_MAILPIT_PORT", "58025")}`;
-export const POSTMARK_SHIM_URL = `http://127.0.0.1:${port("PARITY_POSTMARK_PORT", "58090")}`;
-export const STRIPE_FAKE_URL = `http://127.0.0.1:${port("PARITY_STRIPE_PORT", "58091")}`;
+export const MAILPIT_URL = mailpitUrl;
+export const POSTMARK_SHIM_URL = postmarkShimUrl;
+export const STRIPE_FAKE_URL = stripeFakeUrl;
 const STRIPE_TEST_KEY = "sk_test_parity_test_only";
 
 // Byte-for-byte contract strings (brownfield/auth-and-security.md §4, §10).
@@ -45,73 +40,14 @@ export function authHeaders(res: APIResponse) {
 }
 
 // ---------- cross-file serialisation ----------
-// Every file here reseeds one shared database. `fullyParallel` would otherwise run two files at once,
-// so each file holds this lock (keyed by base URL and DB) for its whole run. Stale locks (dead pid) are taken over.
-const lockDir = join(tmpdir(), `lf-parity-db-${createHash("sha256").update(`${baseURL}|${process.env.PARITY_DATABASE_URL ?? ""}`).digest("hex").slice(0, 16)}.lock`);
-const alive = (pid: number) => { try { process.kill(pid, 0); return true; } catch { return false; } };
-export async function acquireDbLock(timeoutMs = 600_000) {
-  const until = Date.now() + timeoutMs;
-  for (;;) {
-    try {
-      mkdirSync(lockDir);
-      const fd = openSync(join(lockDir, "pid"), "w"); writeSync(fd, String(process.pid)); closeSync(fd);
-      return;
-    } catch {
-      let owner = NaN;
-      try { owner = Number(readFileSync(join(lockDir, "pid"), "utf8")); } catch { /* being written */ }
-      if (Number.isFinite(owner) && owner > 0 && !alive(owner)) { rmSync(lockDir, { recursive: true, force: true }); continue; }
-      if (Date.now() > until) throw new Error(`timed out waiting for ${lockDir}`);
-      await new Promise((r) => setTimeout(r, 250));
-    }
-  }
-}
-export function releaseDbLock() {
-  try { if (Number(readFileSync(join(lockDir, "pid"), "utf8")) === process.pid) rmSync(lockDir, { recursive: true, force: true }); } catch { /* not held */ }
-}
+// Every file here reseeds the shared database, so it holds the suite's exclusive DB lease for its whole run
+// (adapters/seed.ts, story 0.8a). Kept as names the 0.7a specs already call from beforeAll/afterAll.
+export const acquireDbLock = () => lockDbForFile("exclusive");
+export const releaseDbLock = () => releaseDb();
 export { seed };
 
-// ---------- Mailpit ----------
-type MailSummary = { ID: string; To: Array<{ Address: string }>; Subject: string };
-export type Mail = { id: string; subject: string; text: string; html: string };
-
-async function mailIdsTo(to: string): Promise<Set<string>> {
-  const res = await fetch(`${MAILPIT_URL}/api/v1/messages?limit=500`);
-  const body = (await res.json()) as { messages: MailSummary[] };
-  return new Set(body.messages.filter((m) => m.To.some((a) => a.Address.toLowerCase() === to.toLowerCase())).map((m) => m.ID));
-}
-
-/** Snapshot a mailbox, act, then read what arrived after the snapshot. */
-export async function mailbox(to: string) {
-  const before = await mailIdsTo(to);
-  const fresh = async () => [...(await mailIdsTo(to))].filter((id) => !before.has(id));
-  return {
-    /** Waits for exactly `count` new messages (default 1) and returns them, newest first. */
-    async next(count = 1, timeoutMs = 15_000): Promise<Mail[]> {
-      const until = Date.now() + timeoutMs;
-      let ids = await fresh();
-      while (ids.length < count && Date.now() < until) { await new Promise((r) => setTimeout(r, 200)); ids = await fresh(); }
-      if (ids.length < count) throw new Error(`expected ${count} new email(s) to ${to}, got ${ids.length}`);
-      return Promise.all(ids.map(async (id) => {
-        const m = (await (await fetch(`${MAILPIT_URL}/api/v1/message/${id}`)).json()) as { Subject: string; Text: string; HTML: string };
-        return { id, subject: m.Subject, text: m.Text, html: m.HTML };
-      }));
-    },
-    /** Count of new messages after a settle delay (for "nothing was sent" assertions; allows queued senders). */
-    async countAfterSettle(settleMs = 2_000) {
-      await new Promise((r) => setTimeout(r, settleMs));
-      return (await fresh()).length;
-    },
-  };
-}
-
-/** The single mailbox-proof link in an email: path, token and next from the URL fragment. */
-export function proofLink(mail: Mail) {
-  const urls = [...mail.text.matchAll(/https?:\/\/[^\s"'<>]+/g)].map((m) => m[0]).filter((u) => u.includes("#"));
-  if (urls.length !== 1) throw new Error(`expected one fragment link in "${mail.subject}", found ${urls.length}`);
-  const url = new URL(urls[0]);
-  const fragment = new URLSearchParams(url.hash.slice(1));
-  return { url, origin: url.origin, path: url.pathname, query: url.search, token: fragment.get("token") ?? "", next: fragment.get("next") ?? "" };
-}
+// ---------- Mailpit (moved to adapters/mail.ts in story 0.8a) ----------
+export { mailbox, proofLink, type Mail } from "../../adapters/mail";
 
 // ---------- postmark-shim ----------
 export async function failNextEmails(count: number) {
@@ -138,10 +74,11 @@ export async function purchase(email: string, packageCode = "essential") {
   const location = start.headers()["location"] ?? "";
   const id = location.match(/\/pay\/([^/?#]+)/)?.[1];
   if (start.status() !== 303 || !id) throw new Error(`checkout start failed: ${start.status()} ${location}`);
-  const paid = await fetch(`${STRIPE_FAKE_URL}/pay/${id}/complete`, {
+  // The fake posts the webhook (and so the emails) before it answers: count it as mail in flight.
+  const paid = await withMailInFlight(() => fetch(`${STRIPE_FAKE_URL}/pay/${id}/complete`, {
     method: "POST", headers: { accept: "application/json", "content-type": "application/json" },
     body: JSON.stringify({ email, first_name: "Parity", last_name: "Buyer" }),
-  });
+  }));
   if (!paid.ok) throw new Error(`stripe-fake pay failed: ${paid.status}`);
   for (let i = 0; i < 75; i++) {
     const status = await (await ctx.get(`/api/checkout/status?session_id=${id}`)).json();

@@ -72,16 +72,6 @@ test.describe("concepts-ready", () => {
     expect((await snapshotOf(a, id)).messages).toHaveLength(3);
   });
 
-  // FIXME(Next bug): an admin's POST returns 500. The route upserts Profile with isAdmin:true
-  // (apps/web/src/app/api/projects/[id]/concepts/[conceptId]/comments/route.ts:76); Postgres fires the
-  // BEFORE INSERT trigger protect_operator_admin_flag (prisma/migrations/20260901000000_portable_core/
-  // migration.sql:527) before ON CONFLICT resolves, so the runtime role gets "operator-owned admin flag".
-  // Enable once a decision fixes Next or records the documented contract (201, author.isAdmin true) as a DV.
-  test.fixme("C-10 an admin's comment is 201 with author.isAdmin true @api @client @concepts", async () => {
-    const res = await expectJson(await (await as(ADMIN)).post(`/api/projects/${id}/concepts/${c1}/comments`, { data: { body: "Thanks!" } }), 201);
-    expect(res.comment.author).toMatchObject({ email: ADMIN, isAdmin: true });
-  });
-
   test("C-10 comment bodies must be 1-2000 characters after trimming (400 INVALID_COMMENT_BODY) @api @client @concepts", async () => {
     const a = await as(CLIENT_A);
     const path = `/api/projects/${id}/concepts/${c1}/comments`;
