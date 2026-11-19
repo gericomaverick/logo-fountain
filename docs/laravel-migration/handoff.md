@@ -4,8 +4,8 @@
 
 - **Updated:** 2026-11-18 (night session; the owner is away and asked for autonomous progress with tracking)
 - **Phase:** Epic 0 in progress. **0.1 done** (@smoke 2/2 on Next). **0.3 done** (seams). **0.4 done** (seed). **0.6b done** (rule fixtures, 933 cases). **0.2 done** (stack: `cd tests/parity && npm run infra:up|probe|down`; ports PG 55432, Mailpit 58025/SMTP 51025, S3 58333, postmark-shim 58090, stripe-fake 58091; test-only creds in `infra/docker-compose.test.yml`; Next-on-stack recipe in `tests/parity/README.md`).
-- **Running (sub-agents, separate worktrees):** 0.6a upload corpus, 0.5 Stripe scenarios (Next 4340), 0.7b client contracts (PG 55510 / Next 4320), 0.7c admin contracts (PG 55520 / Next 4330 / SeaweedFS 8343). The parent cherry-picks each after review.
-- **Next:** 0.5 Stripe fixtures (after 0.2) → 0.7a auth/checkout contracts → 0.7d authz matrix → 0.8a–e journeys → 0.9 coverage and baseline. Epic 1 starts only after Epic 0 (and the owner's ADR review).
+- **Running (sub-agents, separate worktrees):** 0.6a upload corpus · 0.5 Stripe scenarios (own PG 55530, Next 4340, shared stack) · 0.7a auth/checkout contracts (isolated compose project `lf07a`, Next 4350) · 0.7b client contracts (PG 55510, Next 4320) · 0.7c admin contracts (PG 55520, Next 4330, SeaweedFS 8343). The parent cherry-picks each after review.
+- **Next:** 0.7d authz matrix (after 0.7a–c) → 0.8a–e journeys → 0.9 coverage and baseline. Epic 1 only after Epic 0 (and the owner's ADR review).
 - **Run the suite:** `cd tests/parity && npm ci && PARITY_TARGET=next PARITY_START_NEXT=1 node scripts/run.mjs "@smoke"`.
 - **Owner items:** unchanged (see the previous entry in the session log).
 
