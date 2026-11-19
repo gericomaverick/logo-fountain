@@ -69,11 +69,20 @@ export function settings(page: Page): SettingsPages {
 export function account(page: Page): AccountPages {
   return {
     async requestPasswordReset(email) {
-      await page.goto("/forgot-password");
-      await page.waitForLoadState("networkidle");
-      await page.getByLabel("Email").fill(email);
-      await page.getByRole("button", { name: "Send reset email" }).click();
-      await page.getByRole("status").filter({ hasText: "If that account exists" }).waitFor(); // :68 uniform notice
+      // Before hydration (next dev's first compile) the form submits natively as GET /forgot-password? and nothing
+      // is sent, so a missing notice is retried from the top.
+      for (let i = 1; ; i++) {
+        await page.goto("/forgot-password");
+        await page.waitForLoadState("networkidle");
+        await page.getByLabel("Email").fill(email);
+        await page.getByRole("button", { name: "Send reset email" }).click();
+        try {
+          await page.getByRole("status").filter({ hasText: "If that account exists" }).waitFor({ timeout: 15_000 }); // :68
+          return;
+        } catch (error) {
+          if (i >= 3) throw error;
+        }
+      }
     },
     async signOut() {
       await page.waitForLoadState("networkidle");
