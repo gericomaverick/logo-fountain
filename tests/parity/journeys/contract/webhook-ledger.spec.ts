@@ -1,3 +1,4 @@
+import { releaseDb } from "../../adapters/seed";
 // K-05 webhook ledger: signature, dedupe, concurrent duplicates, transient failure + retry (brownfield
 // checkout-and-payments.md §3). Assertions go through the webhook response, GET /api/checkout/status,
 // admin GET /api/admin/projects and Mailpit only.
@@ -11,6 +12,8 @@ import {
 test.beforeAll(async () => {
   await seedOnceForRun();
 });
+// Hand the file-wide shared lease back as soon as this worker is done with the file (story 0.9).
+test.afterAll(() => releaseDb());
 
 const adminNewProjectMails = (projectId: string) => () => messagesContaining(ADMIN_EMAIL, SUBJECTS.adminNewProject, projectId);
 

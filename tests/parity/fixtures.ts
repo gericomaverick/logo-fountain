@@ -41,7 +41,10 @@ export const test = base.extend<Fixtures & { dbLease: void; expectedFailureGuard
     async ({ db }, use, testInfo) => {
       releaseIfNotFor(testInfo.file);
       if (db === "exclusive") await acquireExclusive("test");
-      else if (typeof db === "object") await acquireShared(db.shared, testInfo.file);
+      // Per test, not per file (story 0.9): a worker that goes idle at the end of a run never moves to another
+      // file, so a file-scoped shared lease starved every exclusive waiter until the lock timeout. Re-taking a
+      // shared lease is cheap while the baseline is unchanged; tests in shared files only add their own data.
+      else if (typeof db === "object") await acquireShared(db.shared, "test");
       await use();
       if (leaseScope() === "test") releaseDb();
     },

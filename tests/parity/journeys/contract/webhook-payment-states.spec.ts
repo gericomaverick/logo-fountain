@@ -1,3 +1,4 @@
+import { releaseDb } from "../../adapters/seed";
 // K-05 payment states and permanent errors: unpaid, delayed success (fresh retrieve) or failure, and sessions
 // that don't resolve to exactly one allowlisted package (brownfield checkout-and-payments.md §3 steps 2, 4, 10; §4.1-4.2).
 import { expect, test } from "../../fixtures";
@@ -9,6 +10,8 @@ import {
 test.beforeAll(async () => {
   await seedOnceForRun();
 });
+// Hand the file-wide shared lease back as soon as this worker is done with the file (story 0.9).
+test.afterAll(() => releaseDb());
 
 const PERMANENT = { received: true, fulfilled: false, error: "Webhook processing failed", classification: "permanent", retry: false };
 

@@ -1,3 +1,4 @@
+import { releaseDb } from "../../adapters/seed";
 // K-06/K-07 fulfilment and access provisioning from a paid package session (brownfield checkout-and-payments.md
 // §3 steps 6-9, §4.1-4.3), with the checkout emails N-01, N-02, N-10.
 import { expect, test } from "../../fixtures";
@@ -11,6 +12,8 @@ import { baseURL } from "../../adapters/api";
 test.beforeAll(async () => {
   await seedOnceForRun();
 });
+// Hand the file-wide shared lease back as soon as this worker is done with the file (story 0.9).
+test.afterAll(() => releaseDb());
 
 const TIERS = [
   { tier: "essential", limit: 1, total: 34900 },

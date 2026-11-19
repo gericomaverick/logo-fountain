@@ -1,3 +1,4 @@
+import { releaseDb } from "../../adapters/seed";
 // K-09 upsell fulfilment through the webhook (brownfield checkout-and-payments.md §4.4), CURRENT Next behaviour:
 // an add-on adds 1 revision; an upgrade SETS the limits to the target tier. (DV-2 deviation tests: story 0.8e.)
 import { expect, test } from "../../fixtures";
@@ -9,6 +10,8 @@ import {
 test.beforeAll(async () => {
   await seedOnceForRun();
 });
+// Hand the file-wide shared lease back as soon as this worker is done with the file (story 0.9).
+test.afterAll(() => releaseDb());
 
 async function limits(projectId: string) {
   const snapshot = await adminSnapshot(await adminClient(), projectId);

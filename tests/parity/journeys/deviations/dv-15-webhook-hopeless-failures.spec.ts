@@ -1,3 +1,4 @@
+import { releaseDb } from "../../adapters/seed";
 // DV-15 (owner-approved 2026-11-19, finding F-16): webhook failures that can never succeed are permanent,
 // recorded and reported to the admin instead of being retried by Stripe for ~3 days. Laravel target; each
 // test fails on Next (listed in expected-next-failures.txt). Admin alert subject is part of the spec.
@@ -12,6 +13,8 @@ export const PAYMENT_ATTENTION_SUBJECT = "Payment needs attention";
 test.beforeAll(async () => {
   await seedOnceForRun();
 });
+// Hand the file-wide shared lease back as soon as this worker is done with the file (story 0.9).
+test.afterAll(() => releaseDb());
 
 const permanent = { received: true, fulfilled: false, retry: false };
 
