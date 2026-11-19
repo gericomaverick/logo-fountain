@@ -1,6 +1,6 @@
 # Story 0.6a: Golden upload corpus
 
-Status: review
+Status: done
 
 ## Story
 
@@ -86,3 +86,7 @@ DV-13 only: `zip-95000001` and `zip-100mib-exact` are null on Next and `laravelE
 ### Open items
 - Parent: log the **O-09 freeze exception** (one new test-only file in apps/web), and update the inventory X-12 row, sprint-status, handoff.
 - HTTP upload subset of the corpus: stories 7.5a/7.8a.
+
+
+## Parent review (2026-11-19)
+Cherry-picked to main and re-run: 268/268. The new test file is recorded under the O-09 freeze exceptions.
