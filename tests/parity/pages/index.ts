@@ -58,3 +58,6 @@ export async function pagesFor(page: Page): Promise<PageObjects> {
   const impl = target === "next" ? await import("./next/index") : await import("./laravel/index");
   return impl.create(page);
 }
+
+// Admin page objects (story 0.8d).
+export * from "./admin";
