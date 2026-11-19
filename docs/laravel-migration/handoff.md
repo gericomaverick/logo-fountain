@@ -4,8 +4,8 @@
 
 - **Updated:** 2026-11-18 (night session; the owner is away and asked for autonomous progress with tracking)
 - **Phase:** Epic 0 in progress. **0.1 done** (@smoke 2/2 on Next). **0.3 done** (seams). **0.4 done** (seed). **0.6b done** (rule fixtures, 933 cases).
-- **Running:** sub-agents on 0.2, 0.6a and 0.6b in separate worktrees (branches `story/0-2`, `story/0-6a`, `story/0-6b`). The parent reviews and merges.
-- **Next:** merge them → 0.3 (Next seams) → 0.4 → 0.5 → 0.7a–d → 0.8a–e → 0.9.
+- **Running (sub-agents, separate worktrees):** 0.2 infra stack, 0.6a upload corpus, 0.7b client contracts (PG 55510 / Next 4320), 0.7c admin contracts (PG 55520 / Next 4330 / SeaweedFS 8343). The parent cherry-picks each after review.
+- **Next:** 0.5 Stripe fixtures (after 0.2) → 0.7a auth/checkout contracts → 0.7d authz matrix → 0.8a–e journeys → 0.9 coverage and baseline. Epic 1 starts only after Epic 0 (and the owner's ADR review).
 - **Run the suite:** `cd tests/parity && npm ci && PARITY_TARGET=next PARITY_START_NEXT=1 node scripts/run.mjs "@smoke"`.
 - **Owner items:** unchanged (see the previous entry in the session log).
 
