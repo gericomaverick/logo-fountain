@@ -1,0 +1,167 @@
+{
+  "description": "A paid professional purchase with no email anywhere (customer_details.email null and the customer object has none), so fulfilment records NEEDS_CONTACT and provisions nobody. Tests load it through adapters/stripe.ts, which makes every ID and @example.test address unique per test.",
+  "checkout_sessions": [
+    {
+      "id": "cs_test_parity_purchase_missing_email",
+      "object": "checkout.session",
+      "mode": "payment",
+      "status": "complete",
+      "payment_status": "paid",
+      "amount_subtotal": 79500,
+      "amount_total": 79500,
+      "currency": "gbp",
+      "created": 1795132800,
+      "expires_at": 1795219200,
+      "success_url": "http://127.0.0.1:4310/checkout/success?session_id={CHECKOUT_SESSION_ID}",
+      "cancel_url": "http://127.0.0.1:4310/#packages",
+      "url": null,
+      "billing_address_collection": "auto",
+      "customer_creation": "always",
+      "phone_number_collection": {
+        "enabled": false
+      },
+      "invoice_creation": {
+        "enabled": true,
+        "invoice_data": {
+          "account_tax_ids": null,
+          "custom_fields": null,
+          "description": null,
+          "footer": null,
+          "issuer": null,
+          "metadata": {},
+          "rendering_options": null
+        }
+      },
+      "custom_fields": [
+        {
+          "key": "first_name",
+          "label": {
+            "custom": "First name",
+            "type": "custom"
+          },
+          "optional": false,
+          "type": "text",
+          "text": {
+            "default_value": null,
+            "maximum_length": 80,
+            "minimum_length": 1,
+            "value": "Nemo"
+          }
+        },
+        {
+          "key": "last_name",
+          "label": {
+            "custom": "Last name",
+            "type": "custom"
+          },
+          "optional": false,
+          "type": "text",
+          "text": {
+            "default_value": null,
+            "maximum_length": 80,
+            "minimum_length": 1,
+            "value": "Noemail"
+          }
+        }
+      ],
+      "customer": "cus_parity_purchase_missing_email",
+      "customer_details": {
+        "address": null,
+        "email": null,
+        "name": "Nemo Noemail",
+        "phone": null,
+        "tax_exempt": "none",
+        "tax_ids": []
+      },
+      "metadata": {
+        "package_code": "professional"
+      },
+      "payment_intent": "pi_parity_purchase_missing_email",
+      "invoice": "in_parity_purchase_missing_email",
+      "line_items": [
+        {
+          "price": "price_1ToTFQFM0K9Qd7oXmHYwoZAT",
+          "quantity": 1
+        }
+      ]
+    }
+  ],
+  "customers": [
+    {
+      "id": "cus_parity_purchase_missing_email",
+      "object": "customer",
+      "address": null,
+      "created": 1795132800,
+      "description": null,
+      "email": null,
+      "livemode": false,
+      "metadata": {},
+      "name": "Nemo Noemail",
+      "phone": null
+    }
+  ],
+  "payment_intents": [
+    {
+      "id": "pi_parity_purchase_missing_email",
+      "object": "payment_intent",
+      "amount": 79500,
+      "amount_received": 79500,
+      "created": 1795132800,
+      "currency": "gbp",
+      "customer": "cus_parity_purchase_missing_email",
+      "latest_charge": "ch_parity_purchase_missing_email",
+      "livemode": false,
+      "metadata": {},
+      "payment_method_types": [
+        "card"
+      ],
+      "status": "succeeded"
+    }
+  ],
+  "charges": [
+    {
+      "id": "ch_parity_purchase_missing_email",
+      "object": "charge",
+      "amount": 79500,
+      "amount_captured": 79500,
+      "amount_refunded": 0,
+      "captured": true,
+      "created": 1795132800,
+      "currency": "gbp",
+      "customer": "cus_parity_purchase_missing_email",
+      "livemode": false,
+      "metadata": {},
+      "paid": true,
+      "payment_intent": "pi_parity_purchase_missing_email",
+      "receipt_email": null,
+      "receipt_url": "http://127.0.0.1:58091/receipts/ch_parity_purchase_missing_email",
+      "refunded": false,
+      "status": "succeeded"
+    }
+  ],
+  "invoices": [
+    {
+      "id": "in_parity_purchase_missing_email",
+      "object": "invoice",
+      "amount_due": 79500,
+      "amount_paid": 79500,
+      "amount_remaining": 0,
+      "created": 1795132800,
+      "currency": "gbp",
+      "customer": "cus_parity_purchase_missing_email",
+      "customer_email": null,
+      "hosted_invoice_url": "http://127.0.0.1:58091/invoices/in_parity_purchase_missing_email/hosted",
+      "invoice_pdf": "http://127.0.0.1:58091/invoices/in_parity_purchase_missing_email/pdf",
+      "livemode": false,
+      "metadata": {},
+      "number": "PARITY-PURCHASE-MISSING-EMAIL-0001",
+      "status": "paid",
+      "status_transitions": {
+        "finalized_at": 1795132800,
+        "marked_uncollectible_at": null,
+        "paid_at": 1795132800,
+        "voided_at": null
+      }
+    }
+  ]
+}

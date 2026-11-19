@@ -1,0 +1,188 @@
+{
+  "description": "A paid session for a price that is not in the allowlist. metadata.package_code says essential, which fulfilment must not trust: a permanent error. Tests load it through adapters/stripe.ts, which makes every ID and @example.test address unique per test.",
+  "prices": [
+    {
+      "id": "price_parity_not_allowlisted",
+      "object": "price",
+      "active": true,
+      "billing_scheme": "per_unit",
+      "created": 1782864000,
+      "currency": "gbp",
+      "livemode": false,
+      "lookup_key": null,
+      "metadata": {},
+      "nickname": null,
+      "product": "prod_parity_not_allowlisted",
+      "product_name": "Not an allowlisted product",
+      "recurring": null,
+      "tax_behavior": "unspecified",
+      "type": "one_time",
+      "unit_amount": 12300,
+      "unit_amount_decimal": "12300"
+    }
+  ],
+  "checkout_sessions": [
+    {
+      "id": "cs_test_parity_purchase_non_allowlisted_price",
+      "object": "checkout.session",
+      "mode": "payment",
+      "status": "complete",
+      "payment_status": "paid",
+      "amount_subtotal": 12300,
+      "amount_total": 12300,
+      "currency": "gbp",
+      "created": 1795132800,
+      "expires_at": 1795219200,
+      "success_url": "http://127.0.0.1:4310/checkout/success?session_id={CHECKOUT_SESSION_ID}",
+      "cancel_url": "http://127.0.0.1:4310/#packages",
+      "url": null,
+      "billing_address_collection": "auto",
+      "customer_creation": "always",
+      "phone_number_collection": {
+        "enabled": false
+      },
+      "invoice_creation": {
+        "enabled": true,
+        "invoice_data": {
+          "account_tax_ids": null,
+          "custom_fields": null,
+          "description": null,
+          "footer": null,
+          "issuer": null,
+          "metadata": {},
+          "rendering_options": null
+        }
+      },
+      "custom_fields": [
+        {
+          "key": "first_name",
+          "label": {
+            "custom": "First name",
+            "type": "custom"
+          },
+          "optional": false,
+          "type": "text",
+          "text": {
+            "default_value": null,
+            "maximum_length": 80,
+            "minimum_length": 1,
+            "value": "Rho"
+          }
+        },
+        {
+          "key": "last_name",
+          "label": {
+            "custom": "Last name",
+            "type": "custom"
+          },
+          "optional": false,
+          "type": "text",
+          "text": {
+            "default_value": null,
+            "maximum_length": 80,
+            "minimum_length": 1,
+            "value": "Rogue"
+          }
+        }
+      ],
+      "customer": "cus_parity_purchase_non_allowlisted_price",
+      "customer_details": {
+        "address": null,
+        "email": "rogue-buyer@example.test",
+        "name": "Rho Rogue",
+        "phone": null,
+        "tax_exempt": "none",
+        "tax_ids": []
+      },
+      "metadata": {
+        "package_code": "essential"
+      },
+      "payment_intent": "pi_parity_purchase_non_allowlisted_price",
+      "invoice": "in_parity_purchase_non_allowlisted_price",
+      "line_items": [
+        {
+          "price": "price_parity_not_allowlisted",
+          "quantity": 1
+        }
+      ]
+    }
+  ],
+  "customers": [
+    {
+      "id": "cus_parity_purchase_non_allowlisted_price",
+      "object": "customer",
+      "address": null,
+      "created": 1795132800,
+      "description": null,
+      "email": "rogue-buyer@example.test",
+      "livemode": false,
+      "metadata": {},
+      "name": "Rho Rogue",
+      "phone": null
+    }
+  ],
+  "payment_intents": [
+    {
+      "id": "pi_parity_purchase_non_allowlisted_price",
+      "object": "payment_intent",
+      "amount": 12300,
+      "amount_received": 12300,
+      "created": 1795132800,
+      "currency": "gbp",
+      "customer": "cus_parity_purchase_non_allowlisted_price",
+      "latest_charge": "ch_parity_purchase_non_allowlisted_price",
+      "livemode": false,
+      "metadata": {},
+      "payment_method_types": [
+        "card"
+      ],
+      "status": "succeeded"
+    }
+  ],
+  "charges": [
+    {
+      "id": "ch_parity_purchase_non_allowlisted_price",
+      "object": "charge",
+      "amount": 12300,
+      "amount_captured": 12300,
+      "amount_refunded": 0,
+      "captured": true,
+      "created": 1795132800,
+      "currency": "gbp",
+      "customer": "cus_parity_purchase_non_allowlisted_price",
+      "livemode": false,
+      "metadata": {},
+      "paid": true,
+      "payment_intent": "pi_parity_purchase_non_allowlisted_price",
+      "receipt_email": "rogue-buyer@example.test",
+      "receipt_url": "http://127.0.0.1:58091/receipts/ch_parity_purchase_non_allowlisted_price",
+      "refunded": false,
+      "status": "succeeded"
+    }
+  ],
+  "invoices": [
+    {
+      "id": "in_parity_purchase_non_allowlisted_price",
+      "object": "invoice",
+      "amount_due": 12300,
+      "amount_paid": 12300,
+      "amount_remaining": 0,
+      "created": 1795132800,
+      "currency": "gbp",
+      "customer": "cus_parity_purchase_non_allowlisted_price",
+      "customer_email": "rogue-buyer@example.test",
+      "hosted_invoice_url": "http://127.0.0.1:58091/invoices/in_parity_purchase_non_allowlisted_price/hosted",
+      "invoice_pdf": "http://127.0.0.1:58091/invoices/in_parity_purchase_non_allowlisted_price/pdf",
+      "livemode": false,
+      "metadata": {},
+      "number": "PARITY-PURCHASE-NON-ALLOWLISTED-PRICE-0001",
+      "status": "paid",
+      "status_transitions": {
+        "finalized_at": 1795132800,
+        "marked_uncollectible_at": null,
+        "paid_at": 1795132800,
+        "voided_at": null
+      }
+    }
+  ]
+}

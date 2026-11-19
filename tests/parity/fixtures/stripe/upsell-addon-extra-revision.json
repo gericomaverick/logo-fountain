@@ -1,0 +1,114 @@
+{
+  "description": "Upsell: one extra revision (+1 revisions limit) for an essential project bought with package-essential-paid. {{projectId}} is filled in by the test; no invoice_creation (upsells get receipts). Tests load it through adapters/stripe.ts, which makes every ID and @example.test address unique per test.",
+  "checkout_sessions": [
+    {
+      "id": "cs_test_parity_upsell_addon_extra_revision",
+      "object": "checkout.session",
+      "mode": "payment",
+      "status": "complete",
+      "payment_status": "paid",
+      "amount_subtotal": 9500,
+      "amount_total": 9500,
+      "currency": "gbp",
+      "created": 1795132800,
+      "expires_at": 1795219200,
+      "success_url": "http://127.0.0.1:4310/project/{{projectId}}?upsell=1&kind=addon&session_id={CHECKOUT_SESSION_ID}",
+      "cancel_url": "http://127.0.0.1:4310/project/{{projectId}}",
+      "url": null,
+      "billing_address_collection": null,
+      "customer_creation": "always",
+      "phone_number_collection": {
+        "enabled": false
+      },
+      "invoice_creation": {
+        "enabled": false,
+        "invoice_data": {
+          "account_tax_ids": null,
+          "custom_fields": null,
+          "description": null,
+          "footer": null,
+          "issuer": null,
+          "metadata": {},
+          "rendering_options": null
+        }
+      },
+      "custom_fields": [],
+      "customer": "cus_parity_upsell_addon_extra_revision",
+      "customer_details": {
+        "address": null,
+        "email": "essential-buyer@example.test",
+        "name": null,
+        "phone": null,
+        "tax_exempt": "none",
+        "tax_ids": []
+      },
+      "metadata": {
+        "kind": "addon",
+        "projectId": "{{projectId}}",
+        "addonKey": "extra_revision",
+        "fromPackage": "essential"
+      },
+      "payment_intent": "pi_parity_upsell_addon_extra_revision",
+      "invoice": null,
+      "line_items": [
+        {
+          "price": "price_1ToTbLFM0K9Qd7oXscIEu2Bt",
+          "quantity": 1
+        }
+      ]
+    }
+  ],
+  "customers": [
+    {
+      "id": "cus_parity_upsell_addon_extra_revision",
+      "object": "customer",
+      "address": null,
+      "created": 1795132800,
+      "description": null,
+      "email": "essential-buyer@example.test",
+      "livemode": false,
+      "metadata": {},
+      "name": null,
+      "phone": null
+    }
+  ],
+  "payment_intents": [
+    {
+      "id": "pi_parity_upsell_addon_extra_revision",
+      "object": "payment_intent",
+      "amount": 9500,
+      "amount_received": 9500,
+      "created": 1795132800,
+      "currency": "gbp",
+      "customer": "cus_parity_upsell_addon_extra_revision",
+      "latest_charge": "ch_parity_upsell_addon_extra_revision",
+      "livemode": false,
+      "metadata": {},
+      "payment_method_types": [
+        "card"
+      ],
+      "status": "succeeded"
+    }
+  ],
+  "charges": [
+    {
+      "id": "ch_parity_upsell_addon_extra_revision",
+      "object": "charge",
+      "amount": 9500,
+      "amount_captured": 9500,
+      "amount_refunded": 0,
+      "captured": true,
+      "created": 1795132800,
+      "currency": "gbp",
+      "customer": "cus_parity_upsell_addon_extra_revision",
+      "livemode": false,
+      "metadata": {},
+      "paid": true,
+      "payment_intent": "pi_parity_upsell_addon_extra_revision",
+      "receipt_email": "essential-buyer@example.test",
+      "receipt_url": "http://127.0.0.1:58091/receipts/ch_parity_upsell_addon_extra_revision",
+      "refunded": false,
+      "status": "succeeded"
+    }
+  ]
+}

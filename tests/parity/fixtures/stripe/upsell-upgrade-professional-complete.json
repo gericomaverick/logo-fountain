@@ -1,0 +1,114 @@
+{
+  "description": "Upsell: upgrade professional -> complete for a project bought with package-professional-paid. {{projectId}} is filled in by the test. Tests load it through adapters/stripe.ts, which makes every ID and @example.test address unique per test.",
+  "checkout_sessions": [
+    {
+      "id": "cs_test_parity_upsell_upgrade_professional_complete",
+      "object": "checkout.session",
+      "mode": "payment",
+      "status": "complete",
+      "payment_status": "paid",
+      "amount_subtotal": 75000,
+      "amount_total": 75000,
+      "currency": "gbp",
+      "created": 1795132800,
+      "expires_at": 1795219200,
+      "success_url": "http://127.0.0.1:4310/project/{{projectId}}?upsell=1&kind=upgrade&session_id={CHECKOUT_SESSION_ID}",
+      "cancel_url": "http://127.0.0.1:4310/project/{{projectId}}",
+      "url": null,
+      "billing_address_collection": null,
+      "customer_creation": "always",
+      "phone_number_collection": {
+        "enabled": false
+      },
+      "invoice_creation": {
+        "enabled": false,
+        "invoice_data": {
+          "account_tax_ids": null,
+          "custom_fields": null,
+          "description": null,
+          "footer": null,
+          "issuer": null,
+          "metadata": {},
+          "rendering_options": null
+        }
+      },
+      "custom_fields": [],
+      "customer": "cus_parity_upsell_upgrade_professional_complete",
+      "customer_details": {
+        "address": null,
+        "email": "professional-buyer@example.test",
+        "name": null,
+        "phone": null,
+        "tax_exempt": "none",
+        "tax_ids": []
+      },
+      "metadata": {
+        "kind": "upgrade",
+        "projectId": "{{projectId}}",
+        "fromPackage": "professional",
+        "toPackage": "complete"
+      },
+      "payment_intent": "pi_parity_upsell_upgrade_professional_complete",
+      "invoice": null,
+      "line_items": [
+        {
+          "price": "price_1ToTYMFM0K9Qd7oXBG8DOhY1",
+          "quantity": 1
+        }
+      ]
+    }
+  ],
+  "customers": [
+    {
+      "id": "cus_parity_upsell_upgrade_professional_complete",
+      "object": "customer",
+      "address": null,
+      "created": 1795132800,
+      "description": null,
+      "email": "professional-buyer@example.test",
+      "livemode": false,
+      "metadata": {},
+      "name": null,
+      "phone": null
+    }
+  ],
+  "payment_intents": [
+    {
+      "id": "pi_parity_upsell_upgrade_professional_complete",
+      "object": "payment_intent",
+      "amount": 75000,
+      "amount_received": 75000,
+      "created": 1795132800,
+      "currency": "gbp",
+      "customer": "cus_parity_upsell_upgrade_professional_complete",
+      "latest_charge": "ch_parity_upsell_upgrade_professional_complete",
+      "livemode": false,
+      "metadata": {},
+      "payment_method_types": [
+        "card"
+      ],
+      "status": "succeeded"
+    }
+  ],
+  "charges": [
+    {
+      "id": "ch_parity_upsell_upgrade_professional_complete",
+      "object": "charge",
+      "amount": 75000,
+      "amount_captured": 75000,
+      "amount_refunded": 0,
+      "captured": true,
+      "created": 1795132800,
+      "currency": "gbp",
+      "customer": "cus_parity_upsell_upgrade_professional_complete",
+      "livemode": false,
+      "metadata": {},
+      "paid": true,
+      "payment_intent": "pi_parity_upsell_upgrade_professional_complete",
+      "receipt_email": "professional-buyer@example.test",
+      "receipt_url": "http://127.0.0.1:58091/receipts/ch_parity_upsell_upgrade_professional_complete",
+      "refunded": false,
+      "status": "succeeded"
+    }
+  ]
+}

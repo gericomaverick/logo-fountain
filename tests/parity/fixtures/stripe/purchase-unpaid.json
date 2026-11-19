@@ -1,0 +1,121 @@
+{
+  "description": "A completed checkout whose delayed payment (Bacs) is still pending: status complete, payment_status unpaid, no charge or invoice. Used for: unpaid completed (not fulfilled), delayed success (re-loaded as paid, then async_payment_succeeded with this stale payload) and delayed failure (async_payment_failed). Tests load it through adapters/stripe.ts, which makes every ID and @example.test address unique per test.",
+  "checkout_sessions": [
+    {
+      "id": "cs_test_parity_purchase_unpaid",
+      "object": "checkout.session",
+      "mode": "payment",
+      "status": "complete",
+      "payment_status": "unpaid",
+      "amount_subtotal": 34900,
+      "amount_total": 34900,
+      "currency": "gbp",
+      "created": 1795132800,
+      "expires_at": 1795219200,
+      "success_url": "http://127.0.0.1:4310/checkout/success?session_id={CHECKOUT_SESSION_ID}",
+      "cancel_url": "http://127.0.0.1:4310/#packages",
+      "url": null,
+      "billing_address_collection": "auto",
+      "customer_creation": "always",
+      "phone_number_collection": {
+        "enabled": false
+      },
+      "invoice_creation": {
+        "enabled": true,
+        "invoice_data": {
+          "account_tax_ids": null,
+          "custom_fields": null,
+          "description": null,
+          "footer": null,
+          "issuer": null,
+          "metadata": {},
+          "rendering_options": null
+        }
+      },
+      "custom_fields": [
+        {
+          "key": "first_name",
+          "label": {
+            "custom": "First name",
+            "type": "custom"
+          },
+          "optional": false,
+          "type": "text",
+          "text": {
+            "default_value": null,
+            "maximum_length": 80,
+            "minimum_length": 1,
+            "value": "Dee"
+          }
+        },
+        {
+          "key": "last_name",
+          "label": {
+            "custom": "Last name",
+            "type": "custom"
+          },
+          "optional": false,
+          "type": "text",
+          "text": {
+            "default_value": null,
+            "maximum_length": 80,
+            "minimum_length": 1,
+            "value": "Layed"
+          }
+        }
+      ],
+      "customer": "cus_parity_purchase_unpaid",
+      "customer_details": {
+        "address": null,
+        "email": "delayed-buyer@example.test",
+        "name": "Dee Layed",
+        "phone": null,
+        "tax_exempt": "none",
+        "tax_ids": []
+      },
+      "metadata": {
+        "package_code": "essential"
+      },
+      "payment_intent": "pi_parity_purchase_unpaid",
+      "invoice": null,
+      "line_items": [
+        {
+          "price": "price_1ToTEhFM0K9Qd7oXM0WRTWjd",
+          "quantity": 1
+        }
+      ]
+    }
+  ],
+  "customers": [
+    {
+      "id": "cus_parity_purchase_unpaid",
+      "object": "customer",
+      "address": null,
+      "created": 1795132800,
+      "description": null,
+      "email": "delayed-buyer@example.test",
+      "livemode": false,
+      "metadata": {},
+      "name": "Dee Layed",
+      "phone": null
+    }
+  ],
+  "payment_intents": [
+    {
+      "id": "pi_parity_purchase_unpaid",
+      "object": "payment_intent",
+      "amount": 34900,
+      "amount_received": 0,
+      "created": 1795132800,
+      "currency": "gbp",
+      "customer": "cus_parity_purchase_unpaid",
+      "latest_charge": null,
+      "livemode": false,
+      "metadata": {},
+      "payment_method_types": [
+        "bacs_debit"
+      ],
+      "status": "processing"
+    }
+  ]
+}
