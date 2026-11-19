@@ -1,7 +1,7 @@
 // Decided deviations DV-8 (queued lifecycle email with retries) and DV-9 (a revision delivered by upload emails the
 // client), story 0.8e. Black box: HTTP, postmark-shim's failure switch and Mailpit. Both FAIL on Next
 // (expected-next-failures.txt):
-//   DV-8: lifecycle emails are sent inline after commit (lib/project-lifecycle-email.ts:139 sendEmail throws on a
+//   DV-8: lifecycle emails are sent inline after commit (lib/project-lifecycle-email.ts:137 sendEmail throws on a
 //         5xx), so the message POST answers 500 and the email is never sent again (messages/route.ts:107-110).
 //   DV-9: the revision upload skips the client email (app/api/admin/projects/[id]/concepts/route.ts:348).
 import { expect, test } from "../../fixtures";
