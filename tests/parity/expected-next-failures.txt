@@ -2,3 +2,22 @@
 # docs/laravel-migration/01-feature-inventory.md). On Next a listed test is marked as an expected
 # failure; if it passes, the run fails. On Laravel this list is ignored: every test must pass.
 # One title per line. Lines starting with # are comments.
+
+# Story 0.7d, DV-14 (journeys/contract/authz-matrix.spec.ts): admin replies are 500 on Next (F-17).
+DV-14/C-10 an admin's concept comment is 201 with author.isAdmin true @deviation @api @authz @concepts
+DV-14/C-14/D-17 an admin's project message is 201 with sender.isAdmin true @deviation @api @authz @messages
+# Story 0.7d, DV-7 (journeys/contract/concept-status-matrix.spec.ts): Next serves concepts outside visibleToClient (F-7).
+DV-7/C-09 assets of an unknown concept are 404 CONCEPT_NOT_FOUND @deviation @api @authz @concepts
+DV-7/C-09 assets of a draft concept answer like a missing concept (404 CONCEPT_NOT_FOUND) @deviation @api @authz @concepts
+DV-7/C-09 assets of a deleted concept answer like a missing concept (404 CONCEPT_NOT_FOUND) @deviation @api @authz @concepts
+DV-7/C-09 assets of an archived concept answer like a missing concept (404 CONCEPT_NOT_FOUND) @deviation @api @authz @concepts
+DV-7/C-10 comments GET on a draft concept answers like a missing concept (404 CONCEPT_NOT_FOUND) @deviation @api @authz @concepts
+DV-7/C-10 comments GET on a deleted concept answers like a missing concept (404 CONCEPT_NOT_FOUND) @deviation @api @authz @concepts
+DV-7/C-10 comments GET on an archived concept answers like a missing concept (404 CONCEPT_NOT_FOUND) @deviation @api @authz @concepts
+DV-7/C-10 comments POST on a draft concept answers like a missing concept (404 CONCEPT_NOT_FOUND) @deviation @api @authz @concepts
+DV-7/C-10 comments POST on a deleted concept answers like a missing concept (404 CONCEPT_NOT_FOUND) @deviation @api @authz @concepts
+DV-7/C-10 comments POST on an archived concept answers like a missing concept (404 CONCEPT_NOT_FOUND) @deviation @api @authz @concepts
+DV-7/C-11 a revision request on a draft concept answers like a missing concept (400 CONCEPT_NOT_FOUND) and reserves nothing @deviation @api @authz @revisions
+DV-7/C-11 a revision request on a deleted concept answers like a missing concept (400 CONCEPT_NOT_FOUND) and reserves nothing @deviation @api @authz @revisions
+DV-7/C-11 a revision request on an archived concept answers like a missing concept (400 CONCEPT_NOT_FOUND) and reserves nothing @deviation @api @authz @revisions
+DV-7/C-11 a revision request on an approved concept answers like a missing concept (400 CONCEPT_NOT_FOUND) and reserves nothing @deviation @api @authz @revisions
