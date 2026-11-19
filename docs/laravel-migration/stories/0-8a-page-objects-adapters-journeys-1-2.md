@@ -1,6 +1,6 @@
 # Story 0.8a: Page objects, adapters, journeys 1–2
 
-Status: review
+Status: done
 
 **Covers:** K-02, A-06, N-01, N-02, C-01 (+ K-01, K-06, A-05) · **Gate:** `@checkout&@ui`, `@auth&@ui` · **After:** 0.5, 0.7a · **DoD:** E0
 
@@ -33,3 +33,7 @@ Status: review
 - **Parent:** update the inventory status for K-02, A-06, N-01, N-02 and C-01 (L5 parity tests exist), and copy Next points 1–3 into `brownfield/ui-pages.md`.
 - Pre-existing `test.fixme` `client-settings.spec.ts:107` (receipt download) still needs a seeded Stripe charge in stripe-fake. Next in these runs uses `STRIPE_API_BASE` = stripe-fake, never real Stripe.
 - Laravel page objects: fill them in with stories 4.9b, 5.1, 5.4, 6.1 and 6.2b.
+
+
+## Parent review (2026-11-19)
+Cherry-picked to main. `npm run check` OK (30 specs). Surprises 1–4 copied into `brownfield/ui-pages.md`. The unified lock and seed API is documented in this record and is now **the only mechanism** (`test.use({ db: "exclusive" | { shared } })`).

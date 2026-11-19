@@ -59,3 +59,9 @@ There are two kinds of page today:
 ## 5. Screens that need L7 baselines and design approval (formerly "visual parity targets")
 
 Screenshots at 1280 px and 390 px, light and dark: login, dashboard (each section state), project hub (awaiting brief with welcome; concepts ready with badges; revisions exhausted with upsell; final files ready), brief wizard step 1 and review, concept detail with thread, messages, settings, invoices, admin dashboard, admin project overview, admin concepts inbox, admin health, checkout success (pending and troubleshooting).
+
+## Verified by the journey suite (story 0.8a, 2026-11-19)
+1. `next dev --hostname 0.0.0.0` blocks its hot-reload socket for a page opened on 127.0.0.1 (`next/dist/server/lib/router-utils/block-cross-site-dev.js:75-105`), so client pages never hydrate (checkout success never polls). Run Next on 127.0.0.1 plus a forwarder for Docker (`tests/parity/README.md`).
+2. `next dev` sometimes reloads a page right after its first compile, which loses typed input and the fragment token (`apps/web/src/lib/auth/client.ts:7-13` strips it). The page objects retry. Dev-only, so Laravel needn't copy it.
+3. **The setup link's `next=/project/{id}` is ignored:** `/set-password` always goes to `/login?password=updated` (`app/set-password/page.tsx:47`). After setting a password, a customer lands on the dashboard, not their project. With the UX one-project shortcut, Laravel lands them on the project (DV-UX), so this is a `@deviation` candidate for 0.8e.
+4. The project page has no explicit "whose turn" element, and the status badge has no accessible role. The Next page objects derive the turn from badge text and dashboard grouping (`app/dashboard/page.tsx:38`). The Laravel turn banner (UX §2.5) gives this directly.
