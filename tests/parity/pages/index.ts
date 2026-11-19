@@ -58,3 +58,9 @@ export async function pagesFor(page: Page): Promise<PageObjects> {
   const impl = target === "next" ? await import("./next/index") : await import("./laravel/index");
   return impl.create(page);
 }
+
+// Story 0.8c: approval, finals, messages, settings/account (each file has its interface and resolver).
+export { approvalPagesFor, type ApprovalPages } from "./approval";
+export { finalsPagesFor, type DownloadedFile, type FinalsPages } from "./finals";
+export { messagesPagesFor, type MessagesPages, type ThreadEntry } from "./messages";
+export { accountPagesFor, settingsPagesFor, type AccountPages, type InvoiceRow, type SettingsPages } from "./settings";

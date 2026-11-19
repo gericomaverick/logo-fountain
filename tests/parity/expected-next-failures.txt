@@ -21,3 +21,5 @@ DV-7/C-11 a revision request on a draft concept answers like a missing concept (
 DV-7/C-11 a revision request on a deleted concept answers like a missing concept (400 CONCEPT_NOT_FOUND) and reserves nothing @deviation @api @authz @revisions
 DV-7/C-11 a revision request on an archived concept answers like a missing concept (400 CONCEPT_NOT_FOUND) and reserves nothing @deviation @api @authz @revisions
 DV-7/C-11 a revision request on an approved concept answers like a missing concept (400 CONCEPT_NOT_FOUND) and reserves nothing @deviation @api @authz @revisions
+# Story 0.8c, DV-14 (journeys/j8-messages.spec.ts): the admin reply leg of journey 8 is a 500 on Next (F-17).
+DV-14/C-14/D-17/N-06 J8 an admin reply succeeds, the client is emailed and sees it after the system message @deviation @ui @messages @email
