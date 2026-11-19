@@ -1,0 +1,167 @@
+{
+  "description": "A paid essential package purchase (new customer, invoice created, card charge succeeded). Minimal story 0.2 seed; full scenarios come in story 0.5.",
+  "checkout_sessions": [
+    {
+      "id": "cs_test_parity_essential_paid",
+      "object": "checkout.session",
+      "mode": "payment",
+      "status": "complete",
+      "payment_status": "paid",
+      "amount_subtotal": 34900,
+      "amount_total": 34900,
+      "currency": "gbp",
+      "created": 1795132800,
+      "expires_at": 1795219200,
+      "success_url": "http://127.0.0.1:4310/checkout/success?session_id={CHECKOUT_SESSION_ID}",
+      "cancel_url": "http://127.0.0.1:4310/#packages",
+      "url": null,
+      "billing_address_collection": "auto",
+      "customer_creation": "always",
+      "phone_number_collection": {
+        "enabled": false
+      },
+      "invoice_creation": {
+        "enabled": true,
+        "invoice_data": {
+          "account_tax_ids": null,
+          "custom_fields": null,
+          "description": null,
+          "footer": null,
+          "issuer": null,
+          "metadata": {},
+          "rendering_options": null
+        }
+      },
+      "custom_fields": [
+        {
+          "key": "first_name",
+          "label": {
+            "custom": "First name",
+            "type": "custom"
+          },
+          "optional": false,
+          "type": "text",
+          "text": {
+            "default_value": null,
+            "maximum_length": 80,
+            "minimum_length": 1,
+            "value": "Ada"
+          }
+        },
+        {
+          "key": "last_name",
+          "label": {
+            "custom": "Last name",
+            "type": "custom"
+          },
+          "optional": false,
+          "type": "text",
+          "text": {
+            "default_value": null,
+            "maximum_length": 80,
+            "minimum_length": 1,
+            "value": "Essential"
+          }
+        }
+      ],
+      "customer": "cus_parity_essential",
+      "customer_details": {
+        "address": null,
+        "email": "essential-buyer@example.test",
+        "name": "Ada Essential",
+        "phone": null,
+        "tax_exempt": "none",
+        "tax_ids": []
+      },
+      "metadata": {
+        "package_code": "essential"
+      },
+      "payment_intent": "pi_parity_essential",
+      "invoice": "in_parity_essential",
+      "line_items": [
+        {
+          "price": "price_1ToTEhFM0K9Qd7oXM0WRTWjd",
+          "quantity": 1
+        }
+      ]
+    }
+  ],
+  "customers": [
+    {
+      "id": "cus_parity_essential",
+      "object": "customer",
+      "address": null,
+      "created": 1795132800,
+      "description": null,
+      "email": "essential-buyer@example.test",
+      "livemode": false,
+      "metadata": {},
+      "name": "Ada Essential",
+      "phone": null
+    }
+  ],
+  "payment_intents": [
+    {
+      "id": "pi_parity_essential",
+      "object": "payment_intent",
+      "amount": 34900,
+      "amount_received": 34900,
+      "created": 1795132800,
+      "currency": "gbp",
+      "customer": "cus_parity_essential",
+      "latest_charge": "ch_parity_essential",
+      "livemode": false,
+      "metadata": {},
+      "payment_method_types": [
+        "card"
+      ],
+      "status": "succeeded"
+    }
+  ],
+  "charges": [
+    {
+      "id": "ch_parity_essential",
+      "object": "charge",
+      "amount": 34900,
+      "amount_captured": 34900,
+      "amount_refunded": 0,
+      "captured": true,
+      "created": 1795132800,
+      "currency": "gbp",
+      "customer": "cus_parity_essential",
+      "livemode": false,
+      "metadata": {},
+      "paid": true,
+      "payment_intent": "pi_parity_essential",
+      "receipt_email": "essential-buyer@example.test",
+      "receipt_url": "http://127.0.0.1:58091/receipts/ch_parity_essential",
+      "refunded": false,
+      "status": "succeeded"
+    }
+  ],
+  "invoices": [
+    {
+      "id": "in_parity_essential",
+      "object": "invoice",
+      "amount_due": 34900,
+      "amount_paid": 34900,
+      "amount_remaining": 0,
+      "created": 1795132800,
+      "currency": "gbp",
+      "customer": "cus_parity_essential",
+      "customer_email": "essential-buyer@example.test",
+      "hosted_invoice_url": "http://127.0.0.1:58091/invoices/in_parity_essential/hosted",
+      "invoice_pdf": "http://127.0.0.1:58091/invoices/in_parity_essential/pdf",
+      "livemode": false,
+      "metadata": {},
+      "number": "PARITY-ESSENTIAL-0001",
+      "status": "paid",
+      "status_transitions": {
+        "finalized_at": 1795132800,
+        "marked_uncollectible_at": null,
+        "paid_at": 1795132800,
+        "voided_at": null
+      }
+    }
+  ]
+}

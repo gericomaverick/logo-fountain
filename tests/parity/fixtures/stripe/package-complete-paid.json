@@ -1,0 +1,167 @@
+{
+  "description": "A paid complete package purchase (new customer, invoice created, card charge succeeded). Minimal story 0.2 seed; full scenarios come in story 0.5.",
+  "checkout_sessions": [
+    {
+      "id": "cs_test_parity_complete_paid",
+      "object": "checkout.session",
+      "mode": "payment",
+      "status": "complete",
+      "payment_status": "paid",
+      "amount_subtotal": 149500,
+      "amount_total": 149500,
+      "currency": "gbp",
+      "created": 1795132800,
+      "expires_at": 1795219200,
+      "success_url": "http://127.0.0.1:4310/checkout/success?session_id={CHECKOUT_SESSION_ID}",
+      "cancel_url": "http://127.0.0.1:4310/#packages",
+      "url": null,
+      "billing_address_collection": "auto",
+      "customer_creation": "always",
+      "phone_number_collection": {
+        "enabled": false
+      },
+      "invoice_creation": {
+        "enabled": true,
+        "invoice_data": {
+          "account_tax_ids": null,
+          "custom_fields": null,
+          "description": null,
+          "footer": null,
+          "issuer": null,
+          "metadata": {},
+          "rendering_options": null
+        }
+      },
+      "custom_fields": [
+        {
+          "key": "first_name",
+          "label": {
+            "custom": "First name",
+            "type": "custom"
+          },
+          "optional": false,
+          "type": "text",
+          "text": {
+            "default_value": null,
+            "maximum_length": 80,
+            "minimum_length": 1,
+            "value": "Linus"
+          }
+        },
+        {
+          "key": "last_name",
+          "label": {
+            "custom": "Last name",
+            "type": "custom"
+          },
+          "optional": false,
+          "type": "text",
+          "text": {
+            "default_value": null,
+            "maximum_length": 80,
+            "minimum_length": 1,
+            "value": "Complete"
+          }
+        }
+      ],
+      "customer": "cus_parity_complete",
+      "customer_details": {
+        "address": null,
+        "email": "complete-buyer@example.test",
+        "name": "Linus Complete",
+        "phone": null,
+        "tax_exempt": "none",
+        "tax_ids": []
+      },
+      "metadata": {
+        "package_code": "complete"
+      },
+      "payment_intent": "pi_parity_complete",
+      "invoice": "in_parity_complete",
+      "line_items": [
+        {
+          "price": "price_1ToTGBFM0K9Qd7oX2D5r9Z6i",
+          "quantity": 1
+        }
+      ]
+    }
+  ],
+  "customers": [
+    {
+      "id": "cus_parity_complete",
+      "object": "customer",
+      "address": null,
+      "created": 1795132800,
+      "description": null,
+      "email": "complete-buyer@example.test",
+      "livemode": false,
+      "metadata": {},
+      "name": "Linus Complete",
+      "phone": null
+    }
+  ],
+  "payment_intents": [
+    {
+      "id": "pi_parity_complete",
+      "object": "payment_intent",
+      "amount": 149500,
+      "amount_received": 149500,
+      "created": 1795132800,
+      "currency": "gbp",
+      "customer": "cus_parity_complete",
+      "latest_charge": "ch_parity_complete",
+      "livemode": false,
+      "metadata": {},
+      "payment_method_types": [
+        "card"
+      ],
+      "status": "succeeded"
+    }
+  ],
+  "charges": [
+    {
+      "id": "ch_parity_complete",
+      "object": "charge",
+      "amount": 149500,
+      "amount_captured": 149500,
+      "amount_refunded": 0,
+      "captured": true,
+      "created": 1795132800,
+      "currency": "gbp",
+      "customer": "cus_parity_complete",
+      "livemode": false,
+      "metadata": {},
+      "paid": true,
+      "payment_intent": "pi_parity_complete",
+      "receipt_email": "complete-buyer@example.test",
+      "receipt_url": "http://127.0.0.1:58091/receipts/ch_parity_complete",
+      "refunded": false,
+      "status": "succeeded"
+    }
+  ],
+  "invoices": [
+    {
+      "id": "in_parity_complete",
+      "object": "invoice",
+      "amount_due": 149500,
+      "amount_paid": 149500,
+      "amount_remaining": 0,
+      "created": 1795132800,
+      "currency": "gbp",
+      "customer": "cus_parity_complete",
+      "customer_email": "complete-buyer@example.test",
+      "hosted_invoice_url": "http://127.0.0.1:58091/invoices/in_parity_complete/hosted",
+      "invoice_pdf": "http://127.0.0.1:58091/invoices/in_parity_complete/pdf",
+      "livemode": false,
+      "metadata": {},
+      "number": "PARITY-COMPLETE-0001",
+      "status": "paid",
+      "status_transitions": {
+        "finalized_at": 1795132800,
+        "marked_uncollectible_at": null,
+        "paid_at": 1795132800,
+        "voided_at": null
+      }
+    }
+  ]
+}
