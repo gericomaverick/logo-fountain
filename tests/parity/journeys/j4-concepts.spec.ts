@@ -54,7 +54,10 @@ test("D-06/N-04/C-03/C-08/C-09/N-15 J4 a published concept is emailed, flagged a
   await concepts.openConcept(1);
   const image = await concepts.shownImage();
   expect(image).toMatchObject({ naturalWidth: 2, naturalHeight: 2 }); // makePng is 2x2
-  const fromStore = images.find((r) => r.url() === image.src);
+  // Next re-signs image URLs on every poll (finding F-15), so the shown src's query may be newer than the
+  // recorded response: match the object (origin and path), not the signature (story 0.9 flake fix).
+  const objectOf = (u: string) => { const x = new URL(u); return x.origin + x.pathname; };
+  const fromStore = images.findLast((r) => objectOf(r.url()) === objectOf(image.src));
   if (!fromStore) throw new Error(`no network response for the shown image ${image.src}`);
   expect(fromStore.status()).toBe(200);
   expect(new URL(image.src).origin).not.toBe(baseURL); // straight from the object store, not proxied by the app

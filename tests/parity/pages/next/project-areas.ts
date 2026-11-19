@@ -15,7 +15,7 @@ export async function openHub(page: Page): Promise<string> {
   const id = projectIdIn(page);
   await page.goto(`/project/${id}`);
   await page.getByRole("heading", { level: 1 }).waitFor();
-  await page.waitForLoadState("networkidle"); // hydrated: sessionStorage-driven parts (upsell snooze) have settled
+  await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {}); // bounded: polling pages never go idle (story 0.9) // hydrated: sessionStorage-driven parts (upsell snooze) have settled
   return id;
 }
 

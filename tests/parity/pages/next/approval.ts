@@ -13,7 +13,7 @@ export function approval(page: Page): ApprovalPages {
     },
     async approveOpenConcept() {
       const confirm = page.getByRole("button", { name: "Yes, approve this concept" }); // final-approval.ts:5
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {}); // bounded: polling pages never go idle (story 0.9)
       await page.getByRole("button", { name: "Approve concept" }).click(); // concept page :390
       await confirm.waitFor();
       const blocked = await confirm.isDisabled(); // :424 canConfirmFinalApproval(acknowledged)

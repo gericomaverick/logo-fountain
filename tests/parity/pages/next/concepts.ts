@@ -16,7 +16,7 @@ export function concepts(page: Page): ConceptPages {
   };
   const detailLoaded = async () => {
     await page.getByRole("heading", { name: "Concept detail" }).waitFor();
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {}); // bounded: polling pages never go idle (story 0.9)
     await page.getByText("Loading…").waitFor({ state: "hidden" });
   };
   // concept/[conceptId]/page.tsx:434-493: the thread is the list under "Concept thread"; each entry is an <article>

@@ -13,7 +13,7 @@ export function settings(page: Page): SettingsPages {
     async open() {
       await page.goto("/settings");
       await firstName.waitFor(); // rendered once GET /api/profile answered (:160)
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {}); // bounded: polling pages never go idle (story 0.9)
     },
     async profileName() {
       await self.open();
@@ -73,7 +73,7 @@ export function account(page: Page): AccountPages {
       // is sent, so a missing notice is retried from the top.
       for (let i = 1; ; i++) {
         await page.goto("/forgot-password");
-        await page.waitForLoadState("networkidle");
+        await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {}); // bounded: polling pages never go idle (story 0.9)
         await page.getByLabel("Email").fill(email);
         await page.getByRole("button", { name: "Send reset email" }).click();
         try {
@@ -85,13 +85,15 @@ export function account(page: Page): AccountPages {
       }
     },
     async signOut() {
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {}); // bounded: polling pages never go idle (story 0.9)
       // header-nav.tsx:192; the drawer copy of the nav is hidden on desktop widths.
       await page.getByRole("button", { name: "Sign out" }).filter({ visible: true }).first().click();
       await page.waitForURL((url) => url.pathname === "/login"); // :97 only after the session check said signed out
     },
     async showsSignedInContent() {
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("load");
+      // Polling pages never reach "networkidle" (story 0.9): bounded settle instead of an unbounded wait.
+      await page.waitForLoadState("networkidle", { timeout: 5_000 }).catch(() => {});
       if (PUBLIC_PATHS.includes(new URL(page.url()).pathname)) return false;
       // Signed-in Next screens render the nav's Sign out button (components/header-nav.tsx:192) once the session
       // check answers. Protected data shows as a message thread, the project list's rows, or the profile form.

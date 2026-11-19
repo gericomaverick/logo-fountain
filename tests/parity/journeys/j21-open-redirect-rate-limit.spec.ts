@@ -70,7 +70,7 @@ test("A-13/A-05/A-18 J21 a sign-in link whose next was rewritten to another site
     const escapes = await watchEscapes(context, page);
     const { auth } = await pagesFor(page);
     await auth.confirmMagicLink(forged);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {}); // bounded: polling pages never go idle (story 0.9)
     expect({ next, escapes, origin: new URL(page.url()).origin }).toEqual({ next, escapes: [], origin: baseURL });
     expect((await (await page.request.get("/api/auth/session")).json()).authenticated, `signed in (${next})`).toBe(true);
     await context.close();

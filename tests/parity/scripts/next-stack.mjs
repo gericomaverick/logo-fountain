@@ -73,8 +73,13 @@ try {
   status = 0;
   for (let i = 1; i <= repeat; i++) {
     console.log(`\n=== parity run ${i}/${repeat}${gate ? ` (gate ${gate})` : " (full suite)"} ===`);
-    const r = spawnSync("npx", ["playwright", "test", ...(gate ? ["--grep", gateToRegex(gate)] : []), ...extra], { cwd: root, env: suiteEnv, stdio: "inherit" });
-    if (r.status !== 0) { status = r.status ?? 1; console.error(`run ${i} failed`); }
+    // Async on purpose: the webhook forwarder above lives in this process, and a blocking spawnSync would
+    // freeze its event loop for the whole run (every stripe-fake delivery then times out).
+    const code = await new Promise((resolve) => {
+      const child = spawn("npx", ["playwright", "test", ...(gate ? ["--grep", gateToRegex(gate)] : []), ...extra], { cwd: root, env: suiteEnv, stdio: "inherit" });
+      child.on("exit", (c) => resolve(c ?? 1));
+    });
+    if (code !== 0) { status = code; console.error(`run ${i} failed`); }
   }
 } finally {
   next.kill("SIGTERM"); forwarder.close();

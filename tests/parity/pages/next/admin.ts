@@ -28,7 +28,7 @@ export function createAdmin(page: Page): AdminPages {
   const isPath = (path: string) => new URL(page.url()).pathname === path;
   const go = async (path: string) => {
     await page.goto(path);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {}); // bounded: polling pages never go idle (story 0.9)
   };
   const properties = () => page.getByRole("complementary", { name: "Project properties" });
   const overviewLoaded = async () => {
@@ -74,7 +74,7 @@ export function createAdmin(page: Page): AdminPages {
     const res = await page.request.fetch(path, { method, data, headers: { Origin: origin } });
     const body = await res.json().catch(() => null);
     await page.reload();
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {}); // bounded: polling pages never go idle (story 0.9)
     return res.ok() ? { done: true } : { done: false, message: body?.error?.message ?? `HTTP ${res.status()}` };
   };
   const adminTools = async () => {
@@ -87,7 +87,7 @@ export function createAdmin(page: Page): AdminPages {
   const self: AdminPages = {
     async queue() {
       if (!isPath("/admin")) await go("/admin");
-      else { await page.reload(); await page.waitForLoadState("networkidle"); }
+      else { await page.reload(); await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {}); }
       const rows: AdminQueueRow[] = [];
       for (const [name, section] of Object.entries(SECTIONS)) {
         const region = page.getByRole("region", { name, exact: true });

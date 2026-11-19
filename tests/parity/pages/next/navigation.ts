@@ -15,7 +15,7 @@ async function fillAndSubmit(page: Page, email: string, password: string) {
 
 export function navigation(page: Page): NavigationPages {
   const settle = async () => {
-    await page.waitForLoadState("networkidle").catch(() => undefined);
+    await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => undefined);
   };
   return {
     clientProjectPaths: (projectId, conceptId) => [
@@ -35,7 +35,7 @@ export function navigation(page: Page): NavigationPages {
       // The submit is retried when next dev reloads the fresh page before it hydrates (no POST is sent then).
       for (let i = 1; ; i++) {
         await page.goto("/login");
-        await page.waitForLoadState("networkidle");
+        await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {}); // bounded: polling pages never go idle (story 0.9)
         const posted = page.waitForResponse((r) => new URL(r.url()).pathname === "/api/auth/login" && r.request().method() === "POST", { timeout: 15_000 });
         await fillAndSubmit(page, email, password);
         let res;

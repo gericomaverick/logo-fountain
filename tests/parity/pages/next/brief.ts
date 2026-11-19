@@ -34,7 +34,7 @@ export function brief(page: Page): BriefPages {
   const choices = (key: BriefFieldKey) => page.getByRole("group", { name: startsWith(FIELDS[key].label) });
   const isChoice = (key: BriefFieldKey) => Boolean(FIELDS[key].options?.length);
   const ready = async () => {
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {}); // bounded: polling pages never go idle (story 0.9)
     // brief-feedback.ts:23: "Loading your draft…" until the account draft has been fetched (autosave waits for it too).
     await page.getByText("Loading your draft…").waitFor({ state: "hidden" });
   };

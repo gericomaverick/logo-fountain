@@ -45,7 +45,7 @@ async function capture(page: Page, fn: () => Promise<void>) {
 
 async function visit(page: Page, path: string) {
   await page.goto(path);
-  await page.waitForLoadState("networkidle");
+  await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {}); // bounded: polling pages never go idle (story 0.9)
   await page.waitForTimeout(1_000); // client pages fetch their data after hydration and poll
 }
 

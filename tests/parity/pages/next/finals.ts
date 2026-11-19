@@ -28,7 +28,7 @@ export function finals(page: Page): FinalsPages {
         page.once("download", resolve);
         page.context().once("page", (p) => { tab = p; p.once("download", resolve); });
       });
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {}); // bounded: polling pages never go idle (story 0.9)
       await button.click();
       const download = await started;
       const path = await download.path();

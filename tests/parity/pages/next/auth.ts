@@ -13,7 +13,7 @@ const offAuthScreens = (url: URL) => !AUTH_PATHS.includes(url.pathname);
 export async function attempt(page: Page, url: string | null, act: () => Promise<void>, done: (url: URL) => boolean, tries = 3) {
   for (let i = 1; ; i++) {
     if (url !== null) await page.goto(url);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {}); // bounded: polling pages never go idle (story 0.9)
     await act();
     try {
       await page.waitForURL(done, { timeout: 20_000 });
@@ -36,7 +36,7 @@ export function auth(page: Page): AuthPages {
     },
     async requestMagicLink(email) {
       if (new URL(page.url()).pathname !== "/login") await page.goto("/login");
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {}); // bounded: polling pages never go idle (story 0.9)
       await page.getByLabel("Email").fill(email);
       await page.getByRole("button", { name: "Send magic link" }).click();
       await page.getByRole("status").waitFor(); // login/page.tsx:179, the uniform "if that account exists" notice

@@ -10,7 +10,7 @@ export function messages(page: Page): MessagesPages {
   const composer = page.getByLabel("Write a message");
   const settle = async () => {
     await page.getByRole("heading", { name: "Project messages" }).waitFor({ state: "attached" });
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {}); // bounded: polling pages never go idle (story 0.9)
     await page.getByText("Loading…").waitFor({ state: "hidden" }); // :129 until GET messages answered
   };
   const self: MessagesPages = {

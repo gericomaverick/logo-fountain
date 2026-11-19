@@ -40,7 +40,9 @@ test("A-02/A-03 J11 signing out ends the session on the server and the back butt
   for (let step = 0; step < 3; step++) {
     const before = page.url();
     await page.goBack();
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
+    // Polling pages never reach "networkidle" (story 0.9): bounded settle instead of an unbounded wait.
+    await page.waitForLoadState("networkidle", { timeout: 5_000 }).catch(() => {});
     if (page.url() === before || new URL(page.url()).origin !== baseURL) break;
     visited.push(new URL(page.url()).pathname);
     expect(await account.showsSignedInContent(), `after back to ${page.url()}`).toBe(false);
