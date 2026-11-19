@@ -23,3 +23,23 @@ DV-7/C-11 a revision request on an archived concept answers like a missing conce
 DV-7/C-11 a revision request on an approved concept answers like a missing concept (400 CONCEPT_NOT_FOUND) and reserves nothing @deviation @api @authz @revisions
 # Story 0.8c, DV-14 (journeys/j8-messages.spec.ts): the admin reply leg of journey 8 is a 500 on Next (F-17).
 DV-14/C-14/D-17/N-06 J8 an admin reply succeeds, the client is emailed and sees it after the system message @deviation @ui @messages @email
+# Story 0.8e (journeys/deviations/*.spec.ts): every remaining decided deviation.
+# DV-1: no allow_promotion_codes on any session. DV-5: success/cancel URLs follow X-Forwarded-Host (lib/request-origin.ts:28).
+DV-1/K-13 every Checkout Session the app creates allows promotion codes (packages, add-on, upgrade) @deviation @api @checkout @upsell
+DV-5/K-01/K-08 Stripe success and cancel URLs come from the canonical origin even when Host/X-Forwarded-Host is forged @deviation @api @checkout @upsell @security
+# DV-2: an upgrade sets the target tier's limits, so the add-on revision is lost (2, not 3).
+DV-2/K-09 an upgrade after a bought add-on keeps it: Essential 1/1, add-on 1/2, upgrade to Professional 2/3 @deviation @api @upsell @webhook @entitlements
+# DV-6: reprocess sends no emails.
+DV-6/K-12/N-01/N-10 reprocess sends the customer setup email and the admin new-project email once, and a repeat sends nothing @deviation @api @admin @checkout @email
+# DV-8: an inline send failure makes the message POST 500 and the email is never retried. DV-9: revision uploads email nobody.
+DV-8/N-11 a lifecycle email whose first send fails is delivered later by retry; the action still succeeds @deviation @api @email @messages
+DV-9/D-08/N-05 a revision delivered by upload emails the client once per upload, and a replayed upload sends nothing @deviation @api @admin @revisions @email
+# DV-11: finals errors are {error:"…", code}. DV-13: 95,000,001 bytes is accepted (limit 100 MiB).
+DV-11/D-11 finals upload errors use the standard {error:{message, code}} envelope (no file, invalid ZIP) @deviation @api @admin @finals @uploads
+DV-13/X-12/D-11 a 95,000,001-byte final ZIP is rejected FILE_TOO_LARGE and nothing is stored @deviation @api @admin @finals @uploads
+# DV-12: no imageKey in any payload.
+DV-12/C-03/C-08/D-05 snapshot and concept payloads carry an imageKey that is identical across polls and changes only with the image @deviation @api @concepts @storage
+# DV-UX: sign-in lands on /dashboard; admins aren't redirected; /set-password drops `next`.
+DV-UX/C-01/A-01 a customer with exactly one project lands on that project after sign-in @deviation @ui @auth
+DV-UX/D-02/A-16 an admin opening a client project URL lands on the admin workspace for it @deviation @ui @admin
+DV-UX/A-06/N-01/C-01 after setting a password from the setup link the customer reaches the project the link names @deviation @ui @auth @checkout
