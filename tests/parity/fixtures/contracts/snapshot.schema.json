@@ -1,0 +1,197 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "logo-fountain/parity/snapshot.schema.json",
+  "title": "GET /api/projects/{id} -> {snapshot}",
+  "description": "Full key set and types of the client project snapshot (apps/web/src/lib/project-snapshot.ts:303; brownfield/business-rules-and-notifications.md §3). Story 0.7b. Keys that Next serialises from `undefined` are ABSENT, not null: timeline[].timestamp, readState.*, latestMessageAt, latestConceptAt, entitlementUsage.*.unlimited. The only additive key allowed is concepts[].imageKey (DV-12). Asserted by journeys/contract/client-projects.spec.ts with the subset validator in _client-helpers.ts (supports type, enum, const, required, properties, additionalProperties, items, $ref, minimum, format date-time|uuid).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "projectId", "status", "overviewStatus", "statusLabel", "primaryCta", "timeline", "packageCode", "clientContact",
+    "createdAt", "updatedAt", "entitlements", "entitlementUsage", "concepts", "latestConcepts", "revisionRequests",
+    "latestRevisionRequests", "messages", "latestBrief", "hasBriefDraft", "finalZip", "latestOrder", "stuck",
+    "stuckReason", "recentAuditEventsCount", "readState", "hasNewMessages", "hasNewConcepts"
+  ],
+  "properties": {
+    "projectId": { "type": "string", "format": "uuid" },
+    "status": { "$ref": "#/$defs/projectState" },
+    "overviewStatus": { "enum": ["AWAITING_BRIEF", "BRIEF_SUBMITTED", "IN_DESIGN", "CONCEPTS_READY", "REVISIONS_IN_PROGRESS", "AWAITING_APPROVAL", "APPROVED", "FINAL_FILES_READY", "DELIVERED", "ON_HOLD", "CANCELLED", "REFUNDED"] },
+    "statusLabel": { "type": "string" },
+    "primaryCta": { "type": ["string", "null"] },
+    "timeline": { "type": "array", "items": { "$ref": "#/$defs/timelineStep" } },
+    "packageCode": { "enum": ["essential", "professional", "complete"] },
+    "clientContact": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["fullName", "email"],
+      "properties": { "fullName": { "type": ["string", "null"] }, "email": { "type": "string" } }
+    },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "entitlements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["concepts", "revisions"],
+      "properties": { "concepts": { "type": "integer", "minimum": 0 }, "revisions": { "type": "integer", "minimum": 0 } }
+    },
+    "entitlementUsage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["concepts", "revisions"],
+      "properties": { "concepts": { "$ref": "#/$defs/usage" }, "revisions": { "$ref": "#/$defs/usage" } }
+    },
+    "concepts": { "type": "array", "items": { "$ref": "#/$defs/concept" } },
+    "latestConcepts": { "type": "array", "items": { "$ref": "#/$defs/concept" } },
+    "revisionRequests": { "type": "array", "items": { "$ref": "#/$defs/revisionRequest" } },
+    "latestRevisionRequests": { "type": "array", "items": { "$ref": "#/$defs/revisionRequest" } },
+    "messages": { "type": "array", "items": { "$ref": "#/$defs/message" } },
+    "latestBrief": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["version", "createdAt", "answers"],
+      "properties": {
+        "version": { "type": "integer", "minimum": 1 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "answers": { "$ref": "#/$defs/briefAnswers" }
+      }
+    },
+    "hasBriefDraft": { "type": "boolean" },
+    "finalZip": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["available", "url", "assetId"],
+      "properties": {
+        "available": { "type": "boolean" },
+        "url": { "type": "null" },
+        "assetId": { "type": ["string", "null"], "format": "uuid" }
+      }
+    },
+    "latestOrder": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["id", "status", "stripeCheckoutSessionId", "createdAt"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "status": { "type": "string" },
+        "stripeCheckoutSessionId": { "type": ["string", "null"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "stuck": { "type": "boolean" },
+    "stuckReason": { "type": ["string", "null"] },
+    "recentAuditEventsCount": { "type": "integer", "minimum": 0 },
+    "readState": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "lastSeenMessagesAt": { "type": "string", "format": "date-time" },
+        "lastSeenConceptsAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "latestMessageAt": { "type": "string", "format": "date-time" },
+    "latestConceptAt": { "type": "string", "format": "date-time" },
+    "hasNewMessages": { "type": "boolean" },
+    "hasNewConcepts": { "type": "boolean" }
+  },
+  "$defs": {
+    "projectState": { "enum": ["AWAITING_BRIEF", "BRIEF_SUBMITTED", "IN_DESIGN", "CONCEPTS_READY", "REVISIONS_IN_PROGRESS", "AWAITING_APPROVAL", "FINAL_FILES_READY", "DELIVERED", "ON_HOLD", "CANCELLED", "REFUNDED"] },
+    "timelineStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "label", "completed", "current"],
+      "properties": {
+        "state": { "type": "string" },
+        "label": { "type": "string" },
+        "completed": { "type": "boolean" },
+        "current": { "type": "boolean" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
+    },
+    "usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["limit", "consumed", "reserved", "remaining", "configured"],
+      "properties": {
+        "limit": { "type": "integer", "minimum": 0 },
+        "consumed": { "type": "integer", "minimum": 0 },
+        "reserved": { "type": "integer", "minimum": 0 },
+        "remaining": { "type": "integer", "minimum": 0 },
+        "unlimited": { "type": "boolean" },
+        "configured": { "type": "boolean" }
+      }
+    },
+    "concept": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "number", "status", "notes", "createdAt", "updatedAt", "revisionVersion", "imageUrl"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "number": { "type": "integer", "minimum": 1 },
+        "status": { "enum": ["published", "approved"] },
+        "notes": { "type": ["string", "null"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "revisionVersion": { "type": "integer", "minimum": 1 },
+        "imageUrl": { "type": ["string", "null"] },
+        "imageKey": { "type": "string", "description": "Additive (DV-12); absent on Next." }
+      }
+    },
+    "personRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "email", "fullName"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "email": { "type": "string" },
+        "fullName": { "type": ["string", "null"] }
+      }
+    },
+    "revisionRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "status", "body", "createdAt", "updatedAt", "concept", "user"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "status": { "type": "string" },
+        "body": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "concept": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["id", "number"],
+          "properties": { "id": { "type": "string", "format": "uuid" }, "number": { "type": "integer", "minimum": 1 } }
+        },
+        "user": { "$ref": "#/$defs/personRef" }
+      }
+    },
+    "message": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "body", "createdAt", "sender"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "kind": { "enum": ["user", "system"] },
+        "body": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "sender": { "$ref": "#/$defs/personRef" }
+      }
+    },
+    "briefAnswers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "brandName", "tagline", "industry", "offerSummary", "audiencePrimary", "audienceSecondary", "businessGoals",
+        "brandPersonality", "styleDirection", "colorPreferences", "mustInclude", "avoidanceNotes", "usageContexts",
+        "deliverablesContext", "competitors", "additionalNotes"
+      ],
+      "properties": {
+        "brandName": { "type": "string" }, "tagline": { "type": "string" }, "industry": { "type": "string" },
+        "offerSummary": { "type": "string" }, "audiencePrimary": { "type": "string" }, "audienceSecondary": { "type": "string" },
+        "businessGoals": { "type": "string" }, "brandPersonality": { "type": "string" }, "styleDirection": { "type": "string" },
+        "colorPreferences": { "type": "string" }, "mustInclude": { "type": "string" }, "avoidanceNotes": { "type": "string" },
+        "usageContexts": { "type": "string" }, "deliverablesContext": { "type": "string" }, "competitors": { "type": "string" },
+        "additionalNotes": { "type": "string" }
+      }
+    }
+  }
+}
