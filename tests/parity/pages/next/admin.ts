@@ -47,14 +47,24 @@ export function createAdmin(page: Page): AdminPages {
     if (path === `/admin/projects/${id}`) await overviewLoaded();
   };
   /** Clicks, waits for the page's own request and reports the app's answer (error copy from the alert/notice). */
+  // Skip Next's (empty) route announcer, which also has role=alert.
+  const alertLocator = () => page.getByRole("alert").filter({ hasText: /\S/ }).first();
+  // The overview's 2 s poll clears the error alert (page.tsx:174 setError(null)), so the alert is watched from
+  // the click on, not looked up afterwards.
+  let watchedAlert: Promise<string> | null = null;
   const act = async (click: () => Promise<void>, match: (res: Response) => boolean): Promise<{ res: Response; body: any }> => {
+    watchedAlert = alertLocator().innerText({ timeout: 8_000 }).then((t) => t.trim(), () => "");
     const [res] = await Promise.all([page.waitForResponse((r) => r.request().method() !== "GET" && match(r)), click()]);
     const body = await res.json().catch(() => null);
     return { res, body };
   };
   const alertText = async () => {
-    // Skip Next's (empty) route announcer, which also has role=alert.
-    const alert = page.getByRole("alert").filter({ hasText: /\S/ }).first();
+    if (watchedAlert) {
+      const text = await watchedAlert;
+      watchedAlert = null;
+      return text;
+    }
+    const alert = alertLocator();
     await alert.waitFor({ timeout: 5_000 }).catch(() => {});
     return (await alert.isVisible()) ? (await alert.innerText()).trim() : "";
   };
