@@ -2,12 +2,13 @@
 
 ## Now (overwrite this section at the end of every session)
 
-- **Updated:** 2026-11-18 (night session; the owner is away and asked for autonomous progress with tracking)
-- **Phase:** Epic 0 in progress. **0.1 done** (@smoke 2/2 on Next). **0.3 done** (seams). **0.4 done** (seed). **0.6b done** (rule fixtures, 933 cases). **0.8e done** (12 DV plus 5 abuse tests). DV-15 tests added. **0.8d done** (admin journeys 12–18, 4 new scenarios). **0.8c done** (journeys 7–11, DV-14 test). **0.8b done** (journeys 3–6). **0.8a done** (page objects, J1/J2, unified DB lock: `test.use({ db })`). **0.7d done** (authz 224-cell matrix, origin guard 237, concept-status 26, 16 deviation tests). **0.7b done** (client contracts: 175 pass / 3 fixme). **0.5 done** (webhook 20 tests, 11 Stripe fixtures). **0.7a done** (auth 27 + checkout 10). **0.7c done** (admin contracts 55 pass / 4 fixme). **0.6a done** (267-case upload corpus). **0.2 done** (stack: `cd tests/parity && npm run infra:up|probe|down`; ports PG 55432, Mailpit 58025/SMTP 51025, S3 58333, postmark-shim 58090, stripe-fake 58091; test-only creds in `infra/docker-compose.test.yml`; Next-on-stack recipe in `tests/parity/README.md`).
-- **Running:** none. The parent is finishing 0.9 (lock fairness, flake fixes, 3-run baseline, CI workflow).
-- **Next:** 0.8b–e journeys (after 0.8a) → 0.9 coverage gate and 3-run baseline. **Owner decisions:** F-16 → DV-15 approved, and DV-14 confirmed (both 2026-11-19). DV-15 deviation tests to be added after 0.8e merges. Epic 1 starts after Epic 0. **The architecture (28 ADRs) was accepted by the owner on 2026-11-19.**
-- **Run the suite:** `cd tests/parity && npm ci && PARITY_TARGET=next PARITY_START_NEXT=1 node scripts/run.mjs "@smoke"`.
-- **Owner items:** unchanged (see the previous entry in the session log).
+- **Updated:** 2026-11-19 (late)
+- **Phase:** **Epic 0 done.** All stories 0.1–0.9 are done. The parity suite has 59 specs and 266 tests (727 executions per run, with the authz matrix expanded). Coverage is 108/108 rows and 15/15 DVs. The baseline is 3 consecutive green runs on Next (below).
+- **Running:** nothing.
+- **Next:** Epic 1. Start with **story 1.1a** (Laravel skeleton in `apps/portal`, compose, version pins per `research-technical.md` §2), then 1.1b (CI) and 1.2 (`apps/portal/AGENTS.md`). Run `create-story` for 1.1a first. Use sub-agents in worktrees for independent stories (1.3+ once 1.1a lands).
+- **Pending owner OK:** pushing `.github/workflows/parity.yml` (written, not committed). Its first push runs the suite on GitHub Actions.
+- **Owner items (open):** key-screen approval and the one-project shortcut (before Epics 6/7), turnaround copy for empty states, brief reference uploads (post-launch?), launch date. MacBook worker paused.
+- **Run the suite on Next:** `cd tests/parity && npm run infra:up && node scripts/next-stack.mjs ["<gate>"] [--repeat N] [-- playwright args]`. Run `@disruptive` separately with `-- --workers=1`.
 
 ## Verify the baseline
 
@@ -21,9 +22,12 @@ npm run test:e2e                                        # last recorded: 5–6 P
 
 | Date | Next unit | Next E2E | Parity (Next) | Parity (Laravel) | Notes |
 |---|---|---|---|---|---|
+| 2026-11-19 | **107 files passed, 4 skipped; 1013 passed, 20 skipped.** typecheck ✓ (after fixing the 0.4 test typing), lint ✓ | not re-run (superseded by the parity suite) | **Baseline: 3 consecutive green full runs, 727 passed + 1 skipped each (12.0–12.3 min), 0 unexpected failures; the 32 `@deviation` tests failed as expected. `@disruptive` ×3: 1/1/1 passed.** | n/a | Story 0.9. Command: `next-stack.mjs --repeat 3 -- --grep-invert "@disruptive\|@stripe-live-test"` |
 | 2026-11-18 | **107 files (103 passed, 4 skipped opt-in PG); 722 passed, 20 skipped.** typecheck ✓, lint ✓ (0 warnings) | not re-run (Playwright needs a dev server) | n/a (suite not built) | n/a | Re-verified for readiness m24. Earlier "95 files / 614" in TODO.md is stale |
 
 ## Session log (newest first, one line each)
+
+- 2026-11-19: **Epic 0 done.** Baseline: 3 consecutive green runs (727/727/727). apps/web typecheck fixed (0.4 test typing). The CI workflow awaits the owner's OK to push.
 
 - 2026-11-19: The lease fix cut a full run from 41 to 12.6 min (726 pass, 1 fail). The J4 image-cache flake was fixed (`ddd85fd`, 5/5 green). **Baseline restarted** (scratchpad `baseline4.log`).
 
