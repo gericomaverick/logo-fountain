@@ -43,3 +43,6 @@ DV-12/C-03/C-08/D-05 snapshot and concept payloads carry an imageKey that is ide
 DV-UX/C-01/A-01 a customer with exactly one project lands on that project after sign-in @deviation @ui @auth
 DV-UX/D-02/A-16 an admin opening a client project URL lands on the admin workspace for it @deviation @ui @admin
 DV-UX/A-06/N-01/C-01 after setting a password from the setup link the customer reaches the project the link names @deviation @ui @auth @checkout
+DV-15 K-05 a session Stripe does not know is a permanent failure reported to the admin @deviation @webhook @email @api
+DV-15 K-06 a payment intent already used by another session is a permanent failure reported to the admin @deviation @webhook @email @api
+DV-15 K-09 an upsell paid with a different email still applies, provisions nobody new, and alerts the admin @deviation @webhook @upsell @email @api

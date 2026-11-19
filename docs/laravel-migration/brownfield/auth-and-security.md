@@ -126,3 +126,5 @@ These are pinned by `tests/parity/journeys/contract/auth-*.spec.ts` and `checkou
 2. `403 INVALID_ORIGIN`, `503 PUBLIC_SITE_URL_REQUIRED` and the checkout email endpoints send **no** `Cache-Control: no-store` (`lib/request-origin.ts:96,102`, `lib/checkout-auth-email.ts:46,65`).
 3. On an email send failure, `/api/auth/magic-link` and `/api/auth/forgot-password` **swallow** the error and return the normal uniform 200 (`magic-link/route.ts:8`, `forgot-password/route.ts:9`). The proof is still deleted (§2), so the link is dead. Only the checkout endpoints surface `500 AUTH_EMAIL_SEND_FAILED`.
 4. `reset-password` validates `WEAK_PASSWORD` **before** the token (`lib/auth/service.ts:75`). `/api/auth/password` returns 401 before reading the body, and **every** attempt, including invalid ones, consumes the per-user limit (`password/route.ts:10-11`).
+
+5. (story 0.8e) `getRequestOrigin` trusts **both** `X-Forwarded-Proto` and `X-Forwarded-Host` (`lib/request-origin.ts:29-32`), which feeds Stripe return URLs (F-5, DV-5). The sign-in screen shows one fixed message for every failure (`lib/auth/client.ts:4`).

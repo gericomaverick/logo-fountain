@@ -2,7 +2,7 @@
 // Coverage gate (story 0.9, test strategy §3/§5). Fails when:
 //  - an inventory row (A, K, C, D, N, X series; O-series excluded) has no parity test whose title
 //    starts with or lists its ID, and no recorded Laravel-only destination; or
-//  - a DV row has no @deviation test (title contains the DV id or one of its rows) and no recorded
+//  - a DV row has no @deviation test whose title names the DV id, and no recorded
 //    Laravel-only destination.
 // Laravel-only destinations live in fixtures/laravel-only-destinations.json: { "<ID>": "<layer + story>" }.
 import { readdirSync, readFileSync, statSync } from "node:fs";
@@ -29,8 +29,8 @@ const dvRows = [...inventory.matchAll(/^\| (DV-[0-9A-Z]+) \| ([^|]*) \|/gm)].map
 const deviationTitles = titles.filter((t) => /@deviation\b/.test(t));
 
 const missing = rows.filter((id) => !covered.has(id) && !destinations[id]);
-const dvMissing = dvRows.filter(({ id, rows: r }) => !destinations[id] &&
-  !deviationTitles.some((t) => t.includes(id) || r.some((row) => ids(t).has(row))));
+const dvMissing = dvRows.filter(({ id }) => !destinations[id] &&
+  !deviationTitles.some((t) => new RegExp(`\\b${id}\\b`).test(t)));
 
 console.log(`Coverage: ${rows.length - missing.length}/${rows.length} inventory rows, ${dvRows.length - dvMissing.length}/${dvRows.length} DV rows (${titles.length} tests, ${Object.keys(destinations).length} Laravel-only destinations).`);
 if (missing.length || dvMissing.length) {

@@ -53,3 +53,5 @@ Order matters: the size check comes **before** the bytes are read.
 ## 7. Shared golden fixture corpus (test strategy addition)
 
 These validators are the highest-risk thing to port by hand. E0 builds `tests/parity/fixtures/uploads/`: a corpus of valid and malicious files (good PNG/JPEG/WebP; APNG; animated WebP; trailing bytes; bad CRC; 40 MP+ header; zip bomb; ZIP64; symlink entry; path traversal; case collision; CP437 names; data descriptors; 1001 entries). Each file is paired with its **expected error code**, captured from the Next implementation. The Next Vitest suite and the Laravel Pest suite both run against this corpus, and the parity suite uploads a subset through HTTP.
+
+- (story 0.8e) Confirmed on Next: a 95,000,001-byte ZIP is accepted and the client is emailed N-09 (the Laravel cap is DV-13).

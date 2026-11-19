@@ -60,3 +60,5 @@ These are pinned by `tests/parity/journeys/contract/client-*.spec.ts` and the sn
 7. Profile names are **truncated** to 80 characters, not rejected (`app/api/profile/route.ts:19`).
 8. `GET /api/projects` is membership-only, so an admin gets `[]`.
 9. Assets for an unknown concept return `200 []` (see F-7).
+
+- (story 0.8e) A failed lifecycle email turns a **client message POST into a 500 after the message is saved** (`lib/project-lifecycle-email.ts:137` throws, `app/api/projects/[id]/messages/route.ts:110` doesn't catch). DV-8 (queued after commit) fixes this.

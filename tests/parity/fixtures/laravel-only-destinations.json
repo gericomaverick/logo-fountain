@@ -18,5 +18,6 @@
   "X-18": "Pest (email_sent markers, already_sent) \u2014 story 2.7",
   "X-19": "L3 Pest (concept upload receipts, advisory lock, ambiguous commit) \u2014 story 7.5a; Next replay covered by contract/admin-concepts",
   "DV-3": "None: VAT capture deferred (no behaviour change in migration scope)",
-  "D-10": "DV-UX: the separate admin upload page is merged into the admin Concepts section (ux-design.md \u00a75.2). Concept upload behaviour is covered on Next by journeys/j14-admin-concepts and contract/admin-concepts; the Laravel page objects map uploadConcept() to the Concepts section (story 7.5a)"
+  "D-10": "DV-UX: the separate admin upload page is merged into the admin Concepts section (ux-design.md \u00a75.2). Concept upload behaviour is covered on Next by journeys/j14-admin-concepts and contract/admin-concepts; the Laravel page objects map uploadConcept() to the Concepts section (story 7.5a)",
+  "DV-4": "Pest feature test (campaign_slug copied to project_orders on package fulfilment; no API exposes the order column) \u2014 story 5.3"
 }

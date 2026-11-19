@@ -1,6 +1,6 @@
 # Story 0.8e: Abuse cases 19–23 and every remaining deviation test
 
-Status: review
+Status: done
 
 **Covers:** X-01, A-13, X-06, X-12, K-05, DV-1, DV-2, DV-4…DV-6, DV-8, DV-9, DV-11…DV-13, DV-UX · **Gate:** `@security&@ui`, `@deviation` · **After:** 0.8b–d · **DoD:** E0
 
@@ -65,3 +65,7 @@ There is no DV-10 row (F-10 keeps current behaviour).
 - Assumption for Laravel: in parity mode it sends lifecycle mail through postmark-shim (as J15 already assumes), otherwise DV-8's `pendingFailures` wait fails with a clear message. DV-5 assumes `PUBLIC_SITE_URL` = the suite's base URL.
 - Laravel page objects in `pages/laravel/navigation.ts`: stories 4.9b and 6.2b.
 - `zip-95000001` (95 MB) and the 10 MiB image are generated into `fixtures/uploads/.generated/` on first use (a few seconds; ~420 MB for the whole generated set).
+
+
+## Parent review (2026-11-19)
+Merged into main and pushed. `npm run check` OK. The parent then added the DV-15 tests (`journeys/deviations/dv-15-*.spec.ts`; each fails on Next at the 500-vs-200 assertion, verified with expectations off) and recorded DV-4 as Laravel-only (story 5.3). The coverage rule was tightened so DV ids must appear in test titles: 108/108 rows, 15/15 DVs. **Open, 0.9:** DB lock fairness and timeout (`adapters/seed.ts:72,129`), the J13 poll-cleared message flake, and the A-15 dev-server connection refusal.
