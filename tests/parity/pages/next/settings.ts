@@ -93,8 +93,18 @@ export function account(page: Page): AccountPages {
     async showsSignedInContent() {
       await page.waitForLoadState("networkidle");
       if (PUBLIC_PATHS.includes(new URL(page.url()).pathname)) return false;
-      // Every signed-in Next screen renders the header nav with its Sign out button (components/header-nav.tsx).
-      return (await page.getByRole("button", { name: "Sign out" }).count()) > 0;
+      // Signed-in Next screens render the nav's Sign out button (components/header-nav.tsx:192) once the session
+      // check answers. Protected data shows as a message thread, the project list's rows, or the profile form.
+      // Breadcrumb links aren't a signal: the client pages build them from the URL. Anonymous, Next's
+      // /project/{id}/messages still renders its empty shell with "Unauthorized — Sign in and retry." (no data).
+      const signals = [
+        page.getByRole("button", { name: "Sign out" }),
+        page.getByRole("list", { name: /^Messages on / }),
+        page.getByRole("region").locator('a[href^="/project/"]'),
+        page.getByLabel("First name"),
+      ];
+      for (const signal of signals) if ((await signal.count()) > 0) return true;
+      return false;
     },
   };
 }
