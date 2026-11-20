@@ -68,6 +68,7 @@ services:
     environment:
       HOME: /tmp
       NPM_CONFIG_UPDATE_NOTIFIER: "false"
+      PORTAL_VITE_PORT: ${PORTAL_VITE_PORT:-5173}
     command: ["sh", "-c", "npm ci --no-fund --no-audit && npm run dev"]
     volumes:
       - .:/app

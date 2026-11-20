@@ -10,8 +10,8 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        // Tests must not depend on a running Vite dev server (public/hot) or a built manifest:
-        // CI starts no vite service (story 1.1b). Asset output is covered by L7, not Pest.
+        // Tests must not depend on a running Vite dev server (public/hot) or a built manifest: CI starts
+        // no vite service (1.1b). The real assets are covered by bin/browser-test (L7, 1.7).
         $this->withoutVite();
     }
 }
