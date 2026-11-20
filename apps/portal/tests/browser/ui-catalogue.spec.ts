@@ -14,7 +14,16 @@ async function openCatalogue(page: Page, theme: Theme = 'light') {
     await page.evaluate(() => document.fonts.ready);
 }
 
+/** Waits for every finite CSS animation (e.g. a dialog's fade-in) to end: axe measures colour contrast
+ *  on what is painted, and a half-faded overlay reads as low contrast on slow CI machines (story 1.9 CI). */
+async function settleAnimations(page: Page) {
+    await page.waitForFunction(() =>
+        document.getAnimations().every((a) => a.playState !== 'running' || a.effect?.getTiming().iterations === Infinity),
+    );
+}
+
 async function seriousViolations(page: Page, disableRules: string[] = []) {
+    await settleAnimations(page);
     const { violations } = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).disableRules(disableRules).analyze();
     return violations.filter((v) => v.impact === 'serious' || v.impact === 'critical').map((v) => `${v.id}: ${v.help} (${v.nodes.map((n) => n.target.join(' ')).join(', ')})`);
 }

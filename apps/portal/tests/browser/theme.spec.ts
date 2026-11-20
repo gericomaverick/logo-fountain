@@ -11,6 +11,14 @@ type FirstFrame = { theme: string | undefined; bg: string; body: string };
  * Records the theme and background at the first animation frame, i.e. just before the first
  * paint (a frame isn't rendered until render-blocking CSS has loaded). Runs before any page script.
  */
+/** Waits for every finite CSS animation (e.g. a dialog's fade-in) to end: axe measures colour contrast
+ *  on what is painted, and a half-faded overlay reads as low contrast on slow CI machines (story 1.9 CI). */
+async function settleAnimations(page: Page) {
+    await page.waitForFunction(() =>
+        document.getAnimations().every((a) => a.playState !== 'running' || a.effect?.getTiming().iterations === Infinity),
+    );
+}
+
 async function recordFirstFrame(page: Page, storedPreference?: string) {
     await page.addInitScript((pref) => {
         if (pref) localStorage.setItem('lf-theme', pref);
@@ -130,6 +138,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
         // Pages resolve lazily (story 1.8a): wait for the render before reading fonts or running axe.
         await expect(page.locator('[data-display-title]')).toBeVisible();
         await page.evaluate(() => document.fonts.ready);
+        await settleAnimations(page);
         const { violations } = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
         expect(violations.filter((v) => v.impact === 'serious' || v.impact === 'critical').map((v) => `${v.id}: ${v.help}`)).toEqual([]);
     });
