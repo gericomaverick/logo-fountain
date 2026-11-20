@@ -100,6 +100,9 @@ Checklist: `MIG/03-documentation-protocol.md` §3. Story record template: `MIG/t
 Requirement series → code: A → `Actions/Auth`, middleware, `Support/RateLimits` · K → `Actions/Checkout`, `Controllers/Webhooks` · C/D → `Actions/*` + `Pages` · N → `Mail/` · X → `Support/`, `Storage/`, middleware, `Domain/` · O → `Console/Commands`, `ops/`, `compose.yaml`.
 
 ## 8. Gotchas (promoted from story records)
+- `env()` only in `config/*.php`; a Pest scan (`tests/Feature/ConfigBootValidationTest.php`) backs Larastan's rule (1.3).
+- Production-only behaviour: test it with a real `php artisan` subprocess and `APP_ENV=production` (see `ConfigBootValidationTest.php`), not by flipping config in-process (1.3).
+- Symfony appends `, private` to `Cache-Control`: `no-store` becomes `no-store, private`, but parity expects exactly `no-store` (1.3, 1.6).
 - Inertia pages live in `resources/js/Pages` (capital P), set in `config/inertia.php`; Inertia's default is lowercase (1.1a).
 - Empty folders vanish in git: keep `tests/Unit/.gitkeep`, or Pest fails on a fresh clone (1.1a).
 - TypeScript 6 deprecates `baseUrl`: use a relative `paths` entry (`tsconfig.json`) (1.1a).

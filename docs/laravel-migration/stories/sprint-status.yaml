@@ -39,7 +39,7 @@ development_status:
   1-1a-skeleton-compose-pins: done
   1-1b-ci-workflow: in-progress
   1-2-agent-guide-and-project-context: done
-  1-3-config-validation-and-canonical-origin: in-progress
+  1-3-config-validation-and-canonical-origin: done
   1-4-origin-guard-as-the-csrf-control: backlog
   1-5-trusted-client-address: backlog
   1-6-error-shape-security-headers-auth-json-boundary-log-scrubber: in-progress

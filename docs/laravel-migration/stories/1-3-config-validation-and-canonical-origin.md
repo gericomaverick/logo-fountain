@@ -1,6 +1,6 @@
 # Story 1.3: Config validation and canonical origin
 
-**Status:** review (2026-11-20) · **DoD variant:** Laravel-only in practice (gate is Pest; see *Test evidence*) · **Epic:** 1 · **Covers:** X-04, O-05, O-07, A-17 (config part), FR57 · **Gate:** Pest · **After:** 1.1a
+**Status:** done (2026-11-20; merged `MERGE`; parent marked O-07 In progress: `POSTMARK_*` mapping pending) · **DoD variant:** Laravel-only in practice (gate is Pest; see *Test evidence*) · **Epic:** 1 · **Covers:** X-04, O-05, O-07, A-17 (config part), FR57 · **Gate:** Pest · **After:** 1.1a
 
 ## Acceptance criteria (epics.md §1.3)
 1. **Given** production with an http `PUBLIC_SITE_URL`, **then** mutations return `503 PUBLIC_SITE_URL_REQUIRED` and auth returns `503 AUTH_UNAVAILABLE`.
