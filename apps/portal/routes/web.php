@@ -24,4 +24,6 @@ if (app()->environment(['local', 'testing'])) {
 
     // The component catalogue (UX §6 rule 5, ADR-022, story 1.8a).
     Route::get('/dev/ui', fn () => Inertia::render('Dev/Ui'))->name('dev.ui');
+    // Story 1.8b: the status components, on their own page so their baselines stay separate.
+    Route::get('/dev/ui/status', fn () => Inertia::render('Dev/UiStatus'))->name('dev.ui.status');
 }

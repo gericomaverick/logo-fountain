@@ -11,14 +11,23 @@ it('serves the component catalogue in testing', function () {
         ->assertInertia(fn (Assert $page) => $page->component('Dev/Ui', shouldExist: false));
 });
 
+it('serves the status components catalogue in testing, with the display font preloaded (story 1.8b)', function () {
+    $response = $this->get('/dev/ui/status')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('Dev/UiStatus', shouldExist: false));
+
+    // Its celebration banner renders the one DisplayTitle (UX §8.2), so config/ui.php preloads Sfizia.
+    expect(substr_count((string) $response->getContent(), 'rel="preload" as="font"'))->toBe(2);
+});
+
 it('does not register the catalogue route in a real production process', function () {
     $env = ['APP_ENV' => 'production', 'APP_DEBUG' => 'false'];
 
     $production = Process::path(base_path())->env($env)->run(['php', 'artisan', 'route:list', '--json']);
     expect($production->successful())->toBeTrue($production->errorOutput());
     $uris = array_column(json_decode($production->output(), true, flags: JSON_THROW_ON_ERROR), 'uri');
-    expect($uris)->toContain('/')->not->toContain('dev/ui')->not->toContain('dev/client-address');
+    expect($uris)->toContain('/')->not->toContain('dev/ui')->not->toContain('dev/ui/status')->not->toContain('dev/client-address');
 
     $local = Process::path(base_path())->env(['APP_ENV' => 'local'])->run(['php', 'artisan', 'route:list', '--json']);
-    expect(array_column(json_decode($local->output(), true, flags: JSON_THROW_ON_ERROR), 'uri'))->toContain('dev/ui');
+    expect(array_column(json_decode($local->output(), true, flags: JSON_THROW_ON_ERROR), 'uri'))->toContain('dev/ui')->toContain('dev/ui/status');
 });

@@ -21,8 +21,10 @@ export const LAYOUT_FILE = 'resources/views/app.blade.php';
 
 // UX §8.2 allows exactly three uses: the customer Overview project name, the auth-screen
 // headline and the celebration turn banner. Home is the story 1.7 showcase standing in for
-// the Overview until Epic 6. Adding a file here needs a matching UX spec change.
-export const DISPLAY_TITLE_CALLERS = ['resources/js/Pages/Home.tsx'];
+// the Overview until Epic 6. TurnBanner renders the celebration headline (story 1.8b), so screens
+// get Sfizia there only through <TurnBanner celebration=…>. Adding a file here needs a matching
+// UX spec change.
+export const DISPLAY_TITLE_CALLERS = ['resources/js/Pages/Home.tsx', 'resources/js/Components/ui/TurnBanner.tsx'];
 
 const SCAN_DIRS = ['resources/js', 'resources/css', 'resources/views'];
 const SCAN_EXT = /\.(?:tsx?|jsx?|mjs|css|php)$/;

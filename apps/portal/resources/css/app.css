@@ -229,3 +229,9 @@
         }
     }
 }
+
+/* Story 1.8b: the "in progress" fill of the allowance meter (UX §7, §11), striped so it differs
+ * from "used" by pattern as well as colour (§8.1). Here because it's built from colour tokens. */
+@utility bg-stripes-in-progress {
+    background-image: repeating-linear-gradient(135deg, var(--color-accent) 0 3px, var(--color-accent-soft) 3px 6px);
+}

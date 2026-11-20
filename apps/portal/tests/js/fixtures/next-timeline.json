@@ -1,0 +1,6254 @@
+{
+ "source": "apps/web/src/lib/project-state-machine.ts",
+ "cases": [
+  {
+   "state": "AWAITING_BRIEF",
+   "timestamps": {},
+   "options": null,
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "AWAITING_BRIEF",
+   "timestamps": {},
+   "options": {
+    "hasApprovedMilestone": true
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "AWAITING_BRIEF",
+   "timestamps": {},
+   "options": {
+    "hasApprovedMilestone": false
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "AWAITING_BRIEF",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": null,
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "AWAITING_BRIEF",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": {
+    "hasApprovedMilestone": true
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "AWAITING_BRIEF",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": {
+    "hasApprovedMilestone": false
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "BRIEF_SUBMITTED",
+   "timestamps": {},
+   "options": null,
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "BRIEF_SUBMITTED",
+   "timestamps": {},
+   "options": {
+    "hasApprovedMilestone": true
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "BRIEF_SUBMITTED",
+   "timestamps": {},
+   "options": {
+    "hasApprovedMilestone": false
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "BRIEF_SUBMITTED",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": null,
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "BRIEF_SUBMITTED",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": {
+    "hasApprovedMilestone": true
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "BRIEF_SUBMITTED",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": {
+    "hasApprovedMilestone": false
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "IN_DESIGN",
+   "timestamps": {},
+   "options": null,
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "IN_DESIGN",
+   "timestamps": {},
+   "options": {
+    "hasApprovedMilestone": true
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "IN_DESIGN",
+   "timestamps": {},
+   "options": {
+    "hasApprovedMilestone": false
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "IN_DESIGN",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": null,
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "IN_DESIGN",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": {
+    "hasApprovedMilestone": true
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "IN_DESIGN",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": {
+    "hasApprovedMilestone": false
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "CONCEPTS_READY",
+   "timestamps": {},
+   "options": null,
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "CONCEPTS_READY",
+   "timestamps": {},
+   "options": {
+    "hasApprovedMilestone": true
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "CONCEPTS_READY",
+   "timestamps": {},
+   "options": {
+    "hasApprovedMilestone": false
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "CONCEPTS_READY",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": null,
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "CONCEPTS_READY",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": {
+    "hasApprovedMilestone": true
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "CONCEPTS_READY",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": {
+    "hasApprovedMilestone": false
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "REVISIONS_IN_PROGRESS",
+   "timestamps": {},
+   "options": null,
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "REVISIONS_IN_PROGRESS",
+   "timestamps": {},
+   "options": {
+    "hasApprovedMilestone": true
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "REVISIONS_IN_PROGRESS",
+   "timestamps": {},
+   "options": {
+    "hasApprovedMilestone": false
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "REVISIONS_IN_PROGRESS",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": null,
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "REVISIONS_IN_PROGRESS",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": {
+    "hasApprovedMilestone": true
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "REVISIONS_IN_PROGRESS",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": {
+    "hasApprovedMilestone": false
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "AWAITING_APPROVAL",
+   "timestamps": {},
+   "options": null,
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "AWAITING_APPROVAL",
+   "timestamps": {},
+   "options": {
+    "hasApprovedMilestone": true
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "AWAITING_APPROVAL",
+   "timestamps": {},
+   "options": {
+    "hasApprovedMilestone": false
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "AWAITING_APPROVAL",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": null,
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "AWAITING_APPROVAL",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": {
+    "hasApprovedMilestone": true
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "AWAITING_APPROVAL",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": {
+    "hasApprovedMilestone": false
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "FINAL_FILES_READY",
+   "timestamps": {},
+   "options": null,
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "FINAL_FILES_READY",
+   "timestamps": {},
+   "options": {
+    "hasApprovedMilestone": true
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "FINAL_FILES_READY",
+   "timestamps": {},
+   "options": {
+    "hasApprovedMilestone": false
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "FINAL_FILES_READY",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": null,
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "FINAL_FILES_READY",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": {
+    "hasApprovedMilestone": true
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "FINAL_FILES_READY",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": {
+    "hasApprovedMilestone": false
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "DELIVERED",
+   "timestamps": {},
+   "options": null,
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": true
+    }
+   ]
+  },
+  {
+   "state": "DELIVERED",
+   "timestamps": {},
+   "options": {
+    "hasApprovedMilestone": true
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": true
+    }
+   ]
+  },
+  {
+   "state": "DELIVERED",
+   "timestamps": {},
+   "options": {
+    "hasApprovedMilestone": false
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": true
+    }
+   ]
+  },
+  {
+   "state": "DELIVERED",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": null,
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "DELIVERED",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": {
+    "hasApprovedMilestone": true
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "DELIVERED",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": {
+    "hasApprovedMilestone": false
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "ON_HOLD",
+   "timestamps": {},
+   "options": null,
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "ON_HOLD",
+     "label": "On hold",
+     "completed": false,
+     "current": true
+    }
+   ]
+  },
+  {
+   "state": "ON_HOLD",
+   "timestamps": {},
+   "options": {
+    "hasApprovedMilestone": true
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "ON_HOLD",
+     "label": "On hold",
+     "completed": false,
+     "current": true
+    }
+   ]
+  },
+  {
+   "state": "ON_HOLD",
+   "timestamps": {},
+   "options": {
+    "hasApprovedMilestone": false
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "ON_HOLD",
+     "label": "On hold",
+     "completed": false,
+     "current": true
+    }
+   ]
+  },
+  {
+   "state": "ON_HOLD",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": null,
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    },
+    {
+     "state": "ON_HOLD",
+     "label": "On hold",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-06T12:00:00Z"
+    }
+   ]
+  },
+  {
+   "state": "ON_HOLD",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": {
+    "hasApprovedMilestone": true
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    },
+    {
+     "state": "ON_HOLD",
+     "label": "On hold",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-06T12:00:00Z"
+    }
+   ]
+  },
+  {
+   "state": "ON_HOLD",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": {
+    "hasApprovedMilestone": false
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    },
+    {
+     "state": "ON_HOLD",
+     "label": "On hold",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-06T12:00:00Z"
+    }
+   ]
+  },
+  {
+   "state": "CANCELLED",
+   "timestamps": {},
+   "options": null,
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "CANCELLED",
+     "label": "Cancelled",
+     "completed": false,
+     "current": true
+    }
+   ]
+  },
+  {
+   "state": "CANCELLED",
+   "timestamps": {},
+   "options": {
+    "hasApprovedMilestone": true
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "CANCELLED",
+     "label": "Cancelled",
+     "completed": false,
+     "current": true
+    }
+   ]
+  },
+  {
+   "state": "CANCELLED",
+   "timestamps": {},
+   "options": {
+    "hasApprovedMilestone": false
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "CANCELLED",
+     "label": "Cancelled",
+     "completed": false,
+     "current": true
+    }
+   ]
+  },
+  {
+   "state": "CANCELLED",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": null,
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    },
+    {
+     "state": "CANCELLED",
+     "label": "Cancelled",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-05T17:30:00Z"
+    }
+   ]
+  },
+  {
+   "state": "CANCELLED",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": {
+    "hasApprovedMilestone": true
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    },
+    {
+     "state": "CANCELLED",
+     "label": "Cancelled",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-05T17:30:00Z"
+    }
+   ]
+  },
+  {
+   "state": "CANCELLED",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": {
+    "hasApprovedMilestone": false
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    },
+    {
+     "state": "CANCELLED",
+     "label": "Cancelled",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-05T17:30:00Z"
+    }
+   ]
+  },
+  {
+   "state": "REFUNDED",
+   "timestamps": {},
+   "options": null,
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "REFUNDED",
+     "label": "Refunded",
+     "completed": false,
+     "current": true
+    }
+   ]
+  },
+  {
+   "state": "REFUNDED",
+   "timestamps": {},
+   "options": {
+    "hasApprovedMilestone": true
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "REFUNDED",
+     "label": "Refunded",
+     "completed": false,
+     "current": true
+    }
+   ]
+  },
+  {
+   "state": "REFUNDED",
+   "timestamps": {},
+   "options": {
+    "hasApprovedMilestone": false
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "REFUNDED",
+     "label": "Refunded",
+     "completed": false,
+     "current": true
+    }
+   ]
+  },
+  {
+   "state": "REFUNDED",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": null,
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    },
+    {
+     "state": "REFUNDED",
+     "label": "Refunded",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-11T10:00:00Z"
+    }
+   ]
+  },
+  {
+   "state": "REFUNDED",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": {
+    "hasApprovedMilestone": true
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    },
+    {
+     "state": "REFUNDED",
+     "label": "Refunded",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-11T10:00:00Z"
+    }
+   ]
+  },
+  {
+   "state": "REFUNDED",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": {
+    "hasApprovedMilestone": false
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    },
+    {
+     "state": "REFUNDED",
+     "label": "Refunded",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-11T10:00:00Z"
+    }
+   ]
+  },
+  {
+   "state": "APPROVED",
+   "timestamps": {},
+   "options": null,
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "APPROVED",
+   "timestamps": {},
+   "options": {
+    "hasApprovedMilestone": true
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "APPROVED",
+   "timestamps": {},
+   "options": {
+    "hasApprovedMilestone": false
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "APPROVED",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": null,
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "APPROVED",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": {
+    "hasApprovedMilestone": true
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "APPROVED",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": {
+    "hasApprovedMilestone": false
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "NOT_A_STATE",
+   "timestamps": {},
+   "options": null,
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "NOT_A_STATE",
+   "timestamps": {},
+   "options": {
+    "hasApprovedMilestone": true
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "NOT_A_STATE",
+   "timestamps": {},
+   "options": {
+    "hasApprovedMilestone": false
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "NOT_A_STATE",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": null,
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "NOT_A_STATE",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": {
+    "hasApprovedMilestone": true
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "NOT_A_STATE",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": {
+    "hasApprovedMilestone": false
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "",
+   "timestamps": {},
+   "options": null,
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "",
+   "timestamps": {},
+   "options": {
+    "hasApprovedMilestone": true
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": true,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "",
+   "timestamps": {},
+   "options": {
+    "hasApprovedMilestone": false
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": true
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false
+    }
+   ]
+  },
+  {
+   "state": "",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": null,
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": {
+    "hasApprovedMilestone": true
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": true,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  },
+  {
+   "state": "",
+   "timestamps": {
+    "AWAITING_BRIEF": "2026-11-02T09:15:00Z",
+    "BRIEF_SUBMITTED": "2026-11-03T14:40:00Z",
+    "IN_DESIGN": "2026-11-04T10:00:00Z",
+    "CONCEPTS_READY": "2026-11-10T16:20:00Z",
+    "REVISIONS_IN_PROGRESS": "2026-11-12T11:05:00Z",
+    "AWAITING_APPROVAL": "2026-11-16T09:30:00Z",
+    "FINAL_FILES_READY": "2026-11-18T15:45:00Z",
+    "DELIVERED": "2026-11-19T08:10:00Z",
+    "ON_HOLD": "2026-11-06T12:00:00Z",
+    "CANCELLED": "2026-11-05T17:30:00Z",
+    "REFUNDED": "2026-11-11T10:00:00Z"
+   },
+   "options": {
+    "hasApprovedMilestone": false
+   },
+   "timeline": [
+    {
+     "state": "AWAITING_BRIEF",
+     "label": "Awaiting brief",
+     "completed": false,
+     "current": true,
+     "timestamp": "2026-11-02T09:15:00Z"
+    },
+    {
+     "state": "BRIEF_SUBMITTED",
+     "label": "Brief submitted",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-03T14:40:00Z"
+    },
+    {
+     "state": "IN_DESIGN",
+     "label": "In design",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-04T10:00:00Z"
+    },
+    {
+     "state": "CONCEPTS_READY",
+     "label": "Concepts ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-10T16:20:00Z"
+    },
+    {
+     "state": "REVISIONS_IN_PROGRESS",
+     "label": "Revisions in progress",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-12T11:05:00Z"
+    },
+    {
+     "state": "AWAITING_APPROVAL",
+     "label": "Awaiting approval",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "APPROVED",
+     "label": "Approved",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-16T09:30:00Z"
+    },
+    {
+     "state": "FINAL_FILES_READY",
+     "label": "Final files ready",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-18T15:45:00Z"
+    },
+    {
+     "state": "DELIVERED",
+     "label": "Delivered",
+     "completed": false,
+     "current": false,
+     "timestamp": "2026-11-19T08:10:00Z"
+    }
+   ]
+  }
+ ],
+ "customerActionFor": {
+  "AWAITING_BRIEF": "Submit brief",
+  "BRIEF_SUBMITTED": null,
+  "IN_DESIGN": null,
+  "CONCEPTS_READY": "Review concepts",
+  "REVISIONS_IN_PROGRESS": null,
+  "AWAITING_APPROVAL": null,
+  "FINAL_FILES_READY": "Download final files",
+  "DELIVERED": null,
+  "ON_HOLD": null,
+  "CANCELLED": null,
+  "REFUNDED": null,
+  "NOT_A_STATE": null
+ }
+}

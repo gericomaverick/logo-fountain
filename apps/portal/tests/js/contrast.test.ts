@@ -147,3 +147,30 @@ describe('story 1.8a component pairs (beyond the §8.1 table)', () => {
         });
     }
 });
+
+// Story 1.8b: pairs the status components use that neither §8.1 nor the 1.8a block lists.
+describe('story 1.8b status component pairs (beyond the §8.1 table)', () => {
+    const EXTRA: Array<[string, string, number, string]> = [
+        ['fg-2', 'accent-soft', TEXT, 'your-turn TurnBanner body'],
+        ['fg-2', 'success-soft', TEXT, 'done TurnBanner body'],
+        ['fg-2', 'warning-soft', TEXT, 'paused TurnBanner body'],
+        ['accent-text', 'warning-soft', TEXT, 'paused TurnBanner "Check messages" link'],
+        ['fg', 'sunken', TEXT, 'closed TurnBanner title'],
+        ['warning', 'bg', UI, 'StageTracker on-hold glyph'],
+        ['warning', 'surface', UI, 'StageTracker on-hold glyph in a card'],
+        ['fg-2', 'bg', UI, 'StageTracker done / cancelled glyph'],
+        ['accent', 'bg', UI, 'StageTracker current glyph'],
+        ['fg-3', 'surface', UI, 'AllowanceMeter "used" segment'],
+        ['accent', 'surface', UI, 'AllowanceMeter "in progress" segment border'],
+        ['border', 'surface', UI, 'AllowanceMeter "left" segment border, EmptyState dashed border'],
+        ['accent-text', 'success-soft', UI, 'celebration sparkle on a done-tinted banner'],
+    ];
+    for (const [theme, tokens] of [['light', light], ['dark', dark]] as const) {
+        for (const [fg, bg, min, use] of EXTRA) {
+            test(`${theme}: ${fg} on ${bg} ≥ ${min}:1 (${use})`, () => {
+                const ratio = contrast(tokens[fg] as string, tokens[bg] as string);
+                assert.ok(ratio >= min, `${ratio.toFixed(2)} < ${min}`);
+            });
+        }
+    }
+});
