@@ -223,6 +223,7 @@ As the team, I want stripe-fake fixtures for every purchase scenario (package, a
 ### Story 1.8c: Media, data components and `usePolling`
 **Covers:** UX §11, FR58, ADR-023 · **Gate:** `@visual`, `@unit` · **After:** 1.8a
 - Concept card and viewer, File card, Upload dropzone (all states, limits shown), Thread, Data table, Properties panel.
+- **Added 2026-11-20 (gap found in 1.8a):** a generic **Card/Panel** surface container, and **Tabs** (Radix, per UX §7: roving focus and arrow keys; supports a "new" dot badge per UX §5). The 1.9 shells' project tabs and phone bottom bar build on this Tabs.
 - `usePolling`: **given** 3 consecutive failures, **then** a non-blocking "Reconnecting…" notice appears and polling continues with backoff. **Given** a hidden tab, **then** it pauses. **Given** new items, **then** they're announced via `aria-live=polite` without moving focused content (Vitest with fake timers).
 
 ### Story 1.9: App shells, design lint, UI CI job, Lighthouse
