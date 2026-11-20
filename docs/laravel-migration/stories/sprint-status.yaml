@@ -42,7 +42,7 @@ development_status:
   1-3-config-validation-and-canonical-origin: done
   1-4-origin-guard-as-the-csrf-control: backlog
   1-5-trusted-client-address: backlog
-  1-6-error-shape-security-headers-auth-json-boundary-log-scrubber: in-progress
+  1-6-error-shape-security-headers-auth-json-boundary-log-scrubber: done
   1-7-design-tokens-and-theming: in-progress
   1-8a-form-and-action-primitives: backlog
   1-8b-status-components: backlog

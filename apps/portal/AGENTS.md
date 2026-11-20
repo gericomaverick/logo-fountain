@@ -100,6 +100,10 @@ Checklist: `MIG/03-documentation-protocol.md` §3. Story record template: `MIG/t
 Requirement series → code: A → `Actions/Auth`, middleware, `Support/RateLimits` · K → `Actions/Checkout`, `Controllers/Webhooks` · C/D → `Actions/*` + `Pages` · N → `Mail/` · X → `Support/`, `Storage/`, middleware, `Domain/` · O → `Console/Commands`, `ops/`, `compose.yaml`.
 
 ## 8. Gotchas (promoted from story records)
+- Where Next sends exactly `no-store`, use `RawCacheControlHeaderBag::noStore()` (`app/Http/RawCacheControlHeaderBag.php`) (1.6).
+- API errors: throw `ApiException` (envelope `{error:{message,code?,details?}}`); never hand-build error JSON (1.6). 1.3's two 503 middlewares still build theirs inline; refactor them when touched.
+- A middleware can't try/catch a route's exceptions (the handler already rendered them): inspect `$response->exception` (1.6).
+- Logs are scrubbed by `Support/Scrubber.php` on every channel. `Audit::record` must call `Scrubber::scrub()` too (1.6).
 - `env()` only in `config/*.php`; a Pest scan (`tests/Feature/ConfigBootValidationTest.php`) backs Larastan's rule (1.3).
 - Production-only behaviour: test it with a real `php artisan` subprocess and `APP_ENV=production` (see `ConfigBootValidationTest.php`), not by flipping config in-process (1.3).
 - Symfony appends `, private` to `Cache-Control`: `no-store` becomes `no-store, private`, but parity expects exactly `no-store` (1.3, 1.6).
