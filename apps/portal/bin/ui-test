@@ -1,0 +1,9 @@
+#!/bin/sh
+# Front-end checks in a throwaway Node 24 container (no host Node needed), story 1.7:
+# the L7b design lint, the token unit tests (WCAG contrast, display sizes, lint rules) and tsc.
+# Story 1.9 adds ESLint and folds this into the CI ui job. Browser checks: bin/browser-test.
+set -e
+dir=$(cd "$(dirname "$0")/.." && pwd)
+docker run --rm -u "$(id -u):$(id -g)" -e HOME=/tmp -e NPM_CONFIG_UPDATE_NOTIFIER=false \
+    -v "$dir:/app" -w /app node:24-bookworm-slim \
+    sh -c '[ -d node_modules ] || npm ci --no-fund --no-audit; npm run -s lint:design && npm run -s test:unit && npm run -s typecheck'
