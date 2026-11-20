@@ -2,13 +2,14 @@
 
 ## Now (overwrite this section at the end of every session)
 
-- **Updated:** 2026-11-19 (late)
-- **Phase:** **Epic 0 done.** All stories 0.1–0.9 are done. The parity suite has 59 specs and 266 tests (727 executions per run, with the authz matrix expanded). Coverage is 108/108 rows and 15/15 DVs. The baseline is 3 consecutive green runs on Next (below).
-- **Running:** nothing.
-- **Next:** Epic 1. Start with **story 1.1a** (Laravel skeleton in `apps/portal`, compose, version pins per `research-technical.md` §2), then 1.1b (CI) and 1.2 (`apps/portal/AGENTS.md`). Run `create-story` for 1.1a first. Use sub-agents in worktrees for independent stories (1.3+ once 1.1a lands).
-- **Pending owner OK:** pushing `.github/workflows/parity.yml` (written, not committed). Its first push runs the suite on GitHub Actions.
+- **Updated:** 2026-11-20
+- **Phase:** Epic 0 done. **Epic 1 in progress: 1.1a done** (Laravel 13 skeleton in `apps/portal`, Docker dev stack, pins; record `stories/1-1a-skeleton-compose-pins.md`).
+- **Running:** nothing. The parity CI workflow was pushed (`422cfc7`); its first GitHub run is unchecked (no `gh` here; see the repo's Actions tab).
+- **Next:** stories that can now run in parallel (sub-agents in worktrees): **1.1b** (CI: laravel-ci, audit, log grep; pin image digests), **1.2** (`apps/portal/AGENTS.md` + project-context), **1.3** (config validation, canonical origin), **1.6** (error shape, headers), **1.7** (tokens/theming). Then 1.4/1.5 after 1.3. Run `create-story` for each first.
+- **Portal dev:** `cd apps/portal && docker compose up -d` gives http://localhost:8080; `bin/test` runs Pint, Larastan level 9 and Pest. No host PHP.
+- **Dated follow-up:** from 2026-11-23, bump Inertia to ^3.7 / react adapter 3.11.0.
 - **Owner items (open):** key-screen approval and the one-project shortcut (before Epics 6/7), turnaround copy for empty states, brief reference uploads (post-launch?), launch date. MacBook worker paused.
-- **Run the suite on Next:** `cd tests/parity && npm run infra:up && node scripts/next-stack.mjs ["<gate>"] [--repeat N] [-- playwright args]`. Run `@disruptive` separately with `-- --workers=1`.
+- **Run the parity suite on Next:** `cd tests/parity && npm run infra:up && node scripts/next-stack.mjs ["<gate>"] [--repeat N] [-- playwright args]`. Run `@disruptive` separately with `-- --workers=1`.
 
 ## Verify the baseline
 
@@ -26,6 +27,8 @@ npm run test:e2e                                        # last recorded: 5–6 P
 | 2026-11-18 | **107 files (103 passed, 4 skipped opt-in PG); 722 passed, 20 skipped.** typecheck ✓, lint ✓ (0 warnings) | not re-run (Playwright needs a dev server) | n/a (suite not built) | n/a | Re-verified for readiness m24. Earlier "95 files / 614" in TODO.md is stale |
 
 ## Session log (newest first, one line each)
+
+- 2026-11-20: **Story 1.1a done** (`7d34116`, `.gitkeep` fix). Fresh clone: `/up` 200; Pint, Larastan 9 and Pest 5/5 pass. Framework pinned ^13.40 (advisory on 13.39); Inertia on the 3.5.2/3.9.1 fallbacks until 2026-11-23. Replaced the skeleton's Boost AGENTS/CLAUDE files. CI workflow pushed (`422cfc7`).
 
 - 2026-11-19: **Epic 0 done.** Baseline: 3 consecutive green runs (727/727/727). apps/web typecheck fixed (0.4 test typing). The CI workflow awaits the owner's OK to push.
 

@@ -117,7 +117,9 @@ In scope: the runtime and tooling choices behind plan §3, the 12 research quest
 
 **Not used (checked so the decision is on record):** Laravel Horizon 5.52.0 (Redis-only). Laravel Cashier 16.11.0 (billing). Laravel Fortify 1.43.0 and Breeze 2.4.2 (Breeze and Jetstream "will no longer receive additional updates" since the Laravel 12 starter kits: https://laravel.com/docs/master/releases). Enlightn 2.10.0 (last release 2024-04-05, supports Laravel ≤ 11, **GitHub repo archived**). `enlightn/security-checker` 2.0.0 (2023-12-10).
 
-**UNVERIFIED:** PHP 8.5.13 doesn't exist yet. php.net announces a critical security release for 2026-11-19 14:00–14:30 UTC, and the pin must be that release or later.
+~~UNVERIFIED: PHP 8.5.13~~ **Verified 2026-11-20:** `php:8.5.13-fpm-bookworm` is published (built 2026-11-19) and used by `apps/portal/docker/php/Dockerfile`.
+
+**Post-research change (2026-11-20, story 1.1a):** `laravel/framework` floor raised to **^13.40**. Advisory PKSA-yxbx-3c9s-cjt9 (low, published 2026-11-13) affects `>=13.0.0,<13.40.0`, so the pin policy's security exception applies. 13.40.0 is locked.
 
 ---
 

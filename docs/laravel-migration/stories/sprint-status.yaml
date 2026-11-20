@@ -35,8 +35,8 @@ development_status:
   0-9-coverage-gate-ci-parity-job-baseline: done
   epic-0-retrospective: optional
 
-  epic-1: backlog
-  1-1a-skeleton-compose-pins: backlog
+  epic-1: in-progress
+  1-1a-skeleton-compose-pins: done
   1-1b-ci-workflow: backlog
   1-2-agent-guide-and-project-context: backlog
   1-3-config-validation-and-canonical-origin: backlog
