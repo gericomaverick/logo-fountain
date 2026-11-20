@@ -24,4 +24,6 @@ if (app()->environment(['local', 'testing'])) {
 
     // The component catalogue (UX §6 rule 5, ADR-022, story 1.8a).
     Route::get('/dev/ui', fn () => Inertia::render('Dev/Ui'))->name('dev.ui');
+    // Media and data components, Card/Panel, Tabs and usePolling (story 1.8c).
+    Route::get('/dev/ui/media', fn () => Inertia::render('Dev/UiMedia'))->name('dev.ui.media');
 }
