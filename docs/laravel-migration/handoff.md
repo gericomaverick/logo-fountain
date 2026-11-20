@@ -4,11 +4,11 @@
 
 - **Updated:** 2026-11-20
 - **Phase:** Epic 0 done. **Epic 1 in progress: 1.1a done** (Laravel 13 skeleton in `apps/portal`, Docker dev stack, pins; record `stories/1-1a-skeleton-compose-pins.md`).
-- **Running:** 2 sub-agents in worktrees: **1.8b** (`lf-1-8b`, :18091, catalogue `/dev/ui/status`) and **1.8c** (`lf-1-8c`, :18092, `/dev/ui/media`). After a restart, check `git worktree list` and the `worktree-agent-*` branches (RESUME.md §2). CI is watched with `gh` (authed as gericomaverick).
+- **Running:** 1 sub-agent in a worktree: **1.8c** (`lf-1-8c`, :18092, `/dev/ui/media`). After a restart, check `git worktree list` and the `worktree-agent-*` branches (RESUME.md §2). CI is watched with `gh` (authed as gericomaverick).
 - **Next:** **1.8b** (status components) and **1.8c** (media, data components, `usePolling`), then **1.9** (CI `ui` job running `bin/ui-test` and `bin/browser-test`, lint extensions, `ToastProvider` in the shells). From 2026-11-23: bump Inertia (^3.7 / 3.11.0). Owner: assign Card/Panel and Tabs to a story (1.8a found no story lists them).
 - **Portal dev:** `cd apps/portal && docker compose up -d` gives http://localhost:8080; `bin/test` runs Pint, Larastan level 9 and Pest. No host PHP.
 - **Dated follow-up:** from 2026-11-23, bump Inertia to ^3.7 / react adapter 3.11.0.
-- **Owner items (open):** key-screen approval and the one-project shortcut (before Epics 6/7), turnaround copy for empty states, brief reference uploads (post-launch?), launch date. MacBook worker paused.
+- **Owner items (open):** review the turn-banner copy (`BANNER_COPY` in `apps/portal/resources/js/lib/status.ts`, story 1.8b); confirm the Sfizia EULA allows WOFF2; key-screen approval and the one-project shortcut (before Epics 6/7), turnaround copy for empty states, brief reference uploads (post-launch?), launch date. MacBook worker paused.
 - **Run the parity suite on Next:** `cd tests/parity && npm run infra:up && node scripts/next-stack.mjs ["<gate>"] [--repeat N] [-- playwright args]`. Run `@disruptive` separately with `-- --workers=1`.
 
 ## Verify the baseline
@@ -27,6 +27,8 @@ npm run test:e2e                                        # last recorded: 5–6 P
 | 2026-11-18 | **107 files (103 passed, 4 skipped opt-in PG); 722 passed, 20 skipped.** typecheck ✓, lint ✓ (0 warnings) | not re-run (Playwright needs a dev server) | n/a (suite not built) | n/a | Re-verified for readiness m24. Earlier "95 files / 614" in TODO.md is stale |
 
 ## Session log (newest first, one line each)
+
+- 2026-11-20: **Story 1.8b merged.** TurnBanner (11 states + 3 celebrations), StatusPill, StageTracker (Next's `buildTimeline`, 84/84 fixture), AllowanceMeter, EmptyState, Skeleton; `/dev/ui/status`. Merged main: Pest 316, ui-test 150/150, browser 144/144. **Owner:** review the banner copy (`resources/js/lib/status.ts` `BANNER_COPY`).
 
 - 2026-11-20: parity.yml skips docs-only pushes and cancels superseded runs (`9221417`). Card/Panel and Tabs added to 1.8c (`1b12199`). Launched 1.8b and 1.8c in parallel, each with its own catalogue sub-page so the baselines don't clash. Parity on the 1.4 merge: next and laravel both green.
 

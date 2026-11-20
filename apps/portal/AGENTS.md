@@ -100,6 +100,9 @@ Checklist: `MIG/03-documentation-protocol.md` §3. Story record template: `MIG/t
 Requirement series → code: A → `Actions/Auth`, middleware, `Support/RateLimits` · K → `Actions/Checkout`, `Controllers/Webhooks` · C/D → `Actions/*` + `Pages` · N → `Mail/` · X → `Support/`, `Storage/`, middleware, `Domain/` · O → `Console/Commands`, `ops/`, `compose.yaml`.
 
 ## 8. Gotchas (promoted from story records)
+- Turn, stage and status UI comes only from `resources/js/lib/status.ts` (pinned to Next's `buildTimeline` and `customerActionFor` by a generated fixture; regenerate it if `apps/web` changes). Unknown states count as the designer's turn (1.8b).
+- A celebration's Sfizia comes only via `TurnBanner` celebration, and any page showing one must be listed in `config/ui.php` `display_font_pages` (1.8b). Skeletons never loop (UX §8.3) (1.8b).
+- Each catalogue area has its own page and spec: `/dev/ui` (1.8a), `/dev/ui/status` (1.8b), `/dev/ui/media` (1.8c), so baselines don't clash (1.8b).
 - UI primitives live in `resources/js/Components/ui/` and are shown at `/dev/ui` (local/testing only). A new primitive or state gets a catalogue entry plus baselines: `bin/browser-test --update-snapshots`, only in the pinned Playwright image (1.8a).
 - No plain `disabled` on buttons: use `disabledReason`, which keeps the button focusable and announces why (1.8a).
 - Radix menus use `modal={false}`. Inside modal dialogs, show errors with `InlineAlert` (a modal hides toasts from screen readers) (1.8a).
