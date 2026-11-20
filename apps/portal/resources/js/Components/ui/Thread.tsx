@@ -1,10 +1,11 @@
-import { CircleAlert, Send } from 'lucide-react';
+import { CircleAlert, MessageSquare, Send } from 'lucide-react';
 import type { FormEvent, ReactNode } from 'react';
 
 import { Button } from '@/Components/ui/Button';
-import { LoadingBlock } from '@/Components/ui/Card';
+import { EmptyState } from '@/Components/ui/EmptyState';
 import { Field } from '@/Components/ui/Field';
 import { InlineAlert } from '@/Components/ui/InlineAlert';
+import { Skeleton } from '@/Components/ui/Skeleton';
 import { Textarea } from '@/Components/ui/Textarea';
 import { groupMessagesByDay, resolveSenderLabel, shouldSendOnKey, sortMessagesNewestLast, type ChatSender } from '@/lib/chat-messages';
 import { formatTime } from '@/lib/media';
@@ -46,16 +47,7 @@ type ThreadProps = {
 
 export function Thread({ label, messages, viewerId, today, loading = false, error, onRetry, onResend, empty }: ThreadProps) {
     if (loading && messages.length === 0) {
-        return (
-            <div aria-busy="true" className="flex flex-col gap-4">
-                <span className="sr-only">Loading messages</span>
-                <div aria-hidden="true" className="flex flex-col gap-4">
-                    <LoadingBlock className="h-16 w-3/4 rounded-lg" />
-                    <LoadingBlock className="ml-auto h-12 w-2/3 rounded-lg" />
-                    <LoadingBlock className="h-10 w-1/2 rounded-lg" />
-                </div>
-            </div>
-        );
+        return <Skeleton variant="list" what="messages" count={3} />;
     }
 
     const days = groupMessagesByDay(sortMessagesNewestLast([...messages]), today);
@@ -67,7 +59,11 @@ export function Thread({ label, messages, viewerId, today, loading = false, erro
                 </InlineAlert>
             ) : null}
             {days.length === 0 && !error ? (
-                (empty ?? <p className="text-base text-fg-2">No messages yet. Say hello to your designer.</p>)
+                (empty ?? (
+                    <EmptyState as="h3" icon={MessageSquare} title="No messages yet">
+                        Say hello to your designer.
+                    </EmptyState>
+                ))
             ) : (
                 <ol aria-label={label} className="flex flex-col gap-6">
                     {days.map((day) => (

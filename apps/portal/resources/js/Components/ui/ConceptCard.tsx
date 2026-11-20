@@ -1,10 +1,12 @@
-import { Archive, CircleCheck } from 'lucide-react';
+import { Archive, CircleCheck, Images } from 'lucide-react';
 import { useId, type ReactNode } from 'react';
 
 import { Button } from '@/Components/ui/Button';
-import { Card, CardLink, LoadingBlock } from '@/Components/ui/Card';
+import { Card, CardLink } from '@/Components/ui/Card';
+import { EmptyState } from '@/Components/ui/EmptyState';
 import { InlineAlert } from '@/Components/ui/InlineAlert';
 import { PrivateImage } from '@/Components/ui/PrivateImage';
+import { Skeleton } from '@/Components/ui/Skeleton';
 import type { SignedImage } from '@/lib/media';
 import { cx } from '@/lib/ui';
 
@@ -78,29 +80,14 @@ type GalleryProps = {
     /** Plain-language error; the cards already shown (if any) stay. */
     error?: string | null;
     onRetry?: () => void;
-    /** What appears when there are none yet (1.8b's EmptyState goes here). */
+    /** What appears when there are none yet; defaults to an EmptyState (story 1.9). */
     empty?: ReactNode;
 };
 
 /** The concepts grid with every list state (UX §12): loading, error, empty, partial (a card's preview unavailable). */
 export function ConceptGallery({ label, concepts, loading = false, error, onRetry, empty }: GalleryProps) {
     if (loading && concepts.length === 0) {
-        return (
-            <div aria-busy="true" className="flex flex-col gap-3">
-                <span className="sr-only">Loading {label.toLowerCase()}</span>
-                <ul aria-hidden="true" className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {[0, 1, 2].map((i) => (
-                        <li key={i} className="flex flex-col overflow-hidden rounded-md border border-divider bg-surface">
-                            <LoadingBlock className="aspect-4/3 rounded-none" />
-                            <div className="flex flex-col gap-2 p-4">
-                                <LoadingBlock className="h-5 w-24" />
-                                <LoadingBlock className="h-4 w-16" />
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-            </div>
-        );
+        return <Skeleton variant="card" what={label.toLowerCase()} count={3} />;
     }
     return (
         <div className="flex flex-col gap-4">
@@ -110,7 +97,11 @@ export function ConceptGallery({ label, concepts, loading = false, error, onRetr
                 </InlineAlert>
             ) : null}
             {concepts.length === 0 && !error ? (
-                (empty ?? <p className="text-base text-fg-2">No concepts yet.</p>)
+                (empty ?? (
+                    <EmptyState as="h3" icon={Images} title="No concepts yet">
+                        Your concepts will appear here once your designer shares them.
+                    </EmptyState>
+                ))
             ) : (
                 <ul aria-label={label} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {concepts.map(({ id, ...concept }) => (

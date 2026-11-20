@@ -166,7 +166,7 @@ function Concepts() {
             </Row>
             <Row label="Error (with retry) · empty">
                 <ConceptGallery label="Concepts" concepts={[]} error="Check your connection, then try again." onRetry={() => {}} />
-                <ConceptGallery label="Concepts" concepts={[]} empty={<p className="text-base text-fg-2">Your concepts will appear here once your designer shares them.</p>} />
+                <ConceptGallery label="Concepts" concepts={[]} />
             </Row>
         </Section>
     );

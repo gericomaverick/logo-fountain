@@ -2,10 +2,11 @@ import { Pencil } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 import { Button } from '@/Components/ui/Button';
-import { LoadingBlock, Panel } from '@/Components/ui/Card';
+import { Panel } from '@/Components/ui/Card';
 import { Field } from '@/Components/ui/Field';
 import { InlineAlert } from '@/Components/ui/InlineAlert';
 import { Input } from '@/Components/ui/Input';
+import { Skeleton } from '@/Components/ui/Skeleton';
 import { cx } from '@/lib/ui';
 
 /**
@@ -55,17 +56,7 @@ export function PropertiesPanel({ title, properties, actions, loading = false, e
                 </InlineAlert>
             ) : null}
             {loading && properties.length === 0 ? (
-                <div aria-busy="true">
-                    <span className="sr-only">Loading {title.toLowerCase()}</span>
-                    <div aria-hidden="true" className="flex flex-col gap-4">
-                        {[0, 1, 2, 3].map((i) => (
-                            <div key={i} className="flex flex-col gap-2">
-                                <LoadingBlock className="h-3 w-20 bg-divider" />
-                                <LoadingBlock className="h-4 w-40 bg-divider" />
-                            </div>
-                        ))}
-                    </div>
-                </div>
+                <Skeleton variant="list" what={title.toLowerCase()} count={4} onSunken />
             ) : (
                 <dl className="flex flex-col divide-y divide-divider">
                     {properties.map((p) => (
