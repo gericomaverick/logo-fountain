@@ -1,36 +1,31 @@
 import { useSyncExternalStore } from 'react';
 
+import { ChoiceChips } from '@/Components/ui/ChoiceChips';
 import { currentPreference, setThemePreference, subscribeTheme, type ThemePreference } from '@/lib/theme';
 
-const OPTIONS: ReadonlyArray<{ value: ThemePreference; label: string }> = [
+const OPTIONS = [
     { value: 'system', label: 'System' },
     { value: 'light', label: 'Light' },
     { value: 'dark', label: 'Dark' },
-];
+] as const satisfies ReadonlyArray<{ value: ThemePreference; label: string }>;
 
-/** System, Light or Dark (UX §8.1, §11). Kept in this browser; System follows the OS live. */
+/**
+ * System, Light or Dark (UX §8.1, §11). Kept in this browser; System follows the OS live.
+ * Story 1.8a: single-choice Choice chips (native radios, so arrow keys move the choice), in a
+ * group named "Theme" by a visually hidden legend.
+ */
 export function ThemeSwitcher() {
     const preference = useSyncExternalStore(subscribeTheme, currentPreference, () => 'system' as ThemePreference);
 
     return (
-        <div role="radiogroup" aria-label="Theme" className="inline-flex gap-1 rounded-md border border-border bg-surface p-1">
-            {OPTIONS.map(({ value, label }) => {
-                const active = preference === value;
-                return (
-                    <button
-                        key={value}
-                        type="button"
-                        role="radio"
-                        aria-checked={active}
-                        onClick={() => setThemePreference(value)}
-                        className={`min-h-6 rounded-sm px-3 py-1 text-sm font-medium transition-colors ${
-                            active ? 'bg-accent text-accent-fg' : 'text-fg-2 hover:bg-sunken hover:text-fg'
-                        }`}
-                    >
-                        {label}
-                    </button>
-                );
-            })}
-        </div>
+        <ChoiceChips
+            legend="Theme"
+            hideLegend
+            name="theme"
+            size="sm"
+            options={OPTIONS}
+            value={preference}
+            onChange={(value) => setThemePreference(value as ThemePreference)}
+        />
     );
 }
