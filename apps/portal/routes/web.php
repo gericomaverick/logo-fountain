@@ -26,4 +26,7 @@ if (app()->environment(['local', 'testing'])) {
     Route::get('/dev/ui', fn () => Inertia::render('Dev/Ui'))->name('dev.ui');
     // Story 1.8b: the status components, on their own page so their baselines stay separate.
     Route::get('/dev/ui/status', fn () => Inertia::render('Dev/UiStatus'))->name('dev.ui.status');
+
+    // Media and data components, Card/Panel, Tabs and usePolling (story 1.8c).
+    Route::get('/dev/ui/media', fn () => Inertia::render('Dev/UiMedia'))->name('dev.ui.media');
 }

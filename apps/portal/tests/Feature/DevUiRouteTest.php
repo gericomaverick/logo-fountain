@@ -20,14 +20,20 @@ it('serves the status components catalogue in testing, with the display font pre
     expect(substr_count((string) $response->getContent(), 'rel="preload" as="font"'))->toBe(2);
 });
 
+it('serves the media and data catalogue in testing (story 1.8c)', function () {
+    $this->get('/dev/ui/media')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('Dev/UiMedia', shouldExist: false));
+});
+
 it('does not register the catalogue route in a real production process', function () {
     $env = ['APP_ENV' => 'production', 'APP_DEBUG' => 'false'];
 
     $production = Process::path(base_path())->env($env)->run(['php', 'artisan', 'route:list', '--json']);
     expect($production->successful())->toBeTrue($production->errorOutput());
     $uris = array_column(json_decode($production->output(), true, flags: JSON_THROW_ON_ERROR), 'uri');
-    expect($uris)->toContain('/')->not->toContain('dev/ui')->not->toContain('dev/ui/status')->not->toContain('dev/client-address');
+    expect($uris)->toContain('/')->not->toContain('dev/ui')->not->toContain('dev/ui/status')->not->toContain('dev/ui/media')->not->toContain('dev/client-address');
 
     $local = Process::path(base_path())->env(['APP_ENV' => 'local'])->run(['php', 'artisan', 'route:list', '--json']);
-    expect(array_column(json_decode($local->output(), true, flags: JSON_THROW_ON_ERROR), 'uri'))->toContain('dev/ui')->toContain('dev/ui/status');
+    expect(array_column(json_decode($local->output(), true, flags: JSON_THROW_ON_ERROR), 'uri'))->toContain('dev/ui')->toContain('dev/ui/status')->toContain('dev/ui/media');
 });
