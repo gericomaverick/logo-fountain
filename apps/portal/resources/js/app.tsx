@@ -10,9 +10,13 @@ followSystemTheme();
 
 createInertiaApp({
     title: (title) => (title ? `${title} · Logo Fountain` : 'Logo Fountain'),
+    // Lazy: one chunk per page, so the dev-only catalogue (Pages/Dev, story 1.8a) and each
+    // screen's code load only where they're used.
     resolve: (name) => {
-        const pages = import.meta.glob('./Pages/**/*.tsx', { eager: true });
-        return pages[`./Pages/${name}.tsx`] as never;
+        const pages = import.meta.glob('./Pages/**/*.tsx');
+        const page = pages[`./Pages/${name}.tsx`];
+        if (!page) throw new Error(`Unknown Inertia page: ${name}`);
+        return page() as never;
     },
     setup({ el, App, props }) {
         createRoot(el).render(<App {...props} />);

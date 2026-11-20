@@ -72,7 +72,8 @@ test('C-19 the theme switcher persists the choice and System follows the OS live
     await page.emulateMedia({ colorScheme: 'light' });
     await page.goto('/');
     const html = page.locator('html');
-    const group = page.getByRole('radiogroup', { name: 'Theme' });
+    // Story 1.8a: a fieldset of native radios (Choice chips), so its role is group.
+    const group = page.getByRole('group', { name: 'Theme' });
     await expect(group.getByRole('radio', { name: 'System' })).toBeChecked();
 
     await group.getByRole('radio', { name: 'Dark' }).click();
@@ -94,6 +95,8 @@ test('UX §8.2 fonts are self-hosted and Sfizia appears once, via DisplayTitle, 
     const hosts = new Set<string>();
     page.on('request', (r) => hosts.add(new URL(r.url()).hostname));
     await page.goto('/');
+    // Pages resolve lazily (story 1.8a): wait for the render before reading fonts or running axe.
+    await expect(page.locator('[data-display-title]')).toBeVisible();
     await page.evaluate(() => document.fonts.ready);
 
     // No font CDN or any other third party: everything comes from the portal (or its Vite dev server).
@@ -124,6 +127,8 @@ for (const colorScheme of ['light', 'dark'] as const) {
     test(`L7a the showcase has no serious axe violations (${colorScheme}) @visual`, async ({ page }) => {
         await page.emulateMedia({ colorScheme });
         await page.goto('/');
+        // Pages resolve lazily (story 1.8a): wait for the render before reading fonts or running axe.
+        await expect(page.locator('[data-display-title]')).toBeVisible();
         await page.evaluate(() => document.fonts.ready);
         const { violations } = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
         expect(violations.filter((v) => v.impact === 'serious' || v.impact === 'critical').map((v) => `${v.id}: ${v.help}`)).toEqual([]);

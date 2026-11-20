@@ -127,6 +127,21 @@
     --default-transition-duration: 150ms;
     --default-transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
     --duration-panel: 250ms;
+
+    /* Entrances only, to explain change (§8.3): dialogs and menus fade (150 ms), a sheet slides up
+     * (250 ms). Closing is instant. prefers-reduced-motion turns these off (base layer below). */
+    --animate-fade-in: fade-in 150ms cubic-bezier(0, 0, 0.2, 1);
+    --animate-sheet-in: sheet-in 250ms cubic-bezier(0, 0, 0.2, 1);
+    @keyframes fade-in {
+        from {
+            opacity: 0;
+        }
+    }
+    @keyframes sheet-in {
+        from {
+            transform: translateY(100%);
+        }
+    }
 }
 
 /* Dark: surfaces get lighter as they rise; shadows are replaced by borders and tone (§8.1, §8.3).

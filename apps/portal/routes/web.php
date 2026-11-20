@@ -9,9 +9,11 @@ use Inertia\Inertia;
 // Placeholder until the real pages land (Epic 6+). /up is registered in bootstrap/app.php.
 Route::get('/', fn () => Inertia::render('Home'))->name('home');
 
-// Story 1.5 (X-05): what each proxy rule derives for this request, so the dev nginx overwrite can be
-// tested end to end (tests/Feature/NginxClientAddressTest.php). Local and testing only.
+// Dev-only routes: local and testing, never production or staging. Decided when the routes load, so
+// `route:cache` on a production box leaves them out (tests/Feature/DevUiRouteTest.php).
 if (app()->environment(['local', 'testing'])) {
+    // Story 1.5 (X-05): what each proxy rule derives for this request, so the dev nginx overwrite can be
+    // tested end to end (tests/Feature/NginxClientAddressTest.php).
     Route::get('/dev/client-address', fn (Request $request) => response()->json([
         'address' => ClientAddress::for($request),
         'remoteAddr' => $request->server('REMOTE_ADDR'),
@@ -19,4 +21,7 @@ if (app()->environment(['local', 'testing'])) {
         'xRealIp' => ClientAddress::trusted($request, AuthProxyConfig::from('x-real-ip', null)),
         'oneHop' => ClientAddress::trusted($request, AuthProxyConfig::from(null, '1')),
     ]))->name('dev.client-address');
+
+    // The component catalogue (UX §6 rule 5, ADR-022, story 1.8a).
+    Route::get('/dev/ui', fn () => Inertia::render('Dev/Ui'))->name('dev.ui');
 }
