@@ -100,6 +100,10 @@ Checklist: `MIG/03-documentation-protocol.md` §3. Story record template: `MIG/t
 Requirement series → code: A → `Actions/Auth`, middleware, `Support/RateLimits` · K → `Actions/Checkout`, `Controllers/Webhooks` · C/D → `Actions/*` + `Pages` · N → `Mail/` · X → `Support/`, `Storage/`, middleware, `Domain/` · O → `Console/Commands`, `ops/`, `compose.yaml`.
 
 ## 8. Gotchas (promoted from story records)
+- Never use `$request->ip()` for limits or audit: use `ClientAddress::for($request)` (a Pest scan blocks `->ip()` in `app/`). `TrustProxies` is removed on purpose: it trusts every proxy on `*.on-forge.com` hosts (`vendor/.../TrustProxies.php:69-77`). Don't add it back (1.5).
+- Porting a JS rule: JS `$` = PHP `$` with `/D`; the `trim()` sets differ (JS strips `\f` and NBSP, PHP strips `\0`). Use `App\Support\NodeCompat` (1.5).
+- Pest runs with no proxy config (`phpunit.xml`); the dev `.env` and nginx use `cf-connecting-ip`. `NginxClientAddressTest` needs the `web` service (1.5).
+- A first `docker compose up -d --build` on a new project name can fail with `image ... already exists` (app and worker build one tag in parallel). Re-run `up -d` (1.5).
 - Colours, type and spacing come only from the tokens in `resources/css/app.css` (UX §8). Tailwind's default palette is removed, and the design lint (`scripts/design-lint.mjs`, `bin/ui-test`) rejects raw colours (1.7).
 - Sfizia only via `Components/ui/DisplayTitle.tsx`. A new use needs a UX §8.2 change, the lint's `DISPLAY_TITLE_CALLERS` allowlist and `config/ui.php` `display_font_pages` (preload) updated (1.7).
 - Keep `@viteReactRefresh` before `@vite` in `app.blade.php`, or no React page renders in dev (1.7). Browse the dev app at `localhost`, not `127.0.0.1` (Vite CORS) (1.7).

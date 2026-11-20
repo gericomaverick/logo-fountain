@@ -72,7 +72,7 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 64 | `src/lib/admin-final-publication.test.ts` | 6 | D-11,D-12 | Keep TS (UI) | | Not started |
 | 65 | `src/lib/admin-override-inputs.test.ts` | 2 | D-14 | Keep TS (UI) | | Not started |
 | 66 | `src/lib/auth.postgres.integration.test.ts` | 12 | A-01…A-11 | L3 Pest real-PG (1:1) | | Not started |
-| 67 | `src/lib/auth/client-address.test.ts` | 7 | X-05 | Pest unit | | Not started |
+| 67 | `src/lib/auth/client-address.test.ts` | 7 | X-05 | Pest unit | `tests/Unit/ClientAddressTest.php` (#1–5, #7), `tests/Feature/ClientAddressPreflightTest.php` (#6) | **Ported** (7/7, story 1.5) |
 | 68 | `src/lib/auth/client.test.ts` | 2 | A-05 | Keep TS (UI) | | Not started |
 | 69 | `src/lib/auth/http.test.ts` | 3 | A-01…A-09 | Pest feature (auth wrapper) | | Not started |
 | 70 | `src/lib/auth/logout.test.ts` | 5 | A-02 | Keep TS (UI) | | Not started |
