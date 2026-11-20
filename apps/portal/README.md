@@ -10,6 +10,8 @@ bin/artisan security:check          # no private credential can reach the browse
 bin/log-grep <logs-dir>   # fail on tokens or signed URLs in logs; --self-test proves the gate
 bin/ui-test               # design lint (L7b), token unit tests (WCAG contrast), tsc — Node 24 container
 bin/browser-test          # Playwright L7/L7a checks against the running stack (PORTAL_HTTP_PORT)
+                          #   --update-snapshots after an approved visual change (baselines: tests/browser/__screenshots__)
+# Component catalogue (local/testing only): http://localhost:8080/dev/ui
 ```
 
 CI: `.github/workflows/portal.yml` (jobs `laravel-ci` and `audit`; story 1.1b). Images in `compose.yaml` and
