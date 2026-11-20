@@ -53,7 +53,7 @@ export function ChoiceChips(props: Props) {
                                 value={o.value}
                                 checked={on}
                                 disabled={off}
-                                aria-readonly={readOnly || undefined}
+                                aria-readonly={(props.multiple && readOnly) || undefined /* not allowed on radios */}
                                 aria-invalid={invalid || undefined}
                                 onChange={() => change(o.value)}
                                 className={cx('peer absolute inset-0 size-full appearance-none rounded-md', off ? 'cursor-not-allowed' : readOnly ? 'cursor-default' : 'cursor-pointer')}

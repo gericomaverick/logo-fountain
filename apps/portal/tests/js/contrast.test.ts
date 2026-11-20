@@ -112,3 +112,38 @@ describe('UX §8.2 display sizes', () => {
         assert.ok(clampPx(text.base as string, 320) >= 16);
     });
 });
+
+// Story 1.8a: pairs the form and action primitives use that §8.1 doesn't list (proposed as a §8.1
+// addendum in the story record). Same thresholds: 4.5:1 for text, 3:1 for icons and boundaries.
+describe('story 1.8a component pairs (beyond the §8.1 table)', () => {
+    const mix = (fg: string, bg: string, alpha: number) => {
+        const ch = (h: string, i: number) => parseInt(h.slice(1 + 2 * i, 3 + 2 * i), 16);
+        return `#${[0, 1, 2].map((i) => Math.round(ch(fg, i) * alpha + ch(bg, i) * (1 - alpha)).toString(16).padStart(2, '0')).join('')}`;
+    };
+    const EXTRA: Array<[string, string, number, string]> = [
+        ['fg', 'accent-soft', TEXT, 'InlineAlert info body'],
+        ['fg', 'success-soft', TEXT, 'InlineAlert success body'],
+        ['fg', 'warning-soft', TEXT, 'InlineAlert warning body'],
+        ['fg', 'danger-soft', TEXT, 'InlineAlert danger body, ErrorSummary'],
+        ['danger', 'bg', TEXT, 'Field error text on the page'],
+        ['danger', 'surface', TEXT, 'Field error text in a card or dialog, danger menu item'],
+        ['accent-fg', 'danger', TEXT, 'danger Button label'],
+        ['accent-fg', 'accent-text', TEXT, 'primary Button label on hover'],
+        ['success', 'surface', UI, 'success Toast icon'],
+        ['danger', 'surface', UI, 'invalid control border, error Toast icon'],
+        ['accent', 'accent-soft', UI, 'selected Choice chip border'],
+        ['fg-2', 'sunken', UI, 'read-only checked Checkbox/Radio fill'],
+    ];
+    for (const [theme, tokens] of [['light', light], ['dark', dark]] as const) {
+        for (const [fg, bg, min, use] of EXTRA) {
+            test(`${theme}: ${fg} on ${bg} ≥ ${min}:1 (${use})`, () => {
+                const ratio = contrast(tokens[fg] as string, tokens[bg] as string);
+                assert.ok(ratio >= min, `${ratio.toFixed(2)} < ${min}`);
+            });
+        }
+        test(`${theme}: danger Button hover (danger at 90% over surface) keeps its label ≥ 4.5:1`, () => {
+            const hover = mix(tokens.danger as string, tokens.surface as string, 0.9);
+            assert.ok(contrast(tokens['accent-fg'] as string, hover) >= TEXT);
+        });
+    }
+});

@@ -138,7 +138,7 @@ function Buttons() {
                     Request revision
                 </Button>
                 <Button variant="danger" size="sm" disabledReason="Only an admin can do this.">
-                    Reset project
+                    Delete project
                 </Button>
             </Row>
         </Section>

@@ -6,7 +6,8 @@ import { cx } from '@/lib/ui';
 /**
  * UX §11 Radio group: default · focus · error · disabled · read-only. A fieldset + legend of native
  * radios sharing a name, so the browser gives the keyboard model: Tab enters at the checked
- * option, arrow keys move and select. Controlled: read-only simply ignores changes.
+ * option, arrow keys move and select. Controlled: read-only simply ignores changes. (ARIA has no
+ * read-only state for radios, so say it in the legend or hint.)
  */
 export type RadioOption = { value: string; label: ReactNode; description?: ReactNode; disabled?: boolean };
 
@@ -43,7 +44,6 @@ export function RadioGroup({ legend, hint, error, name, options, value, onChange
                                 value={o.value}
                                 checked={value === o.value}
                                 disabled={off}
-                                aria-readonly={readOnly || undefined}
                                 aria-invalid={invalid || undefined}
                                 aria-describedby={descId}
                                 onChange={() => {

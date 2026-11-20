@@ -19,7 +19,9 @@ type MenuProps = {
 
 export function Menu({ trigger, align = 'end', children }: MenuProps) {
     return (
-        <MenuPrimitive.Root>
+        // Not modal (the ARIA menu-button pattern isn't): Radix's modal mode aria-hides the page while
+        // it stays focusable (axe aria-hidden-focus). Esc, Tab and an outside click still close it.
+        <MenuPrimitive.Root modal={false}>
             <MenuPrimitive.Trigger asChild>{trigger}</MenuPrimitive.Trigger>
             <MenuPrimitive.Portal>
                 <MenuPrimitive.Content
