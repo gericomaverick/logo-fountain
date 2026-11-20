@@ -1,0 +1,56 @@
+# Parity suite against the Next.js app (story 0.9). The same suite runs against Laravel from Epic 1
+# (a `laravel` job is added by story 1.1b, using tests/parity/converted-tags.txt).
+name: parity
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  next:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: apps/web dependencies and unit tests
+        working-directory: apps/web
+        run: |
+          npm ci
+          npx prisma generate
+          npm run typecheck
+          npm run test
+      - name: parity suite dependencies
+        working-directory: tests/parity
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: structure and coverage
+        working-directory: tests/parity
+        run: |
+          npm run check
+          npm run selftest
+          npm run coverage
+      - name: test stack
+        working-directory: tests/parity
+        run: |
+          npm run infra:up
+          npm run infra:probe
+      - name: parity suite on Next (all but disruptive)
+        working-directory: tests/parity
+        run: node scripts/next-stack.mjs -- --grep-invert "@disruptive|@stripe-live-test"
+      - name: parity suite on Next (disruptive, serial)
+        working-directory: tests/parity
+        run: node scripts/next-stack.mjs "@disruptive" -- --workers=1
+      - name: stack logs on failure
+        if: failure()
+        working-directory: tests/parity
+        run: docker compose -f infra/docker-compose.test.yml logs --no-color | tail -500
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: tests/parity/playwright-report
