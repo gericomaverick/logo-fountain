@@ -100,6 +100,10 @@ Checklist: `MIG/03-documentation-protocol.md` §3. Story record template: `MIG/t
 Requirement series → code: A → `Actions/Auth`, middleware, `Support/RateLimits` · K → `Actions/Checkout`, `Controllers/Webhooks` · C/D → `Actions/*` + `Pages` · N → `Mail/` · X → `Support/`, `Storage/`, middleware, `Domain/` · O → `Console/Commands`, `ops/`, `compose.yaml`.
 
 ## 8. Gotchas (promoted from story records)
+- UI primitives live in `resources/js/Components/ui/` and are shown at `/dev/ui` (local/testing only). A new primitive or state gets a catalogue entry plus baselines: `bin/browser-test --update-snapshots`, only in the pinned Playwright image (1.8a).
+- No plain `disabled` on buttons: use `disabledReason`, which keeps the button focusable and announces why (1.8a).
+- Radix menus use `modal={false}`. Inside modal dialogs, show errors with `InlineAlert` (a modal hides toasts from screen readers) (1.8a).
+- Browser tests wait for page content before checking fonts or running axe (pages load lazily), and move the pointer away before screenshots (1.8a).
 - The origin guard is **global** (`bootstrap/app.php`: SecurityHeaders → TrustedClientAddress → RequireCanonicalOrigin, asserted by `tests/Arch/OriginGuardTest.php`). Every new `/api` mutation is guarded automatically; a new exemption needs an ADR-008 change (1.4).
 - Pest tests of `/api` mutations must send a canonical `Origin` and use an explicit host (see `tests/Feature/OriginGuardTest.php`). Laravel skips `PreventRequestForgery` under Pest, so CSRF is proven by the arch test, not by feature tests (1.4).
 - Security decisions use `$request->getRealMethod()` (a `_method` override must never skip a check) and the decoded routing path (1.4).

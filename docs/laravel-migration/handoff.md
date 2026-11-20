@@ -4,8 +4,8 @@
 
 - **Updated:** 2026-11-20
 - **Phase:** Epic 0 done. **Epic 1 in progress: 1.1a done** (Laravel 13 skeleton in `apps/portal`, Docker dev stack, pins; record `stories/1-1a-skeleton-compose-pins.md`).
-- **Running:** 3 sub-agents in worktrees: **1.8a** (`lf-1-8a`, :18088). After a restart, check `git worktree list` and the `worktree-agent-*` branches (RESUME.md §2) (stack ports: `COMPOSE_PROJECT_NAME=lf-<story>`, `PORTAL_HTTP_PORT=1808n`). After a restart they're gone: check `git worktree list` and the `worktree-*` branches for their commits, and merge or finish them (RESUME.md §2). CI is watched with `gh run list` / `gh run watch` (gh authed as gericomaverick).
-- **Next:** **1.4** (origin guard as the CSRF control, plus the parity `laravel` CI job and a Laravel stack runner, moved here from 1.1b), **1.5** (trusted client address, full port of client-address tests), **1.8a** (form and action primitives). They can run in parallel. Then 1.8b/c and 1.9 (CI `ui` job, lint extensions). Run `create-story` for each first.
+- **Running:** nothing (stack ports: `COMPOSE_PROJECT_NAME=lf-<story>`, `PORTAL_HTTP_PORT=1808n`). After a restart they're gone: check `git worktree list` and the `worktree-*` branches for their commits, and merge or finish them (RESUME.md §2). CI is watched with `gh run list` / `gh run watch` (gh authed as gericomaverick).
+- **Next:** **1.8b** (status components) and **1.8c** (media, data components, `usePolling`), then **1.9** (CI `ui` job running `bin/ui-test` and `bin/browser-test`, lint extensions, `ToastProvider` in the shells). From 2026-11-23: bump Inertia (^3.7 / 3.11.0). Owner: assign Card/Panel and Tabs to a story (1.8a found no story lists them).
 - **Portal dev:** `cd apps/portal && docker compose up -d` gives http://localhost:8080; `bin/test` runs Pint, Larastan level 9 and Pest. No host PHP.
 - **Dated follow-up:** from 2026-11-23, bump Inertia to ^3.7 / react adapter 3.11.0.
 - **Owner items (open):** key-screen approval and the one-project shortcut (before Epics 6/7), turnaround copy for empty states, brief reference uploads (post-launch?), launch date. MacBook worker paused.
@@ -27,6 +27,8 @@ npm run test:e2e                                        # last recorded: 5–6 P
 | 2026-11-18 | **107 files (103 passed, 4 skipped opt-in PG); 722 passed, 20 skipped.** typecheck ✓, lint ✓ (0 warnings) | not re-run (Playwright needs a dev server) | n/a (suite not built) | n/a | Re-verified for readiness m24. Earlier "95 files / 614" in TODO.md is stale |
 
 ## Session log (newest first, one line each)
+
+- 2026-11-20: **Story 1.8a merged** (routes conflict: both dev routes in one local/testing block; the production test now also checks `/dev/client-address` is absent). 16 primitives (Radix for Dialog/Sheet/Menu/Select only), `/dev/ui` catalogue, lazy page chunks, 32 baselines. Merged main: Pest 315, ui-test 98/98, browser 96/96.
 
 - 2026-11-20: **Story 1.4 merged.** Global origin guard, `/api/*` out of CSRF, arch tests, `laravel-stack.mjs`, a `laravel` job in parity.yml (X-01 cells 180/180; `converted-tags.txt` empty until endpoints exist). On merge: TrustedClientAddress moved before the guard (`72909a1`). Also fixed: 1.5's invalid YAML step name (`ae8314d`). Merged main: Pest 313 passed. The arch test found Laravel's local-disk `serve` route; turned off.
 
