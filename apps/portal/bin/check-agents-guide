@@ -1,0 +1,38 @@
+#!/bin/sh
+# Story 1.2: keeps AGENTS.md honest. Fails if its §5 rules table lacks an "Area" row from
+# architecture.md §5, or its §6 table lacks a DoD variant from epics.md → Overview.
+# Host-side POSIX sh + awk (the docs live outside the app container's bind mount).
+set -eu
+here=$(cd "$(dirname "$0")/.." && pwd)
+guide="$here/AGENTS.md"
+docs="$here/../../docs/laravel-migration"
+
+# First cell of each table row under the "## " heading matching $2, until the next "## " heading.
+first_cells() {
+    awk -v start="$2" '
+        /^## / { on = ($0 ~ start); next }
+        on && /^\|/ {
+            split($0, c, "|"); cell = c[2]
+            gsub(/^[ *]+|[ *]+$/, "", cell)
+            if (cell != "" && cell !~ /^-+$/ && cell != "Area" && cell != "Variant") print cell
+        }' "$1"
+}
+
+# Lines of $1 that aren't a whole line of $2.
+absent() {
+    printf '%s\n' "$1" | while IFS= read -r x; do
+        printf '%s\n' "$2" | grep -qxF -- "$x" || echo "$x"
+    done
+}
+
+areas=$(first_cells "$docs/architecture.md" '^## 5[.] ')
+variants=$(first_cells "$docs/epics.md" '^## Overview' | sed -n '/^E0/,$p' | head -3)
+[ -n "$areas" ] || { echo "check-agents-guide: no §5 table in architecture.md" >&2; exit 1; }
+[ "$(printf '%s\n' "$variants" | wc -l)" -eq 3 ] || { echo "check-agents-guide: expected 3 DoD variants in epics.md" >&2; exit 1; }
+
+gaps=$(absent "$areas" "$(first_cells "$guide" '^## 5[.] ')")
+vgaps=$(absent "$variants" "$(first_cells "$guide" '^## 6[.] ')")
+[ -z "$gaps" ] || printf '%s\n' "$gaps" | sed 's/^/AGENTS.md §5 is missing the rule Area: /' >&2
+[ -z "$vgaps" ] || printf '%s\n' "$vgaps" | sed 's/^/AGENTS.md §6 is missing the DoD variant: /' >&2
+[ -z "$gaps$vgaps" ] || exit 1
+echo "check-agents-guide: $(printf '%s\n' "$areas" | wc -l | tr -d ' ') §5 areas and 3 DoD variants present"
