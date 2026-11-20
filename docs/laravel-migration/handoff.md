@@ -28,6 +28,8 @@ npm run test:e2e                                        # last recorded: 5–6 P
 
 ## Session log (newest first, one line each)
 
+- 2026-11-20: Cleanup (owner OK): removed 13 Epic 0 worktrees and 26 `story/*` / `worktree-agent-*` branches, each checked with `git cherry` (0.2 and 0.6a are in main as `7079975` / `094dfd1`). Untouched: `workbench/*`, `design/*`, `logo-fountain-test`.
+
 - 2026-11-20: **Story 1.3 merged.** Canonical origin, `RequireCanonicalOrigin` (503 `PUBLIC_SITE_URL_REQUIRED`), `EnsureAuthAvailable` (503 `AUTH_UNAVAILABLE`), production boot fails on a shared DB role, `proxy:preflight`. Merged main: Pest 126 passed. Follow-ups: 1.4 (Origin/Referer), 1.5 (full client-address table), Epic 4 (middleware order), Epic 9 (preflight in deploy), 5.1 (price IDs).
 
 - 2026-11-20: **Story 1.2 merged.** `apps/portal/AGENTS.md` (every §5 rule, the DoD variants, how to run things), `project-context.md`, and the `bin/check-agents-guide` drift check in `bin/test`.
