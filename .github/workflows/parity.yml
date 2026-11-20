@@ -1,5 +1,7 @@
-# Parity suite against the Next.js app (story 0.9). The same suite runs against Laravel from Epic 1
-# (a `laravel` job is added by story 1.1b, using tests/parity/converted-tags.txt).
+# Parity suite against the Next.js app (story 0.9). The same suite runs against Laravel from Epic 1:
+# the `laravel` job (tests/parity/converted-tags.txt) is added by the first Conversion story (1.4), which also
+# adds the Laravel stack runner; story 1.1b deferred it because no Laravel endpoint exists yet.
+# Laravel's own CI (Pint, Larastan, Pest, audits, log grep) is in portal.yml.
 name: parity
 on:
   push:
