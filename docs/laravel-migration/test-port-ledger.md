@@ -56,7 +56,7 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 48 | `src/app/api/projects/[id]/revision-requests/route.test.ts` | 3 | C-11 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 49 | `src/app/api/projects/[id]/route.test.ts` | 5 | C-02 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 50 | `src/app/api/projects/route.test.ts` | 1 | C-02 | Pest feature (HTTP) + L4 parity contract | | Not started |
-| 51 | `src/app/api/route-guards.test.ts` | 7 | X-01 | Pest arch test: every mutating route has OriginGuard middleware + L6 matrix | | Not started |
+| 51 | `src/app/api/route-guards.test.ts` | 7 | X-01 | Pest arch test: every mutating route has OriginGuard middleware + L6 matrix | `tests/Arch/OriginGuardTest.php` (origin half) | **Partly ported** (origin half, story 1.4; the rest with the route stories) |
 | 52 | `src/app/api/stripe/webhook/route.test.ts` | 21 | K-05,K-06 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 53 | `src/app/project/[id]/brief/brief-feedback.test.ts` | 10 | C-05,C-06 | Keep TS (UI) | | Not started |
 | 54 | `src/app/project/[id]/brief/editor-focus.test.ts` | 2 | C-05 | Keep TS (UI) | | Not started |
@@ -110,7 +110,7 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 102 | `src/lib/project-snapshot.test.ts` | 3 | C-02,C-03 | Pest feature + L4 snapshot contract | | Not started |
 | 103 | `src/lib/project-state-machine.test.ts` | 6 | X-07 | Pest unit + keep TS (shared fixture) | | Not started |
 | 104 | `src/lib/project-status.test.ts` | 10 | X-07,C-03 | Pest unit | | Not started |
-| 105 | `src/lib/request-origin.test.ts` | 15 | X-01,X-04 | Pest unit + feature | | Not started |
+| 105 | `src/lib/request-origin.test.ts` | 15 | X-01,X-04 | Pest unit + feature | `tests/Unit/CanonicalOriginTest.php` (X-04, 1.3), `tests/Feature/OriginGuardTest.php` (X-01, 1.4) | **Ported** (stories 1.3 + 1.4) |
 | 106 | `src/lib/storage/r2.test.ts` | 10 | X-10,X-11 | Pest unit (S3 mock) + L3 SeaweedFS | | Not started |
 | 107 | `src/lib/system-messages.test.ts` | 2 | N-15 | Pest feature | | Not started |
 | 108 | `src/lib/upload-validation.test.ts` | 12 | X-12 | Pest unit + shared golden corpus | | Not started |

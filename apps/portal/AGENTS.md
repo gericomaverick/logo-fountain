@@ -100,6 +100,11 @@ Checklist: `MIG/03-documentation-protocol.md` §3. Story record template: `MIG/t
 Requirement series → code: A → `Actions/Auth`, middleware, `Support/RateLimits` · K → `Actions/Checkout`, `Controllers/Webhooks` · C/D → `Actions/*` + `Pages` · N → `Mail/` · X → `Support/`, `Storage/`, middleware, `Domain/` · O → `Console/Commands`, `ops/`, `compose.yaml`.
 
 ## 8. Gotchas (promoted from story records)
+- The origin guard is **global** (`bootstrap/app.php`: SecurityHeaders → TrustedClientAddress → RequireCanonicalOrigin, asserted by `tests/Arch/OriginGuardTest.php`). Every new `/api` mutation is guarded automatically; a new exemption needs an ADR-008 change (1.4).
+- Pest tests of `/api` mutations must send a canonical `Origin` and use an explicit host (see `tests/Feature/OriginGuardTest.php`). Laravel skips `PreventRequestForgery` under Pest, so CSRF is proven by the arch test, not by feature tests (1.4).
+- Security decisions use `$request->getRealMethod()` (a `_method` override must never skip a check) and the decoded routing path (1.4).
+- No `serve => true` on local disks: it registers an unguarded `PUT /storage/{path}` (1.4).
+- Parity against Laravel: `tests/parity/scripts/laravel-stack.mjs "<gate>" [--only <title regex>]` starts its own portal stack. `tests/parity/converted-tags.txt` lists the gates CI must keep green (1.4).
 - Workflow edits: no unquoted `: ` inside a step name or value (YAML reads it as a key, and GitHub rejects the whole file). Validate with `docker run --rm -v "$PWD":/repo -w /repo rhysd/actionlint:1.7.7` before pushing (1.5 merge).
 - Never use `$request->ip()` for limits or audit: use `ClientAddress::for($request)` (a Pest scan blocks `->ip()` in `app/`). `TrustProxies` is removed on purpose: it trusts every proxy on `*.on-forge.com` hosts (`vendor/.../TrustProxies.php:69-77`). Don't add it back (1.5).
 - Porting a JS rule: JS `$` = PHP `$` with `/D`; the `trim()` sets differ (JS strips `\f` and NBSP, PHP strips `\0`). Use `App\Support\NodeCompat` (1.5).
