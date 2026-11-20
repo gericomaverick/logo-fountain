@@ -8,8 +8,16 @@ name: parity
 on:
   push:
     branches: [main]
+    # Docs-only pushes don't change behaviour; skipping them saves a ~15-minute run each.
+    paths-ignore: ['docs/**', '**/*.md']
   pull_request:
+    paths-ignore: ['docs/**', '**/*.md']
   workflow_dispatch:
+
+# A newer push to the same ref supersedes an older run (same as portal.yml).
+concurrency:
+  group: parity-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   next:
