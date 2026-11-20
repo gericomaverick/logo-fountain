@@ -8,11 +8,13 @@ open http://localhost:8080          # app (and /up for the health check)
 bin/test                  # Pint, Larastan level 9, Pest
 bin/artisan security:check          # no private credential can reach the browser bundle (O-04)
 bin/log-grep <logs-dir>   # fail on tokens or signed URLs in logs; --self-test proves the gate
-bin/ui-test               # design lint (L7b), token unit tests (WCAG contrast), tsc — Node 24 container
+bin/ui-test               # design lint (L7b), ESLint, node:test unit tests, tsc — Node 24 container
 bin/browser-test          # Playwright L7/L7a checks against the running stack (PORTAL_HTTP_PORT)
                           #   --update-snapshots after an approved visual change (baselines: tests/browser/__screenshots__)
+bin/lighthouse            # NFR-P2 Lighthouse CI against a production build (stop vite, npm run build first)
 # Component catalogue (local/testing only): http://localhost:8080/dev/ui
 # Media and data components, Tabs, usePolling (story 1.8c): http://localhost:8080/dev/ui/media
+# App shells, customer and admin (story 1.9): http://localhost:8080/dev/ui/shells · /dev/ui/shells/admin
 ```
 
 CI: `.github/workflows/portal.yml` (jobs `laravel-ci` and `audit`; story 1.1b). Images in `compose.yaml` and
