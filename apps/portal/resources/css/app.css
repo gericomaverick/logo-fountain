@@ -1,0 +1,6 @@
+@import 'tailwindcss';
+
+@source '../../storage/framework/views/*.php';
+@source '../js/**/*.tsx';
+
+/* Design tokens (UX §8.1) arrive in story 1.7. Fonts are self-hosted there too: no external font CDN. */

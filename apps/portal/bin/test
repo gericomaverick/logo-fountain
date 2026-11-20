@@ -1,0 +1,7 @@
+#!/bin/sh
+# Pest, Larastan level 9 and Pint, in the app container (the story 1.1a gate).
+set -e
+c="docker compose -f $(dirname "$0")/../compose.yaml exec -T app"
+$c vendor/bin/pint --test
+$c vendor/bin/phpstan analyse --no-progress --memory-limit=1G
+$c vendor/bin/pest "$@"
