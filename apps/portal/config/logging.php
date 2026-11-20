@@ -1,5 +1,6 @@
 <?php
 
+use App\Logging\ScrubLogs;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -54,12 +55,14 @@ return [
 
         'stack' => [
             'driver' => 'stack',
+            'tap' => [ScrubLogs::class], // X-14: never log secrets (story 1.6)
             'channels' => explode(',', (string) env('LOG_STACK', 'single')),
             'ignore_exceptions' => false,
         ],
 
         'single' => [
             'driver' => 'single',
+            'tap' => [ScrubLogs::class], // X-14: never log secrets (story 1.6)
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'replace_placeholders' => true,
@@ -67,6 +70,7 @@ return [
 
         'daily' => [
             'driver' => 'daily',
+            'tap' => [ScrubLogs::class], // X-14: never log secrets (story 1.6)
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'max_files' => env('LOG_DAILY_DAYS', 14),
@@ -75,6 +79,7 @@ return [
 
         'monthly' => [
             'driver' => 'monthly',
+            'tap' => [ScrubLogs::class], // X-14: never log secrets (story 1.6)
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'max_files' => 3,
@@ -83,6 +88,7 @@ return [
 
         'slack' => [
             'driver' => 'slack',
+            'tap' => [ScrubLogs::class], // X-14: never log secrets (story 1.6)
             'url' => env('LOG_SLACK_WEBHOOK_URL'),
             'username' => env('LOG_SLACK_USERNAME', env('APP_NAME', 'Laravel')),
             'emoji' => env('LOG_SLACK_EMOJI', ':boom:'),
@@ -92,6 +98,7 @@ return [
 
         'papertrail' => [
             'driver' => 'monolog',
+            'tap' => [ScrubLogs::class], // X-14: never log secrets (story 1.6)
             'level' => env('LOG_LEVEL', 'debug'),
             'handler' => env('LOG_PAPERTRAIL_HANDLER', SyslogUdpHandler::class),
             'handler_with' => [
@@ -104,6 +111,7 @@ return [
 
         'stderr' => [
             'driver' => 'monolog',
+            'tap' => [ScrubLogs::class], // X-14: never log secrets (story 1.6)
             'level' => env('LOG_LEVEL', 'debug'),
             'handler' => StreamHandler::class,
             'handler_with' => [
@@ -115,6 +123,7 @@ return [
 
         'syslog' => [
             'driver' => 'syslog',
+            'tap' => [ScrubLogs::class], // X-14: never log secrets (story 1.6)
             'level' => env('LOG_LEVEL', 'debug'),
             'facility' => env('LOG_SYSLOG_FACILITY', LOG_USER),
             'replace_placeholders' => true,
@@ -122,16 +131,19 @@ return [
 
         'errorlog' => [
             'driver' => 'errorlog',
+            'tap' => [ScrubLogs::class], // X-14: never log secrets (story 1.6)
             'level' => env('LOG_LEVEL', 'debug'),
             'replace_placeholders' => true,
         ],
 
         'null' => [
             'driver' => 'monolog',
+            'tap' => [ScrubLogs::class], // X-14: never log secrets (story 1.6)
             'handler' => NullHandler::class,
         ],
 
         'emergency' => [
+            // Laravel's emergency logger ignores `tap`; it only logs logger-construction failures.
             'path' => storage_path('logs/laravel.log'),
         ],
 
