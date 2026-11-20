@@ -1,5 +1,6 @@
 import { Link as InertiaLink } from '@inertiajs/react';
 import * as MenuPrimitive from '@radix-ui/react-dropdown-menu';
+import { Check } from 'lucide-react';
 import type { ReactElement, ReactNode } from 'react';
 
 import { cx, usesNativeAnchor } from '@/lib/ui';
@@ -79,4 +80,27 @@ export function MenuSeparator() {
 /** A non-interactive heading inside the menu, e.g. "Signed in as …". */
 export function MenuLabel({ children }: { children: ReactNode }) {
     return <MenuPrimitive.Label className="px-3 py-2 text-sm text-fg-3">{children}</MenuPrimitive.Label>;
+}
+
+/**
+ * A single-choice group inside a menu (story 1.9: the theme in the user menu, UX §8.1). Radix
+ * menuitemradio: arrows move, Enter/Space choose, the chosen item is ticked as well as named.
+ */
+export function MenuRadioGroup({ label, value, onValueChange, children }: { label: string; value: string; onValueChange: (value: string) => void; children: ReactNode }) {
+    return (
+        <MenuPrimitive.RadioGroup aria-label={label} value={value} onValueChange={onValueChange}>
+            {children}
+        </MenuPrimitive.RadioGroup>
+    );
+}
+
+export function MenuRadioItem({ value, children }: { value: string; children: ReactNode }) {
+    return (
+        <MenuPrimitive.RadioItem value={value} onSelect={(e) => e.preventDefault()} className={cx(itemClass('default'), 'pl-9 relative')}>
+            <MenuPrimitive.ItemIndicator className="absolute left-3 inline-flex">
+                <Check aria-hidden="true" size={16} strokeWidth={1.5} />
+            </MenuPrimitive.ItemIndicator>
+            {children}
+        </MenuPrimitive.RadioItem>
+    );
 }
