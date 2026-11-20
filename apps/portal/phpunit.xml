@@ -11,6 +11,10 @@
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
         </testsuite>
+        <!-- L3 concurrency (02-test-strategy.md): parallel processes on real PG. Run serially in CI (story 1.1b). -->
+        <testsuite name="Concurrency">
+            <directory>tests/Concurrency</directory>
+        </testsuite>
     </testsuites>
     <source>
         <include>
