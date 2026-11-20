@@ -1,7 +1,8 @@
 # Laravel portal CI (story 1.1b; ADR-028, 02-test-strategy.md "CI"). Runs the app's own docker compose stack,
 # so CI uses the same images as local dev; every image is pinned by tag and digest (research-technical.md §1)
 # in apps/portal/compose.yaml and apps/portal/docker/php/Dockerfile. No PHP on the runner.
-# The parity suite has its own workflow (parity.yml).
+# The parity suite has its own workflow (parity.yml). Jobs: laravel-ci, ui (front-end gate, story 1.9),
+# lighthouse (NFR-P2, story 1.9) and audit.
 name: portal
 on:
   push:
@@ -63,6 +64,117 @@ jobs:
           bin/log-grep --self-test
           bin/log-grep "$CI_LOGS"
       # Only print logs once the grep has proved they hold no secrets.
+      - name: stack logs on failure
+        if: failure() && steps.loggrep.outcome == 'success'
+        run: tail -300 "$CI_LOGS/compose.log"
+
+  # Story 1.9 (02-test-strategy L0/L7/L7a/L7b): the front-end gate. bin/ui-test (design lint, ESLint,
+  # node:test unit tests, tsc), then bin/browser-test (every L7 baseline and L7a axe check) against the
+  # portal stack with the Vite dev server, exactly as run locally. Playwright runs in the digest-pinned
+  # image named in bin/browser-test, so the baselines match.
+  ui:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: runner user for the bind mount
+        run: |
+          echo "UID=$(id -u)" >> "$GITHUB_ENV"
+          echo "GID=$(id -g)" >> "$GITHUB_ENV"
+          mkdir -p "$CI_LOGS"
+      - name: design lint, ESLint, unit tests and tsc (bin/ui-test; L7b, L0, L1)
+        run: bin/ui-test 2>&1 | tee "$CI_LOGS/ui-test.log"
+      - name: stack with the Vite dev server (postgres, mailpit, seaweedfs, app, worker, web, vite)
+        run: docker compose up -d --build postgres mailpit seaweedfs app worker web vite
+      - name: wait for the app and the Vite dev server
+        run: |
+          for _ in $(seq 1 120); do
+            if [ -f public/hot ] && curl -fsS -o /dev/null http://localhost:8080/dev/ui \
+              && curl -fsS -o /dev/null http://localhost:5173/@vite/client; then
+              echo "ready"; exit 0
+            fi
+            sleep 2
+          done
+          echo "the stack did not become ready"; exit 1
+      - name: L7 baselines and L7a axe (bin/browser-test)
+        run: bin/browser-test 2>&1 | tee "$CI_LOGS/browser-test.log"
+      - name: collect logs
+        if: always()
+        run: |
+          docker compose logs --no-color > "$CI_LOGS/compose.log" 2>&1 || true
+          cp storage/logs/*.log "$CI_LOGS/" 2>/dev/null || true
+      # The Playwright report and diffs are scanned too, because they are uploaded below.
+      - name: log grep (no tokens or signed URLs in logs or the Playwright report; NFR-S3)
+        id: loggrep
+        if: always()
+        run: |
+          bin/log-grep --self-test
+          bin/log-grep "$CI_LOGS"
+          for d in playwright-report test-results; do
+            if [ -d "$d" ]; then bin/log-grep "$d"; fi
+          done
+      - name: Playwright report and diff images on failure
+        if: failure() && steps.loggrep.outcome == 'success'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-report-portal-ui
+          path: |
+            apps/portal/playwright-report
+            apps/portal/test-results
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: stack logs on failure
+        if: failure() && steps.loggrep.outcome == 'success'
+        run: tail -300 "$CI_LOGS/compose.log"
+
+  # Story 1.9 (NFR-P2): Lighthouse CI, default mobile config (Moto G Power, simulated slow 4G), median
+  # of 3, LCP <= 2.5 s and CLS <= 0.1 asserted (tests/lighthouse/lighthouserc.json), on a production
+  # build. The page is the customer shell's Overview sample until a seeded real Overview exists (Epic 6).
+  lighthouse:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: runner user for the bind mount
+        run: |
+          echo "UID=$(id -u)" >> "$GITHUB_ENV"
+          echo "GID=$(id -g)" >> "$GITHUB_ENV"
+          mkdir -p "$CI_LOGS"
+      - name: production build of the front end (Lighthouse never measures the Vite dev server)
+        run: docker compose run --rm --no-deps vite sh -c 'npm ci --no-fund --no-audit && npm run build'
+      - name: stack without the Vite dev server (postgres, mailpit, seaweedfs, app, worker, web)
+        run: docker compose up -d --build postgres mailpit seaweedfs app worker web
+      - name: wait for the app
+        run: |
+          for _ in $(seq 1 90); do
+            if curl -fsS -o /dev/null "http://localhost:8080/dev/ui/shells?section=overview"; then echo "ready"; exit 0; fi
+            sleep 2
+          done
+          echo "the app did not become ready"; exit 1
+      - name: NFR-P2 Lighthouse, mobile, median of 3 (bin/lighthouse)
+        run: bin/lighthouse 2>&1 | tee "$CI_LOGS/lighthouse.log"
+      - name: collect logs
+        if: always()
+        run: |
+          docker compose logs --no-color > "$CI_LOGS/compose.log" 2>&1 || true
+          cp storage/logs/*.log "$CI_LOGS/" 2>/dev/null || true
+      - name: log grep (no tokens or signed URLs in logs or the Lighthouse reports; NFR-S3)
+        id: loggrep
+        if: always()
+        run: |
+          bin/log-grep --self-test
+          bin/log-grep "$CI_LOGS"
+          for d in tests/lighthouse/.lighthouseci tests/lighthouse/report; do
+            if [ -d "$d" ]; then bin/log-grep "$d"; fi
+          done
+      - name: Lighthouse reports
+        if: always() && steps.loggrep.outcome == 'success'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: lighthouse-report
+          path: apps/portal/tests/lighthouse/report
+          if-no-files-found: ignore
+          retention-days: 14
       - name: stack logs on failure
         if: failure() && steps.loggrep.outcome == 'success'
         run: tail -300 "$CI_LOGS/compose.log"

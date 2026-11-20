@@ -14,6 +14,12 @@ export default defineConfig({
         react(),
         tailwindcss(),
     ],
+    // Story 1.9: pre-bundle every page's dependencies when the dev server starts. Pages are lazy
+    // chunks, so otherwise Vite finds a page's deps on its first visit, re-optimises and reloads
+    // the browser mid-test (a cold CI ui job, or the first visit after npm install).
+    optimizeDeps: {
+        entries: ['resources/js/app.tsx', 'resources/js/Pages/**/*.tsx'],
+    },
     server: {
         host: '0.0.0.0',
         port: 5173,
