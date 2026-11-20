@@ -90,13 +90,14 @@ it('passes the production preflight with one valid proxy setting and an https PU
     [['portal.auth_trusted_proxy_hops' => '2']],
 ]);
 
+// `\.env(` (an escaped dot) only occurs inside regex strings, e.g. SecurityCheck's `import\.meta\.env(` pattern (1.1b).
 it('reads env vars only in config/*.php', function () {
     $offenders = [];
     foreach (['app', 'bootstrap', 'database', 'routes', 'resources/views'] as $dir) {
         $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(base_path($dir), FilesystemIterator::SKIP_DOTS));
         foreach ($files as $file) {
             if ($file instanceof SplFileInfo && str_ends_with($file->getFilename(), '.php') && ! str_contains($file->getPathname(), '/bootstrap/cache/')
-                && preg_match('/(?<![\w>$:])(env|getenv)\s*\(|\$_ENV\b|\$_SERVER\s*\[\s*[\'"](?!REQUEST)/', (string) file_get_contents($file->getPathname())) === 1) {
+                && preg_match('/(?<![\w>$:])(?<!\\\\\.)(env|getenv)\s*\(|\$_ENV\b|\$_SERVER\s*\[\s*[\'"](?!REQUEST)/', (string) file_get_contents($file->getPathname())) === 1) {
                 $offenders[] = $file->getPathname();
             }
         }

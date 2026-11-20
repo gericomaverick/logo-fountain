@@ -4,7 +4,7 @@
 
 - **Updated:** 2026-11-20
 - **Phase:** Epic 0 done. **Epic 1 in progress: 1.1a done** (Laravel 13 skeleton in `apps/portal`, Docker dev stack, pins; record `stories/1-1a-skeleton-compose-pins.md`).
-- **Running:** 5 sub-agents in worktrees: **1.1b, 1.2, 1.3, 1.6, 1.7** (stack ports: `COMPOSE_PROJECT_NAME=lf-<story>`, `PORTAL_HTTP_PORT=1808n`). After a restart they're gone: check `git worktree list` and the `worktree-*` branches for their commits, and merge or finish them (RESUME.md §2). The parity CI workflow was pushed (`422cfc7`); its first GitHub run is unchecked (no `gh` here; see the repo's Actions tab).
+- **Running:** sub-agent for **1.7** (1.1b, 1.2, 1.3 and 1.6 are merged) (stack ports: `COMPOSE_PROJECT_NAME=lf-<story>`, `PORTAL_HTTP_PORT=1808n`). After a restart they're gone: check `git worktree list` and the `worktree-*` branches for their commits, and merge or finish them (RESUME.md §2). The parity CI workflow was pushed (`422cfc7`); its first GitHub run is unchecked (no `gh` here; see the repo's Actions tab).
 - **Next:** stories that can now run in parallel (sub-agents in worktrees): **1.1b** (CI: laravel-ci, audit, log grep; pin image digests), **1.2** (`apps/portal/AGENTS.md` + project-context), **1.3** (config validation, canonical origin), **1.6** (error shape, headers), **1.7** (tokens/theming). Then 1.4/1.5 after 1.3. Run `create-story` for each first.
 - **Portal dev:** `cd apps/portal && docker compose up -d` gives http://localhost:8080; `bin/test` runs Pint, Larastan level 9 and Pest. No host PHP.
 - **Dated follow-up:** from 2026-11-23, bump Inertia to ^3.7 / react adapter 3.11.0.
@@ -27,6 +27,8 @@ npm run test:e2e                                        # last recorded: 5–6 P
 | 2026-11-18 | **107 files (103 passed, 4 skipped opt-in PG); 722 passed, 20 skipped.** typecheck ✓, lint ✓ (0 warnings) | not re-run (Playwright needs a dev server) | n/a (suite not built) | n/a | Re-verified for readiness m24. Earlier "95 files / 614" in TODO.md is stale |
 
 ## Session log (newest first, one line each)
+
+- 2026-11-20: **Story 1.1b merged.** `portal.yml` (laravel-ci, audit, log grep), `security:check`, digest pins. On merge: the 1.3 env scan false-positived on 1.1b's regex string; narrowed it (still catches `'x'.env()`). Per-project php image tag; `expose_php=Off`, `server_tokens off`. Merged main: Pest 190 passed. First `portal.yml` GitHub run unchecked.
 
 - 2026-11-20: **Story 1.6 merged** (ErrorCodes conflict resolved as the union of both lists). Security headers, error envelope, `auth.json` boundary, log scrubber. Merged main: Pest 180 passed. Parity smoke is blocked until `/login` exists (Epic 4).
 

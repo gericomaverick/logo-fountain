@@ -8,6 +8,7 @@ COPY --from=composer:2.11.2@sha256:919efe8e62179c71dfd31fad035fd671fe7454211c6b2
 ARG UID=1000
 ARG GID=1000
 RUN groupmod -o -g "${GID}" www-data && usermod -o -u "${UID}" -g "${GID}" www-data
+RUN printf "expose_php = Off\n" > /usr/local/etc/php/conf.d/zz-portal.ini
 ENV COMPOSER_HOME=/tmp/composer
 WORKDIR /var/www/html
 USER www-data

@@ -10,7 +10,7 @@ x-php: &php
     args:
       UID: ${UID:-1000}
       GID: ${GID:-1000}
-  image: lf-portal-php:dev
+  image: ${COMPOSE_PROJECT_NAME:-lf-portal}-php:dev
   volumes:
     - .:/var/www/html
 

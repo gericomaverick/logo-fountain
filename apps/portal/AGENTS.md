@@ -100,6 +100,11 @@ Checklist: `MIG/03-documentation-protocol.md` §3. Story record template: `MIG/t
 Requirement series → code: A → `Actions/Auth`, middleware, `Support/RateLimits` · K → `Actions/Checkout`, `Controllers/Webhooks` · C/D → `Actions/*` + `Pages` · N → `Mail/` · X → `Support/`, `Storage/`, middleware, `Domain/` · O → `Console/Commands`, `ops/`, `compose.yaml`.
 
 ## 8. Gotchas (promoted from story records)
+- Pest must not depend on Vite: `tests/TestCase.php` calls `withoutVite()` (1.1b).
+- L3 concurrency tests go in `tests/Concurrency/*Test.php` (their own testsuite, run serially after L1/L2 in CI) (1.1b).
+- A new secret env var goes into `SecurityCheck::PRIVATE_KEYS`; a new token format gets a `bin/log-grep` pattern plus a self-test line (1.1b).
+- Images are pinned by tag **and digest** (`compose.yaml`, `docker/php/Dockerfile`, parity compose): bump both together (1.1b).
+- Docker Desktop: editing a single-file bind mount with `sed -i` leaves the container's mount stale. Use `docker compose up -d --force-recreate <svc>` (1.1b merge).
 - Where Next sends exactly `no-store`, use `RawCacheControlHeaderBag::noStore()` (`app/Http/RawCacheControlHeaderBag.php`) (1.6).
 - API errors: throw `ApiException` (envelope `{error:{message,code?,details?}}`); never hand-build error JSON (1.6). 1.3's two 503 middlewares still build theirs inline; refactor them when touched.
 - A middleware can't try/catch a route's exceptions (the handler already rendered them): inspect `$response->exception` (1.6).
