@@ -22,9 +22,13 @@ beforeEach(function () {
     Route::get('/api/_test/auth/session', fn () => response()->json(['authenticated' => false]))->middleware('auth.json:headers');
 });
 
+// Since story 1.4 every /api mutation passes the global origin guard first: send the canonical
+// (loopback, PUBLIC_SITE_URL unset) Origin of the test host.
+const SAME_ORIGIN = 'http://localhost';
+
 function raw(string $uri, string $body, string $type = 'application/json'): TestResponse
 {
-    return test()->call('POST', $uri, [], [], [], ['CONTENT_TYPE' => $type, 'HTTP_ACCEPT' => 'application/json'], $body);
+    return test()->call('POST', SAME_ORIGIN.$uri, [], [], [], ['CONTENT_TYPE' => $type, 'HTTP_ACCEPT' => 'application/json', 'HTTP_ORIGIN' => SAME_ORIGIN], $body);
 }
 
 function assertAuthHeaders(TestResponse $res): void
@@ -61,7 +65,7 @@ it('accepts exactly 8192 bytes and rejects 8193 with 413 PAYLOAD_TOO_LARGE', fun
 });
 
 it('refuses a declared Content-Length over the cap before reading', function () {
-    $this->call('POST', '/api/_test/auth/echo', [], [], [], ['CONTENT_TYPE' => 'application/json', 'CONTENT_LENGTH' => '9000'], '{}')
+    $this->call('POST', SAME_ORIGIN.'/api/_test/auth/echo', [], [], [], ['CONTENT_TYPE' => 'application/json', 'CONTENT_LENGTH' => '9000', 'HTTP_ORIGIN' => SAME_ORIGIN], '{}')
         ->assertStatus(413);
 });
 

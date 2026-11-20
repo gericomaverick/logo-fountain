@@ -18,6 +18,9 @@ final class ErrorCodes
 
     public const INVALID_JSON = 'INVALID_JSON';
 
+    /** 403: a mutation without canonical Origin/Referer provenance (X-01, `lib/request-origin.ts:103`). */
+    public const INVALID_ORIGIN = 'INVALID_ORIGIN';
+
     public const PAYLOAD_TOO_LARGE = 'PAYLOAD_TOO_LARGE';
 
     /** 503: the canonical origin can't be derived (X-04, `lib/request-origin.ts:97`). */

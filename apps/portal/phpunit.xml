@@ -11,6 +11,10 @@
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
         </testsuite>
+        <!-- Architecture tests (ADR-020, ADR-028): route and code-shape rules, e.g. the X-01 origin guard. -->
+        <testsuite name="Arch">
+            <directory>tests/Arch</directory>
+        </testsuite>
         <!-- L3 concurrency (02-test-strategy.md): parallel processes on real PG. Run serially in CI (story 1.1b). -->
         <testsuite name="Concurrency">
             <directory>tests/Concurrency</directory>
