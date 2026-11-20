@@ -4,7 +4,7 @@
 
 - **Updated:** 2026-11-20
 - **Phase:** Epic 0 done. **Epic 1 in progress: 1.1a done** (Laravel 13 skeleton in `apps/portal`, Docker dev stack, pins; record `stories/1-1a-skeleton-compose-pins.md`).
-- **Running:** nothing. The parity CI workflow was pushed (`422cfc7`); its first GitHub run is unchecked (no `gh` here; see the repo's Actions tab).
+- **Running:** 5 sub-agents in worktrees: **1.1b, 1.2, 1.3, 1.6, 1.7** (stack ports: `COMPOSE_PROJECT_NAME=lf-<story>`, `PORTAL_HTTP_PORT=1808n`). After a restart they're gone: check `git worktree list` and the `worktree-*` branches for their commits, and merge or finish them (RESUME.md §2). The parity CI workflow was pushed (`422cfc7`); its first GitHub run is unchecked (no `gh` here; see the repo's Actions tab).
 - **Next:** stories that can now run in parallel (sub-agents in worktrees): **1.1b** (CI: laravel-ci, audit, log grep; pin image digests), **1.2** (`apps/portal/AGENTS.md` + project-context), **1.3** (config validation, canonical origin), **1.6** (error shape, headers), **1.7** (tokens/theming). Then 1.4/1.5 after 1.3. Run `create-story` for each first.
 - **Portal dev:** `cd apps/portal && docker compose up -d` gives http://localhost:8080; `bin/test` runs Pint, Larastan level 9 and Pest. No host PHP.
 - **Dated follow-up:** from 2026-11-23, bump Inertia to ^3.7 / react adapter 3.11.0.
@@ -27,6 +27,8 @@ npm run test:e2e                                        # last recorded: 5–6 P
 | 2026-11-18 | **107 files (103 passed, 4 skipped opt-in PG); 722 passed, 20 skipped.** typecheck ✓, lint ✓ (0 warnings) | not re-run (Playwright needs a dev server) | n/a (suite not built) | n/a | Re-verified for readiness m24. Earlier "95 files / 614" in TODO.md is stale |
 
 ## Session log (newest first, one line each)
+
+- 2026-11-20: Launched 1.1b, 1.2, 1.3, 1.6 and 1.7 in parallel worktrees. Compose ports are configurable (`8586e63`).
 
 - 2026-11-20: **Story 1.1a done** (`7d34116`, `.gitkeep` fix). Fresh clone: `/up` 200; Pint, Larastan 9 and Pest 5/5 pass. Framework pinned ^13.40 (advisory on 13.39); Inertia on the 3.5.2/3.9.1 fallbacks until 2026-11-23. Replaced the skeleton's Boost AGENTS/CLAUDE files. CI workflow pushed (`422cfc7`).
 
