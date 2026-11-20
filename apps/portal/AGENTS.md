@@ -100,6 +100,11 @@ Checklist: `MIG/03-documentation-protocol.md` §3. Story record template: `MIG/t
 Requirement series → code: A → `Actions/Auth`, middleware, `Support/RateLimits` · K → `Actions/Checkout`, `Controllers/Webhooks` · C/D → `Actions/*` + `Pages` · N → `Mail/` · X → `Support/`, `Storage/`, middleware, `Domain/` · O → `Console/Commands`, `ops/`, `compose.yaml`.
 
 ## 8. Gotchas (promoted from story records)
+- Colours, type and spacing come only from the tokens in `resources/css/app.css` (UX §8). Tailwind's default palette is removed, and the design lint (`scripts/design-lint.mjs`, `bin/ui-test`) rejects raw colours (1.7).
+- Sfizia only via `Components/ui/DisplayTitle.tsx`. A new use needs a UX §8.2 change, the lint's `DISPLAY_TITLE_CALLERS` allowlist and `config/ui.php` `display_font_pages` (preload) updated (1.7).
+- Keep `@viteReactRefresh` before `@vite` in `app.blade.php`, or no React page renders in dev (1.7). Browse the dev app at `localhost`, not `127.0.0.1` (Vite CORS) (1.7).
+- Inline text links are always underlined (axe `link-in-text-block`) (1.7).
+- UI checks: `bin/ui-test` (lint, node:test unit tests, tsc) and `bin/browser-test` (Playwright L7/L7a in `tests/browser`, against the running stack) (1.7).
 - Pest must not depend on Vite: `tests/TestCase.php` calls `withoutVite()` (1.1b).
 - L3 concurrency tests go in `tests/Concurrency/*Test.php` (their own testsuite, run serially after L1/L2 in CI) (1.1b).
 - A new secret env var goes into `SecurityCheck::PRIVATE_KEYS`; a new token format gets a `bin/log-grep` pattern plus a self-test line (1.1b).

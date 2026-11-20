@@ -43,7 +43,7 @@ development_status:
   1-4-origin-guard-as-the-csrf-control: backlog
   1-5-trusted-client-address: backlog
   1-6-error-shape-security-headers-auth-json-boundary-log-scrubber: done
-  1-7-design-tokens-and-theming: in-progress
+  1-7-design-tokens-and-theming: done
   1-8a-form-and-action-primitives: backlog
   1-8b-status-components: backlog
   1-8c-media-data-components-and-usepolling: backlog
