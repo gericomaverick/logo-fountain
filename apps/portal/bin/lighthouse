@@ -1,0 +1,40 @@
+#!/bin/sh
+# NFR-P2 (story 1.9): Lighthouse CI, Lighthouse's default mobile config (Moto G Power emulation,
+# simulated slow 4G), 3 runs, median asserted: LCP <= 2500 ms and CLS <= 0.1 (tests/lighthouse/lighthouserc.json).
+# Measures a running portal stack that serves a PRODUCTION build (public/build), never the Vite dev
+# server. Runs in the pinned Playwright image (its Chromium, digest-pinned like bin/browser-test).
+#   bin/lighthouse [path]   default path: the customer shell Overview sample (moves to a seeded real
+#                           Overview in Epic 6). Uses PORTAL_HTTP_PORT (default 8080), host network.
+#   LHCI_COLLECT_ARGS="--settings.throttlingMethod=devtools" bin/lighthouse   extra `lhci collect` args,
+#                           e.g. applied throttling to cross-check the simulated (Lantern) numbers.
+# Results: tests/lighthouse/.lighthouseci (raw) and tests/lighthouse/report (HTML + JSON per run).
+set -e
+dir=$(cd "$(dirname "$0")/.." && pwd)
+port=${PORTAL_HTTP_PORT:-8080}
+path=${1:-/dev/ui/shells?section=overview}
+image=mcr.microsoft.com/playwright:v1.64.1-noble@sha256:2f05f8a734509a7b3f26a912639488ee08f58a7b292d14d62271bcff9038768f
+
+if [ -f "$dir/public/hot" ]; then
+    echo "bin/lighthouse: public/hot exists, so the Vite dev server serves the assets. Stop the vite service," >&2
+    echo "remove public/hot and build first: docker compose run --rm --no-deps vite sh -c 'npm ci && npm run build'" >&2
+    exit 2
+fi
+if [ ! -f "$dir/public/build/manifest.json" ]; then
+    echo "bin/lighthouse: no production build in public/build (see above)." >&2
+    exit 2
+fi
+
+rm -rf "$dir/tests/lighthouse/.lighthouseci" "$dir/tests/lighthouse/report"
+docker run --rm --network host --ipc host -u "$(id -u):$(id -g)" -e HOME=/tmp -e NPM_CONFIG_UPDATE_NOTIFIER=false \
+    -e LHCI_URL="http://localhost:$port$path" -e LHCI_COLLECT_ARGS \
+    -v "$dir/tests/lighthouse:/lh" -w /lh "$image" \
+    sh -c '
+        set -e
+        [ node_modules/.package-lock.json -nt package-lock.json ] || npm ci --no-fund --no-audit
+        export CHROME_PATH=$(ls -d /ms-playwright/chromium-*/chrome-linux*/chrome | head -1)
+        # shellcheck disable=SC2086 (LHCI_COLLECT_ARGS is a list of flags)
+        npx lhci collect --config=lighthouserc.json --url="$LHCI_URL" $LHCI_COLLECT_ARGS
+        node summary.mjs
+        npx lhci upload --config=lighthouserc.json
+        npx lhci assert --config=lighthouserc.json
+    '

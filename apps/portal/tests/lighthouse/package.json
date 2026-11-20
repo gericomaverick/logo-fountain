@@ -1,0 +1,7 @@
+{
+    "private": true,
+    "description": "Lighthouse CI for the portal (story 1.9, NFR-P2). Apart from the app's package.json so its dependency tree never reaches the dev stack. Run: bin/lighthouse.",
+    "devDependencies": {
+        "@lhci/cli": "0.16.1"
+    }
+}

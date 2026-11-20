@@ -24,7 +24,8 @@ async function open(page: Page, view: View, theme: Theme = 'light') {
     const [url, h1] = VIEWS[view];
     await page.emulateMedia({ colorScheme: theme });
     await page.goto(url);
-    await expect(page.getByRole('heading', { level: 1, name: h1 })).toBeVisible();
+    // Pages load lazily (a Vite chunk per page); under load the first visit can take a few seconds.
+    await expect(page.getByRole('heading', { level: 1, name: h1 })).toBeVisible({ timeout: 15_000 });
     await page.evaluate(() => document.fonts.ready);
 }
 
