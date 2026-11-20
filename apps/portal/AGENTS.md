@@ -100,6 +100,11 @@ Checklist: `MIG/03-documentation-protocol.md` §3. Story record template: `MIG/t
 Requirement series → code: A → `Actions/Auth`, middleware, `Support/RateLimits` · K → `Actions/Checkout`, `Controllers/Webhooks` · C/D → `Actions/*` + `Pages` · N → `Mail/` · X → `Support/`, `Storage/`, middleware, `Domain/` · O → `Console/Commands`, `ops/`, `compose.yaml`.
 
 ## 8. Gotchas (promoted from story records)
+- Screens render inside `Layouts/CustomerShell` or `Layouts/AdminShell`. URL-routed section tabs use `TabNav` (a `<nav>` with `aria-current="page"`); `Tabs` is only for in-page panels (1.9).
+- Screen specs call `expectOnePrimaryPerView(page)` (`tests/browser/support/views.ts`); "one primary button per view" is checked in the browser, not linted (1.9).
+- Every axe run first waits for finite CSS animations to end (`settleAnimations`), or a fading dialog reads as low contrast on slow CI machines (1.9 CI).
+- An extended accessible name uses an `aria-label` that starts with the visible text (a hidden suffix span adds a stray space) (1.9).
+- ESLint exceptions are an inline disable with a reason. `bin/lighthouse` measures a production build only: stop vite, remove `public/hot`, build (1.9).
 - Screens poll only through `hooks/usePolling` plus `PollingStatus` (backoff from the 3rd failure, pause when hidden, one request at a time, polite announcements); new items are appended at the end, never moved above focus (1.8c).
 - Private (signed) images only through `PrivateImage` (ADR-021: keeps the shown image until its key changes or the URL nears expiry) (1.8c).
 - Playwright: pausing the clock (`pauseAt`) also stops Radix focus restore and axe, which use timers (1.8c).

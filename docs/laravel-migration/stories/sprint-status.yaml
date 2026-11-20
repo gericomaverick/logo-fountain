@@ -35,7 +35,7 @@ development_status:
   0-9-coverage-gate-ci-parity-job-baseline: done
   epic-0-retrospective: optional
 
-  epic-1: in-progress
+  epic-1: done
   1-1a-skeleton-compose-pins: done
   1-1b-ci-workflow: done
   1-2-agent-guide-and-project-context: done
@@ -47,7 +47,7 @@ development_status:
   1-8a-form-and-action-primitives: done
   1-8b-status-components: done
   1-8c-media-data-components-and-usepolling: done
-  1-9-app-shells-design-lint-ui-ci-job-lighthouse: in-progress
+  1-9-app-shells-design-lint-ui-ci-job-lighthouse: done
   epic-1-retrospective: optional
 
   epic-2: backlog
