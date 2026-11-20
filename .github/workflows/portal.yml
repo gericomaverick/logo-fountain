@@ -1,0 +1,88 @@
+# Laravel portal CI (story 1.1b; ADR-028, 02-test-strategy.md "CI"). Runs the app's own docker compose stack,
+# so CI uses the same images as local dev; every image is pinned by tag and digest (research-technical.md §1)
+# in apps/portal/compose.yaml and apps/portal/docker/php/Dockerfile. No PHP on the runner.
+# The parity suite has its own workflow (parity.yml).
+name: portal
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: portal-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash # bash -eo pipefail, so `cmd | tee` fails when cmd does
+    working-directory: apps/portal
+
+env:
+  COMPOSE_PROJECT_NAME: lf-portal-ci
+  CI_LOGS: ${{ github.workspace }}/ci-logs
+
+jobs:
+  laravel-ci:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: runner user for the bind mount
+        run: |
+          echo "UID=$(id -u)" >> "$GITHUB_ENV"
+          echo "GID=$(id -g)" >> "$GITHUB_ENV"
+          mkdir -p "$CI_LOGS"
+      - name: stack (postgres, mailpit, seaweedfs, app, worker)
+        run: docker compose up -d --build postgres mailpit seaweedfs app worker
+      - name: Pint (L0)
+        run: docker compose exec -T app vendor/bin/pint --test
+      - name: Larastan level 9 (L0)
+        run: docker compose exec -T app vendor/bin/phpstan analyse --no-progress --memory-limit=1G
+      - name: Pest unit and feature (L1, L2)
+        run: docker compose exec -T app vendor/bin/pest --testsuite=Unit,Feature --colors=never 2>&1 | tee "$CI_LOGS/pest.log"
+      - name: Pest concurrency (L3, serial)
+        run: |
+          if find tests/Concurrency -name '*Test.php' | grep -q .; then
+            docker compose exec -T app vendor/bin/pest --testsuite=Concurrency --colors=never 2>&1 | tee "$CI_LOGS/pest-concurrency.log"
+          else
+            echo "L3: no tests in tests/Concurrency yet (Pest exits 1 on an empty suite, so it is skipped)"
+          fi
+      - name: collect logs
+        if: always()
+        run: |
+          docker compose logs --no-color > "$CI_LOGS/compose.log" 2>&1 || true
+          cp storage/logs/*.log "$CI_LOGS/" 2>/dev/null || true
+      - name: log grep (no tokens or signed URLs in test logs; NFR-S3)
+        id: loggrep
+        if: always()
+        run: |
+          bin/log-grep --self-test
+          bin/log-grep "$CI_LOGS"
+      # Only print logs once the grep has proved they hold no secrets.
+      - name: stack logs on failure
+        if: failure() && steps.loggrep.outcome == 'success'
+        run: tail -300 "$CI_LOGS/compose.log"
+
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: runner user for the bind mount
+        run: |
+          echo "UID=$(id -u)" >> "$GITHUB_ENV"
+          echo "GID=$(id -g)" >> "$GITHUB_ENV"
+      - name: build the PHP image
+        run: docker compose build app
+      - name: composer audit
+        run: docker compose run --rm --no-deps app composer audit --locked --no-interaction
+      - name: npm audit (production dependencies)
+        run: docker compose run --rm --no-deps vite npm audit --omit=dev
+      - name: security check (port of apps/web scripts/security-check.mjs; O-04)
+        run: |
+          docker compose run --rm --no-deps app composer install --no-interaction --no-progress
+          docker compose run --rm --no-deps app php artisan security:check

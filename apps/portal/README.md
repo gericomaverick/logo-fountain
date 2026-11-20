@@ -6,7 +6,13 @@ The client and admin portal, replacing `apps/web` (Next.js). Plan and status: `d
 docker compose up -d      # first run: .env, composer install, key, migrations (the init service)
 open http://localhost:8080          # app (and /up for the health check)
 bin/test                  # Pint, Larastan level 9, Pest
+bin/artisan security:check          # no private credential can reach the browser bundle (O-04)
+bin/log-grep <logs-dir>   # fail on tokens or signed URLs in logs; --self-test proves the gate
 ```
+
+CI: `.github/workflows/portal.yml` (jobs `laravel-ci` and `audit`; story 1.1b). Images in `compose.yaml` and
+`docker/php/Dockerfile` are pinned by tag **and** digest: when bumping a tag, update the digest too
+(`docker buildx imagetools inspect <image:tag>`). L3 race tests go in `tests/Concurrency` (testsuite `Concurrency`).
 
 Dev ports bind to 127.0.0.1:
 - 8080 app

@@ -1,0 +1,82 @@
+#!/bin/sh
+# NFR-S3 / X-14 (story 1.1b): fail if test-run logs contain a token, secret or signed URL.
+#   bin/log-grep <file-or-dir>...   scan; exit 1 on any hit, 2 on usage error
+#   bin/log-grep --self-test        prove the gate fires on planted secrets and passes on clean logs
+# Hits print as file:line plus the pattern name only, never the matched text (CI logs are visible to readers).
+# Runs on the CI host: POSIX sh + grep -E, no PHP needed.
+set -eu
+
+# name<TAB>ERE. Add patterns when a story introduces a new token or URL format.
+patterns() {
+  cat <<'EOF'
+stripe-secret-key	(sk|rk)_(test|live)_[A-Za-z0-9]{16,}
+stripe-webhook-secret	whsec_[A-Za-z0-9+/=]{16,}
+s3-presigned-url	X-Amz-(Signature|Credential|Security-Token)=
+laravel-signed-url	[?&]signature=[0-9a-f]{64}
+auth-link-token	[#?&](token|access_token|refresh_token)=[A-Za-z0-9._~%+/=-]{16,}
+json-token-field	"(token|accessToken|refreshToken|resetToken|apiKey|secret|password)"[[:space:]]*:[[:space:]]*"[^"]{8,}"
+bearer-token	[Bb]earer[[:space:]]+[A-Za-z0-9._~+/=-]{20,}
+jwt	eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}
+laravel-app-key	base64:[A-Za-z0-9+/]{43}=
+aws-access-key-id	(AKIA|ASIA)[0-9A-Z]{16}
+private-key-block	-----BEGIN [A-Z ]*PRIVATE KEY-----
+EOF
+}
+
+scan() {
+  hits=0
+  tab=$(printf '\t')
+  while IFS="$tab" read -r name re; do
+    # -I skips binary files; cut drops the matched text so nothing secret is echoed.
+    found=$(grep -rnIE -e "$re" "$@" 2>/dev/null | cut -d: -f1,2 || true)
+    if [ -n "$found" ]; then
+      hits=$((hits + 1))
+      printf '%s\n' "$found" | sed "s/\$/: $name/"
+    fi
+  done <<EOF
+$(patterns)
+EOF
+  if [ "$hits" -gt 0 ]; then
+    echo "log-grep: FAILED ($hits pattern(s) matched). Scrub the value at its source; never print it." >&2
+    return 1
+  fi
+  echo "log-grep: clean ($(patterns | wc -l | tr -d ' ') patterns, paths: $*)"
+}
+
+self_test() {
+  dir=$(mktemp -d)
+  trap 'rm -rf "$dir"' EXIT
+  printf 'GET /up 200\n[info] mail queued for client@example.test\n' > "$dir/clean.log"
+  scan "$dir" >/dev/null || { echo "log-grep self-test: clean logs were flagged" >&2; return 1; }
+  # Each planted line must trip the gate on its own. Values are fabricated, and split with '@' (removed
+  # before writing) so this file itself never matches a secret scanner.
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    line=$(printf '%s' "$line" | tr -d '@')
+    printf '%s\n' "$line" > "$dir/planted.log"
+    if scan "$dir" >/dev/null 2>&1; then
+      echo "log-grep self-test: planted line not caught: $(printf '%s' "$line" | cut -c1-24)..." >&2
+      return 1
+    fi
+  done <<'EOF'
+key=sk_@test_FAKEfakeFAKEfake0123456789
+wh@sec_FAKEfakeFAKEfake01234567
+https://bucket.example/concept.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Signature=deadbeef
+https://portal.test/download/1?expires=1700000000&signature=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+https://portal.test/auth/callback#token=FAKEfakeFAKEfake0123&next=/projects
+{"token": "FAKEfakeFAKE0123"}
+Authorization: Bearer FAKEfakeFAKEfake01234567
+ey@JhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmYWtlLXVzZXIifQ.ZmFrZS1zaWduYXR1cmUtdmFsdWU
+APP_KEY=base64@:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+AK@IAFAKEFAKEFAKEFAKE
+-----BEGIN RSA PRIVATE @KEY-----
+EOF
+  rm -f "$dir/planted.log"
+  echo "log-grep self-test: passed (clean logs pass; every planted secret fails)"
+}
+
+case "${1:-}" in
+  --self-test) self_test ;;
+  ""|-h|--help) sed -n '2,6p' "$0"; exit 2 ;;
+  *) for p in "$@"; do [ -e "$p" ] || { echo "log-grep: no such path: $p" >&2; exit 2; }; done; scan "$@" ;;
+esac
