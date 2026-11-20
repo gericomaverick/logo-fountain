@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\RequireCanonicalOrigin;
 use App\Http\Middleware\SecurityHeaders;
+use App\Http\Middleware\TrustedClientAddress;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -58,13 +59,14 @@ beforeEach(function () {
     config(['portal.public_site_url' => 'https://app.example.com']);
 });
 
-it('keeps the guard right after SecurityHeaders, before body parsing and the web group', function () {
+it('keeps SecurityHeaders, then TrustedClientAddress, then the guard, before body parsing and the web group', function () {
     /** @var Illuminate\Foundation\Http\Kernel $kernel */
     $kernel = app(Kernel::class);
     $global = $kernel->getGlobalMiddleware();
 
     $headers = array_search(SecurityHeaders::class, $global, true);
-    expect(array_search(RequireCanonicalOrigin::class, $global, true))->toBe($headers + 1)
+    expect(array_search(TrustedClientAddress::class, $global, true))->toBe($headers + 1)
+        ->and(array_search(RequireCanonicalOrigin::class, $global, true))->toBe($headers + 2)
         // Only middleware that never reads the request may come first (Inertia's runs deferred callbacks after the response).
         ->and(array_slice($global, 0, (int) $headers))->toBe([EnsureDeferredCallbacksRun::class]);
     foreach ([ValidatePostSize::class, TrimStrings::class, ConvertEmptyStringsToNull::class] as $parser) {

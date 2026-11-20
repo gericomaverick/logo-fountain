@@ -18,9 +18,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // X-01 / ADR-008 (story 1.4): the CSRF control for /api/*, before body parsing, session and
-        // auth. Prepended BEFORE SecurityHeaders is, so it lands right after it (prepend puts new first).
+        // Global order (prepend puts the newest first): SecurityHeaders → TrustedClientAddress →
+        // RequireCanonicalOrigin → the framework's body parsers. The guard's auth paths run
+        // EnsureAuthAvailable, which reads the address TrustedClientAddress stored (stories 1.4 + 1.5).
+        // X-01 / ADR-008 (story 1.4): the CSRF control for /api/*, before body parsing, session and auth.
         $middleware->prepend(RequireCanonicalOrigin::class);
+        // X-05 / ADR-010 (story 1.5): derive the trusted client address once, before anything uses it.
+        $middleware->prepend(TrustedClientAddress::class);
         $middleware->preventRequestForgery(except: ['api/*']);
         // X-02 (story 1.6): outermost, so it runs last and overrides route values, as next.config does.
         $middleware->prepend(SecurityHeaders::class);
@@ -31,7 +35,6 @@ return Application::configure(basePath: dirname(__DIR__))
         // spoofed X-Forwarded-For/-Proto/-Host reach ip(), isSecure() and the host. The client
         // address comes only from TrustedClientAddress (AUTH_CLIENT_IP_HEADER / AUTH_TRUSTED_PROXY_HOPS).
         $middleware->remove(TrustProxies::class);
-        $middleware->append(TrustedClientAddress::class);
 
         $middleware->web(append: [
             HandleInertiaRequests::class,
