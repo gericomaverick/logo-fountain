@@ -47,7 +47,7 @@ development_status:
   1-8a-form-and-action-primitives: done
   1-8b-status-components: done
   1-8c-media-data-components-and-usepolling: done
-  1-9-app-shells-design-lint-ui-ci-job-lighthouse: backlog
+  1-9-app-shells-design-lint-ui-ci-job-lighthouse: in-progress
   epic-1-retrospective: optional
 
   epic-2: backlog
