@@ -85,21 +85,21 @@ export function uploadErrorMessage(kind: UploadKind, code: string, file?: { name
         case 'FILE_TOO_LARGE':
             return file ? `${name} is ${formatBytes(file.size)}. Files can be up to ${rule.maxLabel}.` : `This file is over the ${rule.maxLabel} limit.`;
         case 'INVALID_FILE_TYPE':
-            return `${name} isn't ${rule.typeNoun}. Use ${rule.typeNoun} with a matching file extension.`;
+            return `${name} isn’t ${rule.typeNoun}. Use ${rule.typeNoun} with a matching file extension.`;
         case 'FILE_SIGNATURE_MISMATCH':
-            return image ? `${name} doesn't contain the kind of image its name says. Export it again and retry.` : `${name} isn't a standard ZIP archive. Create the ZIP again and retry.`;
+            return image ? `${name} doesn’t contain the kind of image its name says. Export it again and retry.` : `${name} isn’t a standard ZIP archive. Create the ZIP again and retry.`;
         case 'MALFORMED_IMAGE':
-            return `We couldn't read ${image ? 'this image' : 'this file'}. It may be damaged; export it again and retry.`;
+            return `We couldn’t read ${image ? 'this image' : 'this file'}. It may be damaged; export it again and retry.`;
         case 'IMAGE_DIMENSIONS_TOO_LARGE':
             return 'This image is over 40 megapixels. Export it smaller and retry.';
         case 'MALFORMED_ZIP':
-            return "We couldn't read this ZIP. It may be damaged; create it again and retry.";
+            return 'We couldn’t read this ZIP. It may be damaged; create it again and retry.';
         case 'MULTIPLE_FILES':
             return 'Drop one file at a time.';
         case 'ZIP_LIMIT_EXCEEDED':
             return 'This ZIP is over the limits: up to 1,000 files and 500 MB once unzipped.';
         default:
-            return "The upload didn't finish. Check your connection and try again.";
+            return 'The upload didn’t finish. Check your connection and try again.';
     }
 }
 
@@ -195,7 +195,7 @@ export function nextSort(current: { key: string; direction: SortDirection } | nu
     return { key, direction: current.direction === 'ascending' ? 'descending' : 'ascending' };
 }
 
-/** Keyboard row navigation: the row index a key moves to, or null for keys it doesn't handle. */
+/** Keyboard row navigation: the row index a key moves to, or null for keys it doesn’t handle. */
 export function rowIndexForKey(key: string, index: number, count: number): number | null {
     if (count === 0) return null;
     switch (key) {

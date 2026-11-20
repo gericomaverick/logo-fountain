@@ -8,7 +8,8 @@ import { cx } from '@/lib/ui';
  * - Roving focus: one tab stop for the whole list; Left/Right (and Home/End) move between tabs and
  *   select them (automatic activation); Tab moves into the panel.
  * - The "new" dot badge (UX §5: Concepts and Messages, from the read-state rules; never a count)
- *   is decorative, and the tab's accessible name says it: "Concepts, new".
+ *   is decorative, and the tab's accessible name says it: aria-label "Concepts, new" (which
+ *   starts with the visible label, WCAG 2.5.3).
  * - `placement="bottom"` renders the phone bottom bar (icon above label, the list after the
  *   panels). The 1.9 shells fix it to the viewport and switch at `md` (§13); this component only
  *   draws it.
@@ -34,7 +35,7 @@ type Props = {
     placement?: 'top' | 'bottom';
 };
 
-/** The visually hidden suffix that names the badge. */
+/** The accessible-name suffix that says the badge. */
 export const NEW_BADGE_TEXT = ', new';
 
 export function Tabs({ label, items, value, defaultValue, onValueChange, placement = 'top' }: Props) {
@@ -50,6 +51,7 @@ export function Tabs({ label, items, value, defaultValue, onValueChange, placeme
                     key={item.value}
                     value={item.value}
                     disabled={item.disabled}
+                    aria-label={item.isNew ? `${item.label}${NEW_BADGE_TEXT}` : undefined}
                     className={cx(
                         'group relative inline-flex items-center justify-center gap-2 text-sm font-medium whitespace-nowrap text-fg-2 transition-colors',
                         'hover:text-fg data-[state=active]:text-accent-text data-disabled:cursor-not-allowed data-disabled:text-fg-3',
@@ -62,7 +64,6 @@ export function Tabs({ label, items, value, defaultValue, onValueChange, placeme
                         {item.label}
                         {item.isNew && !(bottom && item.icon) ? <Dot /> : null}
                     </span>
-                    {item.isNew ? <span className="sr-only">{NEW_BADGE_TEXT}</span> : null}
                 </TabsPrimitive.Trigger>
             ))}
         </TabsPrimitive.List>
