@@ -4,7 +4,7 @@
 
 - **Updated:** 2026-11-20
 - **Phase:** Epic 0 done. **Epic 1 in progress: 1.1a done** (Laravel 13 skeleton in `apps/portal`, Docker dev stack, pins; record `stories/1-1a-skeleton-compose-pins.md`).
-- **Running:** nothing (stack ports: `COMPOSE_PROJECT_NAME=lf-<story>`, `PORTAL_HTTP_PORT=1808n`). After a restart they're gone: check `git worktree list` and the `worktree-*` branches for their commits, and merge or finish them (RESUME.md §2). CI is watched with `gh run list` / `gh run watch` (gh authed as gericomaverick).
+- **Running:** nothing. All agent worktrees are merged and removed. Parallel stacks use `COMPOSE_PROJECT_NAME=lf-<story>` and `PORTAL_*_PORT` (AGENTS.md §2). CI is watched with `gh run list` / `gh run watch` (gh authed as gericomaverick).
 - **Next:** **1.8b** (status components) and **1.8c** (media, data components, `usePolling`), then **1.9** (CI `ui` job running `bin/ui-test` and `bin/browser-test`, lint extensions, `ToastProvider` in the shells). From 2026-11-23: bump Inertia (^3.7 / 3.11.0). Owner: assign Card/Panel and Tabs to a story (1.8a found no story lists them).
 - **Portal dev:** `cd apps/portal && docker compose up -d` gives http://localhost:8080; `bin/test` runs Pint, Larastan level 9 and Pest. No host PHP.
 - **Dated follow-up:** from 2026-11-23, bump Inertia to ^3.7 / react adapter 3.11.0.
