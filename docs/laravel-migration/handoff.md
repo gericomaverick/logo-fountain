@@ -28,6 +28,8 @@ npm run test:e2e                                        # last recorded: 5–6 P
 
 ## Session log (newest first, one line each)
 
+- 2026-11-20: **Story 1.2 merged.** `apps/portal/AGENTS.md` (every §5 rule, the DoD variants, how to run things), `project-context.md`, and the `bin/check-agents-guide` drift check in `bin/test`.
+
 - 2026-11-20: Launched 1.1b, 1.2, 1.3, 1.6 and 1.7 in parallel worktrees. Compose ports are configurable (`8586e63`).
 
 - 2026-11-20: **Story 1.1a done** (`7d34116`, `.gitkeep` fix). Fresh clone: `/up` 200; Pint, Larastan 9 and Pest 5/5 pass. Framework pinned ^13.40 (advisory on 13.39); Inertia on the 3.5.2/3.9.1 fallbacks until 2026-11-23. Replaced the skeleton's Boost AGENTS/CLAUDE files. CI workflow pushed (`422cfc7`).

@@ -6,7 +6,7 @@ Read this first, every time. Five minutes and you have full context.
 1. `handoff.md` → **Now**: phase, what's done, what's running, the exact next step, blockers, owner items. Then the **Session log** (newest first).
 2. `stories/sprint-status.yaml`: the status of all 94 stories (`backlog` / `ready-for-dev` / `in-progress` / `review` / `done`).
 3. The story file for whatever is `in-progress` or `review`, in `stories/<key>.md`. Its **Conversion record** says what's built, the evidence, the gotchas and the open items.
-4. Only then go deeper, by area: `README.md` (doc map) → `01-feature-inventory.md` (what must exist; DV- rows = decided changes) → `brownfield/` (how the old app really behaves) → `architecture.md` + `adr/` (accepted decisions) → `ux-design.md` (the design contract) → `02-test-strategy.md`.
+4. Only then go deeper, by area: `README.md` (doc map) → `01-feature-inventory.md` (what must exist; DV- rows = decided changes) → `brownfield/` (how the old app really behaves) → `architecture.md` + `adr/` (accepted decisions) → `ux-design.md` (the design contract) → `02-test-strategy.md`. Before writing portal code, read `apps/portal/AGENTS.md` and `project-context.md`.
 
 ## 2. Check the real state (don't trust the docs blindly)
 ```bash
