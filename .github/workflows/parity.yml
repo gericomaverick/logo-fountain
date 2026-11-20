@@ -1,6 +1,8 @@
-# Parity suite against the Next.js app (story 0.9). The same suite runs against Laravel from Epic 1:
-# the `laravel` job (tests/parity/converted-tags.txt) is added by the first Conversion story (1.4), which also
-# adds the Laravel stack runner; story 1.1b deferred it because no Laravel endpoint exists yet.
+# Parity suite against the Next.js app (story 0.9) and the Laravel portal (story 1.4).
+# ADR-028 asks for a next/laravel matrix; they are two jobs instead, because the steps differ completely
+# (Next: apps/web unit tests, the parity infra stack, next dev; Laravel: the portal's own compose stack via
+# scripts/laravel-stack.mjs). The `laravel` job runs every gate in tests/parity/converted-tags.txt, plus
+# the tests of not-yet-converted gates that already apply (`--only`).
 # Laravel's own CI (Pint, Larastan, Pest, audits, log grep) is in portal.yml.
 name: parity
 on:
@@ -55,4 +57,35 @@ jobs:
         if: failure()
         with:
           name: playwright-report
+          path: tests/parity/playwright-report
+
+  laravel:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: runner user for the portal bind mount
+        run: |
+          echo "UID=$(id -u)" >> "$GITHUB_ENV"
+          echo "GID=$(id -g)" >> "$GITHUB_ENV"
+      - name: parity suite dependencies
+        working-directory: tests/parity
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: converted gates on Laravel (converted-tags.txt)
+        working-directory: tests/parity
+        run: node scripts/laravel-stack.mjs
+      # Story 1.4 (X-01): every guarded mutation x every refused Origin/Referer variant. Drop this step once
+      # `@security&@api` is in converted-tags.txt.
+      - name: X-01 origin-guard cells on Laravel
+        working-directory: tests/parity
+        run: node scripts/laravel-stack.mjs "@security&@api" --only "X-01 .* -> 403 INVALID_ORIGIN before auth "
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report-laravel
           path: tests/parity/playwright-report

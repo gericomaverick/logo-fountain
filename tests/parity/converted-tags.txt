@@ -1,3 +1,7 @@
 # Tag expressions whose every selected test has its prerequisites built on Laravel.
 # Each converted story adds its gate here (see docs/laravel-migration/epics.md). The CI parity job
 # runs these against Laravel. One expression per line, for example: @auth&@api
+#
+# Story 1.4: none yet. `@security&@api` selects 256 tests; on Laravel only the 180 X-01 pre-I/O cells pass
+# (no product endpoints until Epics 4-7, no `parity:seed` until Epic 2). CI runs those cells with
+# `laravel-stack.mjs "@security&@api" --only ...` (parity.yml, job `laravel`) until the whole gate is green.
