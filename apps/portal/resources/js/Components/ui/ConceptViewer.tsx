@@ -114,7 +114,9 @@ function ZoomDialog({ image, alt }: { image: SignedImage | null; alt: string }) 
                             <CloseButton busy={false} />
                         </div>
                     </div>
+                    {/* A scrollable region must be focusable so keyboard users can scroll it (axe scrollable-region-focusable, WCAG 2.1.1). */}
                     <div
+                        // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- see above
                         tabIndex={0}
                         role="region"
                         aria-label={`${alt}, ${actual ? 'actual size' : 'fitted to screen'}`}

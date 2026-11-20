@@ -33,6 +33,9 @@ export function PrivateImage({ image, alt, ratio = 'landscape', fit = 'contain',
     // of key, or a near-expiry URL, replaces what's on screen.
     if (image !== incoming) {
         setIncoming(image);
+        // Only runs when the prop changes (an event, not a re-render), and only decides whether the old
+        // URL is close to expiry (ADR-021), so reading the clock here is safe.
+        // eslint-disable-next-line react-hooks/purity -- see above
         const next = stableImage(shown, image, Date.now());
         if (next !== shown) setShown(next);
     }

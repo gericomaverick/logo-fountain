@@ -54,7 +54,7 @@ export function ChoiceChips(props: Props) {
                                 checked={on}
                                 disabled={off}
                                 aria-readonly={(props.multiple && readOnly) || undefined /* not allowed on radios */}
-                                aria-invalid={invalid || undefined}
+                                aria-invalid={(props.multiple && invalid) || undefined /* not supported on radios (ARIA 1.2); the group's description says the error */}
                                 onChange={() => change(o.value)}
                                 className={cx('peer absolute inset-0 size-full appearance-none rounded-md', off ? 'cursor-not-allowed' : readOnly ? 'cursor-default' : 'cursor-pointer')}
                             />

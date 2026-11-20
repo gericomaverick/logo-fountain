@@ -1,6 +1,6 @@
 import { Head } from '@inertiajs/react';
 import { FileText, Folder, Images, LayoutDashboard, MessageSquare } from 'lucide-react';
-import { useRef, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 
 import { Button } from '@/Components/ui/Button';
 import { Card, CardLink, Panel } from '@/Components/ui/Card';
@@ -375,17 +375,31 @@ function Properties() {
 // ---------- usePolling ----------
 type Item = { id: string; text: string };
 
+/** A fake server, so the hook runs for real: one request per interval, failures on demand. */
+class FakeServer {
+    private items: Item[] = [...FIRST_ITEMS];
+    private failing = false;
+    add() {
+        const n = this.items.length + 1;
+        this.items = [...this.items, { id: `e${n}`, text: `Event ${n}` }];
+    }
+    setFailing(on: boolean) {
+        this.failing = on;
+    }
+    async list(): Promise<Item[]> {
+        if (this.failing) throw new Error('offline');
+        return this.items.slice();
+    }
+}
+const FIRST_ITEMS: readonly Item[] = [{ id: 'e1', text: 'Concept 1 uploaded' }];
+
 function Polling() {
-    // A fake server, so the hook runs for real: one request per interval, failures on demand.
-    const server = useRef<{ items: Item[]; failing: boolean }>({ items: [{ id: 'e1', text: 'Concept 1 uploaded' }], failing: false });
+    const [server] = useState(() => new FakeServer());
     const [failing, setFailing] = useState(false);
     const polling = usePolling<Item[]>({
         interval: POLL_INTERVALS.adminProject,
-        initialData: server.current.items,
-        fetch: async () => {
-            if (server.current.failing) throw new Error('offline');
-            return server.current.items.slice();
-        },
+        initialData: [...FIRST_ITEMS],
+        fetch: () => server.list(),
         announce: (prev, next) => newItemsAnnouncement(countNewIds(prev, next), 'event'),
     });
     const items = polling.data ?? [];
@@ -399,10 +413,7 @@ function Polling() {
                 <Button
                     variant="secondary"
                     size="sm"
-                    onClick={() => {
-                        const n = server.current.items.length + 1;
-                        server.current.items = [...server.current.items, { id: `e${n}`, text: `Event ${n}` }];
-                    }}
+                    onClick={() => server.add()}
                 >
                     Add an event on the server
                 </Button>
@@ -410,7 +421,7 @@ function Polling() {
                     label="Make requests fail"
                     checked={failing}
                     onChange={(e) => {
-                        server.current.failing = e.currentTarget.checked;
+                        server.setFailing(e.currentTarget.checked);
                         setFailing(e.currentTarget.checked);
                     }}
                 />
@@ -419,6 +430,7 @@ function Polling() {
                 <PollingStatus reconnecting={polling.reconnecting} announcement={polling.announcement} refresh={polling.refresh} />
                 <ol aria-label="Activity" className="flex flex-col divide-y divide-divider">
                     {items.map((item) => (
+                        // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- catalogue only: lets the spec prove focus stays put when items are appended
                         <li key={item.id} tabIndex={0} className="rounded-sm py-2 text-base">
                             {item.text}
                         </li>

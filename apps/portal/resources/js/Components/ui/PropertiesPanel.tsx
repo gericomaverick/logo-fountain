@@ -102,6 +102,9 @@ function PropertyRow({ property }: { property: Property }) {
             <dt className="text-sm text-fg-2">{label}</dt>
             <dd className="m-0">
                 {edit && editing ? (
+                    // Escape anywhere in the edit form (bubbled from its input or buttons) cancels it; the form
+                    // itself never takes focus, so this adds no keyboard-only target.
+                    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- see above
                     <form
                         className="flex flex-col gap-3 pt-1"
                         onSubmit={(e) => {
