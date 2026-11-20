@@ -21,7 +21,8 @@ export function useToast(): ToastApi {
     return ctx;
 }
 
-export function ToastProvider({ children }: { children: ReactNode }) {
+/** `aboveTabBar`: lift the stack over the phone bottom tab bar (the customer project shell, story 1.9). */
+export function ToastProvider({ children, aboveTabBar = false }: { children: ReactNode; aboveTabBar?: boolean }) {
     const [toasts, setToasts] = useState<ToastData[]>([]);
     const nextId = useRef(1);
 
@@ -34,7 +35,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     return (
         <ToastContext.Provider value={api}>
             {children}
-            <div className="pointer-events-none fixed inset-x-4 bottom-4 z-60 flex flex-col gap-2 sm:left-auto sm:w-96">
+            <div className={cx('pointer-events-none fixed inset-x-4 z-60 flex flex-col gap-2 sm:left-auto sm:w-96', aboveTabBar ? 'bottom-20 md:bottom-4' : 'bottom-4')}>
                 <div role="status" aria-live="polite" className="flex flex-col gap-2">
                     {toasts
                         .filter((t) => t.tone === 'success')

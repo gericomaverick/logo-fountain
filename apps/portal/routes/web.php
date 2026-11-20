@@ -29,4 +29,15 @@ if (app()->environment(['local', 'testing'])) {
 
     // Media and data components, Card/Panel, Tabs and usePolling (story 1.8c).
     Route::get('/dev/ui/media', fn () => Inertia::render('Dev/UiMedia'))->name('dev.ui.media');
+
+    // Story 1.9: the customer and admin shells with sample props. `?section=` picks the page, so the
+    // section tabs are real links between URLs (unknown values fall back to a page outside a project).
+    Route::get('/dev/ui/shells', fn (Request $request) => Inertia::render('Dev/UiShells', [
+        'shell' => 'customer',
+        'section' => $request->string('section', 'overview')->limit(20, '')->toString(),
+    ]))->name('dev.ui.shells');
+    Route::get('/dev/ui/shells/admin', fn (Request $request) => Inertia::render('Dev/UiShells', [
+        'shell' => 'admin',
+        'section' => $request->string('section', 'overview')->limit(20, '')->toString(),
+    ]))->name('dev.ui.shells.admin');
 }

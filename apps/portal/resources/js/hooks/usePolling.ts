@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { createPoller, documentVisibility, type PollState, type Poller, type PollerOptions } from '@/lib/polling';
 
@@ -36,7 +36,11 @@ const ANNOUNCEMENT_MS = 5000;
 export function usePolling<T>(options: UsePollingOptions<T>): UsePollingResult<T> {
     const { interval, initialData, immediate, maxBackoffMs, key, enabled = true } = options;
     const latest = useRef(options);
-    latest.current = options;
+    // The poller's callbacks read the newest options. Updated after render (react-hooks/refs), and
+    // before any effect or timer can call them.
+    useLayoutEffect(() => {
+        latest.current = options;
+    });
 
     const [state, setState] = useState<PollState<T>>(() => ({
         data: initialData,

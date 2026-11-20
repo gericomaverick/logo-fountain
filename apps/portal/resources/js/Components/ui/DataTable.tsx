@@ -2,8 +2,9 @@ import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
 import { useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 
 import { Button } from '@/Components/ui/Button';
-import { LoadingBlock } from '@/Components/ui/Card';
+import { EmptyState } from '@/Components/ui/EmptyState';
 import { InlineAlert } from '@/Components/ui/InlineAlert';
+import { Skeleton } from '@/Components/ui/Skeleton';
 import { nextSort, rowIndexForKey, sortRows, type SortDirection, type SortValue } from '@/lib/media';
 import { cx } from '@/lib/ui';
 
@@ -126,19 +127,15 @@ export function DataTable<T>({ caption, hideCaption = false, columns, rows, rowK
                     </thead>
                     <tbody ref={body}>
                         {showPlaceholder ? (
-                            [0, 1, 2].map((i) => (
-                                <tr key={i} aria-hidden="true" className="border-t border-divider">
-                                    {columns.map((c) => (
-                                        <td key={c.key} className="px-4 py-3">
-                                            <LoadingBlock className="h-4 w-full max-w-32" />
-                                        </td>
-                                    ))}
-                                </tr>
-                            ))
+                            <tr className="border-t border-divider">
+                                <td colSpan={columns.length} className="px-4">
+                                    <Skeleton variant="list" what="rows" count={3} />
+                                </td>
+                            </tr>
                         ) : sorted.length === 0 ? (
                             <tr className="border-t border-divider">
                                 <td colSpan={columns.length} className="px-4 py-6 text-center text-base text-fg-2">
-                                    {loading ? 'Loading…' : (empty ?? 'Nothing here yet.')}
+                                    {empty ?? <EmptyState as="h3" title="Nothing here yet" />}
                                 </td>
                             </tr>
                         ) : (

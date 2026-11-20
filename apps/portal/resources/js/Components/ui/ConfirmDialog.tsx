@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactElement, type ReactNode } from 'react';
+import { useState, type ReactElement, type ReactNode } from 'react';
 
 import { Button } from '@/Components/ui/Button';
 import { Checkbox } from '@/Components/ui/Checkbox';
@@ -59,13 +59,16 @@ export function ConfirmDialog({
     const [typed, setTyped] = useState('');
     const blocker = confirmBlocker({ acknowledgement, acknowledged, confirmPhrase, typed });
 
-    // A fresh start every time it opens.
-    useEffect(() => {
+    // A fresh start every time it opens: reset when a controlled `open` turns false (adjusting state
+    // while rendering, so there's no extra effect pass; react-hooks/set-state-in-effect).
+    const [prevOpen, setPrevOpen] = useState(open);
+    if (open !== prevOpen) {
+        setPrevOpen(open);
         if (open === false) {
             setAcknowledged(false);
             setTyped('');
         }
-    }, [open]);
+    }
 
     const handleOpenChange = (next: boolean) => {
         if (!next) {

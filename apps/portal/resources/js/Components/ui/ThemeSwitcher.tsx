@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 
 import { ChoiceChips } from '@/Components/ui/ChoiceChips';
+import { MenuLabel, MenuRadioGroup, MenuRadioItem } from '@/Components/ui/Menu';
 import { currentPreference, setThemePreference, subscribeTheme, type ThemePreference } from '@/lib/theme';
 
 const OPTIONS = [
@@ -27,5 +28,25 @@ export function ThemeSwitcher() {
             value={preference}
             onChange={(value) => setThemePreference(value as ThemePreference)}
         />
+    );
+}
+
+/**
+ * The same choice inside the user menu (UX §8.1: "chosen in Account and the user menu"; story 1.9).
+ * Choosing keeps the menu open, so the change is visible and can be undone.
+ */
+export function ThemeMenuItems() {
+    const preference = useSyncExternalStore(subscribeTheme, currentPreference, () => 'system' as ThemePreference);
+    return (
+        <>
+            <MenuLabel>Theme</MenuLabel>
+            <MenuRadioGroup label="Theme" value={preference} onValueChange={(value) => setThemePreference(value as ThemePreference)}>
+                {OPTIONS.map((o) => (
+                    <MenuRadioItem key={o.value} value={o.value}>
+                        {o.label}
+                    </MenuRadioItem>
+                ))}
+            </MenuRadioGroup>
+        </>
     );
 }

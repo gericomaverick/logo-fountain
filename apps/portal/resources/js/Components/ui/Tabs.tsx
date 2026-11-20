@@ -38,32 +38,32 @@ type Props = {
 /** The accessible-name suffix that says the badge. */
 export const NEW_BADGE_TEXT = ', new';
 
+/** The tab list's look, shared with TabNav (story 1.9: URL-routed sections as links). */
+export const tabListClass = (bottom: boolean) => (bottom ? 'grid auto-cols-fr grid-flow-col border-t border-divider bg-surface' : 'flex gap-1 overflow-x-auto border-b border-divider');
+
+/** One tab's look. Selected = Radix `data-state=active` (Tabs) or `aria-current=page` / `data-active` (TabNav). */
+export const tabClass = (bottom: boolean) =>
+    cx(
+        'group relative inline-flex items-center justify-center gap-2 text-sm font-medium whitespace-nowrap text-fg-2 transition-colors',
+        'hover:text-fg data-[state=active]:text-accent-text data-disabled:cursor-not-allowed data-disabled:text-fg-3',
+        'aria-[current=page]:text-accent-text data-active:text-accent-text',
+        'after:absolute after:inset-x-0 after:h-0.5 after:rounded-full after:bg-transparent data-[state=active]:after:bg-accent aria-[current=page]:after:bg-accent data-active:after:bg-accent',
+        bottom ? 'min-h-14 flex-col gap-1 px-2 py-2 after:top-0' : 'min-h-11 px-3 after:bottom-0',
+    );
+
 export function Tabs({ label, items, value, defaultValue, onValueChange, placement = 'top' }: Props) {
     const bottom = placement === 'bottom';
     const list = (
-        <TabsPrimitive.List
-            aria-label={label}
-            data-placement={placement}
-            className={bottom ? 'grid auto-cols-fr grid-flow-col border-t border-divider bg-surface' : 'flex gap-1 overflow-x-auto border-b border-divider'}
-        >
+        <TabsPrimitive.List aria-label={label} data-placement={placement} className={tabListClass(bottom)}>
             {items.map((item) => (
                 <TabsPrimitive.Trigger
                     key={item.value}
                     value={item.value}
                     disabled={item.disabled}
                     aria-label={item.isNew ? `${item.label}${NEW_BADGE_TEXT}` : undefined}
-                    className={cx(
-                        'group relative inline-flex items-center justify-center gap-2 text-sm font-medium whitespace-nowrap text-fg-2 transition-colors',
-                        'hover:text-fg data-[state=active]:text-accent-text data-disabled:cursor-not-allowed data-disabled:text-fg-3',
-                        'after:absolute after:inset-x-0 after:h-0.5 after:rounded-full after:bg-transparent data-[state=active]:after:bg-accent',
-                        bottom ? 'min-h-14 flex-col gap-1 px-2 py-2 after:top-0' : 'min-h-11 px-3 after:bottom-0',
-                    )}
+                    className={tabClass(bottom)}
                 >
-                    {bottom && item.icon ? <span className="relative inline-flex">{item.icon}{item.isNew ? <Dot corner /> : null}</span> : null}
-                    <span className={cx('inline-flex items-center gap-2', bottom && 'text-xs')}>
-                        {item.label}
-                        {item.isNew && !(bottom && item.icon) ? <Dot /> : null}
-                    </span>
+                    <TabLabel label={item.label} icon={item.icon} isNew={item.isNew} bottom={bottom} />
                 </TabsPrimitive.Trigger>
             ))}
         </TabsPrimitive.List>
@@ -85,6 +85,24 @@ export function Tabs({ label, items, value, defaultValue, onValueChange, placeme
             ))}
             {bottom ? list : null}
         </TabsPrimitive.Root>
+    );
+}
+
+/** A tab's visible content: icon above the label in the bottom bar, and the "new" dot. Shared with TabNav. */
+export function TabLabel({ label, icon, isNew = false, bottom }: { label: string; icon?: ReactNode; isNew?: boolean | undefined; bottom: boolean }) {
+    return (
+        <>
+            {bottom && icon ? (
+                <span className="relative inline-flex">
+                    {icon}
+                    {isNew ? <Dot corner /> : null}
+                </span>
+            ) : null}
+            <span className={cx('inline-flex items-center gap-2', bottom && 'text-xs')}>
+                {label}
+                {isNew && !(bottom && icon) ? <Dot /> : null}
+            </span>
+        </>
     );
 }
 

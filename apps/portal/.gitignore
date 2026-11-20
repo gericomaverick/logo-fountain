@@ -27,3 +27,6 @@ Homestead.yaml
 Thumbs.db
 /test-results
 /playwright-report
+/tests/lighthouse/node_modules
+/tests/lighthouse/.lighthouseci
+/tests/lighthouse/report

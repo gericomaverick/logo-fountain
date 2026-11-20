@@ -15,11 +15,12 @@ type Props = {
     what: string;
     /** List rows, or cards/images in a grid (1–8). */
     count?: number;
+    /** On a sunken surface (the admin properties column), where bg-sunken blocks wouldn't show (story 1.9). */
+    onSunken?: boolean;
 };
 
-const BLOCK = 'block rounded-sm bg-sunken';
-
-export function Skeleton({ variant, what, count }: Props) {
+export function Skeleton({ variant, what, count, onSunken = false }: Props) {
+    const BLOCK = cx('block rounded-sm', onSunken ? 'bg-divider' : 'bg-sunken');
     const items = Array.from({ length: skeletonRows(count ?? (variant === 'list' ? 3 : 1)) }, (_, i) => i);
     return (
         <div role="status" data-skeleton={variant} className="motion-safe:animate-fade-in">

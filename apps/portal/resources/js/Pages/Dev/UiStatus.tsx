@@ -177,6 +177,7 @@ function Trackers() {
             {TRACKERS.map((t) => (
                 <Group key={t.name} label={`Horizontal: ${t.name}`}>
                     {/* Horizontal is the desktop form; at phone width the catalogue scrolls it sideways. */}
+                    {/* eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- a scrollable region must be focusable (axe scrollable-region-focusable) */}
                     <div tabIndex={0} role="region" aria-label={`${t.name}, horizontal`} className="overflow-x-auto rounded-md">
                         <div className="min-w-[48rem]">
                             <StageTracker orientation="horizontal" timeline={buildTimeline(t.state, t.timestamps, { hasApprovedMilestone: t.approved })} label={`Progress: ${t.name}`} />

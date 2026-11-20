@@ -2,8 +2,9 @@ import { Download, FileArchive, FileText, Receipt } from 'lucide-react';
 import { useId, type ReactNode } from 'react';
 
 import { Button } from '@/Components/ui/Button';
-import { Card, LoadingBlock } from '@/Components/ui/Card';
+import { Card } from '@/Components/ui/Card';
 import { InlineAlert } from '@/Components/ui/InlineAlert';
+import { Skeleton } from '@/Components/ui/Skeleton';
 import { formatBytes, formatDate } from '@/lib/media';
 
 /**
@@ -83,15 +84,11 @@ export function FileCard({ kind, name, sizeBytes, date, detail, onDownload, down
     );
 }
 
-/** A file card's first-load placeholder (decorative; the list says "Loading…"). */
-export function FileCardPlaceholder() {
+/** A file card's first-load placeholder: a one-row list Skeleton ("Loading files…") in the card's shape (story 1.9). */
+export function FileCardPlaceholder({ what = 'files' }: { what?: string }) {
     return (
-        <div aria-hidden="true" className="flex items-center gap-3 rounded-md border border-divider bg-surface p-4 md:p-5">
-            <LoadingBlock className="size-10 rounded-md" />
-            <div className="flex flex-1 flex-col gap-2">
-                <LoadingBlock className="h-4 w-48 max-w-full" />
-                <LoadingBlock className="h-4 w-32" />
-            </div>
+        <div className="rounded-md border border-divider bg-surface px-4 md:px-5">
+            <Skeleton variant="list" what={what} count={1} />
         </div>
     );
 }

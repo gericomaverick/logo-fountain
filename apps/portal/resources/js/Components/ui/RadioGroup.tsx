@@ -44,7 +44,6 @@ export function RadioGroup({ legend, hint, error, name, options, value, onChange
                                 value={o.value}
                                 checked={value === o.value}
                                 disabled={off}
-                                aria-invalid={invalid || undefined}
                                 aria-describedby={descId}
                                 onChange={() => {
                                     if (!readOnly) onChange(o.value);

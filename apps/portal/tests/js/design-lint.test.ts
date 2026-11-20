@@ -85,4 +85,43 @@ describe('design lint (L7b)', () => {
             'resources/js/Components/ui/C.tsx:raw-colour',
         ]);
     });
+
+    test('rejects raw font sizes outside the token file (story 1.9)', () => {
+        const f = tree('font-size', {
+            'resources/css/app.css': '--text-base: clamp(1rem, 0.963rem + 0.1852vw, 1.125rem);\nbody { font-size: 16px; }',
+            'resources/js/Components/ui/A.tsx': '<p className="text-[14px] md:text-[1.1rem]">x</p>',
+            'resources/js/Layouts/B.tsx': "const s = { fontSize: 13 }; const t = { fontSize: '0.8rem' };",
+            'resources/js/Pages/C.tsx': '<p style="font-size: 12px" className="text-[length:var(--x)]">x</p>',
+            'resources/css/extra.css': '.x { font-size: 0.75em; } .y { font-size: var(--text-sm); }',
+            'resources/views/mail.blade.php': '<td style="font-size:14pt">x</td>',
+            'resources/js/Components/ui/Ok.tsx': '<p className="text-sm md:text-base text-fg-2 text-[var(--text-lg)]">fine</p>; <Icon size={20} />',
+        });
+        assert.deepEqual(rules(f), [
+            'resources/css/extra.css:font-size',
+            'resources/js/Components/ui/A.tsx:font-size',
+            'resources/js/Components/ui/A.tsx:font-size',
+            'resources/js/Layouts/B.tsx:font-size',
+            'resources/js/Layouts/B.tsx:font-size',
+            'resources/js/Pages/C.tsx:font-size',
+            'resources/js/Pages/C.tsx:font-size',
+            'resources/views/mail.blade.php:font-size',
+        ]);
+    });
+
+    test('rejects ad-hoc gradients outside the token file (story 1.9)', () => {
+        const f = tree('gradient', {
+            'resources/css/app.css': '@utility bg-stripes { background-image: repeating-linear-gradient(135deg, var(--color-accent) 0 3px, var(--color-accent-soft) 3px 6px); }',
+            'resources/js/Components/ui/A.tsx': '<div className="bg-linear-to-r from-accent to-accent-soft" />',
+            'resources/js/Components/ui/B.tsx': '<div className="bg-gradient-to-b bg-radial-[at_50%_50%] bg-conic" />',
+            'resources/js/Layouts/C.tsx': "const s = { backgroundImage: 'linear-gradient(var(--color-bg), var(--color-surface))' };",
+            'resources/js/Components/ui/Ok.tsx': '<div className="bg-surface bg-stripes-in-progress bg-accent-soft" />',
+        });
+        assert.deepEqual(rules(f), [
+            'resources/js/Components/ui/A.tsx:gradient',
+            'resources/js/Components/ui/B.tsx:gradient',
+            'resources/js/Components/ui/B.tsx:gradient',
+            'resources/js/Components/ui/B.tsx:gradient',
+            'resources/js/Layouts/C.tsx:gradient',
+        ]);
+    });
 });

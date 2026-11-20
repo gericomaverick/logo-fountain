@@ -13,7 +13,10 @@
             <link rel="preload" as="font" type="font/woff2" href="{{ Vite::asset('resources/fonts/sfizia/atipo-sfizia-regular.woff2') }}" crossorigin>
         @endif
         @viteReactRefresh
-        @vite(['resources/css/app.css', 'resources/js/app.tsx'])
+        {{-- Story 1.9 (NFR-P2): the current page's chunk too (Laravel's Inertia pattern), so its code and
+             imports are modulepreloaded with app.js instead of fetched after it runs. --}}
+        @php($pageEntry = 'resources/js/Pages/'.($page['component'] ?? '').'.tsx')
+        @vite(array_values(array_filter(['resources/css/app.css', 'resources/js/app.tsx', is_file(base_path($pageEntry)) ? $pageEntry : null])))
         <x-inertia::head>
             <title>{{ config('app.name') }}</title>
         </x-inertia::head>

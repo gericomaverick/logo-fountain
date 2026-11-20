@@ -93,10 +93,3 @@ export function Panel({ title, level = 2, description, actions, footer, tone = '
     );
 }
 
-/**
- * A first-load placeholder block (decorative, aria-hidden). Story 1.8b owns the Skeleton component;
- * switch to it when both are merged (open item). No looping animation (§8.3).
- */
-export function LoadingBlock({ className }: { className?: string }) {
-    return <span aria-hidden="true" className={cx('block rounded-sm', !className?.includes('bg-') && 'bg-sunken', className)} />;
-}
