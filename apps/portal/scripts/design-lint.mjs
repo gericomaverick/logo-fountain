@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// L7b design-system lint, first rules (story 1.7; UX §6 rules, §8.2; 02-test-strategy L7b).
-// Story 1.9 extends it (pixel font sizes, gradients) and wires it into the CI ui job.
+// L7b design-system lint (story 1.7; story 1.9 added font-size and gradient; UX §6 rules, §8,
+// §16; 02-test-strategy L7b). Runs in bin/ui-test and so in the CI ui job.
 //
 //   display-font   The display font token (Tailwind class `font-display`, `--font-display`,
 //                  or the family name Sfizia) only in Components/ui/DisplayTitle.tsx, plus its
@@ -9,6 +9,18 @@
 //                  UX §8.2), and never by admin code.
 //   raw-colour     No raw hex/rgb/hsl/oklch colours or Tailwind palette names (white, black,
 //                  gray-500...) outside the token file. Use the semantic tokens.
+//   font-size      No raw font sizes outside the token file: Tailwind arbitrary sizes
+//                  (text-[14px], text-[0.9rem], text-[length:...]), style objects
+//                  (fontSize: 14 / '14px') or CSS font-size with a literal length. Use the
+//                  fluid scale text-xs … text-2xl (UX §8.2).
+//   gradient       No ad-hoc gradients outside the token file: bg-linear-*, bg-gradient-to-*,
+//                  bg-radial*, bg-conic*, or a CSS *-gradient(). A needed pattern becomes a
+//                  token-built @utility in app.css (as bg-stripes-in-progress did, 1.8b).
+//
+// Not linted: "one primary button per view" (UX §11, AGENTS.md §5). A view is a runtime
+// composition (page + shell + open dialog, conditional branches), so a static count per file is
+// both noisy and incomplete. It is enforced in the browser instead: tests/browser/support/views.ts
+// expectOnePrimary(), called by each screen's spec (story 1.9).
 //
 // Usage: node scripts/design-lint.mjs [root]   (exit 1 on any finding)
 import { readFileSync, readdirSync, statSync } from 'node:fs';
@@ -34,6 +46,18 @@ const HEX = /(?<![\w&])#(?:[0-9a-f]{8}|[0-9a-f]{6}|[0-9a-f]{3,4})\b/gi;
 const COLOUR_FN = /\b(?:rgba?|hsla?|oklch|oklab|lab|lch|hwb|color)\(/gi;
 const PALETTE =
     /\b(?:bg|text|border(?:-[trblxy])?|ring|ring-offset|outline|fill|stroke|from|via|to|divide|shadow|decoration|accent|caret|placeholder)-(?:white|black|(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3})\b/g;
+// A literal CSS length in px/pt/rem/em (not var(), not a token).
+const LENGTH = String.raw`-?(?:\d+\.?\d*|\.\d+)(?:px|pt|rem|em)`;
+const FONT_SIZE = [
+    // Tailwind arbitrary font sizes, with an optional variant prefix (md:text-[18px]) or type hint.
+    new RegExp(String.raw`(?<![\w-])text-\[${LENGTH}(?:\/[^\]]+)?\]`, 'g'),
+    new RegExp(String.raw`(?<![\w-])text-\[length:[^\]]+\]`, 'g'),
+    // React style objects: fontSize: 14, fontSize: '14px', "fontSize": "1rem".
+    /\bfontSize['"]?\s*:\s*['"`]?-?\d/g,
+    // CSS (files, inline style strings, Blade): font-size: 14px.
+    new RegExp(String.raw`\bfont-size\s*:\s*${LENGTH}`, 'g'),
+];
+const GRADIENT = [/(?<![\w-])bg-(?:gradient-to-[a-z]+|linear-[\w[\]-]+|radial(?:-[\w[\]-]+)?|conic(?:-[\w[\]-]+)?)/g, /\b(?:repeating-)?(?:linear|radial|conic)-gradient\(/g];
 const DISPLAY_TITLE_USE = /<DisplayTitle\b|\bimport\b[^;]*\bDisplayTitle\b/;
 
 function walk(dir, out) {
@@ -94,6 +118,16 @@ export function lint(root) {
             for (const re of [HEX, COLOUR_FN, PALETTE]) {
                 for (const m of text.matchAll(re)) {
                     add(file, text, m.index, 'raw-colour', `"${m[0]}": use a semantic colour token (UX §6 rule 1, §8.1)`);
+                }
+            }
+            for (const re of FONT_SIZE) {
+                for (const m of text.matchAll(re)) {
+                    add(file, text, m.index, 'font-size', `"${m[0]}": use a type-scale token, text-xs … text-2xl (UX §8.2)`);
+                }
+            }
+            for (const re of GRADIENT) {
+                for (const m of text.matchAll(re)) {
+                    add(file, text, m.index, 'gradient', `"${m[0]}": no ad-hoc gradients; add a token-built @utility to app.css (UX §8, §16)`);
                 }
             }
         }
