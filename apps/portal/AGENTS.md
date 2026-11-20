@@ -100,6 +100,7 @@ Checklist: `MIG/03-documentation-protocol.md` §3. Story record template: `MIG/t
 Requirement series → code: A → `Actions/Auth`, middleware, `Support/RateLimits` · K → `Actions/Checkout`, `Controllers/Webhooks` · C/D → `Actions/*` + `Pages` · N → `Mail/` · X → `Support/`, `Storage/`, middleware, `Domain/` · O → `Console/Commands`, `ops/`, `compose.yaml`.
 
 ## 8. Gotchas (promoted from story records)
+- Workflow edits: no unquoted `: ` inside a step name or value (YAML reads it as a key, and GitHub rejects the whole file). Validate with `docker run --rm -v "$PWD":/repo -w /repo rhysd/actionlint:1.7.7` before pushing (1.5 merge).
 - Never use `$request->ip()` for limits or audit: use `ClientAddress::for($request)` (a Pest scan blocks `->ip()` in `app/`). `TrustProxies` is removed on purpose: it trusts every proxy on `*.on-forge.com` hosts (`vendor/.../TrustProxies.php:69-77`). Don't add it back (1.5).
 - Porting a JS rule: JS `$` = PHP `$` with `/D`; the `trim()` sets differ (JS strips `\f` and NBSP, PHP strips `\0`). Use `App\Support\NodeCompat` (1.5).
 - Pest runs with no proxy config (`phpunit.xml`); the dev `.env` and nginx use `cf-connecting-ip`. `NginxClientAddressTest` needs the `web` service (1.5).

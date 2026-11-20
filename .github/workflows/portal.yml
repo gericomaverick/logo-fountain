@@ -36,7 +36,7 @@ jobs:
           echo "UID=$(id -u)" >> "$GITHUB_ENV"
           echo "GID=$(id -g)" >> "$GITHUB_ENV"
           mkdir -p "$CI_LOGS"
-      - name: stack (postgres, mailpit, seaweedfs, app, worker, web: nginx for the 1.5 header-overwrite test)
+      - name: stack (postgres, mailpit, seaweedfs, app, worker, web = nginx for the 1.5 header test)
         run: docker compose up -d --build postgres mailpit seaweedfs app worker web
       - name: Pint (L0)
         run: docker compose exec -T app vendor/bin/pint --test
