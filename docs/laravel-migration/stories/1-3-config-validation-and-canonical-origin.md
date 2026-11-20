@@ -1,6 +1,6 @@
 # Story 1.3: Config validation and canonical origin
 
-**Status:** in-progress · **DoD variant:** Laravel-only in practice (gate is Pest; see *Test evidence*) · **Epic:** 1 · **Covers:** X-04, O-05, O-07, A-17 (config part), FR57 · **Gate:** Pest · **After:** 1.1a
+**Status:** review (2026-11-20) · **DoD variant:** Laravel-only in practice (gate is Pest; see *Test evidence*) · **Epic:** 1 · **Covers:** X-04, O-05, O-07, A-17 (config part), FR57 · **Gate:** Pest · **After:** 1.1a
 
 ## Acceptance criteria (epics.md §1.3)
 1. **Given** production with an http `PUBLIC_SITE_URL`, **then** mutations return `503 PUBLIC_SITE_URL_REQUIRED` and auth returns `503 AUTH_UNAVAILABLE`.
@@ -54,22 +54,87 @@ Runtime: `DATABASE_URL`, `DIRECT_URL`, `BETTER_AUTH_SECRET`, `PUBLIC_SITE_URL` (
 `stripe-price-allowlist.ts` hard-codes the three package and three upsell price IDs (no env var); `isPlaceholderPriceId` (empty or containing `REPLACE`) feeds the admin status check. Nothing to validate until the allowlist is ported (story 5.1, K-01).
 
 ## Laravel implementation
-_(filled in below as the code lands)_
+All under `apps/portal/`. No product routes; `bootstrap/app.php` is untouched (1.6 coordination).
+
+| Behaviour | Where |
+|---|---|
+| O-07 env vars, read only in config | `config/portal.php` (`PUBLIC_SITE_URL`, `PUBLIC_MARKETING_SITE_URL`, `AUTH_CLIENT_IP_HEADER`, `AUTH_TRUSTED_PROXY_HOPS`, `ADMIN_NOTIFICATION_EMAILS`, `EMAIL_LOGO_URL`, `R2_*`); `config/services.php:21-25` (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`); `.env.example` (documented, empty). Existing mappings kept: `DB_*`/`DB_MIGRATE_*`, `APP_KEY`, `POSTMARK_API_KEY` + `MAIL_FROM_ADDRESS`, `APP_ENV`. Enforced by Larastan's `noEnvCallsOutsideOfConfig` (on by default) plus a Pest scan |
+| X-04 canonical origin | `app/Domain/CanonicalOrigin.php` (`resolve()`, `parse()`), exception `app/Domain/PublicSiteUrlRequired.php` |
+| 503 `PUBLIC_SITE_URL_REQUIRED` on mutations | `app/Http/Middleware/RequireCanonicalOrigin.php` (skips safe methods; stores the origin in request attribute `canonical_origin` for 1.4's provenance check) |
+| A-17 proxy config | `app/Support/AuthProxyConfig.php` (`from()`, `fromConfig()`, `PREFLIGHT_FAILURE`) |
+| Trusted address (minimal, for fail-closed) | `app/Support/ClientAddress.php` (`trusted()`; 1.5 ports the full case table) |
+| 503 `AUTH_UNAVAILABLE` on auth in production | `app/Http/Middleware/EnsureAuthAvailable.php` (to sit before `RequireCanonicalOrigin` on auth routes) |
+| O-05 preflight | `app/Console/Commands/ProxyPreflight.php`: `php artisan proxy:preflight [--production]`, exit 1 with the Next message |
+| DB role pair, production boot failure | `app/Support/DatabaseRoles.php` (port of `database-target.ts` onto resolved connection arrays), `app/Support/InvalidConfiguration.php`, `app/Providers/ConfigValidationServiceProvider.php`, registered in `bootstrap/providers.php` |
+| Error codes | `app/Support/ErrorCodes.php` (`PUBLIC_SITE_URL_REQUIRED`, `AUTH_UNAVAILABLE`) |
+
+Error bodies use the legacy shape `{"error":{"code","message"}}` built inline in the two middleware (no renderer yet; 1.6 owns it).
 
 ## Deviations from Next.js
-_(filled in below)_
+| Behaviour | Next.js | Laravel | Why | Decision ref |
+|---|---|---|---|---|
+| Production gate | `NODE_ENV=production` | `APP_ENV=production` (`app()->isProduction()`) | Planned env mapping | `brownfield/data-model-and-ops.md` §4 |
+| Dev default origin with no request | `http://localhost:3000` | APP_URL origin when loopback, else `http://localhost:3000` | Laravel dev runs on :8080; dev-only, not parity-observable | proposed (below) |
+| URL parsing | WHATWG `new URL` | `parse_url` plus a stricter check: whitespace/control/backslash anywhere, non-`scheme://` forms (`https:host`) and odd hosts are rejected | Fail closed on operator config; never affects a sane URL | proposed (below) |
+| Preflight scope | Proxy config only | Proxy config **and** an https `PUBLIC_SITE_URL` | FR57 names both | proposed (below) |
+| Preflight wiring | `npm start` runs it | An artisan command for the Forge deploy script (before activation); PHP-FPM has no "start" | Platform | O-05 / architecture §6 `ProxyPreflight` |
+| DB role check timing | Migrations/admin bootstrap (no env gate) | Every production boot (HTTP and artisan, so also `migrate`, `config:cache`) | Story AC 2 | epics.md §1.3 |
+| DB role check inputs | `DATABASE_URL`/`DIRECT_URL` | Resolved `pgsql`/`pgsql_migrate` arrays (`DB_*` keys or `DB_URL`/`DB_MIGRATE_URL`); also forbids Laravel routing keys (`username`, `search_path`, `driver`, `url`) in the URL query, and a non-`public` `search_path` | Laravel config shape | ADR-013 |
+| `NEXT_PUBLIC_SITE_URL` fallback | Used by non-security origin helpers only | Not ported | No `NEXT_PUBLIC_*` in Laravel; the security path never read it | none needed |
+
+None of these is visible to the parity suite.
 
 ## Tests
-_(filled in below)_
+| Layer | Test file / title | Inventory IDs |
+|---|---|---|
+| L1 Pest unit | `tests/Unit/CanonicalOriginTest.php`: 8 tests, 25 cases (origin normalisation, http only outside production, malformed/credentialed refused, loopback request fallback, no Host/forwarded headers in production, dev default) | X-04 |
+| L1 Pest unit | `tests/Unit/AuthProxyConfigTest.php`: exactly-one rule, header regex and denylist, hops 1–99; minimal address derivation | A-17, O-05 |
+| L1 Pest unit | `tests/Unit/DatabaseRolesTest.php`: every `database-target.test.ts` case ported (19 bad targets, 5 mismatches, no secret leak, alias normalisation) plus Laravel keys | ADR-013, FR57 |
+| L2 Pest feature | `tests/Feature/ConfigFailClosedTest.php`: test-only routes; AC 1 for POST/PUT/PATCH/DELETE; unset/malformed URL in production; safe methods pass; https passes; AUTH_UNAVAILABLE for missing proxy (with http URL; the same request to a non-auth mutation gets PUBLIC_SITE_URL_REQUIRED), bad/missing address, both/invalid settings; order proxy → origin; hops mode; never outside production | X-04, A-17, FR57 |
+| L2 Pest feature | `tests/Feature/ConfigBootValidationTest.php`: AC 2 via the provider and via a **real `php artisan` production process** (fails, message present, password absent; the valid pair boots); preflight pass/fail matrix; env-only-in-config scan | O-05, O-07, ADR-013 |
+
+Test-port ledger rows resolved: `database-target.test.ts` (all cases), `proxy-config` behaviour via `AuthProxyConfigTest`. `client-address.test.ts` stays with 1.5.
 
 ## Test evidence
-_(filled in below)_
+- `COMPOSE_PROJECT_NAME=lf-1-3 … docker compose up -d --build` then `bin/test`: Pint ✓ (46 files), Larastan level 9 **No errors**, Pest **126 passed (230 assertions)**, 0 failed, 0 skipped (5 of them from 1.1a).
+- Spot check: Symfony renders `Cache-Control: no-store` as `no-store, private` (see Gotchas).
+
+**Not run, and why:**
+- Parity against Laravel: no parity test selects `PUBLIC_SITE_URL_REQUIRED` or `AUTH_UNAVAILABLE` (production-only, so Pest/L9 per the readiness report), and the A-17 wrapper tests in `contract/auth-session.spec.ts` need the real auth endpoints (Epic 4) and the 1.6 wrapper.
+- Parity against Next: not needed; `apps/web` is unchanged.
 
 ## Gotchas
-_(filled in below)_
+- **Symfony appends `, private` to any `Cache-Control` without `public`/`private`** (`ResponseHeaderBag::computeCacheControlValue`). `AUTH_UNAVAILABLE` therefore goes out as `no-store, private`, while `contract/auth-session.spec.ts` expects exactly `no-store` on auth responses. Story 1.6 (headers) must set the raw value (e.g. in `SecurityHeaders`/`AuthJsonBoundary` after the bag is computed). → propose for `apps/portal/AGENTS.md`.
+- `env()` turns `"null"`, `"empty"`, `"true"`/`"false"` into PHP values. `AuthProxyConfig` treats a non-string as unset, so `AUTH_CLIENT_IP_HEADER=true` means "no config" (fail closed).
+- PHP's `$` matches before a trailing newline; the ported regexes use `/D`.
+- `app()->detectEnvironment(fn () => 'production')` inside a test flips `isProduction()` for that test only; the boot provider then has to be called by hand. The real boot failure is proven with a child `php artisan about` (process env beats `.env`, Dotenv is immutable).
+- Symfony `Request::getHost()` keeps IPv6 brackets (`[::1]`) and throws `SuspiciousOperationException` on a bad Host; `CanonicalOrigin` catches it (→ refused).
 
 ## Docs updated
-_(filled in below)_
+Story record only (this file). Tracking files are the parent's (see below).
+
+### Proposed inventory status (for the parent)
+- **X-04:** Laravel `Domain/CanonicalOrigin.php`, `Middleware/RequireCanonicalOrigin.php`; Tests `Unit/CanonicalOriginTest.php`, `Feature/ConfigFailClosedTest.php`; status **Verified** (Pest; production-only, no parity test).
+- **O-05:** Laravel `Console/Commands/ProxyPreflight.php`; Tests `Feature/ConfigBootValidationTest.php`; **Verified**. Deploy-script wiring → Epic 9 (Forge).
+- **O-07:** Laravel `config/portal.php`, `config/services.php`, `.env.example`; Tests env scan + Larastan; **Verified** for the env→config mapping (consumers land with their stories).
+- **A-17:** Laravel (config part) `Support/AuthProxyConfig.php`, `Middleware/EnsureAuthAvailable.php`; Tests `Unit/AuthProxyConfigTest.php`, `Feature/ConfigFailClosedTest.php`; status **In progress** (the JSON wrapper is 1.6; auth routes Epic 4).
+
+### Proposed decisions / assumptions (for DECISIONS.md / ASSUMPTIONS.md)
+- DECISION: production DB role-pair validation runs on every boot (fails HTTP and artisan); PUBLIC_SITE_URL and proxy config fail closed per request plus `proxy:preflight` in deploy, not at boot (so mutations can still answer 503 as in Next).
+- DECISION: `proxy:preflight` also requires an https `PUBLIC_SITE_URL` (FR57).
+- DECISION: price-ID validation deferred to story 5.1 (K-01): in Next they are hard-coded constants, not env, and the allowlist isn't ported yet.
+- ASSUMPTION: AC 1's "auth returns 503 AUTH_UNAVAILABLE" is read as Next's order (proxy check first): auth answers AUTH_UNAVAILABLE when no trusted address can be derived; with a valid proxy, an auth mutation with an http URL answers PUBLIC_SITE_URL_REQUIRED like any mutation. Both are tested.
+
+### Proposed `apps/portal/AGENTS.md` promotions
+- Env vars only in `config/*.php` (Larastan rule + `ConfigBootValidationTest` scan); new vars also go in `.env.example`.
+- Production-only behaviour: test with `app()->detectEnvironment(fn () => 'production')`; prove boot failures with a child `php artisan` process.
+- The `Cache-Control` `, private` gotcha above.
 
 ## Open items
-_(filled in below)_
+- **1.4:** add the Origin/Referer provenance check, exemptions and arch test to `RequireCanonicalOrigin` (it already resolves and stores the origin).
+- **1.5:** port every `client-address.test.ts` case onto `ClientAddress` (check `filter_var` vs Node `isIP` on IPv6 zone IDs and IPv4 leading zeros) and add the `TrustedClientAddress` middleware.
+- **1.6 overlap:** `ErrorCodes.php` is created here (two constants; merge by union). Error JSON is built inline in the two middleware; 1.6 may move it onto its renderer. Exact `Cache-Control: no-store` (Gotchas). This story touches `bootstrap/providers.php` only, not `bootstrap/app.php`.
+- **Epic 4:** attach `EnsureAuthAvailable` → `RequireCanonicalOrigin` to the auth mutations and `/api/auth/session` (proxy only); logout reverses the order.
+- **Epic 9 (deploy):** run `php artisan proxy:preflight` in the Forge script before activation.
+- **5.1:** price-ID allowlist validation (placeholder check).
+- Possible follow-up: also check that `pgsql_limits` uses the runtime role (not in Next).
