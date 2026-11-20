@@ -100,6 +100,10 @@ Checklist: `MIG/03-documentation-protocol.md` §3. Story record template: `MIG/t
 Requirement series → code: A → `Actions/Auth`, middleware, `Support/RateLimits` · K → `Actions/Checkout`, `Controllers/Webhooks` · C/D → `Actions/*` + `Pages` · N → `Mail/` · X → `Support/`, `Storage/`, middleware, `Domain/` · O → `Console/Commands`, `ops/`, `compose.yaml`.
 
 ## 8. Gotchas (promoted from story records)
+- Screens poll only through `hooks/usePolling` plus `PollingStatus` (backoff from the 3rd failure, pause when hidden, one request at a time, polite announcements); new items are appended at the end, never moved above focus (1.8c).
+- Private (signed) images only through `PrivateImage` (ADR-021: keeps the shown image until its key changes or the URL nears expiry) (1.8c).
+- Playwright: pausing the clock (`pauseAt`) also stops Radix focus restore and axe, which use timers (1.8c).
+- Ported Next Vitest suites run unchanged on `node:test` via `tests/js/support/vitest-shim.ts`; don't add Vitest (1.8c).
 - Turn, stage and status UI comes only from `resources/js/lib/status.ts` (pinned to Next's `buildTimeline` and `customerActionFor` by a generated fixture; regenerate it if `apps/web` changes). Unknown states count as the designer's turn (1.8b).
 - A celebration's Sfizia comes only via `TurnBanner` celebration, and any page showing one must be listed in `config/ui.php` `display_font_pages` (1.8b). Skeletons never loop (UX §8.3) (1.8b).
 - Each catalogue area has its own page and spec: `/dev/ui` (1.8a), `/dev/ui/status` (1.8b), `/dev/ui/media` (1.8c), so baselines don't clash (1.8b).

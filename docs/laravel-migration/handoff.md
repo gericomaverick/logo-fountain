@@ -4,8 +4,8 @@
 
 - **Updated:** 2026-11-20
 - **Phase:** Epic 0 done. **Epic 1 in progress: 1.1a done** (Laravel 13 skeleton in `apps/portal`, Docker dev stack, pins; record `stories/1-1a-skeleton-compose-pins.md`).
-- **Running:** 1 sub-agent in a worktree: **1.8c** (`lf-1-8c`, :18092, `/dev/ui/media`). After a restart, check `git worktree list` and the `worktree-agent-*` branches (RESUME.md §2). CI is watched with `gh` (authed as gericomaverick).
-- **Next:** **1.8b** (status components) and **1.8c** (media, data components, `usePolling`), then **1.9** (CI `ui` job running `bin/ui-test` and `bin/browser-test`, lint extensions, `ToastProvider` in the shells). From 2026-11-23: bump Inertia (^3.7 / 3.11.0). Owner: assign Card/Panel and Tabs to a story (1.8a found no story lists them).
+- **Running:** nothing. All agent worktrees are merged and removed. CI is watched with `gh` (authed as gericomaverick).
+- **Next:** **1.9** (the last Epic 1 story): customer shell (top bar, project tabs on 1.8c `Tabs`, phone bottom bar; decide ARIA tabs vs nav with `aria-current` for URL-routed tabs) and admin shell; `ToastProvider` in the shells; the CI `ui` job (`bin/ui-test`, `bin/browser-test` + baselines in the pinned image) and a `lighthouse` job; lint for raw hex and pixel font sizes. Also swap 1.8c's `LoadingBlock` placeholders for 1.8b `Skeleton`/`EmptyState`. Catalogue: `/dev/ui`, `/dev/ui/status`, `/dev/ui/media`. From 2026-11-23: bump Inertia (^3.7 / 3.11.0). Owner: assign Card/Panel and Tabs to a story (1.8a found no story lists them).
 - **Portal dev:** `cd apps/portal && docker compose up -d` gives http://localhost:8080; `bin/test` runs Pint, Larastan level 9 and Pest. No host PHP.
 - **Dated follow-up:** from 2026-11-23, bump Inertia to ^3.7 / react adapter 3.11.0.
 - **Owner items (open):** review the turn-banner copy (`BANNER_COPY` in `apps/portal/resources/js/lib/status.ts`, story 1.8b); confirm the Sfizia EULA allows WOFF2; key-screen approval and the one-project shortcut (before Epics 6/7), turnaround copy for empty states, brief reference uploads (post-launch?), launch date. MacBook worker paused.
@@ -27,6 +27,8 @@ npm run test:e2e                                        # last recorded: 5–6 P
 | 2026-11-18 | **107 files (103 passed, 4 skipped opt-in PG); 722 passed, 20 skipped.** typecheck ✓, lint ✓ (0 warnings) | not re-run (Playwright needs a dev server) | n/a (suite not built) | n/a | Re-verified for readiness m24. Earlier "95 files / 614" in TODO.md is stale |
 
 ## Session log (newest first, one line each)
+
+- 2026-11-20: **Story 1.8c merged** (route, route-test and contrast conflicts kept both sides). Card/Panel, Tabs (Radix 1.2.1), concept card/gallery/viewer, PrivateImage, FileCard, UploadDropzone (Next's real limits), Thread, DataTable, PropertiesPanel, `usePolling` (backoff, hidden-tab pause). Merged main: Pest 317, ui-test 215/215, browser 208/208.
 
 - 2026-11-20: **Story 1.8b merged.** TurnBanner (11 states + 3 celebrations), StatusPill, StageTracker (Next's `buildTimeline`, 84/84 fixture), AllowanceMeter, EmptyState, Skeleton; `/dev/ui/status`. Merged main: Pest 316, ui-test 150/150, browser 144/144. **Owner:** review the banner copy (`resources/js/lib/status.ts` `BANNER_COPY`).
 
