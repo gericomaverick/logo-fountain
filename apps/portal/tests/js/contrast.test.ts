@@ -147,3 +147,26 @@ describe('story 1.8a component pairs (beyond the §8.1 table)', () => {
         });
     }
 });
+
+describe('story 1.8c component pairs (beyond the §8.1 table)', () => {
+    const EXTRA: Array<[string, string, number, string]> = [
+        ['success', 'surface', TEXT, 'ConceptCard "Approved" label'],
+        ['danger', 'surface', TEXT, 'Thread "Not sent." line, dropzone error'],
+        ['accent-text', 'surface', TEXT, 'active Tab label, Edit button'],
+        ['accent-text', 'sunken', TEXT, 'Properties panel Edit button'],
+        ['fg-2', 'sunken', TEXT, 'Properties panel labels, preview unavailable'],
+        ['fg', 'warning-soft', TEXT, 'Data table reason chips'],
+        ['accent', 'surface', UI, 'Tab active indicator, new dot, selected Card border'],
+        ['accent', 'sunken', UI, 'upload progress fill on its track'],
+        ['border', 'surface', UI, 'dropzone dashed boundary'],
+        ['warning', 'surface', UI, 'Reconnecting icon'],
+    ];
+    for (const [theme, tokens] of [['light', light], ['dark', dark]] as const) {
+        for (const [fg, bg, min, use] of EXTRA) {
+            test(`${theme}: ${fg} on ${bg} ≥ ${min}:1 (${use})`, () => {
+                const ratio = contrast(tokens[fg] as string, tokens[bg] as string);
+                assert.ok(ratio >= min, `${ratio.toFixed(2)} < ${min}`);
+            });
+        }
+    }
+});
