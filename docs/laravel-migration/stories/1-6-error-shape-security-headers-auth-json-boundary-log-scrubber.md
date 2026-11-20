@@ -77,9 +77,9 @@ All under `apps/portal/`.
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|
 | L1 Pest unit | `tests/Unit/ScrubberTest.php` (11: presigned R2 URL, Laravel signed URL, `#token=` auth links, `session_id`, Bearer/Basic, `sk_`/`rk_`/`whsec_`/`cs_`, JWT, kept ids, email masking, sensitive keys at depth, exceptions, idempotence) | X-14 |
-| L2 Pest feature | `tests/Feature/SecurityHeadersTest.php` (8: exact CSP, local `unsafe-eval`, pages/`/up`/404/API, overriding a route's Referrer-Policy, 3 token pages incl. cookie kept, default caching elsewhere) | X-02 |
+| L2 Pest feature | `tests/Feature/SecurityHeadersTest.php` (8 cases: exact CSP, local `unsafe-eval`, pages/`/up`/404/API, overriding a route's Referrer-Policy, 3 token pages incl. cookie kept, default caching elsewhere) | X-02 |
 | L2 Pest feature | `tests/Feature/ApiErrorTest.php` (5: exact bytes, omitted code/details, `{}` details + unescaped, non-API route, not logged) | X-03 |
-| L2 Pest feature | `tests/Feature/AuthJsonBoundaryTest.php` (27 incl. datasets: mirrors `auth-session.spec.ts:140-182` on test routes: CT, 8192/8193, Content-Length, 8 malformed bodies, BOM/UTF-8, AuthFailure, native exception hidden, own 429 kept, headers mode, Set-Cookie kept) | A-17 |
+| L2 Pest feature | `tests/Feature/AuthJsonBoundaryTest.php` (26 cases incl. datasets: mirrors `auth-session.spec.ts:140-182` on test routes: CT, 8192/8193, Content-Length, 8 malformed bodies, BOM/UTF-8, AuthFailure, native exception hidden, own 429 kept, headers mode, Set-Cookie kept) | A-17 |
 | L2 Pest feature | `tests/Feature/LogScrubberTest.php` (4: every channel tapped, stack, file output with placeholders, a reported exception) | X-14 |
 | Parity | `journeys/smoke.spec.ts:8` X-02 (see evidence) | X-02 |
 
