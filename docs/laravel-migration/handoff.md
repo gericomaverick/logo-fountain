@@ -4,7 +4,7 @@
 
 - **Updated:** 2026-11-20
 - **Phase:** Epic 0 done. **Epic 1 in progress: 1.1a done** (Laravel 13 skeleton in `apps/portal`, Docker dev stack, pins; record `stories/1-1a-skeleton-compose-pins.md`).
-- **Running:** nothing (1.1b, 1.2, 1.3, 1.6 and 1.7 are merged) (stack ports: `COMPOSE_PROJECT_NAME=lf-<story>`, `PORTAL_HTTP_PORT=1808n`). After a restart they're gone: check `git worktree list` and the `worktree-*` branches for their commits, and merge or finish them (RESUME.md §2). The parity CI workflow was pushed (`422cfc7`); its first GitHub run is unchecked (no `gh` here; see the repo's Actions tab).
+- **Running:** nothing (1.1b, 1.2, 1.3, 1.6 and 1.7 are merged) (stack ports: `COMPOSE_PROJECT_NAME=lf-<story>`, `PORTAL_HTTP_PORT=1808n`). After a restart they're gone: check `git worktree list` and the `worktree-*` branches for their commits, and merge or finish them (RESUME.md §2). CI is watched with `gh run list` / `gh run watch` (gh authed as gericomaverick).
 - **Next:** **1.4** (origin guard as the CSRF control, plus the parity `laravel` CI job and a Laravel stack runner, moved here from 1.1b), **1.5** (trusted client address, full port of client-address tests), **1.8a** (form and action primitives). They can run in parallel. Then 1.8b/c and 1.9 (CI `ui` job, lint extensions). Run `create-story` for each first.
 - **Portal dev:** `cd apps/portal && docker compose up -d` gives http://localhost:8080; `bin/test` runs Pint, Larastan level 9 and Pest. No host PHP.
 - **Dated follow-up:** from 2026-11-23, bump Inertia to ^3.7 / react adapter 3.11.0.
@@ -27,6 +27,8 @@ npm run test:e2e                                        # last recorded: 5–6 P
 | 2026-11-18 | **107 files (103 passed, 4 skipped opt-in PG); 722 passed, 20 skipped.** typecheck ✓, lint ✓ (0 warnings) | not re-run (Playwright needs a dev server) | n/a (suite not built) | n/a | Re-verified for readiness m24. Earlier "95 files / 614" in TODO.md is stale |
 
 ## Session log (newest first, one line each)
+
+- 2026-11-20: `gh` is installed and authed (gericomaverick), so the parent can watch CI. First GitHub runs: `parity.yml` 10/11 green (1 J11 redirect race); `portal.yml` audit failed (no `.env`, so APP_ENV=production and the 1.3 boot validator refused). Fixed in `afc3317`; portal.yml now green (laravel-ci + audit).
 
 - 2026-11-20: **Story 1.7 merged** (README/TestCase conflicts resolved). Tokens light/dark, no-flash theme, self-hosted Inter/Geist Mono/Sfizia (woff2), DisplayTitle, design lint. Also fixed: `@viteReactRefresh` was missing (no page had ever rendered in dev), Vite port for parallel stacks. Merged main: Pest 192, ui-test 55/55, browser 18/18. **All five parallel stories are merged.**
 
