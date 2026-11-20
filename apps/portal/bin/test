@@ -1,6 +1,8 @@
 #!/bin/sh
-# Pest, Larastan level 9 and Pint, in the app container (the story 1.1a gate).
+# The Laravel quality gate: the AGENTS.md drift check (host, story 1.2), then Pint, Larastan level 9
+# and Pest in the app container (story 1.1a). Extra args go to Pest.
 set -e
+"$(dirname "$0")/check-agents-guide"
 c="docker compose -f $(dirname "$0")/../compose.yaml exec -T app"
 $c vendor/bin/pint --test
 $c vendor/bin/phpstan analyse --no-progress --memory-limit=1G
