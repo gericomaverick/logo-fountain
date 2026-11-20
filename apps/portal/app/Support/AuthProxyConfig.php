@@ -23,7 +23,7 @@ final readonly class AuthProxyConfig
 
     public static function from(mixed $header, mixed $hops): ?self
     {
-        $header = strtolower(self::text($header));
+        $header = NodeCompat::lower(self::text($header));
         $hops = self::text($hops);
         if (($header !== '') === ($hops !== '')) {
             return null;
@@ -39,6 +39,7 @@ final readonly class AuthProxyConfig
 
     private static function text(mixed $value): string
     {
-        return is_string($value) || is_int($value) ? trim((string) $value) : '';
+        // `?.trim()` on a UTF-8 env value (story 1.5: JS trim, not PHP's).
+        return is_string($value) || is_int($value) ? NodeCompat::trimEnv((string) $value) : '';
     }
 }

@@ -35,6 +35,9 @@
         <env name="SESSION_DRIVER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
+        <!-- Story 1.5: tests start with no proxy config whatever the dev .env says (it sets cf-connecting-ip). -->
+        <env name="AUTH_CLIENT_IP_HEADER" value=""/>
+        <env name="AUTH_TRUSTED_PROXY_HOPS" value=""/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
     </php>
 </phpunit>

@@ -2,7 +2,6 @@
 
 namespace App\Http\Middleware;
 
-use App\Support\AuthProxyConfig;
 use App\Support\ClientAddress;
 use App\Support\ErrorCodes;
 use Closure;
@@ -21,7 +20,7 @@ final class EnsureAuthAvailable
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (! app()->isProduction() || ClientAddress::trusted($request, AuthProxyConfig::fromConfig()) !== null) {
+        if (! app()->isProduction() || ClientAddress::for($request) !== null) {
             return $next($request);
         }
 
