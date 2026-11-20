@@ -33,7 +33,10 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
-            'serve' => true,
+            // Story 1.4: off. `serve` registers GET and a signed `PUT /storage/{path}` upload route outside
+            // the web group (no CSRF, no origin guard; tests/Arch/OriginGuardTest.php). Private objects go
+            // through the R2 store (ADR-016), never this disk.
+            'serve' => false,
             'throw' => false,
             'report' => false,
         ],

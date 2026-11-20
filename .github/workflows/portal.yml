@@ -42,8 +42,8 @@ jobs:
         run: docker compose exec -T app vendor/bin/pint --test
       - name: Larastan level 9 (L0)
         run: docker compose exec -T app vendor/bin/phpstan analyse --no-progress --memory-limit=1G
-      - name: Pest unit and feature (L1, L2)
-        run: docker compose exec -T app vendor/bin/pest --testsuite=Unit,Feature --colors=never 2>&1 | tee "$CI_LOGS/pest.log"
+      - name: Pest unit, feature and arch (L1, L2)
+        run: docker compose exec -T app vendor/bin/pest --testsuite=Unit,Feature,Arch --colors=never 2>&1 | tee "$CI_LOGS/pest.log"
       - name: Pest concurrency (L3, serial)
         run: |
           if find tests/Concurrency -name '*Test.php' | grep -q .; then

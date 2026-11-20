@@ -1,0 +1,7 @@
+# Override for apps/portal/compose.yaml when the parity suite drives Laravel (story 1.4;
+# scripts/laravel-stack.mjs). The canonical origin is the suite's base URL, as next-stack.mjs sets
+# PUBLIC_SITE_URL for Next. Process env beats .env (Dotenv is immutable), so a dev's .env is untouched.
+services:
+  app:
+    environment:
+      PUBLIC_SITE_URL: ${PARITY_LARAVEL_BASE_URL:?set by scripts/laravel-stack.mjs}

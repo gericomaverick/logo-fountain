@@ -2,4 +2,4 @@
 
 use Tests\TestCase;
 
-pest()->extend(TestCase::class)->in('Feature', 'Concurrency');
+pest()->extend(TestCase::class)->in('Feature', 'Arch', 'Concurrency');
