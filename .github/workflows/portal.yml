@@ -84,5 +84,8 @@ jobs:
         run: docker compose run --rm --no-deps vite npm audit --omit=dev
       - name: security check (port of apps/web scripts/security-check.mjs; O-04)
         run: |
+          # No .env on a fresh checkout means APP_ENV falls back to production, where the boot validator
+          # (story 1.3) rightly refuses the empty DB config. Use the dev template, as the init service does.
+          cp .env.example .env
           docker compose run --rm --no-deps app composer install --no-interaction --no-progress
           docker compose run --rm --no-deps app php artisan security:check

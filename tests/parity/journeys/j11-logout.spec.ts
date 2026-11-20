@@ -51,7 +51,12 @@ test("A-02/A-03 J11 signing out ends the session on the server and the back butt
 
   // Straight to protected URLs: nothing protected either.
   for (const path of [`/project/${projectId}`, `/project/${projectId}/messages`, "/dashboard", "/settings"]) {
-    await page.goto(path);
+    // A protected page may redirect to /login before "load"; Playwright reports that as an interrupted
+    // navigation. Being sent to sign-in is the expected outcome, so only that error is tolerated (story 0.9 CI flake).
+    await page.goto(path).catch((error: unknown) => {
+      if (!String(error).includes("is interrupted by another navigation")) throw error;
+    });
+    await page.waitForLoadState("load");
     expect(await account.showsSignedInContent(), `at ${path}`).toBe(false);
   }
 });
