@@ -34,6 +34,7 @@ npm run test:e2e                                        # last recorded: 5–6 P
 ## Session log (newest first, one line each)
 
 - 2026-11-21: **Workbench builder "schema": story 2.1 → review** on `workbench/schema` (was `workbench/2.1`). Migrations, `db:grants`, DB guards, harness; `bin/test` 403 passed; stack `lf-wb1` removed after the gates. See story 2.1 Conversion record.
+- 2026-11-21: **"schema": critic review fixes for 2.1** (still `review`): AGENTS §2 migrate row adds `db:grants`; admin-flag trigger hardened against a temporary `pg_class` (deviation from Next, DECISIONS) + `RuntimeRoleTest` asserts no `TEMP`; AC 7 code corrected to `23001`; ASSUMPTIONS narrowed; O-06 notes the Epic 9 deploy step. `bin/test` 403 passed (1161 assertions), split 370 + 33. CI not dispatched (owner's call); `composer.json` `setup` still migrates without `db:grants` (open item).
 
 - 2026-11-21: **Moved to the owner's Mac; Epic 2 handed to Workbench.** OrbStack installed (a full disk had corrupted the first builds); portal baseline matches (318/217/260). Story 2.1 decisions: Laravel conventions (owner). Fixed Linux paths (`_bmad/*.json|yaml`, protocol, RESUME). Workbench profile and builder-stack setup rewritten for the portal and tested; brief `briefs/workbench-epic-2.md`. Push fixed: `gh` signed in as gericomaverick, `origin` HTTPS, repo-local credential helper (global git config untouched).
 

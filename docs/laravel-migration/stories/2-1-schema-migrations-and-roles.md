@@ -21,7 +21,7 @@ From `epics.md` §2.1 (the minimum), expanded into testable items. Each item nam
 4. **Email checks (A-19).** `users.email` and `profiles.email` reject any value where `email <> lower(btrim(email))` (upper case, leading/trailing space) with SQLSTATE `23514`, from either role; a normalised value is accepted. → `EmailNormalisationConstraintTest`.
 5. **Grants (O-06, ADR-013).** After migrations, the grants step (`php artisan db:grants`, running `ops/postgres/runtime-grants.sql` as the migrate role) leaves the runtime role with: `SELECT, INSERT, UPDATE, DELETE` on every other table, `USAGE, SELECT` on sequences, **no** privilege at all on `migrations` (and its sequence) and `auth_admin_bootstrap`, no `CREATE` on schema `public` or the database, ownership of nothing, not superuser / createdb / createrole / bypassrls. Running the grants step twice is a no-op. → `RuntimeRoleTest`, `GrantsCommandTest`.
 6. **Two roles only (ADR-013, ADR-009).** `pgsql` and `pgsql_limits` connect as the **same** runtime role; `pgsql_migrate` is a different role on the same host/port/database. In production, boot fails if `pgsql_limits` differs from `pgsql` in host, port, database or username (extends the 1.3 validator; closes 1.3's open item). → `RuntimeRoleTest`, `tests/Unit/DatabaseRolesTest.php`, `tests/Feature/ConfigBootValidationTest.php`.
-7. **FK behaviours match the brownfield table.** Deleting a project cascades to all 12 project-owned tables; deleting a concept nulls `revision_requests.concept_id` and cascades `concept_comments`; deleting a client cascades memberships, projects and orders; deleting a profile that authored anything is refused (SQLSTATE `23503`) for each of the 7 restrict FKs, otherwise it cascades memberships and read states and nulls `audit_events.actor_id`; deleting a user with a profile is refused; deleting a user cascades `auth_proofs` (and `sessions`). → `ForeignKeyBehaviourTest`.
+7. **FK behaviours match the brownfield table.** Deleting a project cascades to all 12 project-owned tables; deleting a concept nulls `revision_requests.concept_id` and cascades `concept_comments`; deleting a client cascades memberships, projects and orders; deleting a profile that authored anything is refused (SQLSTATE `23001` restrict_violation; corrected from `23503` in review, see Doc / code disagreements) for each of the 7 restrict FKs, otherwise it cascades memberships and read states and nulls `audit_events.actor_id`; deleting a user with a profile is refused; deleting a user cascades `auth_proofs` (and `sessions`). → `ForeignKeyBehaviourTest`.
 8. **Dev and test stacks use the same path as production.** `docker/php/init.sh` runs `migrate --database=pgsql_migrate` then `db:grants`; the Pest database harness migrates `portal_test` as the migrate role and applies the grants before any test. `bin/test` and the CI `laravel-ci` job (including the now non-empty Concurrency suite) are green. → CI, `bin/test`.
 
 ## Inventory scope
@@ -168,7 +168,7 @@ Gate `@pg-race` = Pest L3 in `tests/Concurrency/` (own testsuite, run serially; 
 | L3 `@pg-race` | `tests/Concurrency/EmailNormalisationConstraintTest.php` | `users` and `profiles`, both roles: `'A@x.com'`, `' a@x.com'`, `'a@x.com '` → 23514 (constraint name in the error); `'a@x.com'` OK; `"a@x.com\t"` **accepted** (btrim strips spaces only, as Next) | A-19 |
 | L3 `@pg-race` | `tests/Concurrency/RuntimeRoleTest.php` | Port of `postgres.integration.test.ts:30-45` + `auth.postgres.integration.test.ts:222-223`: role attributes false; no schema/database CREATE; owns no table; CREATE TABLE / CREATE ROLE fail; `select` / `insert` on `migrations` and `auth_admin_bootstrap` → permission denied (both `pgsql` and `pgsql_limits`); runtime can `select/insert/update/delete` on every other portal table and `nextval` on framework sequences; no table has RLS on; `pgsql_limits` `current_user` = `pgsql` `current_user` ≠ `pgsql_migrate` | O-06, X-15, ADR-009/013 |
 | L2 Pest | `tests/Feature/Schema/SchemaContractTest.php` | Reads `information_schema` / `pg_catalog` and compares with the manifest: exact table set; per column type, length/precision, nullability, default; PKs; unique and plain indexes (columns, order); the expression index definition; each FK's target, `confdeltype` and `confupdtype`; the two checks' definitions; the trigger (BEFORE, INSERT OR UPDATE, ROW) and function exist; `profiles.id` no default; every domain id `uuid` except the four exceptions | X-15, A-19, ADR-012 |
-| L2 Pest | `tests/Feature/Schema/ForeignKeyBehaviourTest.php` | AC 7: one dataset row per FK (29 + sessions) asserting the delete effect from the runtime connection (cascade removes, set null nulls, restrict → 23503) | X-15 (FK table) |
+| L2 Pest | `tests/Feature/Schema/ForeignKeyBehaviourTest.php` | AC 7: one dataset row per FK (29 + sessions) asserting the delete effect from the runtime connection (cascade removes, set null nulls, restrict → 23001) | X-15 (FK table) |
 | L2 Pest | `tests/Feature/Schema/MigrationsTest.php` | `migrate:fresh --database=pgsql_migrate` twice in a row succeeds (function idempotency); `migrate:rollback --database=pgsql_migrate` to zero then `migrate` succeeds; all tables owned by the migrate role | ADR-012/013 |
 | L2 Pest | `tests/Feature/Schema/GrantsCommandTest.php` | `db:grants` twice is a no-op; refuses `--database=pgsql`; a table created by the migrate role after grants gets runtime DML (default privileges) | O-06 |
 | L1/L2 Pest | `tests/Unit/DatabaseRolesTest.php`, `tests/Feature/ConfigBootValidationTest.php` (extend) | `pgsql_limits` with a different username / host / port / database → `InvalidConfiguration` without the password; real production `php artisan` child process fails with a mismatched `pgsql_limits`, boots with the valid trio | ADR-009/013 |
@@ -211,16 +211,18 @@ Concretely: `bin/test` green (Pint, Larastan 9, Pest Unit/Feature/Arch **and** C
 - `project-context.md:57` ("L2 Pest feature tests use `RefreshDatabase`") can't work as written: `RefreshDatabase` migrates on the default runtime connection, which can't do DDL. Fix with the harness above.
 - `docker/postgres/01-roles.sh` roles differ from Next's (`INHERIT`, database `CONNECT`/`TEMP` left to PUBLIC), and its default privileges make `migrations` and `auth_admin_bootstrap` runtime-writable until a grants step exists (none today).
 - Inventory A-19 says "only the migration (owner) role"; the trigger actually checks *table owner* (`migration.sql:531`). Same thing only while migrations run as `pgsql_migrate`.
+- (Found in review, 2026-11-21.) AC 7 and the Test plan said a refused delete raises `23503`. Postgres 18.7 raises `23001` (restrict_violation) for `ON DELETE RESTRICT`; `23503` is the NO ACTION code. Confirmed on `lf-wb1` with a scratch RESTRICT FK (`ERROR: 23001: … violates RESTRICT setting of foreign key constraint`). AC 7 and the Test plan now say `23001`; the test always asserted `23001`.
+- (Found in review.) Next's trigger function (`migration.sql:525-538`) reads `pg_class` unqualified with no pinned `search_path`, so any session with `TEMP` can shadow it with a temporary `pg_class` and set `is_admin`. Ported hardened (Deviations below); `apps/web` not changed (frozen).
 
 ---
 
 ## Conversion record
 (Filled in by the dev agent; see `templates/story-conversion-record.md`. Write "none" rather than leaving a section out.)
 
-**Built by** Workbench builder "schema", 2026-11-21, on branch `workbench/schema` (first created as `workbench/2.1`, renamed on the owner's instruction before any commit), base main `129a599`. Code commit `9d21791`.
+**Built by** Workbench builder "schema", 2026-11-21, on branch `workbench/schema` (first created as `workbench/2.1`, renamed on the owner's instruction before any commit), base main `129a599`. Code commit `9d21791`; review fixes `68c1303`.
 
 ### Laravel implementation
-- **Migrations** (`apps/portal/database/migrations/`): `0001_01_01_000000_create_users_table.php` (uuid `users`, `email_verified_at`, `password` nullable, `credential_version`, check `users_normalized_email`; `sessions.user_id` uuid FK cascade; no `password_reset_tokens`, no `remember_token`); `2026_11_21_000000_create_profiles_table.php` (`profiles`, check `profiles_normalized_email`, function + trigger `protect_operator_admin_flag`, `CREATE OR REPLACE` because `migrate:fresh` drops tables but not functions; `down()` drops both); `…000001_create_client_and_project_tables.php`, `…000002_create_concept_and_messaging_tables.php`, `…000003_create_audit_and_read_state_tables.php` (expression index `audit_events_payload_request_key_index`), `…000004_create_stripe_and_auth_tables.php`. 22 portal tables + 6 framework tables; 30 FKs (21 cascade, 2 set null, 7 restrict), none with an `ON UPDATE` action. Created-only tables use `timestamp('created_at', 3)->useCurrent()`; the rest `timestamps(3)`.
+- **Migrations** (`apps/portal/database/migrations/`): `0001_01_01_000000_create_users_table.php` (uuid `users`, `email_verified_at`, `password` nullable, `credential_version`, check `users_normalized_email`; `sessions.user_id` uuid FK cascade; no `password_reset_tokens`, no `remember_token`); `2026_11_21_000000_create_profiles_table.php` (`profiles`, check `profiles_normalized_email`, function + trigger `protect_operator_admin_flag` (catalog names schema-qualified, `SET search_path = pg_catalog, pg_temp`), `CREATE OR REPLACE` because `migrate:fresh` drops tables but not functions; `down()` drops both); `…000001_create_client_and_project_tables.php`, `…000002_create_concept_and_messaging_tables.php`, `…000003_create_audit_and_read_state_tables.php` (expression index `audit_events_payload_request_key_index`), `…000004_create_stripe_and_auth_tables.php`. 22 portal tables + 6 framework tables; 30 FKs (21 cascade, 2 set null, 7 restrict), none with an `ON UPDATE` action. Created-only tables use `timestamp('created_at', 3)->useCurrent()`; the rest `timestamps(3)`.
 - **Grants (O-06):** `ops/postgres/runtime-grants.sql` (role placeholder) applied by `php artisan db:grants` (`app/Console/Commands/DbGrants.php`): runs only on `pgsql_migrate`, refuses an empty runtime username or one equal to the migrate username, quotes the role, runs in one transaction. Revokes `CREATE` on `public` from PUBLIC; DML on all tables, `USAGE, SELECT` on sequences, default privileges for both; revokes everything on `migrations`, `migrations_id_seq`, `auth_admin_bootstrap`. Idempotent.
 - **Same path everywhere (AC 8):** `docker/php/init.sh` runs `migrate --database=pgsql_migrate --force` then `db:grants`. `docker/postgres/01-roles.sh`: both roles `NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS NOINHERIT`, databases and schema `public` owned by `portal_migrate`, database privileges revoked from PUBLIC with `CONNECT` granted to the runtime only; its old default privileges moved to `db:grants`.
 - **Validator (AC 6, ADR-009):** `DatabaseRoles::LIMITS` and `assertLimitsUsesRuntime()` (`app/Support/DatabaseRoles.php`), called from `ConfigValidationServiceProvider` in production after the 1.3 pair check.
@@ -237,6 +239,7 @@ Concretely: `bin/test` green (Pint, Larastan 9, Pest Unit/Feature/Arch **and** C
 | Timestamps | `TIMESTAMP(3)` NN, default now | `timestamps(3)` nullable; created-only tables `useCurrent()` | Laravel convention | decision 1 |
 | FK update action | `ON UPDATE CASCADE` | none | Prisma artefact | decision 9 |
 | `ON DELETE RESTRICT` error | `23001` | `23001` (same; noted because `23503` is the NO ACTION code) | none | — |
+| Admin-flag trigger function | unqualified `pg_class`, no `search_path` (bypassable with a temporary `pg_class` by any role with `TEMP`) | `pg_catalog.pg_class`, `pg_catalog.pg_get_userbyid`, `SET search_path = pg_catalog, pg_temp`; `RuntimeRoleTest` asserts the runtime role has no `TEMP` | Security (A-19); found in review, bypass reproduced against Next's body | DECISIONS 2026-11-21 (lead's call) |
 | Optimistic version | `Project.updatedAt` | + `projects.version` int default 0 | Explicit guard | ADR-011, decision 6 |
 | requestKey lookup | no index | expression index | Receipt lookups | ADR-012 |
 | Grants | manual script, `lf_runtime` | `db:grants`, role from config, every migrate | Automate O-06 | ADR-013, decision 5 |
@@ -244,24 +247,33 @@ Concretely: `bin/test` green (Pint, Larastan 9, Pest Unit/Feature/Arch **and** C
 | Role validator | 2 URLs | + `pgsql_limits` = runtime | Third connection | ADR-009 consequence |
 | Dev roles | `INHERIT`, PUBLIC `CONNECT`/`TEMP` | `NOINHERIT`, `CONNECT` for runtime only | Least privilege | decision 10 |
 | `auth_admin_bootstrap` | single-row CHECK | none (CLI guards it) | — | decision 8 |
-None is visible to the parity suite.
+None is visible to the parity suite (the trigger hardening included: it only changes the outcome for a session that shadows `pg_class`).
 
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|
-| L2 Pest | `tests/Feature/Schema/SchemaContractTest.php` (5): exact table set; columns/indexes/FKs diffed against the hand-written manifest `tests/Fixtures/schema/expected.php`; FK actions, no `ON UPDATE`; non-uuid keys; trigger + function | X-15, A-19, ADR-012 |
+| L2 Pest | `tests/Feature/Schema/SchemaContractTest.php` (5): exact table set; columns/indexes/FKs diffed against the hand-written manifest `tests/Fixtures/schema/expected.php`; FK actions, no `ON UPDATE`; non-uuid keys; trigger + function, with the function's `search_path` pinned | X-15, A-19, ADR-012 |
 | L2 Pest | `tests/Feature/Schema/ForeignKeyBehaviourTest.php` (30-case dataset): each FK's delete action, as the runtime role | X-15 |
 | L2 Pest | `tests/Feature/Schema/MigrationsTest.php` (2): `migrate:fresh` twice, rollback, reset (no tables or functions left), migrate again; everything owned by the migrate role | ADR-012/013 |
 | L2 Pest | `tests/Feature/Schema/GrantsCommandTest.php` (3): idempotent; refuses a non-migrate connection; default privileges give a later table DML only | O-06 |
 | L3 `@pg-race` | `tests/Concurrency/AdminFlagTriggerTest.php` (5 titles, `pgsql` and `pgsql_limits`): insert admin, promote, demote, F-17 upsert all raise P0001 `operator-owned admin flag`; non-admin inserts, admin-row edits, true→true OK; owner can insert/promote/demote | A-19, DV-14 |
 | L3 `@pg-race` | `tests/Concurrency/EmailNormalisationConstraintTest.php` (2 titles, both tables, both roles): upper case / leading / trailing space → 23514 with constraint name; normalised and trailing tab accepted | A-19 |
-| L3 `@pg-race` | `tests/Concurrency/RuntimeRoleTest.php` (5): role attributes, no CREATE, owns nothing, CREATE TABLE/ROLE refused; no access to `migrations`, its sequence, `auth_admin_bootstrap` (both runtime connections); exactly DML on the other 26 tables, `nextval` on framework sequences; no RLS; `pgsql_limits` = `pgsql` ≠ `pgsql_migrate` on one database | O-06, X-15, ADR-009/013 |
+| L3 `@pg-race` | `tests/Concurrency/RuntimeRoleTest.php` (5): role attributes (super, createdb, createrole, bypassrls, inherit all false), no `CREATE` on schema or database, no `TEMP`, owns neither the database nor any table, CREATE TABLE / CREATE TEMPORARY TABLE / CREATE ROLE refused; no access to `migrations`, its sequence, `auth_admin_bootstrap` (both runtime connections); exactly DML on the other 26 tables, `nextval` on framework sequences; no RLS; `pgsql_limits` = `pgsql` ≠ `pgsql_migrate` on one database | O-06, X-15, ADR-009/013 |
 | L1/L2 Pest | `tests/Unit/DatabaseRolesTest.php` (+3 titles), `tests/Feature/ConfigBootValidationTest.php` (+2 titles: in-process, and a real production process via a cached config file, password not printed) | ADR-009 |
 
 Test-port ledger rows resolved: #96 tests 1–2 (partly ported); #66 last test, runtime half (partly ported). Next's `prisma migrate diff` drift check is replaced by `SchemaContractTest`.
 
 ### Test evidence
-On `lf-wb1` from a fresh volume (`docker compose up -d`: init ran the migrations, then printed "Runtime grants applied to role portal_runtime."):
+**Review fixes (2026-11-21, critic report `schema-critic-1347`)**, on `lf-wb1` from a fresh volume (init: migrations, then "Runtime grants applied to role portal_runtime."):
+- `bin/test` → exit 0: check-agents-guide "10 §5 areas and 3 DoD variants present", Pint OK (92 files), Larastan level 9 "No errors", Pest **403 passed (1161 assertions)**.
+- CI split: `vendor/bin/pest --testsuite=Unit,Feature,Arch` → 370 passed (1065 assertions); `vendor/bin/pest --testsuite=Concurrency` → 33 passed (96 assertions).
+- Trigger bypass, scratch database (dropped after): with `TEMP` granted, the runtime role created `pg_temp.pg_class` naming itself owner; Next's function body let `INSERT … is_admin = true` through (1 admin row), the hardened body raised `operator-owned admin flag` (0 rows).
+- `ON DELETE RESTRICT` SQLSTATE on Postgres 18.7: `23001` (same scratch database).
+- The new TEMP assertion fails when `TEMP` on `portal_test` is granted to `portal_runtime` (`'temp_db' => true`) and passes again after the revoke.
+- Harness cost, measured: the 10 migrations sum to ≈0.08 s (artisan's per-migration timings); `migrate:fresh` + `db:grants` as two CLI calls took 0.48 / 0.33 / 0.35 s including two artisan boots. The harness runs them in-process once per test process.
+- Stack removed afterwards (`docker compose down -v`).
+
+**Original run** on `lf-wb1` from a fresh volume (`docker compose up -d`: init ran the migrations, then printed "Runtime grants applied to role portal_runtime."):
 - `bin/test` → exit 0: check-agents-guide OK, Pint OK, Larastan level 9 "No errors", Pest **403 passed (1159 assertions)** (baseline 318).
 - `vendor/bin/pest --testsuite=Unit,Feature,Arch` → 370 passed; `vendor/bin/pest --testsuite=Concurrency` → 33 passed (the CI split).
 - `php artisan migrate:fresh --database=pgsql_migrate --force` twice, `migrate:rollback` once, `migrate` again, `db:grants` twice → all exit 0.
@@ -271,6 +283,7 @@ On `lf-wb1` from a fresh volume (`docker compose up -d`: init ran the migrations
 
 ### Gotchas
 - `ON DELETE RESTRICT` raises `23001`, not `23503`.
+- Postgres looks up unqualified *relation* names in the session's temporary schema before `pg_catalog`: a security-relevant function must qualify catalog names and pin `search_path`.
 - `migrate:fresh` doesn't drop functions: `CREATE OR REPLACE` + drop in `down()`.
 - With the runtime-only transaction, the owner connection can't see uncommitted runtime rows, and owner DDL on a table the runtime touched waits forever.
 - Larastan's `unprepared()` wants a literal string: `db:grants` runs its SQL through `getPdo()->exec()` inside the transaction.
@@ -281,6 +294,8 @@ On `lf-wb1` from a fresh volume (`docker compose up -d`: init ran the migrations
 Inventory X-15, A-19, O-06 → Verified; ledger #66, #96; `apps/portal/AGENTS.md` §3 and §8; `project-context.md` (layers and migrations rules); `apps/portal/README.md`; `docs/governance/DECISIONS.md`, `RISKS.md`, `ASSUMPTIONS.md`; `sprint-status.yaml` (2-1 → review, epic-2 → in-progress); `handoff.md`. ADRs not edited (consequences above).
 
 ### Open items
-- CI `laravel-ci` hasn't run on this branch: open a PR or dispatch the workflow to see the Concurrency step green.
+- CI `laravel-ci` hasn't run on this branch: open a PR or dispatch the workflow to see the Concurrency step green (owner's call).
+- `apps/portal/composer.json:46` (`setup` script) migrates without `db:grants`; outside this story's files, not changed.
+- Next (`apps/web`, frozen) keeps the bypassable trigger; production Next is safe only while its runtime role has no `TEMP`.
 - Production: the deploy must run `migrate --database=pgsql_migrate` then `db:grants` (no deploy pipeline yet), and production roles need the 01-roles.sh attributes and database privileges set by hand (RISKS/ASSUMPTIONS 2026-11-21).
 - `database/factories/UserFactory.php` and `app/Models/User.php` **left untouched and unused** (guidance option 2): they still assume an incrementing id and `remember_token`, so `User::factory()->create()` and the skeleton `DatabaseSeeder` would fail against this schema. Nothing calls them (no test, `init.sh` and CI don't seed). 2.2 owns the uuid model/factory, 2.6 the seeder.
