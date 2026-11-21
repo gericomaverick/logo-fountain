@@ -1,6 +1,6 @@
 # Story 2.3: Project state machine and display status
 
-**Status:** ready-for-dev (2026-11-21) · **DoD variant:** Laravel-only · **Epic:** 2 · **Covers:** X-07, C-03 (status) · **Gate:** `@unit` · **After:** 2.1, 0.6b (done) (stack on `workbench/2.1`; unmerged)
+**Status:** ready-for-dev (2026-11-21) · **DoD variant:** Laravel-only · **Epic:** 2 · **Covers:** X-07, C-03 (status) · **Gate:** `@unit` · **After:** 2.1, 0.6b (done) (stack on `workbench/schema`, the 2.1 builder's branch; unmerged)
 
 > Created with BMAD `create-story`, from the researcher draft in `reports/story-drafts-60.md` (Workbench), with its `file:line` citations spot-checked against `apps/web` and the docs and corrected (see *Doc / code disagreements*). Structure follows `stories/2-1-schema-migrations-and-roles.md` and `templates/story-conversion-record.md`. Docs only: no portal code was written for this file.
 
@@ -16,7 +16,8 @@ From `epics.md:247-249` (§2.3: "The PHP `ProjectState` agrees with every case i
 4. **Labels, CTAs, customer action, timeline.** `PROJECT_STATE_LABELS`, `PRIMARY_CTA_BY_STATE`, `customerActionFor` (16 cases) and `buildTimeline` (48 cases) agree with the fixture (see *Open questions* 1 for why PHP needs these).
 5. **Display and overview status.** `deriveDisplayProjectStatus` and `deriveOverviewBadgeStatus` agree with all 112 cases of `tests/parity/fixtures/rules/display-status.json` (56 each), including persisted `APPROVED`, `""` and `UNKNOWN`.
 6. **Unknown persisted status** passes through derivation unchanged (`project-status.ts:23`), as the fixture's `UNKNOWN`/`""` cases pin; it is never coerced to a known state.
-7. **No database writes.** Pure domain code; transactions and the version guard belong to 2.4 and the lifecycle Actions.
+7. **No database writes.** Pure domain code; transactions and the version guard belong to 2.4 and the lifecycle Actions. → arch test: the 2.3 classes don't use `Illuminate\Support\Facades\DB`, `Illuminate\Database`, or `App\Models`.
+8. **The tests read the shared fixtures in place.** The `app` container mounts only `apps/portal` (`apps/portal/compose.yaml:15`, `.:/var/www/html`), so `tests/parity/fixtures/rules/` is added as a **read-only bind mount** in `apps/portal/compose.yaml` (e.g. `../../tests/parity/fixtures/rules:/var/www/parity-fixtures/rules:ro`, outside `/var/www/html` so no empty mountpoint appears in the portal tree). This covers `bin/test`, builder stacks and CI, which run the same compose file from `apps/portal` with the whole repo checked out (`.github/workflows/portal.yml:23,41`). If the directory is missing, the fixture tests **fail** with a message naming the mount; they never skip. No copy is made, so there is nothing to drift.
 
 ## Inventory scope
 - **X-07** (`01-feature-inventory.md:138`): the 11 states, transition table, timeline labels and CTA. The PHP half completes here (Pest over the shared fixture); the row also lists the TS/UI half (kept) and `@state` parity tests. Mark the Laravel column; `Verified` only if no other part of the row is open.
@@ -38,9 +39,9 @@ From `epics.md:247-249` (§2.3: "The PHP `ProjectState` agrees with every case i
 - ⚠️ F-13: nothing moves a project to `IN_DESIGN` in Next (`business-rules-and-notifications.md:27`). Not this story's to fix; keep the table as is.
 
 ## Laravel guidance (for the dev agent)
-- Backed string enum `ProjectState` under `app/Domain/` (`AGENTS.md:82` names it there) with `label()`, `primaryCta()`, `allowedTransitions()`; a `ProjectTransitions` service returning a result object for `applyTransition`; a `ProjectStatus` (display/badge) class taking strings, since unknown persisted strings must pass through.
-- Use `App\Support\NodeCompat` for JS `trim()` semantics on the reason (it exists for the email mutators; `2-1-…md:185`).
-- Tests read the JSON fixtures directly (no copies) and dispatch on `fn`; one Pest dataset per fixture file so a new fixture case fails loudly if unhandled.
+- Backed string enum `ProjectState` under `app/Domain/` (`AGENTS.md` §7 names it there: the *Value objects, enums* row, line 83 on main `b115b95`) with `label()`, `primaryCta()`, `allowedTransitions()`; a `ProjectTransitions` service returning a result object for `applyTransition`; a `ProjectStatus` (display/badge) class taking strings, since unknown persisted strings must pass through.
+- Blank reason: use `NodeCompat::trimEnv()` (`apps/portal/app/Support/NodeCompat.php:45`), which is the JS `trim()` set for UTF-8 strings (`UNICODE_SPACE`, `:19`). There is no `NodeCompat::trim()`; `trimHeader()` is the latin1 variant for headers and is wrong here. Don't add a new method in this story (2.2 uses `trimEnv` for its email mutators too); if the name reads badly at the call site, say so in the record.
+- Tests read the JSON fixtures in place through the AC 8 mount (no copies) and dispatch on `fn`; one Pest dataset per fixture file so a new fixture case fails loudly if unhandled. Keep the fixture path in one place (a test helper constant), as `apps/portal/tests/js/status-logic.test.ts:34` does for its own fixture.
 
 ## Planned deviations from Next.js (confirm in the Conversion record)
 | Behaviour | Next.js | Laravel | Why | Ref |
@@ -53,27 +54,29 @@ None visible to the parity suite (the fixture pins outputs).
 2. Enum + transitions service (AC 1–3).
 3. Labels, CTAs, `customerActionFor`, `buildTimeline` (AC 4).
 4. Display/badge derivation (AC 5–6).
-5. Fixture-driven Pest tests (`->group('unit')`), plus explicit edge cases named below.
-6. Docs: Conversion record; inventory X-07 / C-03 Laravel/Tests columns; ledger #103/#104; DECISIONS line for the enum form if not already covered.
+5. Fixture mount (AC 8): `apps/portal/compose.yaml` volume on the shared app definition; confirm `.github/workflows/portal.yml` needs no change (it runs the same compose file) and say so in the record. Builder stacks pick it up on `docker compose up -d` (recreate `app`).
+6. Fixture-driven Pest tests (`->group('unit')`), plus explicit edge cases and the AC 7 arch test named below.
+7. Docs: Conversion record; inventory X-07 / C-03 Laravel/Tests columns; ledger #103/#104; DECISIONS line for the enum form if not already covered.
 
 ## Test plan
 | Layer | File | Cases | IDs |
 |---|---|---|---|
 | L1 Pest `@unit` | `tests/Unit/Domain/ProjectStateFixtureTest.php` | all 494 `state-machine.json` cases, by `fn` | X-07 |
 | L1 Pest `@unit` | `tests/Unit/Domain/ProjectStatusFixtureTest.php` | all 112 `display-status.json` cases | X-07, C-03 |
-| L1 Pest `@unit` | `tests/Unit/Domain/ProjectStateEdgeTest.php` | rule order (unknown + blank reason → `INVALID_STATE`); reason of only Unicode whitespace (e.g. `"\u{00A0}"`) counts as blank (JS trim); `APPROVED` not an enum case; fixture `fn` coverage (every `fn` in the file is handled) | X-07 |
+| L1 Pest `@unit` | `tests/Unit/Domain/ProjectStateEdgeTest.php` | rule order (unknown + blank reason → `INVALID_STATE`); reason of only Unicode whitespace (e.g. `"\u{00A0}"`) counts as blank (JS trim); `APPROVED` not an enum case; fixture `fn` coverage (every `fn` in the file is handled); missing fixture directory → failure naming the mount, not a skip | X-07 |
+| Arch | `tests/Arch/DomainPurityTest.php` (or a case in an existing arch file) | `ProjectState`, the transitions service and `ProjectStatus` don't use `DB`, `Illuminate\Database` or `App\Models` (AC 7) | X-07 |
 No parity runs (`@state` parity journeys belong to the UI stories).
 
 ## Definition of done (Laravel-only, `epics.md:35`)
 `@unit` group green, plus the full Laravel suite (`bin/test`). Ledger #103/#104 resolved; inventory columns updated. Story record, handoff, pushed (branch).
 
 ## Dependencies and follow-ups
-- **Depends on:** 0.6b fixtures (done); 2.1 only for the branch base (no schema use beyond `projects.status` text, `2-1-…md:186`).
+- **Depends on:** 0.6b fixtures (done); 2.1 only for the branch base (no schema use beyond `projects.status` text, `2-1-…md:186`). Stack on `workbench/schema` (the 2.1 builder's branch); rebase if 2.1 changes.
 - **2.4 / lifecycle Actions** call the transitions service inside `Db::serializable()`.
 - **Snapshot builder** (`project-snapshot.ts` → PHP `ProjectSnapshot`, a later story) consumes display status and `buildTimeline`.
 
 ## Open questions (with recommendations)
-1. **Does PHP need labels, CTAs and the timeline?** Brownfield says labels, CTAs and `buildTimeline` "are UI copy … They stay in TS" (`business-rules-and-notifications.md:28`), but `applyTransition` returns `label` and `primaryCta`, and the server snapshot calls `buildTimeline` (`project-snapshot.ts:1,309`), so the Laravel API must produce them. *Recommendation:* port all 8 `fn`s of the fixture to PHP (data-driven, cheap) and keep the TS copies for the UI; both are pinned by the same fixture so they can't drift.
+1. **Does PHP need labels, CTAs and the timeline?** Brownfield says labels, CTAs and `buildTimeline` "are UI copy … They stay in TS" (`business-rules-and-notifications.md:28`), but `applyTransition` returns `label` and `primaryCta`, and the server snapshot calls `buildTimeline` (`project-snapshot.ts:1,309`), so the Laravel API must produce them. *Recommendation:* port all 8 `fn`s of the fixture to PHP (data-driven, cheap) and keep the TS copies for the UI. They are pinned by **different** fixtures that come from the same Next code: the PHP port by `tests/parity/fixtures/rules/state-machine.json`, the portal's `resources/js/lib/status.ts` by `apps/portal/tests/js/fixtures/next-timeline.json` (1.8b, generated from Next's own `buildTimeline()`/`customerActionFor()`, `tests/js/status-logic.test.ts:2-4`). Both agree with Next, so they agree with each other; neither test checks the other's fixture.
 2. **Enum vs class.** *Recommendation:* backed string enum plus a separate transitions service (brownfield `:11` says "PHP enum + transition service").
 3. **Unknown status.** *Recommendation:* pass through unchanged, as the fixture pins; `ProjectState::tryFrom()` returns null and derivation works on the raw string.
 No owner decision needed for 2.3.
@@ -83,6 +86,7 @@ No owner decision needed for 2.3.
 - Draft cited `business-rules-and-notifications.md:22-29` for §2; §2 is `:22-28` (`:30` is the §3 snapshot heading). Fixed.
 - Brownfield `:28` ("stay in TS") vs `project-snapshot.ts:309` (server-side timeline): see *Open questions* 1.
 - The fixture covers persisted `APPROVED` though it is not a state (legacy rows); keep the derivation handling it.
+- Earlier draft of this story said the tests could read `tests/parity/fixtures/rules/*.json` directly; the container can't see that path (`compose.yaml:15`). Fixed by AC 8 (read-only mount). It also said `NodeCompat` had a JS `trim()` for the email mutators; it has `trimEnv`/`trimHeader`/`lower` and the mutators don't exist yet (2.2). Fixed. AGENTS.md citation was `:82`; the `app/Domain/` row is line 83 on main. Now cited by section.
 
 ---
 
