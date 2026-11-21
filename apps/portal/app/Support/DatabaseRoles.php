@@ -18,6 +18,8 @@ final class DatabaseRoles
 
     public const MIGRATE = 'pgsql_migrate';
 
+    public const LIMITS = 'pgsql_limits';
+
     /** Query keys that would silently re-route a connection (`database-target.ts:4`, plus Laravel's names). */
     private const OVERRIDE_KEYS = [
         'host', 'hostaddr', 'port', 'user', 'username', 'password', 'dbname', 'database',
@@ -39,6 +41,23 @@ final class DatabaseRoles
         }
         if ($runtime['username'] === $migrate['username']) {
             throw new InvalidConfiguration(self::RUNTIME.' and '.self::MIGRATE.' require distinct runtime and migration roles');
+        }
+    }
+
+    /**
+     * ADR-009/013: the rate-limit connection is the runtime role on the runtime's own target (story 2.1).
+     *
+     * @param  array<string, mixed>  $connections  `config('database.connections')`
+     *
+     * @throws InvalidConfiguration
+     */
+    public static function assertLimitsUsesRuntime(array $connections): void
+    {
+        $runtime = self::target($connections[self::RUNTIME] ?? null, self::RUNTIME);
+        $limits = self::target($connections[self::LIMITS] ?? null, self::LIMITS);
+
+        if ($runtime !== $limits) {
+            throw new InvalidConfiguration(self::LIMITS.' must use the runtime role on the same host, port and database as '.self::RUNTIME.' (ADR-009)');
         }
     }
 
