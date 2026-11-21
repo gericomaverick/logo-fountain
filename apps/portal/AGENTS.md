@@ -22,7 +22,7 @@ Laravel 13 portal replacing `apps/web` (Next.js). Paths below are relative to `a
 | Start the stack (first run: .env, composer install, key, migrate) | `docker compose up -d --build` → http://localhost:8080, `/up` |
 | Quality gate (Pint `--test`, Larastan level 9, Pest; plus this guide's check) | `bin/test` (extra args go to Pest, e.g. `bin/test --filter=Health`) |
 | Artisan / Composer | `bin/artisan …` · `bin/composer …` (run in the `app` container) |
-| Migrations (schema owner, ADR-013) | `bin/artisan migrate --database=pgsql_migrate` |
+| Migrations (schema owner, ADR-013), then runtime grants (every time, §3) | `bin/artisan migrate --database=pgsql_migrate && bin/artisan db:grants` |
 | Frontend typecheck / build | `docker compose exec vite npm run typecheck` · `… npm run build` |
 | Stop and wipe **your** stack | `docker compose down -v` (never another project's) |
 
@@ -41,7 +41,7 @@ Services: `postgres` 18.7 · `init` (one-shot, `docker/php/init.sh`) · `app` ph
 | `pgsql` (default) | runtime | DML only. DDL is refused; no access to `migrations` or `auth_admin_bootstrap` (`tests/Concurrency/RuntimeRoleTest.php`) |
 | `pgsql_migrate` | schema owner | `migrate --database=pgsql_migrate` then `db:grants`, `admin:bootstrap` |
 | `pgsql_limits` | runtime | rate-limit buckets only, never inside a business transaction |
-Config: `config/database.php`. Dev roles (attributes, database `CONNECT`): `docker/postgres/01-roles.sh`. Grants and default privileges: `ops/postgres/runtime-grants.sql`, applied by `php artisan db:grants` after **every** migrate (`docker/php/init.sh`, the Pest harness, deploy). A new operator-only table must be revoked in that file. Production boot fails unless `pgsql_limits` is the runtime role on the runtime's host, port and database (`DatabaseRoles::assertLimitsUsesRuntime`). `profiles.is_admin` can only be set or changed by the table owner (trigger `protect_operator_admin_flag`, A-19): runtime code must never write it, including in upserts (F-17).
+Config: `config/database.php`. Dev roles (attributes, database `CONNECT`): `docker/postgres/01-roles.sh`. Grants and default privileges: `ops/postgres/runtime-grants.sql`, applied by `php artisan db:grants` after **every** migrate (`docker/php/init.sh`, the Pest harness, deploy). A new operator-only table must be revoked in that file. Production boot fails unless `pgsql_limits` is the runtime role on the runtime's host, port and database (`DatabaseRoles::assertLimitsUsesRuntime`). `profiles.is_admin` can only be set or changed by the table owner (trigger `protect_operator_admin_flag`, A-19; its function qualifies catalog names and pins `search_path`, and the runtime role must have no `TEMP`): runtime code must never write it, including in upserts (F-17).
 
 ## 4. Pins (`MIG/research-technical.md` §2 and its pin policy)
 - New pins must be ≥ ~3 weeks old; later updates ≥ 14 days, **except security advisories (take immediately)**.

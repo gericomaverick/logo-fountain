@@ -24,13 +24,16 @@ return new class extends Migration
         DB::statement('ALTER TABLE profiles ADD CONSTRAINT profiles_normalized_email CHECK (email = lower(btrim(email)))');
 
         // Only the table owner (the migrate role) may insert an admin or change the flag (migration.sql:525-538).
+        // Hardened vs Next: catalog names are schema-qualified and search_path is pinned, so a session that can
+        // create temporary tables can't shadow pg_class with its own (pg_temp is searched first for relations).
         // CREATE OR REPLACE: migrate:fresh drops tables but not functions.
         DB::unprepared(<<<'SQL'
-            CREATE OR REPLACE FUNCTION protect_operator_admin_flag() RETURNS trigger LANGUAGE plpgsql AS $$
+            CREATE OR REPLACE FUNCTION protect_operator_admin_flag() RETURNS trigger LANGUAGE plpgsql
+            SET search_path = pg_catalog, pg_temp AS $$
             BEGIN
               IF (TG_OP = 'INSERT' AND NEW.is_admin) OR
                  (TG_OP = 'UPDATE' AND NEW.is_admin IS DISTINCT FROM OLD.is_admin) THEN
-                IF current_user <> pg_get_userbyid((SELECT relowner FROM pg_class WHERE oid = TG_RELID)) THEN
+                IF current_user <> pg_catalog.pg_get_userbyid((SELECT c.relowner FROM pg_catalog.pg_class c WHERE c.oid = TG_RELID)) THEN
                   RAISE EXCEPTION 'operator-owned admin flag';
                 END IF;
               END IF;

@@ -7,8 +7,9 @@ use Illuminate\Support\Str;
 use Tests\Support\PortalRows;
 
 // Story 2.1 AC 7 (X-15): each FK's delete action, exercised from the runtime connection. Each case makes a
-// fresh parent with exactly one child row pointing at it (everything else points at a shared base graph),
-// deletes the parent and checks the child.
+// fresh parent and one child row whose FK under test points at it (the child's other FKs point at a profile,
+// client, project, concept and thread that childRow() also creates fresh for that case), deletes the parent
+// and checks the child.
 
 /**
  * @return array{key: string, row: array<string, mixed>}

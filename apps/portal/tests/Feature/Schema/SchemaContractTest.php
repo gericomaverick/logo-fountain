@@ -109,10 +109,11 @@ it('keys every portal table by uuid except the listed exceptions', function () {
     expect($keys)->toBe(expectedSchema()['non_uuid_keys']);
 });
 
-it('has the admin-flag trigger function and one BEFORE INSERT OR UPDATE row trigger on profiles', function () {
+it('has the admin-flag trigger function (search_path pinned) and one BEFORE INSERT OR UPDATE row trigger on profiles', function () {
     $triggers = catalog("select pg_get_triggerdef(t.oid) as def from pg_trigger t join pg_class c on c.oid = t.tgrelid join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and not t.tgisinternal");
-    $functions = catalog("select p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public'");
+    $functions = catalog("select p.proname, array_to_string(p.proconfig, ';') as config from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public'");
 
+    // Hardened vs Next (story 2.1 review): a temporary pg_class can't shadow the catalog inside the trigger.
     expect(array_map(fn ($r) => $r->def, $triggers))->toBe([expectedSchema()['trigger']])
-        ->and(array_map(fn ($r) => $r->proname, $functions))->toBe(['protect_operator_admin_flag']);
+        ->and(array_map(fn ($r) => [$r->proname, $r->config], $functions))->toBe([['protect_operator_admin_flag', 'search_path=pg_catalog, pg_temp']]);
 });

@@ -24,15 +24,19 @@ function expectPermissionDenied(callable $statement): void
 
 dataset('runtime connections', [DatabaseRoles::RUNTIME, DatabaseRoles::LIMITS]);
 
-it('is a non-owner, non-superuser role that cannot create tables, roles or databases', function (string $connection) {
+it('is a non-owner, non-superuser role that cannot create tables, temporary tables, roles or databases', function (string $connection) {
     $db = DB::connection($connection);
-    $role = (array) $db->selectOne('select rolsuper, rolcreatedb, rolcreaterole, rolbypassrls from pg_roles where rolname = current_user');
+    $role = (array) $db->selectOne('select rolsuper, rolcreatedb, rolcreaterole, rolbypassrls, rolinherit from pg_roles where rolname = current_user');
+    // No TEMP: a temporary table could otherwise shadow catalog relations for unqualified names (story 2.1 review).
     $privileges = (array) $db->selectOne("select has_schema_privilege(current_user, 'public', 'CREATE') as create_schema,
         has_database_privilege(current_user, current_database(), 'CREATE') as create_db,
+        has_database_privilege(current_user, current_database(), 'TEMP') as temp_db,
+        (select pg_get_userbyid(datdba) from pg_database where datname = current_database()) = current_user as owns_db,
         exists(select 1 from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and pg_get_userbyid(c.relowner) = current_user) as owns");
 
-    expect(array_values($role))->toBe([false, false, false, false])
-        ->and($privileges)->toBe(['create_schema' => false, 'create_db' => false, 'owns' => false]);
+    expect(array_values($role))->toBe([false, false, false, false, false])
+        ->and($privileges)->toBe(['create_schema' => false, 'create_db' => false, 'temp_db' => false, 'owns_db' => false, 'owns' => false]);
+    expectPermissionDenied(fn () => $db->statement('create temporary table forbidden (id int)'));
     expectPermissionDenied(fn () => $db->statement('create table public.forbidden (id int)'));
     expectPermissionDenied(fn () => $db->statement('create role forbidden'));
 })->with('runtime connections')->group('pg-race');
