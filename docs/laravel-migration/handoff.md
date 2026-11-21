@@ -46,6 +46,8 @@ npm run test:e2e                                        # last recorded: 5–6 P
 
 ## Session log (newest first, one line each)
 
+- 2026-11-21: **Story 2.1 created (ready-for-dev).** `stories/2-1-schema-migrations-and-roles.md`: 22-table checklist from the Next SQL, trigger/checks/grants, `db:grants`, owner-migrating test harness, 10 open questions with recommendations.
+
 - 2026-11-20: **Story 1.9 merged; Epic 1 done.** Shells (TabNav as a nav of links, More overflow on phones), design lint (pixel font size, gradients), ESLint 9, CI `ui` and `lighthouse` jobs. First CI run: the `ui` axe check flaked on a fading dialog, so every axe run now waits for animations (`b353a1c`, 280/280 over 10 repeats). All portal jobs green.
 
 - 2026-11-20: CI green on the 1.8c merge (portal: laravel-ci + audit; parity: next + laravel). Launched 1.9, the last Epic 1 story.
