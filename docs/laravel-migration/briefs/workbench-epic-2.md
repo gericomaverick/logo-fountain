@@ -39,7 +39,7 @@ The BMAD workflow files aren't installed on this Mac (`_bmad/bmm` dangles). Foll
 - **Docker is OrbStack.** `docker` isn't on the default PATH: start shell commands with `export PATH="$HOME/.orbstack/bin:$PATH"`.
 - **Each builder's copy has its own portal stack**, set up for you (`logo-fountain.setup.sh`): its own compose project `lf-wbN` and ports, written into `apps/portal/.env`. In `apps/portal`, `docker compose up -d`, `bin/test` and `bin/artisan` use it automatically. Before `bin/browser-test`/`bin/lighthouse`, run the export line in that `.env`. **Never touch `lf-portal`** (the owner's stack, port 8080) or another builder's.
 - **The disk is nearly full** (2.5 GB free on 2026-11-21; a builder stack costs about 0.5 GB, its `npm ci` included). `docker compose down -v` your stack as soon as your gates have passed; **one running builder stack at a time** (two only if `df -h /System/Volumes/Data` shows more than 10 GB free). The owner's `lf-portal` stack stays up. If Docker reports "no space left on device", stop and ask the owner; don't prune images or volumes you didn't create.
-- **No push.** `git push` doesn't work from this Mac until the owner signs in (`gh auth login`). Commit on your branch. That's enough.
+- **Pushing:** `origin` is HTTPS and signed in (gericomaverick, repo-local). The guard lets you push your own `workbench/*` branch; main is the owner's.
 - **The guard** refuses any command containing the word `forge` (it means the hosting service). The docs mention Laravel Forge, so search with `grep -i 'f[o]rge'` if you have to.
 - **The parity suite on Next can't run here yet:** `apps/web` and `tests/parity` have no `node_modules`, and installing them plus the Next stack won't fit on the disk. This matters only for 2.6 (below).
 

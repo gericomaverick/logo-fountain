@@ -10,7 +10,7 @@
 - **Next:** the owner starts Workbench (`cd ~/Code/workbench && npm start`, choose Logo Fountain) and points the lead at the brief. Workbench delivers 2.1 → 2.2–2.5 → 2.6/2.7 on stacked `workbench/*` branches; the owner merges in order. **If Workbench isn't used,** a Claude Code session runs the same brief with its own sub-agents.
 - **Blockers (owner):**
   - **Disk:** 2.5 GB free. One builder stack at a time; the Next parity stack (`apps/web`/`tests/parity` have no `node_modules`) won't fit, which blocks 2.6's Next-side comparison. Candidates: `~/Code/table-trove*/ios/build` (about 27 GB of Xcode output; keep `dSYMs`?), `~/Downloads/Web site` (11 GB).
-  - **Push:** `git push` (SSH) is denied for `gericomaverick/logo-fountain` on this Mac. Run `gh auth login` (HTTPS) as gericomaverick. Local main is ahead of origin.
+  - **Push works** (fixed 2026-11-21): `gh` is signed in as gericomaverick, and this repo's `origin` is HTTPS with a **repo-local** credential helper. The global git config is untouched; the owner's work SSH key (`~/.ssh/id_ed25519`) stays the default for `github.com`.
 - **Dated follow-up:** from 2026-11-23, bump Inertia to ^3.7 / `@inertiajs/react` 3.11.0 (update AGENTS.md §4 and `project-context.md`). Not in Workbench's brief.
 - **Owner items (open):** banner copy (`resources/js/lib/status.ts` `BANNER_COPY`); Sfizia EULA (WOFF2); NFR-P2 throttling (RISKS 2026-11-20); key-screen approval and the one-project shortcut (before Epics 6/7); empty-state turnaround copy; brief reference uploads; launch date.
 - **Run the suites:** **Portal:** `cd apps/portal && docker compose up -d && bin/test && bin/ui-test && bin/browser-test`. **Parity on Next:** `cd tests/parity && npm ci && npm run infra:up && node scripts/next-stack.mjs ["<gate>"]` (needs disk). **Parity on Laravel:** `node tests/parity/scripts/laravel-stack.mjs "<gate>" [--only <regex>]`.
@@ -33,7 +33,7 @@ npm run test:e2e                                        # last recorded: 5–6 P
 
 ## Session log (newest first, one line each)
 
-- 2026-11-21: **Moved to the owner's Mac; Epic 2 handed to Workbench.** OrbStack installed (a full disk had corrupted the first builds); portal baseline matches (318/217/260). Story 2.1 decisions: Laravel conventions (owner). Fixed Linux paths (`_bmad/*.json|yaml`, protocol, RESUME). Workbench profile and builder-stack setup rewritten for the portal and tested; brief `briefs/workbench-epic-2.md`. Push blocked (no GitHub auth).
+- 2026-11-21: **Moved to the owner's Mac; Epic 2 handed to Workbench.** OrbStack installed (a full disk had corrupted the first builds); portal baseline matches (318/217/260). Story 2.1 decisions: Laravel conventions (owner). Fixed Linux paths (`_bmad/*.json|yaml`, protocol, RESUME). Workbench profile and builder-stack setup rewritten for the portal and tested; brief `briefs/workbench-epic-2.md`. Push fixed: `gh` signed in as gericomaverick, `origin` HTTPS, repo-local credential helper (global git config untouched).
 
 - 2026-11-21: **Story 2.1 created (ready-for-dev).** `stories/2-1-schema-migrations-and-roles.md`: 22-table checklist from the Next SQL, trigger/checks/grants, `db:grants`, owner-migrating test harness, 10 open questions with recommendations.
 
