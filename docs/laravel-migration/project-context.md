@@ -54,7 +54,7 @@ Scope: the Laravel portal `apps/portal` (replacing the frozen Next.js `apps/web`
 
 ### Testing Rules
 
-- **Layers** (`02-test-strategy.md` table L0–L9; tags per `epics.md` → Overview): `@unit` L1 (Pest/Vitest), `@api` L4/L6 HTTP, `@ui` L5 browser, `@pg-race` L3, `@visual` L7/L7a, `@deviation` a DV- row. L2 Pest feature tests use `RefreshDatabase` on real PG.
+- **Layers** (`02-test-strategy.md` table L0–L9; tags per `epics.md` → Overview): `@unit` L1 (Pest/Vitest), `@api` L4/L6 HTTP, `@ui` L5 browser, `@pg-race` L3, `@visual` L7/L7a, `@deviation` a DV- row. L2 Pest feature tests use `Tests\Support\RefreshDatabaseAsOwner` on real PG (RefreshDatabase that migrates as `pgsql_migrate` + `db:grants`, transacting `pgsql` only); `tests/Concurrency` uses `TruncatesDatabaseAsOwner` (no transaction). Never `migrate` on the default connection, in tests too (story 2.1).
 - **Pest:** feature tests extend `Tests\TestCase` (`tests/Pest.php` binds it to `Feature/` only). Folders: `tests/{Unit,Feature,Concurrency,Arch}`. Tests hit real **PostgreSQL** (`portal_test`, `phpunit.xml`), not SQLite.
 - **Every Action has a Pest feature test; every concurrency guard has an L3 race test** that calls the Action directly (Actions don't depend on `Request`).
 - **The parity suite (`tests/parity`) is the executable spec**, black-box against both apps. JSON must be byte-compatible; a field change needs the parity schema and the inventory updated. Laravel page objects go in `tests/parity/pages/laravel/`; `data-testid` only there; shared journeys stay unchanged.
@@ -81,7 +81,7 @@ Scope: the Laravel portal `apps/portal` (replacing the frozen Next.js `apps/web`
 
 ### Critical Don't-Miss Rules
 
-- **Migrations run as `pgsql_migrate` only.** The default `pgsql` role is DML-only and DDL fails. `pgsql_limits` exists for rate limits and must never be used inside a business transaction (asserts `transactionLevel()===0`).
+- **Migrations run as `pgsql_migrate` only, then `php artisan db:grants`** (O-06; dev init, test harness and deploy). The default `pgsql` role is DML-only and DDL fails; it has no access to `migrations` or `auth_admin_bootstrap`. Only the table owner can set `profiles.is_admin` (DB trigger, A-19). `pgsql_limits` exists for rate limits and must never be used inside a business transaction (asserts `transactionLevel()===0`).
 - **Auth actions call `RateLimits` before `Locks::credential()`**, so a fence rollback can't undo a limit hit (ADR-007, ADR-009).
 - **The credential fence:** one PG transaction holding `pg_advisory_xact_lock(hashtextextended('auth:'‖id,0))` with `SET LOCAL lock_timeout '5s'` and `statement_timeout '20s'`. Every auth read and write goes inside it.
 - **`Db::serializable()` must not nest** (a nested call throws). It retries SQLSTATE 40001/40P01 and maps exhaustion to the existing 409 codes; pair it with the `projects.version` guard.

@@ -71,7 +71,7 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 63 | `src/lib/admin-dashboard.test.ts` | 4 | D-01 | Keep TS (UI) + Pest for controller sort | | Not started |
 | 64 | `src/lib/admin-final-publication.test.ts` | 6 | D-11,D-12 | Keep TS (UI) | | Not started |
 | 65 | `src/lib/admin-override-inputs.test.ts` | 2 | D-14 | Keep TS (UI) | | Not started |
-| 66 | `src/lib/auth.postgres.integration.test.ts` | 12 | A-01…A-11 | L3 Pest real-PG (1:1) | | Not started |
+| 66 | `src/lib/auth.postgres.integration.test.ts` | 12 | A-01…A-11 | L3 Pest real-PG (1:1) | `tests/Concurrency/AdminFlagTriggerTest.php`, `RuntimeRoleTest.php` (last test, runtime half: can't promote, can't read bootstrap state) | **Partly ported** (story 2.1; the bootstrap-CLI half → 4.9a, the rest with the auth stories) |
 | 67 | `src/lib/auth/client-address.test.ts` | 7 | X-05 | Pest unit | `tests/Unit/ClientAddressTest.php` (#1–5, #7), `tests/Feature/ClientAddressPreflightTest.php` (#6) | **Ported** (7/7, story 1.5) |
 | 68 | `src/lib/auth/client.test.ts` | 2 | A-05 | Keep TS (UI) | | Not started |
 | 69 | `src/lib/auth/http.test.ts` | 3 | A-01…A-09 | Pest feature (auth wrapper) | | Not started |
@@ -101,7 +101,7 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 93 | `src/lib/local-dev-extra-project.test.ts` | 1 | O-02 | Pest (seed command) | | Not started |
 | 94 | `src/lib/local-dev-seed.test.ts` | 1 | O-02 | Pest (seed command) | | Not started |
 | 95 | `src/lib/magic-link-email.test.ts` | 3 | K-03,A-11 | Pest feature | | Not started |
-| 96 | `src/lib/postgres.integration.test.ts` | 6 | K-05,K-06,X-09 | L3 Pest real-PG (1:1) | | Not started |
+| 96 | `src/lib/postgres.integration.test.ts` | 6 | K-05,K-06,X-09 | L3 Pest real-PG (1:1) | `tests/Concurrency/RuntimeRoleTest.php` (tests 1–2) | **Partly ported** (2/6, story 2.1; tests 3–6 → 2.4 / 5.x / 7.5a) |
 | 97 | `src/lib/project-display-name.test.ts` | 5 | C-01,K-11 | Pest unit + keep TS | | Not started |
 | 98 | `src/lib/project-hub.test.ts` | 12 | C-03,C-04 | Keep TS (UI) | | Not started |
 | 99 | `src/lib/project-journey.test.ts` | 10 | C-03 | Keep TS (UI) | | Not started |

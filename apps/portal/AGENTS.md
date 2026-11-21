@@ -38,10 +38,10 @@ Services: `postgres` 18.7 · `init` (one-shot, `docker/php/init.sh`) · `app` ph
 ## 3. DB roles (ADR-013, ADR-009)
 | Connection | Role | Use |
 |---|---|---|
-| `pgsql` (default) | runtime | DML only. DDL is refused (`tests/Feature/DatabaseRolesTest.php`) |
-| `pgsql_migrate` | schema owner | `migrate --database=pgsql_migrate`, `admin:bootstrap` |
+| `pgsql` (default) | runtime | DML only. DDL is refused; no access to `migrations` or `auth_admin_bootstrap` (`tests/Concurrency/RuntimeRoleTest.php`) |
+| `pgsql_migrate` | schema owner | `migrate --database=pgsql_migrate` then `db:grants`, `admin:bootstrap` |
 | `pgsql_limits` | runtime | rate-limit buckets only, never inside a business transaction |
-Config: `config/database.php`. Dev roles and default privileges: `docker/postgres/01-roles.sh`. Production grants: `ops/postgres/runtime-grants.sql` (O-06 story).
+Config: `config/database.php`. Dev roles (attributes, database `CONNECT`): `docker/postgres/01-roles.sh`. Grants and default privileges: `ops/postgres/runtime-grants.sql`, applied by `php artisan db:grants` after **every** migrate (`docker/php/init.sh`, the Pest harness, deploy). A new operator-only table must be revoked in that file. Production boot fails unless `pgsql_limits` is the runtime role on the runtime's host, port and database (`DatabaseRoles::assertLimitsUsesRuntime`). `profiles.is_admin` can only be set or changed by the table owner (trigger `protect_operator_admin_flag`, A-19): runtime code must never write it, including in upserts (F-17).
 
 ## 4. Pins (`MIG/research-technical.md` §2 and its pin policy)
 - New pins must be ≥ ~3 weeks old; later updates ≥ 14 days, **except security advisories (take immediately)**.
@@ -100,6 +100,10 @@ Checklist: `MIG/03-documentation-protocol.md` §3. Story record template: `MIG/t
 Requirement series → code: A → `Actions/Auth`, middleware, `Support/RateLimits` · K → `Actions/Checkout`, `Controllers/Webhooks` · C/D → `Actions/*` + `Pages` · N → `Mail/` · X → `Support/`, `Storage/`, middleware, `Domain/` · O → `Console/Commands`, `ops/`, `compose.yaml`.
 
 ## 8. Gotchas (promoted from story records)
+- Never `migrate` on the default (runtime) connection, in tests too. `tests/TestCase.php` migrates `portal_test` once per process as `pgsql_migrate` + `db:grants` (`Tests\Support\MigratesAsOwner`); `Feature/Schema` uses `RefreshDatabaseAsOwner` (transacts `pgsql` only: rows written via `pgsql_migrate`/`pgsql_limits` commit, and the owner can't see uncommitted runtime rows), `Concurrency` uses `TruncatesDatabaseAsOwner`. Never let the owner drop or alter a table the runtime touched inside the test transaction: it waits for that transaction forever (2.1).
+- `ON DELETE RESTRICT` raises SQLSTATE `23001` (restrict_violation), not `23503` (2.1).
+- `migrate:fresh` drops tables but not functions: raw-SQL functions use `CREATE OR REPLACE` and `down()` drops them (2.1).
+- `docker/postgres/01-roles.sh` runs only on a fresh volume: after changing it, `docker compose down -v` (2.1).
 - Screens render inside `Layouts/CustomerShell` or `Layouts/AdminShell`. URL-routed section tabs use `TabNav` (a `<nav>` with `aria-current="page"`); `Tabs` is only for in-page panels (1.9).
 - Screen specs call `expectOnePrimaryPerView(page)` (`tests/browser/support/views.ts`); "one primary button per view" is checked in the browser, not linted (1.9).
 - Every axe run first waits for finite CSS animations to end (`settleAnimations`), or a fading dialog reads as low contrast on slow CI machines (1.9 CI).
