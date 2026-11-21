@@ -4,7 +4,7 @@
 **This is a trial of Workbench on a real project.** Work the way the repo's own process says (BMAD, below) and keep the paper trail complete: the owner will judge the run by the branches and records it leaves.
 
 ## 1. The mission
-Deliver **Epic 2** of the Next.js → Laravel migration: stories **2.1 → 2.7** in `docs/laravel-migration/epics.md` ("Epic 2: Data layer and domain core"). Each story finishes at **review**: done to its DoD variant, on its own `workbench/<story>` branch, with its record written. The owner merges to main (that's gated).
+Deliver **Epic 2** of the Next.js → Laravel migration: stories **2.1 → 2.7** in `docs/laravel-migration/epics.md` ("Epic 2: Data layer and domain core"). Each story finishes at **review**: done to its DoD variant, on its builder's `workbench/<builder name>` branch (builders are named after their story, §3), with its record written. The owner merges to main (that's gated).
 
 Read first, in this order: `CLAUDE.md`, `docs/laravel-migration/RESUME.md` (the restart checklist and fixed facts), `handoff.md` → **Now**, `stories/sprint-status.yaml`, then `apps/portal/AGENTS.md` and `project-context.md` before any portal code.
 
@@ -22,7 +22,7 @@ Read first, in this order: `CLAUDE.md`, `docs/laravel-migration/RESUME.md` (the 
       └── 2.5 shared rate-limit store                  ┘
 ```
 - **2.1 alone first.** Everything depends on its migrations.
-- **Merging to main is gated, and the owner may be away.** So don't wait for a merge: when 2.1 reaches review, branch 2.2–2.5 **from `workbench/2.1`** (a builder fork does this), and 2.6/2.7 from their parents' branches. Say in each record which branch it stacks on, so the owner can merge in order (the branch names come from the builder names, below). If review changes 2.1, rebase the children.
+- **Merging to main is gated, and the owner may be away.** So don't wait for a merge: when 2.1 reaches review, branch 2.2–2.5 **from the 2.1 builder's branch** (fork the 2.1 builder; on this run it's `workbench/schema`), and 2.6/2.7 from their parents' branches. Say in each record which branch it stacks on, so the owner can merge in order (the branch names come from the builder names, below). If review changes 2.1, rebase the children.
 - **Branches: one per builder, the one Workbench gives it.** Workbench names a builder's branch `workbench/<agent name>` and tracks, reviews and forks from that branch only. So **name each builder after its story** (e.g. `2-1-schema`, `2-2-models`, `2-3-state`, `2-4-tx`, `2-5-limits`, `2-6-seed`, `2-7-mail`), and builders **never create or switch branches**. Stack a dependent story by **forking the parent builder** (the fork branches from the parent's branch). If a builder did make its own branch, it runs `git checkout -B workbench/<its agent name>` in its copy and notes the old name in its record.
 - **Settled, not an owner question:** a `Db::serializable()` retry that runs out maps to the **existing 409 codes** (accepted ADR-011, line 8). Record that in 2.4.
 - **Run `create-story` for 2.2–2.5 while 2.1 is being built** (a researcher can draft them; no code, no Docker needed). That's the cheapest parallelism.
