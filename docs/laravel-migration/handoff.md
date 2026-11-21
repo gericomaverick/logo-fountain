@@ -2,32 +2,18 @@
 
 ## Now (overwrite this section at the end of every session)
 
-- **Updated:** 2026-11-20 (evening)
-- **Phase:** **Epic 0 and Epic 1 done.** Epic 1 delivered the Laravel 13 portal foundations in `apps/portal`:
-  - the skeleton, Docker stack and pins; CI (`portal.yml`: laravel-ci, audit, ui, lighthouse; `parity.yml`: next, laravel);
-  - the agent guide (`apps/portal/AGENTS.md`);
-  - config fail-closed, the origin guard (CSRF), the trusted client address, security headers, the error envelope, the auth JSON boundary and the log scrubber;
-  - the design tokens, theming and fonts, and every UI component (catalogue: `/dev/ui`, `/dev/ui/status`, `/dev/ui/media`, `/dev/ui/shells`, local/testing only);
-  - the customer and admin shells.
-
-  Merged main: Pest 318, ui-test 217, browser 260 (+8 phone-only skips). All CI jobs green on GitHub (`b353a1c`).
-- **Running:** nothing. CI is watched with `gh` (authed as gericomaverick).
-- **Next: Epic 2 (data layer and domain core).**
-  - **2.1** schema migrations and roles comes first; everything else depends on it.
-  - After 2.1, in parallel: **2.2** models, policies and the client concept scope (DV-7); **2.3** state machine; **2.4** transactions, locks, versioning and audit; **2.5** shared rate-limit store.
-  - Then **2.6** Laravel seed scenarios (also unblocks the parity seeding on Laravel: `adapters/seed.ts` must call the portal's seeder in its container, not host `php`) and **2.7** the lifecycle mail pipeline.
-  - Run `create-story` for each first.
-- **Dated follow-up:** from 2026-11-23, bump Inertia to ^3.7 / `@inertiajs/react` 3.11.0 (update AGENTS.md §4 and `project-context.md`).
-- **Owner items (open):**
-  - review the turn-banner copy (`BANNER_COPY` in `apps/portal/resources/js/lib/status.ts`);
-  - confirm the Sfizia EULA allows WOFF2;
-  - decide whether NFR-P2 should be measured with applied throttling (the Lighthouse gap, RISKS 2026-11-20);
-  - key-screen approval and the one-project shortcut (before Epics 6/7); turnaround copy for empty states; brief reference uploads (post-launch?); launch date.
-  - MacBook worker paused.
-- **Run the suites:**
-  - **Portal:** `cd apps/portal && docker compose up -d && bin/test && bin/ui-test && bin/browser-test`.
-  - **Parity on Next:** `cd tests/parity && npm run infra:up && node scripts/next-stack.mjs ["<gate>"]`.
-  - **Parity on Laravel:** `node tests/parity/scripts/laravel-stack.mjs "<gate>" [--only <regex>]`.
+- **Updated:** 2026-11-21
+- **Machine:** the work moved to the **owner's Mac**. Docker is OrbStack (`export PATH="$HOME/.orbstack/bin:$PATH"`). Baseline re-verified here (table below). The `_bmad/bmm`/`core` symlinks dangle (no BMAD install on the Mac): follow the story files and `templates/`. Governance logs are now `docs/governance/{DECISIONS,RISKS,ASSUMPTIONS}.md`.
+- **Phase:** Epics 0 and 1 done. **Epic 2 is handed to Workbench** (the owner's agent harness, `~/Code/workbench`) as a trial: brief `briefs/workbench-epic-2.md`; Workbench profile `~/Code/workbench/projects/logo-fountain.json` + `logo-fountain.setup.sh` (each builder gets its own portal stack `lf-wbN`, ports 18080+N etc.; tested end to end: `bin/test` 318/318 in a builder copy).
+- **2.1** is `ready-for-dev` with the owner's decisions (Laravel conventions over Next artefacts: `email_verified_at`, `timestamps(3)`, no `ON UPDATE CASCADE`; `DECISIONS.md` 2026-11-21). 2.2–2.7 backlog.
+- **Running:** nothing. The owner's stack `lf-portal` is up (port 8080).
+- **Next:** the owner starts Workbench (`cd ~/Code/workbench && npm start`, choose Logo Fountain) and points the lead at the brief. Workbench delivers 2.1 → 2.2–2.5 → 2.6/2.7 on stacked `workbench/*` branches; the owner merges in order. **If Workbench isn't used,** a Claude Code session runs the same brief with its own sub-agents.
+- **Blockers (owner):**
+  - **Disk:** 2.5 GB free. One builder stack at a time; the Next parity stack (`apps/web`/`tests/parity` have no `node_modules`) won't fit, which blocks 2.6's Next-side comparison. Candidates: `~/Code/table-trove*/ios/build` (about 27 GB of Xcode output; keep `dSYMs`?), `~/Downloads/Web site` (11 GB).
+  - **Push:** `git push` (SSH) is denied for `gericomaverick/logo-fountain` on this Mac. Run `gh auth login` (HTTPS) as gericomaverick. Local main is ahead of origin.
+- **Dated follow-up:** from 2026-11-23, bump Inertia to ^3.7 / `@inertiajs/react` 3.11.0 (update AGENTS.md §4 and `project-context.md`). Not in Workbench's brief.
+- **Owner items (open):** banner copy (`resources/js/lib/status.ts` `BANNER_COPY`); Sfizia EULA (WOFF2); NFR-P2 throttling (RISKS 2026-11-20); key-screen approval and the one-project shortcut (before Epics 6/7); empty-state turnaround copy; brief reference uploads; launch date.
+- **Run the suites:** **Portal:** `cd apps/portal && docker compose up -d && bin/test && bin/ui-test && bin/browser-test`. **Parity on Next:** `cd tests/parity && npm ci && npm run infra:up && node scripts/next-stack.mjs ["<gate>"]` (needs disk). **Parity on Laravel:** `node tests/parity/scripts/laravel-stack.mjs "<gate>" [--only <regex>]`.
 
 ## Verify the baseline
 
@@ -41,10 +27,13 @@ npm run test:e2e                                        # last recorded: 5–6 P
 
 | Date | Next unit | Next E2E | Parity (Next) | Parity (Laravel) | Notes |
 |---|---|---|---|---|---|
+| 2026-11-21 (Mac) | not run (no `node_modules`; disk) | n/a | not run (disk) | not run | **Portal on the Mac, main `53077a6`:** `bin/test` Pest 318 passed (959 assertions); `bin/ui-test` 217/217; `bin/browser-test` 260 passed, 8 skipped (phone-only). Builder copy `lf-wb1`: Pest 318/318, `/up` 200 |
 | 2026-11-19 | **107 files passed, 4 skipped; 1013 passed, 20 skipped.** typecheck ✓ (after fixing the 0.4 test typing), lint ✓ | not re-run (superseded by the parity suite) | **Baseline: 3 consecutive green full runs, 727 passed + 1 skipped each (12.0–12.3 min), 0 unexpected failures; the 32 `@deviation` tests failed as expected. `@disruptive` ×3: 1/1/1 passed.** | n/a | Story 0.9. Command: `next-stack.mjs --repeat 3 -- --grep-invert "@disruptive\|@stripe-live-test"` |
 | 2026-11-18 | **107 files (103 passed, 4 skipped opt-in PG); 722 passed, 20 skipped.** typecheck ✓, lint ✓ (0 warnings) | not re-run (Playwright needs a dev server) | n/a (suite not built) | n/a | Re-verified for readiness m24. Earlier "95 files / 614" in TODO.md is stale |
 
 ## Session log (newest first, one line each)
+
+- 2026-11-21: **Moved to the owner's Mac; Epic 2 handed to Workbench.** OrbStack installed (a full disk had corrupted the first builds); portal baseline matches (318/217/260). Story 2.1 decisions: Laravel conventions (owner). Fixed Linux paths (`_bmad/*.json|yaml`, protocol, RESUME). Workbench profile and builder-stack setup rewritten for the portal and tested; brief `briefs/workbench-epic-2.md`. Push blocked (no GitHub auth).
 
 - 2026-11-21: **Story 2.1 created (ready-for-dev).** `stories/2-1-schema-migrations-and-roles.md`: 22-table checklist from the Next SQL, trigger/checks/grants, `db:grants`, owner-migrating test harness, 10 open questions with recommendations.
 

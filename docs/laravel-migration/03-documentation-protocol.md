@@ -11,12 +11,12 @@ Sessions end, contexts compact, and agents get swapped. **The files are the memo
 | How one piece was converted | The BMAD story file `docs/laravel-migration/stories/<epic>-<story>-<slug>.md`, using the sections in `templates/story-conversion-record.md` | Written **while** working, not reconstructed afterwards |
 | Story and epic progress | `docs/laravel-migration/stories/sprint-status.yaml` (BMAD) | Updated by the BMAD workflows |
 | Why a technical choice was made | `laravel-migration/adr/ADR-NNN-<slug>.md`, plus a one-line entry in `DECISIONS.md` | One ADR per decision. Supersede, don't edit history |
-| Product or scope decisions | `~/.openclaw/workspace/DECISIONS.md` (AGENTS.md format) | Confirm in chat: "Logged to DECISIONS.md: …" |
-| Risks and unverified assumptions | `RISKS.md` and `ASSUMPTIONS.md` (AGENTS.md format) | Log them as soon as they're found |
+| Product or scope decisions | `docs/governance/DECISIONS.md` (one line: `YYYY-MM-DD — decision. Rationale: … Impact: … #decision`; was `~/.openclaw/workspace/DECISIONS.md` until 2026-11-21) | Confirm in chat: "Logged to DECISIONS.md: …" |
+| Risks and unverified assumptions | `docs/governance/RISKS.md` and `docs/governance/ASSUMPTIONS.md` (same one-line format, `#risk` / `#assumption`) | Log them as soon as they're found |
 | Laravel coding conventions for agents | `apps/portal/AGENTS.md` (created in E1, refreshed with BMAD `generate-project-context`) | Update when a new pattern is established |
 | How to run things | `apps/portal/docs/*.md` runbooks (the Laravel versions of `apps/web/docs/*`) | Written in the story that creates the capability |
 | Gotchas found while converting | The story record's "Gotchas" section, **and** promoted to `apps/portal/AGENTS.md` if they apply beyond that story | |
-| Daily journal | `~/.openclaw/workspace/memory/YYYY-MM-DD.md` | A short line per session linking the story and commit |
+| Daily journal | `handoff.md` → Session log (the openclaw journal is not available on the Mac, from 2026-11-21) | A short line per session linking the story and commit |
 
 ## 2. The session loop (every agent, every time)
 

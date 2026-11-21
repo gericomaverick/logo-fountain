@@ -7,9 +7,9 @@ communication_language: "English"
 document_output_language: "markdown"
 user_skill_level: "intermediate"
 output_folder: "_bmad-output"
-planning_artifacts: "/home/openclaw/.openclaw/workspace/projects/logo-fountain/docs/laravel-migration"
-implementation_artifacts: "/home/openclaw/.openclaw/workspace/projects/logo-fountain/docs/laravel-migration/stories"
-product_knowledge: "/home/openclaw/.openclaw/workspace/projects/logo-fountain/docs"
+planning_artifacts: "/Users/matdoidge/Code/logo-fountain/docs/laravel-migration"
+implementation_artifacts: "/Users/matdoidge/Code/logo-fountain/docs/laravel-migration/stories"
+product_knowledge: "/Users/matdoidge/Code/logo-fountain/docs"
 gitEnabled: true
 gitCreateRemote: true
 gitAutoCommitArtifacts: true

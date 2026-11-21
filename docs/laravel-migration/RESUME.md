@@ -28,7 +28,7 @@ BMAD loop: `create-story` → implement → tests → review → merge. The rule
   - the story record (evidence: commands plus pass/fail counts, and what wasn't run);
   - the inventory **Laravel/Tests** column;
   - `sprint-status.yaml`;
-  - `DECISIONS.md` / `RISKS.md` / `ASSUMPTIONS.md` (the workspace root files, one line each, in the formats in the workspace `AGENTS.md`).
+  - `docs/governance/DECISIONS.md` / `RISKS.md` / `ASSUMPTIONS.md` (one line each; see `03-documentation-protocol.md`). Until 2026-11-21 these were workspace-root files on the old Linux box.
 - **Commit after each passing step, and push main** (the owner's rule). Sub-agents can't push; the parent merges their branch into main and pushes.
 
 ## 4. Before you stop (even mid-task)
@@ -44,5 +44,7 @@ BMAD loop: `create-story` → implement → tests → review → merge. The rule
   - then `node scripts/next-stack.mjs "<gate>"` (e.g. `"@auth&@api"`, or no gate for everything).
   - Gotchas: run without the `CLAUDECODE`, `CLAUDE_CODE_ENTRYPOINT` and `AI_AGENT` variables; Next must be on 127.0.0.1; in worktrees use `next dev --webpack`.
 - **The DB lock:** `test.use({ db: "exclusive" | { shared } })`. Details are in `tests/parity/README.md`.
+- **The machine (from 2026-11-21):** the owner's Mac. Docker is OrbStack: `export PATH="$HOME/.orbstack/bin:$PATH"` first. The disk is small (keep one portal stack per agent, `docker compose down -v` when done). `apps/web` and `tests/parity` have no `node_modules` yet. `git push` needs the owner's `gh auth login`.
+- **Prefer Laravel conventions** over reproducing Next/Prisma artefacts wherever the parity suite can't see the difference (owner, 2026-11-21; `docs/governance/DECISIONS.md`).
 - **Owner preferences:** concise updates (overviews plus `file:line`); use sub-agents for parallel work; commit and push as you go.
 - **Never write under `_bmad/bmm` or `_bmad/core`:** they're symlinks to the shared plugin. BMAD config comes from `_bmad/config.yaml`.
