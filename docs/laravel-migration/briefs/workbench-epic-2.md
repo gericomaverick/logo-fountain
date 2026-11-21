@@ -22,7 +22,9 @@ Read first, in this order: `CLAUDE.md`, `docs/laravel-migration/RESUME.md` (the 
       └── 2.5 shared rate-limit store                  ┘
 ```
 - **2.1 alone first.** Everything depends on its migrations.
-- **Merging to main is gated, and the owner may be away.** So don't wait for a merge: when 2.1 reaches review, branch 2.2–2.5 **from `workbench/2.1`** (a builder fork does this), and 2.6/2.7 from their parents' branches. Say in each record which branch it stacks on, so the owner can merge in order. If review changes 2.1, rebase the children.
+- **Merging to main is gated, and the owner may be away.** So don't wait for a merge: when 2.1 reaches review, branch 2.2–2.5 **from `workbench/2.1`** (a builder fork does this), and 2.6/2.7 from their parents' branches. Say in each record which branch it stacks on, so the owner can merge in order (the branch names come from the builder names, below). If review changes 2.1, rebase the children.
+- **Branches: one per builder, the one Workbench gives it.** Workbench names a builder's branch `workbench/<agent name>` and tracks, reviews and forks from that branch only. So **name each builder after its story** (e.g. `2-1-schema`, `2-2-models`, `2-3-state`, `2-4-tx`, `2-5-limits`, `2-6-seed`, `2-7-mail`), and builders **never create or switch branches**. Stack a dependent story by **forking the parent builder** (the fork branches from the parent's branch). If a builder did make its own branch, it runs `git checkout -B workbench/<its agent name>` in its copy and notes the old name in its record.
+- **Settled, not an owner question:** a `Db::serializable()` retry that runs out maps to the **existing 409 codes** (accepted ADR-011, line 8). Record that in 2.4.
 - **Run `create-story` for 2.2–2.5 while 2.1 is being built** (a researcher can draft them; no code, no Docker needed). That's the cheapest parallelism.
 - **One builder with a running portal stack at a time** until the owner frees disk (see §5). Other builders can write code and story files meanwhile, and take the stack in turn.
 
