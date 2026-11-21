@@ -9,7 +9,7 @@
 - **Running:** nothing. The owner's stack `lf-portal` is up (port 8080).
 - **Next:** the owner starts Workbench (`cd ~/Code/workbench && npm start`, choose Logo Fountain) and points the lead at the brief. Workbench delivers 2.1 → 2.2–2.5 → 2.6/2.7 on stacked `workbench/*` branches; the owner merges in order. **If Workbench isn't used,** a Claude Code session runs the same brief with its own sub-agents.
 - **Blockers (owner):**
-  - **Disk:** 2.5 GB free. One builder stack at a time; the Next parity stack (`apps/web`/`tests/parity` have no `node_modules`) won't fit, which blocks 2.6's Next-side comparison. Candidates: `~/Code/table-trove*/ios/build` (about 27 GB of Xcode output; keep `dSYMs`?), `~/Downloads/Web site` (11 GB).
+  - **Disk:** 21 GB free after clearing Table Trove's Xcode build output (2026-11-21). Two builder stacks may run (brief §5: more than 10 GB). The Next parity stack (`npm ci` in `apps/web` and `tests/parity`, plus its images) should now fit, which unblocks 2.6's Next-side comparison; re-check `df -h` first.
   - **Push works** (fixed 2026-11-21): `gh` is signed in as gericomaverick, and this repo's `origin` is HTTPS with a **repo-local** credential helper. The global git config is untouched; the owner's work SSH key (`~/.ssh/id_ed25519`) stays the default for `github.com`.
 - **Dated follow-up:** from 2026-11-23, bump Inertia to ^3.7 / `@inertiajs/react` 3.11.0 (update AGENTS.md §4 and `project-context.md`). Not in Workbench's brief.
 - **Owner items (open):** banner copy (`resources/js/lib/status.ts` `BANNER_COPY`); Sfizia EULA (WOFF2); NFR-P2 throttling (RISKS 2026-11-20); key-screen approval and the one-project shortcut (before Epics 6/7); empty-state turnaround copy; brief reference uploads; launch date.
