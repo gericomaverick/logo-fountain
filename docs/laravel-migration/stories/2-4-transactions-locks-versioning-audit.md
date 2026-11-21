@@ -64,6 +64,7 @@ From `epics.md:251-253` (§2.4) and ADR-011 (`adr/ADR-011-lifecycle-concurrency.
 | Version guard | `updatedAt` | `projects.version` | explicit guard | ADR-011, `2-1-…md:100` |
 | Transaction timeouts | Prisma `maxWait`/`timeout` → `P2028` → 409 | see *Open questions* 2 | no pool wait in PHP-FPM | — |
 | Audit payloads | stored as given | scrubbed of secrets (audit profile: `checkoutSessionId` kept, emails per OQ 1) | `AGENTS.md` §5 *Audit* | arch §5; owner 2026-11-21 (`checkoutSessionId`) |
+
 The audit row is **not visible** to the parity suite for any payload Next writes today (AC 7 asserts identical JSON for each known shape). It would differ only for a payload carrying a secret, token or signed URL, and none is known; if one turns up, it becomes a DV row with a `@deviation` test.
 
 ## Tasks
