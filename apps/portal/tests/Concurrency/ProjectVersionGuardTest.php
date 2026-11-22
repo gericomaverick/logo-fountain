@@ -29,6 +29,12 @@ function guardedRow(string $projectId): array
     return ['status' => $row->status, 'version' => (int) $row->version, 'updated_at' => (string) $row->updated_at];
 }
 
+afterEach(function () {
+    // The truncation harness doesn't disconnect; without this each test holds its connections until GC.
+    Database::disconnect(DatabaseRoles::RUNTIME);
+    Database::disconnect(DatabaseRoles::MIGRATE);
+});
+
 it('advances the version by exactly one on a matching status and version', function () {
     $projectId = guardedProject();
     Database::connection(DatabaseRoles::MIGRATE)->table('projects')->where('id', $projectId)->update(['updated_at' => '2026-01-01 00:00:00']);

@@ -51,6 +51,9 @@ beforeEach(function () {
 afterEach(function () {
     Database::connection(SERIALIZABLE_OTHER)->rollBack(0);
     Database::purge(SERIALIZABLE_OTHER);
+    // The truncation harness doesn't disconnect; without this each test holds its connections until GC.
+    Database::disconnect(DatabaseRoles::RUNTIME);
+    Database::disconnect(DatabaseRoles::MIGRATE);
 });
 
 it('runs the callback in one SERIALIZABLE transaction with local timeouts and returns its result', function () {

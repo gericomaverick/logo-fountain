@@ -27,6 +27,9 @@ beforeEach(function () {
 
 afterEach(function () {
     DB::purge(LOCKS_OTHER);
+    // The truncation harness doesn't disconnect; without this each test holds its connections until GC.
+    DB::disconnect(DatabaseRoles::RUNTIME);
+    DB::disconnect(DatabaseRoles::MIGRATE);
 });
 
 dataset('locks', [
