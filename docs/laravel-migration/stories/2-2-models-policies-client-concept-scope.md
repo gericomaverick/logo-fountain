@@ -1,6 +1,6 @@
 # Story 2.2: Models, policies, client concept scope
 
-**Status:** ready-for-dev (2026-11-21) · **DoD variant:** Laravel-only · **Epic:** 2 · **Covers:** C-20, D-20, DV-7, ADR-020 · **Gate:** Pest (arch plus unit) · **After:** 2.1 (stack on `workbench/schema`, the 2.1 builder's branch; unmerged)
+**Status:** review (2026-11-22) · **DoD variant:** Laravel-only · **Epic:** 2 · **Covers:** C-20, D-20, DV-7, ADR-020 · **Gate:** Pest (arch plus unit) · **After:** 2.1 (stack on `workbench/schema`, the 2.1 builder's branch; unmerged)
 
 > Created with BMAD `create-story`, from the researcher draft in `reports/story-drafts-60.md` (Workbench), with its `file:line` citations spot-checked against `apps/web` and the docs and corrected (see *Doc / code disagreements*). The BMAD workflow files are not reachable on this machine, so the structure follows `stories/2-1-schema-migrations-and-roles.md` and `templates/story-conversion-record.md`. Docs only: no portal code was written for this file.
 
@@ -101,23 +101,49 @@ No owner decision needed for 2.2.
 ## Conversion record
 (Filled in by the dev agent; see `templates/story-conversion-record.md`. Write "none" rather than leaving a section out.)
 
+**Built by:** Workbench builder "2-2-models", 2026-11-22, branch `workbench/2-2-models` stacked on `workbench/schema` (2.1, `4e323ee`).
+
 ### Laravel implementation
+- **Models** (`app/Models/`): one per 2.1 domain table (20: every `public` table except framework tables and `auth_admin_bootstrap`, which only the bootstrap CLI touches, 4.9a). uuid keys use `HasUuids` (v7); `Profile` (`id` = user id), `ProjectBriefDraft` (`project_id`), `StripeEvent` (`event_id`), `AuthProof` (`token_hash`) and `AuthRateLimit` (`key`, on `DatabaseRoles::LIMITS`) have non-incrementing string keys. Timestamps exactly as `2-1-…md:185` (`UPDATED_AT = null` / `CREATED_AT = null` / `$timestamps = false`).
+- **Concerns:** `Concerns/HasMillisecondTimestamps` (`Y-m-d H:i:s.v`, on every model) and `Concerns/NormalisesEmail` (`email` setter: `NodeCompat::lower(NodeCompat::trimEnv())`, on `User` and `Profile`).
+- **`is_admin`:** not fillable, cast to bool, no setter; `User::isAdmin()` = verified email **and** `profile->is_admin` (the one place, for the policies and later the `admin` middleware). `Project::version` is not fillable either (2.4's guard).
+- **jsonb casts:** `audit_events.payload`, `project_briefs.answers`, `project_brief_drafts.answers` use `'object'`, so `{}` stays `{}` and `[]` stays `[]` (the admin audit endpoint returns the payload verbatim; briefs are objects in Next).
+- **Scope:** `Concept::visibleToClient()` (local `#[Scope]`, `CLIENT_VISIBLE_STATUSES = [published, approved]`), `Concept::isVisibleToClient()`. Client entry points: `Project::clientVisibleConcepts()` (HasMany + scope) and `Project::clientVisibleAssets()` (kind `concept`, path under a visible concept of the same project: `<pid>/<cid>.` or `<pid>/<cid>/v`, as Next's `startsWith` filters, `api/projects/[id]/concepts/[conceptId]/assets/route.ts:50-56`). `Concept::assets()` is a Builder (there is no `concept_id` column; same path rule).
+- **Policies** (auto-discovered): `ProjectPolicy` `participate` (membership only) / `view` (admin, with no query, else membership) / `administer` (admin; else `deny('Forbidden', FORBIDDEN)` 403). Membership miss → `denyAsNotFound('Project not found', PROJECT_NOT_FOUND)`. `ConceptPolicy::view` = project `view` first, then visibility; hidden → `denyAsNotFound('Concept not found', CONCEPT_NOT_FOUND)`, for admins too. No `Gate::before`. `ErrorCodes` gains `CONCEPT_NOT_FOUND`, `PROJECT_NOT_FOUND`.
+- **Factories:** `Profile` (states `unverified()`, `admin()`: sets the flag through `pgsql_migrate` after create, so it needs committed rows and throws otherwise), `Client`, `ClientMembership`, `Project`, `Concept` (`status()`, next `number`), `FileAsset` (`forConcept($concept, $version)`).
 
 ### Deviations from Next.js
 | Behaviour | Next.js | Laravel | Why | Decision ref |
 |---|---|---|---|---|
+| Client concept lookup | per-route `status in [...]` filters | one `visibleToClient()` scope, `Project::clientVisibleConcepts()`/`clientVisibleAssets()`, arch test | DV-7 by construction | ADR-020, DV-7 |
+| Membership/admin checks | `requireProjectMembership` / `authorizeProjectAccess` / `requireAdmin` | `ProjectPolicy` `participate` / `view` / `administer` | Laravel convention (not visible to parity) | `AGENTS.md` §5 |
 
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|
+| L1/L2 Pest | `tests/Unit/Models/ModelConfigurationTest.php` (30): table/key/uuid v7/timestamps per model (dataset of 20), every domain table modelled, limits connection, ms round-trip (`.123`, `.456`), no write to a missing timestamp column, email normalisation (`" \u{00A0}A@B.Test\u{FEFF} "` → `a@b.test`), `is_admin`/`version` not mass-assignable, payload `{}`, `[]`, nested | X-15 (consumes) |
+| L1 Pest | `tests/Unit/Models/ConceptVisibilityScopeTest.php` (7): 5-status dataset (scope, relation, assets, not global), ordering, final ZIP / other project / hidden concept files excluded | DV-7, ADR-020 |
+| L2 Pest | `tests/Feature/Models/RelationshipsTest.php` (2): every relation both ways; a model save never writes `is_admin` (an admin profile saves past the trigger) | — |
+| L2 Pest | `tests/Feature/Policies/ProjectPolicyTest.php` (6): member, non-member and other tenant, verified admin, admin member, admin `view` without a membership query, unverified admin on all three | C-20, D-20 |
+| L2 Pest | `tests/Feature/Policies/ConceptPolicyTest.php` (11): hidden concept + its file = random uuid (member and admin × draft/archived/deleted), visible allowed (member and admin × published/approved), project checked first | DV-7, C-20 |
+| Arch | `tests/Arch/ClientConceptScopeTest.php` (4): `Api` and `Pages` (minus `Admin`) don't use `Concept`/`FileAsset`; the same helper **fails** on `tests/Fixtures/Arch/LeakyClientController.php`; passes on `Fixtures/Arch/Scoped` only because `Admin` is ignored | ADR-020 |
 
-Test-port ledger rows resolved:
+Test-port ledger rows resolved: none (the authz matrix is a parity spec).
 
 ### Test evidence
-**Not run, and why:**
+- `bin/test` on a fresh `lf-wb3` volume, 2026-11-22: agents guide OK, Pint OK, Larastan 9 no errors, Pest **463 passed (1596 assertions)** (2.1 baseline 403 + 60 new).
+- Touched tests alone: 60 passed (431 assertions) before the arch-fixture fix, then the arch file 4 passed (19 assertions).
+
+**Not run, and why:** parity, browser and UI checks (no endpoints or UI in this story); the DV-7 `@deviation` matrix (`contract/concept-status-matrix.spec.ts`) waits for the client concept routes.
 
 ### Gotchas
+- `ProfileFactory::admin()` needs committed rows (`TruncatesDatabaseAsOwner`): the owner connection can't see a runtime transaction's user. `tests/Pest.php` gives `Feature/Models` and `Feature/Policies` that harness.
+- A Pest arch expectation is checked when the expectation object is released: to assert a rule **fails**, wrap it in a function and `expect(fn () => …)->toThrow(ExpectationFailedException::class)`.
 
 ### Docs updated
+`apps/portal/AGENTS.md` (§5 Authorisation row, §8 two gotchas); `01-feature-inventory.md` C-20, D-20, DV-7; `sprint-status.yaml`; `docs/governance/DECISIONS.md`, `RISKS.md`; `handoff.md` session log.
 
 ### Open items
+- **Version guard (2.4):** `version` is not mass-assignable, but a direct `$project->version = …; save()` still writes it. 2.4's `ProjectVersionGuardTest` wants a save to leave it unchanged: whichever of 2.2/2.4 merges second adds that guard (model `saving` hook or `Db`).
+- **Not-found details:** the policies return the message and code; Next's `details.nextStep` ("Check the project link." / "Check the concept link.") and 403 "Use an admin account." come from the 1.6 renderer when the first route maps a denied `Response` to `ApiException` (Epic 6/7, 4.8).
+- C-20, D-20 and DV-7 stay open until the client/admin routes and their contract tests land.
