@@ -1,6 +1,6 @@
 # Story 4.2: Credential fence and proofs
 
-**Status:** ready-for-dev (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-10, A-11 (proof half), ADR-007, FR10 · **Gate:** `@pg-race` · **After:** 2.4 (done), 4.1 (chain) · **Stacks on:** `main` (all listed dependencies are done); in the SERIAL chain it builds on the previous Epic 4 story's branch.
+**Status:** review (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-10, A-11 (proof half), ADR-007, FR10 · **Gate:** `@pg-race` · **After:** 2.4 (done), 4.1 (chain) · **Stacks on:** `main` (all listed dependencies are done); in the SERIAL chain it builds on the previous Epic 4 story's branch.
 
 > Created with the repo's create-story form. All `apps/web` `file:line` checked 2026-11-22.
 
@@ -59,24 +59,32 @@ Consumers: 4.3–4.7, 4.9a. Shares `app/Support/Auth/`, `app/Actions/Auth/`, `te
 
 ## Conversion record
 
-> Fill at implementation, from `templates/story-conversion-record.md`. Write *Behaviour notes* before converting.
+**Stacks on:** `workbench/4-a-sessions` (4.1).
 
 ### Inventory scope
-_(stub)_
+A-10 (closed here), A-11 proof half. Ledger #66 cases 4, 5, 6 (7's rollback seam proven with a stand-in; completes in 4.6).
 ### Next.js source read
-_(stub)_
+`lib/auth/fence.ts:6-11`, `server.ts:11,29-32`, `service.ts:68-101`, `auth.postgres.integration.test.ts:89,101,113,122`.
 ### Behaviour notes
-_(stub)_
+Next's interactive transaction and Prisma `maxWait` are Laravel's `SET LOCAL lock_timeout`/`statement_timeout` (ADR-007). Proof tokens are Laravel's own; only shape, sha256 hash and 3600 s life are contract.
 ### Laravel implementation
-_(stub)_
+- `app/Support/Auth/CredentialFence.php` (transaction, timeouts, `Locks::credential`, 55P03/57014 to `AuthFailure`).
+- `app/Support/Auth/AuthProofs.php` (`issue`, `userFor`, `validate`, `consume`, `hash`).
+- Test seams: `tests/Concurrency/Children/race.php` modes `reset`/`change`/`login`; `RaceChildren::runMixed`.
 ### Deviations from Next.js
-| Behaviour | Next.js | Laravel | Why | Decision ref |
-|---|---|---|---|---|
+None.
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|
+| L2 | `tests/Feature/Auth/CredentialFenceTest.php` | A-10 |
+| L2 | `tests/Feature/Auth/AuthProofsTest.php` (shape, expiry boundary, version, kind, scrubber) | A-11 |
+| L3 `@pg-race` | `tests/Concurrency/CredentialRaceTest.php` (reset/reset, reset/change, login/reset, stale proofs, 5 s lock timeout, rollback) | A-10 |
+| Arch | `tests/Arch/AuthTest.php` | A-10 |
 ### Test evidence
-_(commands, pass/fail counts, what was not run and why)_
+`bin/test` in apps/portal (stack lf-wb16): Pint, Larastan level 9 clean, Pest 1724 passed / 0 failed.
 ### Gotchas
+`Db` and `DB` clash case-insensitively in a `use` list (alias the facade). The lock-timeout test really waits ~5 s.
 ### Docs updated
+Inventory A-10/A-11, ledger #66, sprint-status, DECISIONS, RISKS, ASSUMPTIONS.
 ### Open items
+Real actions (4.5/4.6) must call `CredentialFence::run`; the arch test enforces it for `app/Actions/Auth`.

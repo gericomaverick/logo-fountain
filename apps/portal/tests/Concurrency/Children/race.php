@@ -4,7 +4,10 @@
 // argv: <mode> <startAt unix time, float> <mode args...>. Prints one JSON line; exits non-zero on any other error.
 
 use App\Exceptions\ApiException;
+use App\Exceptions\AuthFailure;
 use App\Support\Audit;
+use App\Support\Auth\AuthProofs;
+use App\Support\Auth\CredentialFence;
 use App\Support\DatabaseRoles;
 use App\Support\Db;
 use App\Support\Locks;
@@ -75,6 +78,61 @@ $out = match ($mode) {
 
             return ['replayed' => false, 'result' => $result];
         });
+    })(),
+
+    // Story 4.2: stand-ins for the 4.5/4.6 credential actions, shaped as ADR-007 prescribes (all under the fence).
+    // reset: validate the proof, bump the version, drop the user's proofs and sessions.
+    'reset' => (function () use ($args): array {
+        [$userId, $token] = $args;
+        try {
+            CredentialFence::run($userId, function (Connection $db) use ($userId, $token): void {
+                $proof = AuthProofs::validate($db, $token, ['reset']);
+                $db->table('users')->where('id', $userId)->increment('credential_version');
+                $db->table('auth_proofs')->where('user_id', $userId)->delete();
+                $db->table('sessions')->where('user_id', $userId)->delete();
+                AuthProofs::consume($db, $proof);
+            });
+
+            return ['won' => true];
+        } catch (AuthFailure) {
+            return ['won' => false];
+        }
+    })(),
+
+    // change: the password was checked against $expectedVersion before the barrier; stale means someone else won.
+    'change' => (function () use ($args): array {
+        [$userId, $expectedVersion] = $args;
+        try {
+            CredentialFence::run($userId, function (Connection $db) use ($userId, $expectedVersion): void {
+                if ((int) $db->table('users')->where('id', $userId)->value('credential_version') !== (int) $expectedVersion) {
+                    throw new AuthFailure;
+                }
+                $db->table('users')->where('id', $userId)->increment('credential_version');
+                $db->table('auth_proofs')->where('user_id', $userId)->delete();
+                $db->table('sessions')->where('user_id', $userId)->delete();
+            });
+
+            return ['won' => true];
+        } catch (AuthFailure) {
+            return ['won' => false];
+        }
+    })(),
+
+    // login: the password matched $expectedVersion before the barrier; it only gets a session if still current.
+    'login' => (function () use ($args): array {
+        [$userId, $expectedVersion, $sessionId] = $args;
+        try {
+            CredentialFence::run($userId, function (Connection $db) use ($userId, $expectedVersion, $sessionId): void {
+                if ((int) $db->table('users')->where('id', $userId)->value('credential_version') !== (int) $expectedVersion) {
+                    throw new AuthFailure;
+                }
+                $db->table('sessions')->insert(['id' => $sessionId, 'user_id' => $userId, 'payload' => '', 'last_activity' => time()]);
+            });
+
+            return ['won' => true];
+        } catch (AuthFailure) {
+            return ['won' => false];
+        }
     })(),
 };
 
