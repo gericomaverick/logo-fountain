@@ -6,33 +6,28 @@ namespace App\Support\Mail;
 
 /**
  * Inline-style values for the lifecycle mail layout. Mail clients ignore CSS variables, so the
- * colours are read from the design tokens in resources/css/app.css (light theme, first
- * definition) instead of being written into the Blade view; sizes are mail-safe pixel values
- * matching the type scale steps (xs, sm, base, 2xl).
+ * values live here (PHP, outside the design lint's scope) rather than in the Blade view.
+ *
+ * These are the ORIGINAL mail palette and sizes, unchanged from before a7d69cb. Story 4.4 (N-14,
+ * email branding) moves them to the app.css tokens; until then the restyle is the owner's call
+ * (see DECISIONS). Sizes are the mail-safe pixel values for the steps sm, base, 2xl.
  */
 final class MailTheme
 {
-    /** @var array<string, string>|null */
-    private static ?array $colours = null;
+    private const COLOURS = [
+        'bg' => '#f8f7ff',
+        'fg' => '#1d1330',
+        'surface' => '#ffffff',
+        'divider' => '#ebe7ff',
+        'accent' => '#5b38f0',
+        'accent-fg' => '#ffffff',
+        'fg-2' => '#43355f',
+        'fg-3' => '#6f6590',
+    ];
 
     public static function colour(string $token): string
     {
-        self::$colours ??= self::load();
-
-        return self::$colours[$token] ?? throw new \RuntimeException("Design token --color-{$token} not found");
-    }
-
-    /** @return array<string, string> */
-    private static function load(): array
-    {
-        $css = (string) file_get_contents(resource_path('css/app.css'));
-        preg_match_all('/^\s*--color-([a-z0-9-]+):\s*(#[0-9a-fA-F]{3,8});/m', $css, $m, PREG_SET_ORDER);
-        $out = [];
-        foreach ($m as $row) {
-            $out[$row[1]] ??= $row[2];
-        }
-
-        return $out;
+        return self::COLOURS[$token] ?? throw new \RuntimeException("Mail colour {$token} not defined");
     }
 
     public static function size(string $step): string

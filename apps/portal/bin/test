@@ -6,4 +6,5 @@ set -e
 c="docker compose -f $(dirname "$0")/../compose.yaml exec -T app"
 $c vendor/bin/pint --test
 $c vendor/bin/phpstan analyse --no-progress --memory-limit=1G
-$c vendor/bin/pest "$@"
+# The whole suite peaks at ~135 MB (UploadCorpus is streamed: 28 MB alone), just over the 128M CLI default.
+$c php -d memory_limit=256M vendor/bin/pest "$@"

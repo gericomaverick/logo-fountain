@@ -167,16 +167,37 @@ final class UploadCorpus
         }
         $base = (string) file_get_contents(self::DIR.'/image/png-rgba-8bit.png');
         $textLength = $case['size'] - strlen($base) - 12;
-        $text = "Comment\0".str_repeat('x', $textLength - 8);
-        $chunk = pack('N', strlen($text)).'tEXt'.$text.pack('N', crc32('tEXt'.$text));
-        $bytes = substr($base, 0, -12).$chunk.substr($base, -12);
+        $textLength = $case['size'] - strlen($base) - 12;
+        // Streamed in 1 MiB pieces (sha256 and the PNG CRC are incremental), so the 10 MiB body is never held whole.
+        $path = tempnam(sys_get_temp_dir(), 'corpus-');
+        register_shutdown_function(static fn () => @unlink($path));
+        $f = fopen($path, 'wb');
+        $sha = hash_init('sha256');
+        $crc = hash_init('crc32b');
+        $write = static function (string $piece) use ($f, $sha): void {
+            fwrite($f, $piece);
+            hash_update($sha, $piece);
+        };
+        $write(substr($base, 0, -12));
+        $write(pack('N', $textLength).'tEXt');
+        hash_update($crc, 'tEXt');
+        $remaining = $textLength;
+        $first = true;
+        while ($remaining > 0) {
+            $piece = $first ? "Comment\0" : '';
+            $first = false;
+            $piece .= str_repeat('x', min($remaining - strlen($piece), 1048576 - strlen($piece)));
+            $remaining -= strlen($piece);
+            $write($piece);
+            hash_update($crc, $piece);
+        }
+        $write((string) hex2bin(hash_final($crc)));
+        $write(substr($base, -12));
+        fclose($f);
 
-        if (strlen($bytes) !== $case['size'] || hash('sha256', $bytes) !== $case['sha256']) {
+        if (filesize($path) !== $case['size'] || hash_final($sha) !== $case['sha256']) {
             throw new RuntimeException("Generated corpus case {$case['id']} does not match the manifest size/sha256.");
         }
-        $path = tempnam(sys_get_temp_dir(), 'corpus-');
-        file_put_contents($path, $bytes);
-        register_shutdown_function(static fn () => @unlink($path));
 
         return $path;
     }

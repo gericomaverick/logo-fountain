@@ -156,6 +156,8 @@ final class RateLimits
                 $rows[$key] = ['hits' => self::int($row, 'hits'), 'startMs' => self::timestampMs($row, 'window_start')];
             }
 
+            // The clock was read before waiting on the locks; a window another request opened meanwhile may start later.
+            $nowMs = max($nowMs, ...array_column($rows, 'startMs'));
             $effective = [];
             foreach ($buckets as $index => [, $cap, $window]) {
                 $row = $rows[$keys[$index]];
