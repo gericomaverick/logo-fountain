@@ -10,7 +10,7 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 2 | `e2e/client-flows.spec.ts` | 4 | C-01,C-03,C-05 | L5 parity | | Not started |
 | 3 | `e2e/smoke.spec.ts` | 2 | A-15 | L5 parity @smoke | | Not started |
 | 4 | `src/app/admin/projects/[id]/concepts/read-state-regression.test.ts` | 2 | C-15,D-05 | Keep TS (UI) + L4 read-state contract | | Not started |
-| 5 | `src/app/api/admin/checkout/reprocess/route.test.ts` | 5 | K-12 | Pest feature (HTTP) + L4 parity contract | | Not started |
+| 5 | `src/app/api/admin/checkout/reprocess/route.test.ts` | 5 | K-12 | Pest feature (HTTP) + L4 parity contract | `tests/Feature/Auth/SessionEndpointTest.php` | Ported in 4.1 (L4 parity not run) |
 | 6 | `src/app/api/admin/health/route.test.ts` | 5 | D-18 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 7 | `src/app/api/admin/projects/[id]/audit/route.test.ts` | 3 | D-16 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 8 | `src/app/api/admin/projects/[id]/concepts/[conceptId]/publish/route.test.ts` | 5 | D-06 | Pest feature (HTTP) + L4 parity contract | | Not started |
@@ -35,7 +35,7 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 27 | `src/app/api/auth/magic-link/verify/route.test.ts` | 3 | A-05 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 28 | `src/app/api/auth/password/route.test.ts` | 4 | A-09 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 29 | `src/app/api/auth/reset-password/route.test.ts` | 3 | A-08 | Pest feature (HTTP) + L4 parity contract | | Not started |
-| 30 | `src/app/api/auth/session/route.test.ts` | 3 | A-03 | Pest feature (HTTP) + L4 parity contract | | Not started |
+| 30 | `src/app/api/auth/session/route.test.ts` | 3 | A-03 | Pest feature (HTTP) + L4 parity contract | `tests/Feature/Auth/SessionEndpointTest.php` | Ported in 4.1 (L4 parity not run) |
 | 31 | `src/app/api/checkout/magic-link/route.test.ts` | 4 | K-03 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 32 | `src/app/api/checkout/resend-magic-link/route.test.ts` | 1 | K-04 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 33 | `src/app/api/checkout/status/route.test.ts` | 3 | K-02 | Pest feature (HTTP) + L4 parity contract | | Not started |

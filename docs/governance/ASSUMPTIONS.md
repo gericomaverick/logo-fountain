@@ -15,3 +15,4 @@ YYYY-MM-DD — <Assumption>. Evidence: <basis>. Review by: <date>. #assumption
 2026-11-22 — Story 3.1: SeaweedFS 4.51 behaves like R2 for the conditional PUT (412 on an existing key), presign GET and the signed response disposition; proven by the L3 and 8-process race tests, not against real R2. Review by: Epic 9 first staging write. #assumption
 2026-11-22 — Story 3.2: `getClientMimeType()` (browser-declared, never sniffed) is what the 7.5a controller passes, matching Next's `file.type`. #assumption
 2026-11-22 — Story 3.4: object paths are random and immutable per upload, so bucket|path identifies the bytes. #assumption
+2026-11-22 — Story 4.1: the session cookie behaves as asserted at the Laravel response level; the L4 parity contract against Laravel has not been run. Review by: when the Next parity suite is installed. #assumption

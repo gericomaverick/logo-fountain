@@ -2,7 +2,8 @@
 
 use App\Support\Auth\SessionCookie;
 
-$cookie = SessionCookie::settings(env('APP_ENV') === 'production', env('PUBLIC_SITE_URL'));
+$publicSite = env('PUBLIC_SITE_URL');
+$cookie = SessionCookie::settings(env('APP_ENV') === 'production', is_string($publicSite) ? $publicSite : null);
 
 return [
 

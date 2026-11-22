@@ -1,6 +1,6 @@
 # Story 4.1: Sessions with an absolute cap
 
-**Status:** ready-for-dev (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-03, A-04, ADR-005, FR7 · **Gate:** `@auth&@api` (session endpoint) · **After:** 1.6 (done), 2.1 (done) · **Stacks on:** `main`. **First of the SERIAL chain 4.1 → 4.2 → 4.3 → 4.4 → 4.5 → 4.6 → 4.7 → 4.8 → 4.9a → 4.9b (see `epic-4-build-order` at the end of this file).** 4.1 creates the auth route file, the auth controller namespace and the session middleware that every later story reuses.
+**Status:** review (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-03, A-04, ADR-005, FR7 · **Gate:** `@auth&@api` (session endpoint) · **After:** 1.6 (done), 2.1 (done) · **Stacks on:** `main`. **First of the SERIAL chain 4.1 → 4.2 → 4.3 → 4.4 → 4.5 → 4.6 → 4.7 → 4.8 → 4.9a → 4.9b (see `epic-4-build-order` at the end of this file).** 4.1 creates the auth route file, the auth controller namespace and the session middleware that every later story reuses.
 
 > Created with the repo's create-story form. Sources: `epics.md:294-298`, `brownfield/auth-and-security.md` §1 and §4 (session row), ADR-005, inventory A-03/A-04 (`01-feature-inventory.md:20-21`), ledger #30 (`route.test.ts`, 3 tests), contract `tests/parity/journeys/contract/auth-session.spec.ts:18-38`. All `apps/web` `file:line` checked 2026-11-22.
 
@@ -72,24 +72,32 @@ None planned. Cookie name differs from Better Auth's by design (ADR-005).
 
 ## Conversion record
 
-> Fill at implementation, from `templates/story-conversion-record.md`. Write *Behaviour notes* before converting.
+**Stacks on:** `main` (workbench/4-a-sessions).
 
 ### Inventory scope
-_(stub)_
+A-03, A-04 (Laravel/Tests columns filled; both stay open until 4.3/4.5 create real sessions). ADR-005. Ledger #30.
 ### Next.js source read
-_(stub)_
+`lib/auth/service.ts:14-19`, `server.ts:12,41`, `api/auth/session/route.ts:5-13`, `admin.ts`, `current-user.ts`.
 ### Behaviour notes
-_(stub)_
+Next reads the DB per request, no cookie cache; cap runs from creation, never from last use. Expired rows are not deleted by Next (Q2: Laravel deletes on first rejected read, unobservable).
 ### Laravel implementation
-_(stub)_
+- Cap: `app/Support/Auth/SessionCap.php` (604800 s); middleware `app/Http/Middleware/EnforceSessionCap.php`; issue: `app/Support/Auth/IssueSession.php` (writes `auth.issued_at` into the session payload, regenerates the id; no migration, Q1).
+- Cookie: `app/Support/Auth/SessionCookie.php`, used by `config/session.php`; production shape validated at boot (`ConfigBootValidationTest`).
+- Route `routes/auth.php` (loaded in `bootstrap/app.php`), `Http/Controllers/Auth/SessionController.php`.
 ### Deviations from Next.js
-| Behaviour | Next.js | Laravel | Why | Decision ref |
-|---|---|---|---|---|
+None.
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|
+| L1 | `tests/Unit/Support/Auth/SessionCapTest.php` | A-04 |
+| L2 | `tests/Feature/Auth/SessionEndpointTest.php` (AC 1,3,4,5,6,8,10 + boundary) | A-03, A-04 |
+| L2 | `tests/Feature/Auth/SessionCookieTest.php` (AC 7) | A-04 |
+| L2 | `tests/Feature/Auth/IssueSessionTest.php` (AC 9) | A-04 |
 ### Test evidence
-_(commands, pass/fail counts, what was not run and why)_
+`bin/test` in apps/portal (stack lf-wb16): Pint, Larastan level 9 clean, Pest 1697 passed / 0 failed. Not run: L4 parity `contract/auth-session.spec.ts` (Next-side setup is the owner's call).
 ### Gotchas
+Larastan level 9 needs `env()` values narrowed to string in `config/session.php`.
 ### Docs updated
+Inventory A-03/A-04, ledger #30, sprint-status, DECISIONS, RISKS, ASSUMPTIONS.
 ### Open items
+Parity run of the session contract once the Next suite is installed.

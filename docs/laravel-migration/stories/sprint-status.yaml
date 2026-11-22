@@ -68,7 +68,7 @@ development_status:
   epic-3-retrospective: optional
 
   epic-4: backlog
-  4-1-sessions-with-an-absolute-cap: ready-for-dev
+  4-1-sessions-with-an-absolute-cap: review
   4-2-credential-fence-and-proofs: ready-for-dev
   4-3-login: ready-for-dev
   4-4-auth-link-requests-auth-emails-base-mail-layout: ready-for-dev

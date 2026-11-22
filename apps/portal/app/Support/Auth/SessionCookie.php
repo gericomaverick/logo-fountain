@@ -37,7 +37,7 @@ final class SessionCookie
             && ($session['http_only'] ?? null) === true
             && ($session['path'] ?? null) === '/'
             && ($session['domain'] ?? null) === null
-            && strtolower((string) ($session['same_site'] ?? '')) === 'lax';
+            && strtolower(is_string($session['same_site'] ?? null) ? $session['same_site'] : '') === 'lax';
 
         if (! $ok) {
             throw new InvalidConfiguration('The session cookie must be __Host-lf_session, Secure, HttpOnly, SameSite=Lax, Path=/ with no Domain in production (ADR-005).');
