@@ -61,10 +61,10 @@ development_status:
   epic-2-retrospective: optional
 
   epic-3: backlog
-  3-1-private-object-store: backlog
-  3-2-image-validator: backlog
-  3-3-zip-validator: backlog
-  3-4-stable-private-images: backlog
+  3-1-private-object-store: ready-for-dev
+  3-2-image-validator: review
+  3-3-zip-validator: ready-for-dev
+  3-4-stable-private-images: ready-for-dev
   epic-3-retrospective: optional
 
   epic-4: backlog

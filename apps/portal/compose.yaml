@@ -18,6 +18,8 @@ x-php: &php
     # Story 2.6 (AC 10): the shared parity scenarios and seed-facts SQL, read in place by parity:seed and its tests.
     - ../../tests/parity/fixtures/scenarios:/var/www/parity-fixtures/scenarios:ro
     - ../../tests/parity/fixtures/seed-facts:/var/www/parity-fixtures/seed-facts:ro
+    # Story 3.2 (AC 1): the golden upload corpus (X-12), read in place by tests/Support/UploadCorpus.php.
+    - ../../tests/parity/fixtures/uploads:/var/www/parity-fixtures/uploads:ro
 
 services:
   postgres:
