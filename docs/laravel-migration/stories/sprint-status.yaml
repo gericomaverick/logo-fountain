@@ -68,16 +68,16 @@ development_status:
   epic-3-retrospective: optional
 
   epic-4: backlog
-  4-1-sessions-with-an-absolute-cap: backlog
-  4-2-credential-fence-and-proofs: backlog
-  4-3-login: backlog
-  4-4-auth-link-requests-auth-emails-base-mail-layout: backlog
-  4-5-magic-link-confirm: backlog
-  4-6-forgot-reset-and-set-password: backlog
-  4-7-change-password-and-logout: backlog
-  4-8-safe-next-route-guards-endpoint-allowlist: backlog
-  4-9a-admin-bootstrap-cli: backlog
-  4-9b-auth-screens: backlog
+  4-1-sessions-with-an-absolute-cap: ready-for-dev
+  4-2-credential-fence-and-proofs: ready-for-dev
+  4-3-login: ready-for-dev
+  4-4-auth-link-requests-auth-emails-base-mail-layout: ready-for-dev
+  4-5-magic-link-confirm: ready-for-dev
+  4-6-forgot-reset-and-set-password: ready-for-dev
+  4-7-change-password-and-logout: ready-for-dev
+  4-8-safe-next-route-guards-endpoint-allowlist: ready-for-dev
+  4-9a-admin-bootstrap-cli: ready-for-dev
+  4-9b-auth-screens: ready-for-dev
   epic-4-retrospective: optional
 
   epic-5: backlog
