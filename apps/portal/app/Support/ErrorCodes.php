@@ -22,6 +22,9 @@ final class ErrorCodes
     /** 400: every failed sign-in (A-01, `login/route.ts:7`). */
     public const INVALID_CREDENTIALS = 'INVALID_CREDENTIALS';
 
+    /** 400: forgot-password without a plausible address (`forgot-password/route.ts:9`). */
+    public const INVALID_EMAIL = 'INVALID_EMAIL';
+
     public const INVALID_JSON = 'INVALID_JSON';
 
     /** 403: a mutation without canonical Origin/Referer provenance (X-01, `lib/request-origin.ts:103`). */

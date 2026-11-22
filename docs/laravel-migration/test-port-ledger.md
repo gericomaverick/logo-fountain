@@ -28,10 +28,10 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 20 | `src/app/api/admin/projects/[id]/route.test.ts` | 4 | D-02 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 21 | `src/app/api/admin/projects/[id]/status/route.test.ts` | 6 | D-03 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 22 | `src/app/api/admin/projects/route.test.ts` | 4 | D-01 | Pest feature (HTTP) + L4 parity contract | | Not started |
-| 23 | `src/app/api/auth/forgot-password/route.test.ts` | 3 | A-07 | Pest feature (HTTP) + L4 parity contract | | Not started |
+| 23 | `src/app/api/auth/forgot-password/route.test.ts` | 3 | A-07 | Pest feature (HTTP) + L4 parity contract | | Ported (story 4.4, request half) |
 | 24 | `src/app/api/auth/login/route.test.ts` | 10 | A-01 | Pest feature (HTTP) + L4 parity contract | `tests/Feature/Auth/LoginTest.php`, `LoginRateLimitTest.php`, `LoginTimingTest.php` (story 4.3) | **Ported** (L4 parity contract not run by this story) |
 | 25 | `src/app/api/auth/logout/route.test.ts` | 2 | A-02 | Pest feature (HTTP) + L4 parity contract | | Not started |
-| 26 | `src/app/api/auth/magic-link/route.test.ts` | 3 | A-05 | Pest feature (HTTP) + L4 parity contract | | Not started |
+| 26 | `src/app/api/auth/magic-link/route.test.ts` | 3 | A-05 | Pest feature (HTTP) + L4 parity contract | | Ported (story 4.4, request half) |
 | 27 | `src/app/api/auth/magic-link/verify/route.test.ts` | 3 | A-05 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 28 | `src/app/api/auth/password/route.test.ts` | 4 | A-09 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 29 | `src/app/api/auth/reset-password/route.test.ts` | 3 | A-08 | Pest feature (HTTP) + L4 parity contract | | Not started |

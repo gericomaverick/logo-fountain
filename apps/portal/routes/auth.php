@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\AuthLinkRequestController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Middleware\EnforceSessionCap;
@@ -16,4 +17,10 @@ Route::prefix('api/auth')->middleware([EnsureAuthAvailable::class, 'auth.json:he
 // A-01 (story 4.3): body-reading mutation. No EnforceSessionCap (Next's login ignores any existing session).
 Route::prefix('api/auth')->middleware([EnsureAuthAvailable::class, 'auth.json', OmitSessionCookieOnFailure::class])->group(function () {
     Route::post('/login', [LoginController::class, 'store'])->name('auth.login');
+});
+
+// A-05/A-07 request halves (story 4.4): body-reading mutations, same boundary as login.
+Route::prefix('api/auth')->middleware([EnsureAuthAvailable::class, 'auth.json', OmitSessionCookieOnFailure::class])->group(function () {
+    Route::post('/magic-link', [AuthLinkRequestController::class, 'magicLink'])->name('auth.magic-link');
+    Route::post('/forgot-password', [AuthLinkRequestController::class, 'forgotPassword'])->name('auth.forgot-password');
 });

@@ -5,7 +5,9 @@ namespace App\Support\Auth;
 use App\Exceptions\AuthFailure;
 use App\Models\AuthProof;
 use App\Models\User;
+use App\Support\DatabaseRoles;
 use Illuminate\Database\Connection;
+use Illuminate\Support\Facades\DB as Database;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 
@@ -31,18 +33,39 @@ final class AuthProofs
         $token = Str::random(43); // ~256 bits, inside SHAPE
 
         // Under the fence so the version stamped is the one a concurrent credential change would bump.
-        CredentialFence::run($user->id, function (Connection $db) use ($user, $kind, $token): void {
-            $version = self::versionOf($db, $user->id) ?? 0;
-            $db->table('auth_proofs')->insert([
-                'token_hash' => self::hash($token),
-                'user_id' => $user->id,
-                'kind' => $kind,
-                'credential_version' => $version,
-                'expires_at' => now()->addSeconds(self::LIFETIME_SECONDS),
-            ]);
-        });
+        CredentialFence::run($user->id, fn (Connection $db) => self::insert($db, $user, $kind, $token));
 
         return $token;
+    }
+
+    /** As `issue`, for a caller already inside `CredentialFence::run` for this user (story 4.4: it decides the kind there). */
+    public static function issueIn(Connection $db, User $user, string $kind): string
+    {
+        if (! in_array($kind, self::KINDS, true)) {
+            throw new InvalidArgumentException("Unknown proof kind {$kind}");
+        }
+        $token = Str::random(43);
+        self::insert($db, $user, $kind, $token);
+
+        return $token;
+    }
+
+    private static function insert(Connection $db, User $user, string $kind, string $token): void
+    {
+        $version = self::versionOf($db, $user->id) ?? 0;
+        $db->table('auth_proofs')->insert([
+            'token_hash' => self::hash($token),
+            'user_id' => $user->id,
+            'kind' => $kind,
+            'credential_version' => $version,
+            'expires_at' => now()->addSeconds(self::LIFETIME_SECONDS),
+        ]);
+    }
+
+    /** Dead link: a proof whose email never went out is removed (story 4.4 AC 7). */
+    public static function discard(string $token): void
+    {
+        Database::connection(DatabaseRoles::RUNTIME)->table('auth_proofs')->where('token_hash', self::hash($token))->delete();
     }
 
     /**

@@ -71,7 +71,7 @@ development_status:
   4-1-sessions-with-an-absolute-cap: review
   4-2-credential-fence-and-proofs: review
   4-3-login: review
-  4-4-auth-link-requests-auth-emails-base-mail-layout: ready-for-dev
+  4-4-auth-link-requests-auth-emails-base-mail-layout: review
   4-5-magic-link-confirm: ready-for-dev
   4-6-forgot-reset-and-set-password: ready-for-dev
   4-7-change-password-and-logout: ready-for-dev
