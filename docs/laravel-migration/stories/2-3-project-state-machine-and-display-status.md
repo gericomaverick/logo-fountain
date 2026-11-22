@@ -1,6 +1,6 @@
 # Story 2.3: Project state machine and display status
 
-**Status:** ready-for-dev (2026-11-21) · **DoD variant:** Laravel-only · **Epic:** 2 · **Covers:** X-07, C-03 (status) · **Gate:** `@unit` · **After:** 2.1, 0.6b (done) (stack on `workbench/schema`, the 2.1 builder's branch; unmerged)
+**Status:** review (2026-11-22, branch `workbench/2-3-state`, stacked on `workbench/schema` `4e323ee`) · **DoD variant:** Laravel-only · **Epic:** 2 · **Covers:** X-07, C-03 (status) · **Gate:** `@unit` · **After:** 2.1, 0.6b (done) (stack on `workbench/schema`, the 2.1 builder's branch; unmerged)
 
 > Created with BMAD `create-story`, from the researcher draft in `reports/story-drafts-60.md` (Workbench), with its `file:line` citations spot-checked against `apps/web` and the docs and corrected (see *Doc / code disagreements*). Structure follows `stories/2-1-schema-migrations-and-roles.md` and `templates/story-conversion-record.md`. Docs only: no portal code was written for this file.
 
@@ -94,22 +94,52 @@ No owner decision needed for 2.3.
 (Filled in by the dev agent; see `templates/story-conversion-record.md`. Write "none" rather than leaving a section out.)
 
 ### Laravel implementation
+Branch `workbench/2-3-state` (Workbench builder "2-3-state"), forked from `workbench/schema` at `4e323ee` (2.1 at review, unmerged; it is based on main `129a599`, so main's later docs commits `9c94d6f`…`b4b151c` are not on this branch). Merge after 2.1. All under `apps/portal/`:
+- `app/Domain/ProjectState.php`: backed string enum, the 11 states in Next's order; `label()`, `primaryCta()`, `customerAction()` (CTA only for AWAITING_BRIEF / CONCEPTS_READY / FINAL_FILES_READY), `allowedTransitions()` (Next's table and order), `canTransitionTo()`, `requiresReason()`, `flow()` (the 8 flow states). `APPROVED` is not a case; unknown strings → `tryFrom()` null (exact, case-sensitive).
+- `app/Domain/ProjectTransitions.php`: `allowedFrom(string)`, `can(string, string)`, `apply(string $current, string $next, ?string $reason)` with Next's rule order (INVALID_STATE → HOLD_REASON_REQUIRED → REASON_REQUIRED → INVALID_TRANSITION). Blank = `NodeCompat::trimEnv($reason ?? '') === ''` (JS `trim()` set). The name `trimEnv` reads oddly here (a reason isn't an env value) but is the right function; no new method added, as the story says.
+- `app/Domain/ProjectTransition.php` (readonly result: `ok()`, `from`, `to`, `error`, `allowed`; `toArray()` gives Next's JSON shape and key order) and `app/Domain/ProjectTransitionError.php` (backed enum of the 4 error strings).
+- `app/Domain/ProjectTimeline.php`: `build(string $currentState, array $timestamps = [], bool $hasApprovedMilestone = false)`; the `timestamp` key is omitted when absent (Next's `undefined`), kept when it is `""`.
+- `app/Domain/ProjectStatus.php`: `display()` and `overviewBadge()` over raw strings (unknown values pass through).
+- `compose.yaml`: read-only bind mount `../../tests/parity/fixtures/rules:/var/www/parity-fixtures/rules:ro` on the shared `x-php` definition (init, app, worker). `.github/workflows/portal.yml` needs **no change**: it checks out the whole repo and runs the same compose file from `apps/portal` (`docker compose up -d --build … app …`, `portal.yml:41`). No other compose file mounts the portal (grep of `tests/parity` and `.github`).
+- `tests/Support/ParityFixture.php`: the one place the fixture path lives (`RULES_DIR`); throws, naming the mount, if the directory or file is missing (never skips).
+Not ported (not in the fixture, UI copy only): `nextStageCopy` (`project-state-machine.ts:77`) and `isKnownProjectState` (`project-status.ts:32`, = `ProjectState::tryFrom() !== null`).
 
 ### Deviations from Next.js
 | Behaviour | Next.js | Laravel | Why | Decision ref |
 |---|---|---|---|---|
+| State type | TS `as const` array + string union, `TRANSITIONS` record | Backed enum with methods + static `ProjectTransitions` service + readonly result object | Laravel convention (brownfield `:11`, owner rule) | DECISIONS 2026-11-22 (2.3) |
+| `applyTransition` context | `context?: {reason, onHoldPreviousState}` | `?string $reason` only | `onHoldPreviousState` is accepted but never read in Next (fixture case pins it as ignored) | same |
+| `customerActionFor(state)` | function over `string | null | undefined` | `ProjectState::tryFrom($s)?->customerAction()` | enum method; same output for all 16 fixture cases | same |
+None visible to the parity suite: the fixture pins every output.
 
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|
+| L1 Pest `unit` | `tests/Unit/Domain/ProjectStateFixtureTest.php`: "agrees with the Next state machine" (one dataset row per case, all 494 of `state-machine.json`); "handles every fn in state-machine.json, and only those" | X-07 |
+| L1 Pest `unit` | `tests/Unit/Domain/ProjectStatusFixtureTest.php`: "agrees with the Next display status" (all 112 of `display-status.json`); "handles every fn in display-status.json, and only those" | X-07, C-03 |
+| L1 Pest `unit` | `tests/Unit/Domain/ProjectStateEdgeTest.php`: 11 states / APPROVED and near-misses not states; unknown state before reason rules; JS-trim blank reason (NBSP, U+3000, U+2028+BOM, \f\v blank; NEL, NUL, U+200B not blank); refusal/success payload; unknown persisted statuses pass through; timeline timestamp omitted only when absent; missing fixture directory → RuntimeException naming the mount (16 tests) | X-07 |
+| Arch | `tests/Arch/DomainPurityTest.php`: "<Class> never touches the database or models", one per class (6): no `Illuminate\Support\Facades\DB`, `Illuminate\Database`, `App\Models` (AC 7) | X-07 |
 
-Test-port ledger rows resolved:
+Test-port ledger rows resolved: **#103** (Pest half; the keep-TS half is the 1.8b portal `status.ts`), **#104**.
 
 ### Test evidence
-**Not run, and why:**
+Stack `lf-wb5` (this copy's own; fresh `docker compose up -d --build`), 2026-11-22:
+- `bin/test` (agents-guide check, Pint `--test`, Larastan level 9, Pest all suites): **1033 passed** (2585 assertions), 0 failed; Larastan "No errors". 2.1's 403 + 630 new.
+- `pest tests/Unit/Domain tests/Arch/DomainPurityTest.php`: 630 passed. `pest --group=unit`: 624 passed (the 6 arch tests aren't in the `unit` group).
+- **The tests can fail** (checked by hand, then reverted): adding `CANCELLED` to DELIVERED's transitions failed fixture rows and the edge test; adding a `DB::table()` call to `ProjectStatus` and a `User::query()` to `ProjectState` failed exactly those two arch tests.
+**Not run, and why:** `bin/ui-test` / `bin/browser-test` (no UI or TS change); parity suite (no `@state` journeys in scope; Next stack not installed on this Mac); CI (no PR/dispatch from a builder). No separate fresh-volume run beyond the one above (no schema or role change).
 
 ### Gotchas
+- **Pest arch with an array of targets missed a violation:** `arch()->expect([A::class, B::class])->not->toUse([...])` passed while `B` called `DB::table()`; a single target fails as it should. One expectation per class (`DomainPurityTest.php`). Added to `AGENTS.md` §8.
+- The fixtures live outside the bind-mounted app tree; the container sees them only through the `x-php` mount. A stack created before this branch needs `docker compose up -d --force-recreate app` (or `up -d`, which recreates on a compose change).
+- `assertSame`-style `toBe` on decoded JSON arrays is key-order sensitive, so `toArray()`/`build()` emit keys in Next's order (also what the later snapshot contract wants).
 
 ### Docs updated
+Inventory X-07 (Laravel column, PHP half) and C-03 (status derivation note); ledger #103/#104; `sprint-status.yaml` → review; DECISIONS, RISKS, ASSUMPTIONS one line each (2026-11-22); `apps/portal/AGENTS.md` §8 (two gotchas: arch array targets; shared fixtures via `ParityFixture`); `handoff.md` session log line. `project-context.md` not refreshed (two gotcha lines, not material).
+Story-docs critic (`reports/story-docs-critic-1915.md`, re-check at `1be9c96`): its four remaining minor points concern 2.4 and 2.5 only (AC7 `{}` default, fixed-window start, two payload sources, harness trait names, stale wording); none applies to 2.3, so no change to this story's text. Its B1 (2.3 fixture access) was already fixed in the story and is implemented as AC 8 here.
 
 ### Open items
+- **X-07 not Verified:** the `@state` parity journeys (j12–j18) and the UI half belong to later stories. C-03 stays open for the project hub UI.
+- **Snapshot story:** `ProjectTimeline::build()` takes ISO timestamp strings; formatting dates (ms, `Z`) is the snapshot builder's job (ASSUMPTIONS 2026-11-22).
+- **Rebase** if 2.1 changes in review (this branch touches no 2.1 file except `compose.yaml`'s volume list).
+- F-13 (nothing moves a project to `IN_DESIGN`) unchanged, as the story says.

@@ -100,6 +100,8 @@ Checklist: `MIG/03-documentation-protocol.md` §3. Story record template: `MIG/t
 Requirement series → code: A → `Actions/Auth`, middleware, `Support/RateLimits` · K → `Actions/Checkout`, `Controllers/Webhooks` · C/D → `Actions/*` + `Pages` · N → `Mail/` · X → `Support/`, `Storage/`, middleware, `Domain/` · O → `Console/Commands`, `ops/`, `compose.yaml`.
 
 ## 8. Gotchas (promoted from story records)
+- Shared parity fixtures (`tests/parity/fixtures/rules/*.json`) are read in place through the read-only `x-php` mount at `/var/www/parity-fixtures/rules`, only via `Tests\Support\ParityFixture` (fails, never skips, if the mount is missing); never copy them into `apps/portal` (2.3).
+- Pest arch: `expect([A::class, B::class])->not->toUse(...)` missed a violation in `B`; give each class its own `arch()` expectation (`tests/Arch/DomainPurityTest.php`) and check a new arch rule fails on a deliberate violation (2.3).
 - Never `migrate` on the default (runtime) connection, in tests too. `tests/TestCase.php` migrates `portal_test` once per process as `pgsql_migrate` + `db:grants` (`Tests\Support\MigratesAsOwner`); `Feature/Schema` uses `RefreshDatabaseAsOwner` (transacts `pgsql` only: rows written via `pgsql_migrate`/`pgsql_limits` commit, and the owner can't see uncommitted runtime rows), `Concurrency` uses `TruncatesDatabaseAsOwner`. Never let the owner drop or alter a table the runtime touched inside the test transaction: it waits for that transaction forever (2.1).
 - `ON DELETE RESTRICT` raises SQLSTATE `23001` (restrict_violation), not `23503` (2.1).
 - `migrate:fresh` drops tables but not functions: raw-SQL functions use `CREATE OR REPLACE` and `down()` drops them (2.1).
