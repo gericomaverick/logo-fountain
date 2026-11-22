@@ -140,3 +140,17 @@ Test-port ledger rows resolved:
 ### Docs updated
 
 ### Open items
+
+### Built (2026-11-22, builder 2-7-mail)
+
+Branch `workbench/2-7-mail`, base `origin/workbench/2-4-tx`; also merged `origin/workbench/2-2-models` (needed for Project/membership/Client/Profile/AuditEvent). Docs conflicts in AGENTS.md, DECISIONS.md, RISKS.md, handoff.md were resolved by keeping both sides.
+
+- `App\Support\LifecycleMail::sendOnce(type, projectId, key, LifecycleMessage)` → `LifecycleMailResult` (`sent` = queued, `already_sent`, `skipped` + `missing_recipient`|`not_configured`). Order marker → recipient → configuration, as Next. Marker via `Audit::record`, null actor, `{}` payload, in the caller's transaction (Q1 built as recommended, awaiting owner). Q5 base 2-4-tx, built as recommended, awaiting owner.
+- `App\Jobs\SendLifecycleMail` (4 tries, backoff 10/60/300, `ShouldQueueAfterCommit`), `App\Mail\LifecycleMailable`, `resources/views/mail/layouts/base*.blade.php` (minimal; 4.4 brands it). Failures are rethrown as `Postmark send failed (<status>)`.
+- Composer: `symfony/postmark-mailer ^8.1` (v8.1.6), `symfony/http-client ^8.1` (v8.1.11; `composer audit` clean). Config: `services.postmark.token` ← `POSTMARK_SERVER_TOKEN`, mail from ← `POSTMARK_FROM` else `MAIL_FROM_ADDRESS`, stream `outbound`, `queue.database.after_commit=true`.
+- Tests: `tests/Feature/Mail/*` (29). Full `bin/test`: 566 passed, Pint and Larastan clean.
+- Not done: no live Postmark send; no deploy; ADR-018 untouched.
+
+### Open items
+- Owner: apply the ADR-018 note (or supersede): "Lifecycle mail uses `symfony/postmark-mailer` through Laravel's queue with `after_commit`; the `email_sent:*` marker is written at dispatch, so `sent` means queued and exhausted retries land in `failed_jobs` without a resend. Env names POSTMARK_SERVER_TOKEN / POSTMARK_FROM are kept from Next."
+

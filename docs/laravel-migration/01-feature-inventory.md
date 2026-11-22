@@ -121,7 +121,7 @@ Actors: **P** public / anonymous · **C** client (project member) · **A** admin
 | N-11 | A | "New client message" | ″ | `@email` | Not started (journey: `journeys/j7–j11-*.spec.ts`) |
 | N-12 | A | "New concept feedback submitted" | ″ | `@email` | Not started (journey: `journeys/j3–j6-*.spec.ts`) |
 | N-13 | C | Brief submission confirmation is **UI only** (confirmation dialog). **No email is sent on brief submit**, to anyone | `lib/brief-submission-confirmation.ts` | `@brief` | Not started (journey: `journeys/j3–j6-*.spec.ts`) |
-| N-14 | All | Email branding (logo, HTML and text bodies), HTTPS-only CTA URLs, recipients from `ADMIN_NOTIFICATION_EMAILS` | `lib/email-branding.ts` | `@email` | Not started |
+| N-14 | All | Email branding (logo, HTML and text bodies), HTTPS-only CTA URLs, recipients from `ADMIN_NOTIFICATION_EMAILS` | `lib/email-branding.ts` | `@email` | Built (story 2.7; review) |
 | N-15 | C/A | System messages in the thread: brief received, concept ready, revision requested/delivered, final files ready (`Message.kind=system`) | `lib/system-messages.ts`, `lib/message-kind.ts` | `@messages` | Not started (journey: `journeys/j3–j6-*.spec.ts`) |
 | N-16 | S | Email matrix: `docs/email-lifecycle-verification-matrix.md` is the cross-check for N-01…N-15 | | `@email` | Not started |
 

@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use RuntimeException;
@@ -50,7 +51,7 @@ final class SendLifecycleMail implements ShouldQueue, ShouldQueueAfterCommit
     public function handle(): void
     {
         try {
-            Mail::mailer((string) config('mail.default'))->send(new LifecycleMailable(
+            Mail::mailer(Config::string('mail.default'))->send(new LifecycleMailable(
                 $this->recipients, $this->subject, $this->heading, $this->intro, $this->ctaLabel,
                 $this->ctaUrl, $this->admin, $this->clientName, $this->brandName,
             ));

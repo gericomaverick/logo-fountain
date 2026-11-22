@@ -7,6 +7,7 @@ use App\Jobs\SendLifecycleMail;
 use App\Models\ClientMembership;
 use App\Models\Project;
 use App\Models\ProjectBrief;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
@@ -131,11 +132,11 @@ final class LifecycleMail
     /** Next's rule (`project-lifecycle-email.ts:109-116`; Open question 7): a from address, and a token when Postmark is the mailer. */
     private static function configured(): bool
     {
-        if (trim((string) config('mail.from.address')) === '') {
+        if (trim(Config::string('mail.from.address', '')) === '') {
             return false;
         }
 
-        return config('mail.default') !== 'postmark' || trim((string) config('services.postmark.token')) !== '';
+        return config('mail.default') !== 'postmark' || trim(Config::string('services.postmark.token', '')) !== '';
     }
 
     /** Absolute `https` (loopback `http` outside production), no credentials: Next's `requireSafeCtaUrl`. */

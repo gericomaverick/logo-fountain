@@ -87,7 +87,8 @@ Checklist: `MIG/03-documentation-protocol.md` §3. Story record template: `MIG/t
 | Middleware | `app/Http/Middleware/` (`RequireCanonicalOrigin`, `TrustedClientAddress`, `EnforceAbsoluteSession`, `AuthJsonBoundary`, `SecurityHeaders`, `EnsureAdmin`) |
 | Legacy JSON shapes | `app/Http/Resources/` |
 | Mailables | `app/Mail/` (views in `resources/views/mail/`) |
-| Helpers (`Db`, `Locks`, `ErrorCodes`, `Audit`, `RateLimits`) | `app/Support/` |
+| Helpers (`Db`, `Locks`, `ErrorCodes`, `Audit`, `RateLimits`, `LifecycleMail`) | `app/Support/` |
+| Queued jobs (`SendLifecycleMail`; payloads plain strings, no tokens) | `app/Jobs/` |
 | R2 store, upload validators | `app/Storage/` |
 | Artisan commands | `app/Console/Commands/` |
 | Models / policies | `app/Models/` · `app/Policies/` |
@@ -168,3 +169,4 @@ Requirement series → code: A → `Actions/Auth`, middleware, `Support/RateLimi
 ## 9. Keeping this guide honest
 - New pattern, rule or cross-story gotcha → add it here **in the same commit** (§5 Docs).
 - `bin/check-agents-guide` (run by `bin/test`) fails if §5 above is missing an Area row from `MIG/architecture.md` §5 or a DoD variant from `MIG/epics.md`.
+- **Failed jobs (story 2.7):** Symfony's Postmark exception text carries the provider response body and Laravel stores exception text in `failed_jobs`. `SendLifecycleMail` rethrows `Postmark send failed (<status>)` only; do the same in any job that calls a provider. Tests that call `LifecycleMail::sendOnce` inside `Db::serializable()` use the truncation harness and `DB::disconnect()` in `afterEach`.
