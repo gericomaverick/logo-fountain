@@ -97,7 +97,7 @@ Next re-signs every poll (new `X-Amz-Date`/signature), so the URL changes and th
 Test-port ledger rows resolved: none (DV-12 has no Next test; no ledger row exists).
 
 ### Test evidence
-`bin/test` (Pint, Larastan 9, Pest): 1369 passed / 0 failed. `bin/ui-test`: see the report (RESULT_UI).
+`bin/test` (Pint, Larastan 9, Pest): 1369 passed / 0 failed. `bin/ui-test`: `npm run test:unit` in the vite container: 220 tests, 219 pass, 1 fail (design-lint "portal source is clean": 12 raw-colour/font-size findings in `resources/views/mail/layouts/base.blade.php`, not from this story; `bin/ui-test` stops there). The 3 new cases and media.test.ts pass.
 
 **Not run, and why:** no L4/L5 parity, no browser test (no payload or route yet). Fixture URLs in the vitest file are hand-shaped, not captured from a live `sign()`.
 
