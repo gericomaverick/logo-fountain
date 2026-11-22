@@ -154,7 +154,7 @@ All promoted to `AGENTS.md` §8.
 `apps/portal/AGENTS.md` §5 (Transactions, Audit rows) and §8; `01-feature-inventory.md` X-08, X-09, X-17; `test-port-ledger.md` #96; `stories/sprint-status.yaml` (→ review); `docs/governance/DECISIONS.md`, `RISKS.md` (2026-11-22). ASSUMPTIONS: none. `handoff.md`: not touched (the brief gives it to the last branch).
 
 ### Open items
-- Decided (owner): OQ 2–3 as built: 5 s timeouts; 3 attempts, 10–50 ms waits.
+- Owner: OQ 2–3 built as the story's recommendation (5 s timeouts; 3 attempts, 10–50 ms waits), awaiting owner confirmation.
 - **Follow-up for whichever of 2.2/2.4 lands second (story test plan): AC 5's other half is untestable on this branch** (no `Project` model exists; only `app/Models/User.php`). When the `Project` model lands, add a test that `version` is not mass-assignable and that an Eloquent `save()` leaves it unchanged. Not verified here.
 - If 2.2's `Project` model should own the guard, a later story can wrap `Db::guardedProjectUpdate` in it.
 - Lead: move the disconnect into `TruncatesDatabaseAsOwner` (outside this story's files).
