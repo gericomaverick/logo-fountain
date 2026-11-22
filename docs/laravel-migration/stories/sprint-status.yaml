@@ -55,7 +55,7 @@ development_status:
   2-2-models-policies-client-concept-scope: backlog
   2-3-project-state-machine-and-display-status: backlog
   2-4-transactions-locks-versioning-audit: backlog
-  2-5-shared-rate-limit-store: backlog
+  2-5-shared-rate-limit-store: review
   2-6-laravel-seed-scenarios: backlog
   2-7-lifecycle-mail-pipeline: backlog
   epic-2-retrospective: optional

@@ -153,6 +153,7 @@ Requirement series → code: A → `Actions/Auth`, middleware, `Support/RateLimi
 - No external font or asset hosts (the skeleton loaded Bunny Fonts); fonts are self-hosted (1.7) (1.1a).
 - Migrations always use `--database=pgsql_migrate`; the skeleton's `composer setup` used the runtime role (fixed in `composer.json`) (1.1a).
 - `php:8.5.13-*-bookworm` images exist; don't drop below 8.5.13 (ADR-001) (1.1a).
+- Rate limits only through `App\Support\RateLimits` (`pgsql_limits`), called before any transaction on `pgsql` (it throws otherwise, so before `Locks::credential()`). Tests that reach it use `TruncatesDatabaseAsOwner` (`uses()` per file outside `tests/Concurrency`); multi-process race tests: see `Tests\Support\RateLimitChildren` (2.5).
 - `MIG/project-context.md` is the BMAD project context; refresh it (BMAD `generate-project-context`) when this guide changes materially (1.2).
 
 ## 9. Keeping this guide honest

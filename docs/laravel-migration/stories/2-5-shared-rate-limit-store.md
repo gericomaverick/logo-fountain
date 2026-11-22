@@ -1,6 +1,6 @@
 # Story 2.5: Shared rate-limit store
 
-**Status:** ready-for-dev (2026-11-21) · **DoD variant:** Laravel-only · **Epic:** 2 · **Covers:** X-06, ADR-009, NFR-S4 · **Gate:** `@pg-race`, `@unit` · **After:** 2.1 (stack on `workbench/schema`, the 2.1 builder's branch; unmerged)
+**Status:** review (2026-11-22, builder `2-5-limits`, branch `workbench/2-5-limits`) · **DoD variant:** Laravel-only · **Epic:** 2 · **Covers:** X-06, ADR-009, NFR-S4 · **Gate:** `@pg-race`, `@unit` · **After:** 2.1 (stack on `workbench/schema`, the 2.1 builder's branch; unmerged)
 
 > Created with BMAD `create-story`, from the researcher draft in `reports/story-drafts-60.md` (Workbench), with its `file:line` citations spot-checked against `apps/web` and the docs and corrected (see *Doc / code disagreements*). The draft left bucket values open; they are filled in here from `apps/web/src/lib/auth/rate-limit.ts` and `brownfield/auth-and-security.md` §8. Structure follows `stories/2-1-schema-migrations-and-roles.md` and `templates/story-conversion-record.md`. Docs only: no portal code was written for this file.
 
@@ -11,7 +11,7 @@ As the portal, I need a PostgreSQL-backed shared rate-limit service, so that quo
 From `epics.md:255-259` (§2.5), ADR-009 (`adr/ADR-009-rate-limits-port-the-postgres-bucket-table.md:8`) and NFR-S4 (`prd.md:119`), expanded.
 
 1. **Connection.** `RateLimits` reads, writes and clears buckets only on `pgsql_limits` (`apps/portal/AGENTS.md` §3 connections table, line 43 on main `b115b95`); never the default connection, never Laravel's cache `RateLimiter`. → `tests/Feature/Support/RateLimitsTest.php` (connection name asserted) and the source-scan test in `tests/Arch/RateLimitsTest.php` (see *Test plan*).
-2. **Not inside a business transaction.** Every public method first asserts that **both** `DB::connection('pgsql')->transactionLevel() === 0` (the connection business transactions, `Db::serializable()` and `Locks` use) **and** `DB::connection('pgsql_limits')->transactionLevel() === 0`, and throws a clear exception otherwise (`epics.md:257`). Checking `pgsql_limits` alone can't see a call made inside a business transaction, because those run on `pgsql`. **Test harness consequence:** every test that reaches `RateLimits`, directly or through an Action or route, uses the 2.1 truncation harness (`2-1-…md:131`), not the `RefreshDatabase` transaction wrapper. It has to anyway: `pgsql_limits` writes commit outside the wrapper and would leak between tests. This is the same rule 2.4 sets for `Db::serializable()`. No "baseline level" hook in production code. → `tests/Feature/Support/RateLimitsGuardTest.php`.
+2. **Not inside a business transaction.** Every public method first asserts that **both** `DB::connection('pgsql')->transactionLevel() === 0` (the connection business transactions, `Db::serializable()` and `Locks` use) **and** `DB::connection('pgsql_limits')->transactionLevel() === 0`, and throws a clear exception otherwise (`epics.md:257`). Checking `pgsql_limits` alone can't see a call made inside a business transaction, because those run on `pgsql`. **Test harness consequence:** every test that reaches `RateLimits`, directly or through an Action or route, uses the 2.1 truncation harness (`2-1-…md:131`; on the branch `Tests\Support\TruncatesDatabaseAsOwner`, bound per file with `uses(TruncatesDatabaseAsOwner::class)` outside `tests/Concurrency`, where `tests/Pest.php` already binds it), not the `RefreshDatabase` transaction wrapper (`Tests\Support\RefreshDatabaseAsOwner`). It has to anyway: `pgsql_limits` writes commit outside the wrapper and would leak between tests. This is the same rule 2.4 sets for `Db::serializable()`. No "baseline level" hook in production code. → `tests/Feature/Support/RateLimitsGuardTest.php`.
 3. **Hashed keys.** `auth_rate_limits.key` holds the lowercase hex sha256 (char 64) of the logical bucket string; no clear-text email, address, token or user id is stored. Logical strings as Next (`rate-limit.ts:35-36,45,48`): `{scope}:address:{address}`, `{scope}:identity:{identity}`, `/api/auth/login:address:{address}`, `login:failures:{email}:{address|unknown-address}`.
 4. **Auth mode: atomic single-statement hit.** One `INSERT … ON CONFLICT (key) DO UPDATE … RETURNING hits` per bucket (`rate-limit.ts:14-19`): new key → 1; window expired (`window_start < now − window`) → hits 1 and `window_start = now`; else `LEAST(hits + 1, 100000)`, window unchanged. A request is allowed when every bucket's returned hits ≤ its cap; **all** buckets are hit even when an earlier one is over (`:27`, no short-circuit). This mode is for the auth limits only.
 5. **Values as Next** (`rate-limit.ts:6-9`, `auth-and-security.md:90-92`): window 15 min; general auth (`allowAuthAttempt`, scope = request path, identity lowercased, `lib/auth/http.ts:46-47`): address 20 (only when a trusted address is known) + identity 5; login: address 20 (when known) + failure bucket 5, reserved **before** the password check, and **deleted on success** (`clearLoginFailures`, `:52-54`).
@@ -22,7 +22,7 @@ From `epics.md:255-259` (§2.5), ADR-009 (`adr/ADR-009-rate-limits-port-the-post
 10. **Checkout mode: all-or-nothing, with retry-after** (Next `checkout-auth-email-rate-limit.ts:48-80`, ledger #79). `consumeCheckoutEmail($sessionId, $destination)` returns `allowed`, or `denied` with `retryAfterSeconds`:
     - Buckets in Next's order: session (cap 3, 15 min), then destination (cap 5, 60 min). Each value is normalised as Next's `opaqueKey` (`:24`, JS `trim()` then lowercase; `NodeCompat::trimEnv()` + `NodeCompat::lower()`).
     - **A denied request consumes nothing in any bucket** (Next checks every bucket first, `:61-64`, and only then records the send, `:68-77`). An allowed one adds 1 to every bucket. A failed send still counts (the caller consumes before the email I/O, `:66-67`).
-    - Atomic across processes: one transaction **owned by the service** on `pgsql_limits` (opened after the AC 2 check): `INSERT … ON CONFLICT DO NOTHING` for each bucket, `SELECT … FOR UPDATE` in sorted-key order (no deadlock between two requests sharing a bucket), work out each bucket's effective hits (0 if its window has expired), then either update all the buckets or none.
+    - Atomic across processes: one transaction **owned by the service** on `pgsql_limits` (opened after the AC 2 check): `INSERT … ON CONFLICT DO NOTHING` for each bucket, `SELECT … FOR UPDATE` in sorted-key order (no deadlock between two requests sharing a bucket), work out each bucket's effective hits (0 if its window has expired), then either update all the buckets or none. On a denial the service transaction **rolls back**, so the rows it just inserted go too; on an allow, a bucket whose effective hits are 0 gets `hits = 1, window_start = now`, so a window always starts at an allowed send, never at a denied request.
     - Retry-after comes from the **first** blocked bucket in Next's order: `max(1, ceil(window_start + window − now))` seconds. With the fixed window this equals Next's value for #79's cases (900 and 3600).
     - Fixed window, not Next's sliding window: see *Planned deviations*.
     → `tests/Feature/Support/CheckoutEmailLimitTest.php`, `tests/Concurrency/RateLimitsRaceTest.php`.
@@ -67,7 +67,7 @@ From `epics.md:255-259` (§2.5), ADR-009 (`adr/ADR-009-rate-limits-port-the-post
 |---|---|---|---|---|
 | Limiter transaction | own Prisma transaction (prune + hits) | separate `pgsql_limits` connection, autocommit statements, level-0 assertion | ADR-009 | ADR-009 |
 | Checkout auth email limits | process-local `Map` | same PG store, per-bucket window, all-or-nothing with retry-after (AC 10) | holds across processes | ADR-009, `auth-and-security.md:93` |
-| Checkout window shape | sliding window: each send ages out 15/60 min after it was made (`checkout-auth-email-rate-limit.ts:39-42`) | fixed window from the bucket's first send (`window_start`); a full new allowance once it expires | the 2.1 bucket table has no per-send timestamps (ADR-009: port the bucket table) | ADR-009 |
+| Checkout window shape | sliding window: each send ages out 15/60 min after it was made (`checkout-auth-email-rate-limit.ts:39-42`) | fixed window from the bucket's first allowed send (`window_start`; a denied request creates no row); a full new allowance once it expires | the 2.1 bucket table has no per-send timestamps (ADR-009: port the bucket table) | ADR-009 |
 
 The checkout changes are intended; the first closes a residual risk. Neither is visible to the parity suite: K-04 sends in a burst and asserts `0 < retry-after ≤ 900` (`checkout-contracts.spec.ts:114-133`), and #79's three expected values are identical under both window shapes. What differs: with sends spread over a window, Next allows one more send as each old one ages out, while Laravel blocks until the window ends and then allows a full new allowance, so up to 2 × cap sends can fall within one window length across the boundary (6 per session, 10 per destination). If the owner wants Next's exact shape, it needs a schema change to 2.1's table (open question 2b, not recommended).
 
@@ -76,7 +76,7 @@ The checkout changes are intended; the first closes a residual risk. Neither is 
 2. Auth helpers with Next's logical keys and caps (AC 3, 5).
 3. Checkout mode: all-or-nothing consume with retry-after and per-bucket windows (AC 10); 5.4 wires it.
 4. Guard for AC 2 and AC 9: the `pgsql` + `pgsql_limits` level check, with tests that a call inside `DB::connection('pgsql')->transaction()`, inside a `pgsql_limits` transaction, and (when 2.4 is on the branch) inside `Db::serializable()` throws and writes nothing.
-5. Tests per *Test plan*, all on the truncation harness (AC 2).
+5. Tests per *Test plan*, all on the truncation harness (AC 2: `TruncatesDatabaseAsOwner`, per file in `tests/Feature/Support`).
 6. Docs: Conversion record; inventory X-06 columns; ledger #79 (ported; layer note); ADR-009 *Consequences* (two modes, fixed window); `AGENTS.md` §5 helper signature if it differs from the architecture, and §8 gotcha "tests that reach `RateLimits` use the truncation harness".
 
 ## Test plan
@@ -104,7 +104,7 @@ The checkout changes are intended; the first closes a residual risk. Neither is 
 2. **Prune vs a 60-minute window.** The 1 h prune (`rate-limit.ts:25`) is exactly the destination window, so a row is deleted only once expired; keep it, and assert it in a test. If any window ever exceeds 1 h the prune must use the longest window.
    - **(2b) Checkout window shape. Decided (owner): fixed window.** Fixed window (deviation row) or Next's sliding window (needs per-send timestamps, so a change to 2.1's `auth_rate_limits` or a second table)? *Recommendation:* fixed window. It is ADR-009's bucket table, the parity suite and #79 can't tell the difference, and the worst case (2 × cap across a boundary) is still a small, bounded number of emails. Owner accepted this recommendation.
 3. **Clock.** *Recommendation:* PHP clock (`now()`, frozen in tests) passed as a parameter, as Next passes `now` from the app; record in ADR-009 *Consequences*.
-No owner decision is needed to start 2.5; 2b is the one the owner may want to overrule.
+No owner decision is open: 2b is decided (fixed window).
 
 ## Doc / code disagreements and citation fixes
 - Draft cited `epics.md:251-254` for §2.5; it is `epics.md:255-259` (251-253 is 2.4). Fixed.
@@ -121,22 +121,53 @@ No owner decision is needed to start 2.5; 2b is the one the owner may want to ov
 (Filled in by the dev agent; see `templates/story-conversion-record.md`. Write "none" rather than leaving a section out.)
 
 ### Laravel implementation
+- `app/Support/RateLimits.php`: static service, every query on `DatabaseRoles::LIMITS` (`pgsql_limits`). Public: `consumeAuth($scope, ?$address, $identity)`, `reserveLogin(?$address, $email)`, `clearLoginFailures(?$address, $email)`, `consumeCheckoutEmail($sessionId, $destination)`; caps, windows, prune age and the 100000 counter cap are public constants. Each public method first runs `assertOutsideTransactions()` (AC 2): `LogicException` naming both levels unless `pgsql` and `pgsql_limits` are both at level 0.
+- Auth mode (`hitAll`): prune, then one autocommit `INSERT … ON CONFLICT (key) DO UPDATE … RETURNING hits` per bucket, as `rate-limit.ts:14-19` (strict `window_start < now − 15 min`, `LEAST(hits + 1, 100000)`), no short-circuit. Returns allowed/denied only.
+- Checkout mode (`consumeAllOrNothing`): prune, then one service-owned transaction: `INSERT … (hits 0) ON CONFLICT DO NOTHING` + `SELECT … FOR UPDATE` per bucket in sorted-key order; effective hits 0 when `window_start + window ≤ now`; the first blocked bucket in Next's order (session, destination) → **rollback** and `denied(max(1, ceil(remaining seconds)))`; otherwise every bucket gets `hits + 1`, or `hits = 1, window_start = now` when its effective hits were 0. So a denial creates and consumes nothing, and a window starts at an allowed send (critic point 2).
+- `app/Support/RateLimitKeys.php`: Next's logical strings (AC 3) and `hash()` = lowercase sha256 hex (char 64). Checkout values go through `NodeCompat::trimEnv()` + `NodeCompat::lower()` (Next `opaqueKey`). `app/Support/RateLimitResult.php`: readonly `allowed` + `?retryAfterSeconds`.
+- Clock: the PHP application clock (`now()`, frozen with `travelTo()` in tests), truncated to milliseconds (the column is `timestamp(3)`), used for every comparison; DB `now()` is never used. Read inside the service rather than passed as a parameter (open question 3 suggested a parameter): callers can't pass a wrong clock, and tests freeze it the Laravel way.
+- No `AuthRateLimit` model: 2.2 isn't on this branch, and the service uses the query builder / raw SQL on `pgsql_limits`, so no model is needed. The arch scan allows only `RateLimits.php` to name the table.
+- Only the service is built; no route or Action calls it yet (Epic 4, 5.4).
 
 ### Deviations from Next.js
 | Behaviour | Next.js | Laravel | Why | Decision ref |
 |---|---|---|---|---|
+| Limiter transaction | own Prisma transaction (prune + hits) | separate `pgsql_limits` connection, autocommit statements (auth), level-0 assertion on `pgsql` and `pgsql_limits` | ADR-009; a rolled-back business transaction can't undo a hit | ADR-009, as planned |
+| Checkout auth email limits | process-local `Map` | same PG store, per-bucket windows, all-or-nothing with retry-after | holds across processes | ADR-009, as planned |
+| Checkout window shape | sliding window per send | fixed window from the bucket's first allowed send; full allowance once it ends (up to 2 × cap across a boundary) | the bucket table has no per-send timestamps | owner decision (open question 2b), DECISIONS 2026-11-22 |
+| Stored checkout key | `scope:sha256(value)` (`checkout-auth-email-rate-limit.ts:24`) | sha256 of `checkout:{session\|destination}:{value}` | fits `char(64)`; not observable | open question 1 |
 
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|
+| L1 `@unit` | `tests/Unit/Support/RateLimitKeysTest.php` (4): logical strings, JS trim + lowercase (NBSP, BOM, KELVIN SIGN), sha256 form, caps/windows and prune ≥ longest window | X-06 |
+| L2 (truncation harness) | `tests/Feature/Support/RateLimitsTest.php` (12): hashed keys only; fixed 15-min window at the boundary (`= now − window` still active, +1 ms resets); caps 5/20/5; identity lowercased; no short-circuit; 100000 cap; login reserve/clear; `unknown-address`; prune; every bucket query is on `pgsql_limits` (query-event listener) | X-06 |
+| L2 (truncation harness) | `tests/Feature/Support/RateLimitsGuardTest.php` (13): each of the 4 public methods throws and writes nothing inside a `pgsql` transaction holding an advisory xact lock (as `Locks::credential()`), and inside a `pgsql_limits` transaction; each works at level 0 after a committed business transaction; reserve-before-fence / clear-after | X-06 |
+| L2 (truncation harness) | `tests/Feature/Support/CheckoutEmailLimitTest.php` (8): #79's 3 cases with Next's values (900, 3600, allowed); denial creates/consumes nothing; window starts at the first allowed send (retry-after 1 at −1 ms, then a new window); session retry-after first when both blocked; prune keeps an active 60-min bucket; result shape | X-06, K-04 |
+| Arch | `tests/Arch/RateLimitsTest.php` (2): source scan of `app/` (allow-list: `Support/RateLimits.php`; `Support/DatabaseRoles.php` for the connection) and `not->toUse` the cache `RateLimiter` / `Limit` | X-06 |
+| L3 `@pg-race` | `tests/Concurrency/RateLimitsRaceTest.php` (5): 12 children on one identity → 5 allowed, hits 12; 24 on one address (two buckets each) → 20; 10 login reservations → 5; 8 checkout on one session → 3, destination ends at 3; 10 on two sessions sharing a destination → 5 allowed, no deadlock, each session ≤ 3 | NFR-S4 |
+| L3 `@pg-race` | `tests/Concurrency/RateLimitsRollbackTest.php` (2): hit survives a rolled-back fence transaction; rolled-back failures reach the cap → denied | NFR-S4 |
 
-Test-port ledger rows resolved:
+Helpers: `tests/Support/RateLimitBuckets.php` (read/seed rows by logical key, as the schema owner); `tests/Support/RateLimitChildren.php` + `tests/Support/rate-limits-child.php` (`proc_open` children with their own connections, released together by an advisory-lock barrier the parent holds until `pg_locks` shows every child waiting; the child environment is pinned to the parent's test database).
+
+Test-port ledger rows resolved: **#79** (3/3, `CheckoutEmailLimitTest.php`; layer note: L2 on real PostgreSQL rather than "Pest unit", because the shared store is the thing under test).
 
 ### Test evidence
-**Not run, and why:**
+- `bin/test` on stack `lf-wb6` (2026-11-22, on `workbench/schema` `4e323ee` + this story): AGENTS drift check OK; Pint pass; Larastan level 9 no errors; Pest **449 passed (1360 assertions)**, 9.65 s. Baseline on `workbench/schema` was 403 (2.1 record); the 46 new tests are the ones above.
+- The touched files alone first (46 tests): 45 passed, 1 failed: the arch scan caught a docblock in `RateLimitKeys.php` naming the table. Reworded; then green in the full run above.
+- Stack removed with `docker compose down -v` right after the gates.
+
+**Not run, and why:** CI (branch not merged); L4/L5 parity (no route uses the service yet; K-04 parity is 5.4's); the `Db::serializable()` guard case (2.4 isn't on this branch: the guard test uses a `pgsql` transaction with `pg_advisory_xact_lock`, which is what `Db::serializable()` / `Locks::credential()` amount to for the level check); Next-side tests (`apps/web` frozen, nothing changed there).
 
 ### Gotchas
+- Tests that reach `RateLimits` use `TruncatesDatabaseAsOwner`, bound per file outside `tests/Concurrency` (critic point 4). The transaction wrapper would trip the AC 2 guard, and `pgsql_limits` writes would leak past it.
+- The arch scan reads comments too: don't name `auth_rate_limits` or `pgsql_limits` in a docblock outside the allow-list.
+- Parallel-process tests: a child must be pinned to the parent's test database (the child script passes `DB_*` from the parent's `config('database.connections.pgsql')`), and a barrier is needed or the children run one after another and the race isn't exercised.
 
 ### Docs updated
+This record; story text fixes from the critic's re-check (`reports/story-docs-critic-1915.md`): point 2 (AC 10 and the window deviation row say a denial rolls back and a window starts at an allowed send), point 4 (AC 2 and Task 5 name `TruncatesDatabaseAsOwner` and the per-file binding), point 5 (stale "no owner decision" line replaced). `01-feature-inventory.md` X-06; `test-port-ledger.md` #79; `sprint-status.yaml` 2-5 → review; `docs/governance/DECISIONS.md`, `RISKS.md`, `ASSUMPTIONS.md` (one line each); `apps/portal/AGENTS.md` §8 (one gotcha); `handoff.md` session log (one line).
 
 ### Open items
+- **ADR-009 *Consequences* not edited** (Task 6 asks for it, but accepted ADRs aren't edited by builders). The two modes, the fixed window and the PHP clock are recorded here and in DECISIONS; the owner decides whether ADR-009 gets the note or a superseding ADR.
+- When 2.4 lands: add a `Db::serializable()` case to `RateLimitsGuardTest` (one dataset row).
+- Epic 4 (4.2–4.7) calls `RateLimits` before `Locks::credential()` and owns the response mapping and the M1 port (#66); 5.4 maps a checkout denial to `429 RATE_LIMITED` + `retry-after`. X-06 stays open until then.
