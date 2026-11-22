@@ -93,7 +93,7 @@ Checks: env presence for `BETTER_AUTH_SECRET` (Laravel: `APP_KEY`), `R2_ACCOUNT_
 | F-9 | A revision delivered by **uploading** a revised file (`uploadMode=revision`) sends **no** client email. Only the separate "mark delivered" route sends N-05 | Laravel: send N-05 on revision upload too (deviation, owner OK needed) |
 | F-10 | `draft` concepts and the publish route are a legacy path with no current UI entry. Upload publishes immediately | Port them for parity (seeded drafts and contract tests), and mark them in the inventory |
 | F-11 | The finals upload uses `{error:"…", code}` (string `error`) in three responses, unlike `{error:{message,code}}` everywhere else | Laravel: normalise to the standard shape **only if** the admin UI is updated in the same story (log a deviation). Otherwise reproduce |
-| F-12 | Finals re-upload while `FINAL_FILES_READY` re-sends the "final files ready" email every time | Keep (it's arguably correct for a repair), and document it |
+| F-12 | Finals re-upload while `FINAL_FILES_READY` re-sends the "final files ready" email every time | ~~Keep~~ **Fix (owner 2026-11-22, DV-16):** only the first publication emails; a re-upload is announced with notify |
 
 ## Corrections verified by the contract suite (story 0.7c, 2026-11-19)
 

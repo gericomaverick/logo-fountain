@@ -51,6 +51,7 @@ The BMAD workflow files aren't installed on this Mac (`_bmad/bmm` dangles). Foll
 - **The parity suite on Next isn't set up here yet:** `apps/web` and `tests/parity` have no `node_modules`. With 21 GB free it should now fit, but installing it is the owner's call. This matters only for 2.6 (below).
 
 ## 6. Rules that bite (from the repo; break none)
+- **Don't copy Next's mistakes** (owner, 2026-11-22: "the old app had gaps and mistakes, i dont want those repeated"). If Next's behaviour looks wrong (a bug, a security gap, a broken rule, an email or message that misfires), don't reproduce it, even if a parity test or the brownfield doc says "reproduce exactly". Write it up as a **proposed DV row**: what Next does (`file:line`), the Laravel behaviour, and the `@deviation` test that would fail on Next. Then ask the owner (§8). Known ones are already DV-1…DV-17 in `01-feature-inventory.md`.
 - **Prefer Laravel conventions** over reproducing Next/Prisma artefacts wherever the parity suite can't see the difference (owner, 2026-11-21: "leave behind as much Next.js as possible"). Keep the observable behaviour. If a story file recommends "as Next" for something no test observes, choose the Laravel way and log it.
 - **Migrations run as the schema owner:** `--database=pgsql_migrate`, in tests too. The default `pgsql` connection is the runtime role and can't do DDL (2.1 sets up the test harness for this).
 - `apps/web` is frozen. Accepted ADRs aren't edited: supersede them with a new ADR. Never write under `_bmad/bmm` or `_bmad/core`.
@@ -65,6 +66,7 @@ The BMAD workflow files aren't installed on this Mac (`_bmad/bmm` dangles). Foll
 - **Not in scope:** the Inertia ^3.7 bump due from 2026-11-23 (owner follow-up). Epic 3 and later.
 
 ## 8. When to stop and ask the owner (on the board)
+- Next behaviour that looks wrong: a proposed DV row (§6). Build the rest of the story meanwhile; leave that behaviour until the owner rules.
 - Merging to main or pushing to main (gated).
 - A story's open question with no safe recommendation, or a conflict between docs that changes behaviour (note the docs-vs-code disagreements you find either way).
 - Disk full, Docker broken, or a gate that fails for a reason outside the story.

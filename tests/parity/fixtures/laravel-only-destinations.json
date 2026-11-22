@@ -19,5 +19,7 @@
   "X-19": "L3 Pest (concept upload receipts, advisory lock, ambiguous commit) \u2014 story 7.5a; Next replay covered by contract/admin-concepts",
   "DV-3": "None: VAT capture deferred (no behaviour change in migration scope)",
   "D-10": "DV-UX: the separate admin upload page is merged into the admin Concepts section (ux-design.md \u00a75.2). Concept upload behaviour is covered on Next by journeys/j14-admin-concepts and contract/admin-concepts; the Laravel page objects map uploadConcept() to the Concepts section (story 7.5a)",
-  "DV-4": "Pest feature test (campaign_slug copied to project_orders on package fulfilment; no API exposes the order column) \u2014 story 5.3"
+  "DV-4": "Pest feature test (campaign_slug copied to project_orders on package fulfilment; no API exposes the order column) \u2014 story 5.3",
+  "DV-16": "No test yet: the @deviation test (re-upload while FINAL_FILES_READY sends no email; notify still does) is due in story 7.8b, which replaces this entry with it",
+  "DV-17": "No test yet: the @deviation test (after a clean-slate reset, system messages appear again) is due in stories 6.10 (helper) and 7.9 (reset), which replace this entry with it"
 }

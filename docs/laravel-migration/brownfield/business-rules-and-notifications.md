@@ -49,7 +49,7 @@ Rules:
 ## 5. System messages (`system-messages.ts`)
 
 - Stored as `Message(kind="system")` in the project thread (created lazily). **The sender is the first `Profile` with `isAdmin=true`**, falling back to the acting user.
-- **Deduplicated by exact body within the thread:** if a system message with the same body already exists, nothing is written. So the second "Concept 1 is ready for review." (for example after a reset) is silently skipped. Reproduce this exactly. The deduplication key is the body text.
+- **Deduplicated by exact body within the thread:** if a system message with the same body already exists, nothing is written. So the second "Concept 1 is ready for review." (for example after a reset) is silently skipped. **Laravel deviates (DV-17):** the dedupe window starts at the last clean-slate reset. The deduplication key is the body text.
 - Bodies: "Brief received. Your designer will review and reply soon." · "Revision request received ({8})." · "Concept {n} is ready for review." · "Revision delivered for Concept {n}." · "Revision update delivered ({8})." · "Final files are ready to download.".
 
 ## 6. Lifecycle emails (`project-lifecycle-email.ts`)
@@ -98,4 +98,4 @@ Runtime `DATABASE_URL` and migration `DIRECT_URL` must point at the **same host,
 | # | Finding | Recommendation |
 |---|---|---|
 | F-13 | `IN_DESIGN` can't be reached through any route. The admin has no "start design" action | Keep parity (no route). Ask the owner whether an admin "Mark in design" action is wanted later |
-| F-14 | System-message dedupe by body suppresses legitimate repeats (e.g. after a clean-slate reset, "Concept 1 is ready for review." never appears again) | Reproduce now. Raise it as a post-launch fix |
+| F-14 | System-message dedupe by body suppresses legitimate repeats (e.g. after a clean-slate reset, "Concept 1 is ready for review." never appears again) | ~~Reproduce now~~ **Fix in Laravel (owner 2026-11-22, DV-17):** dedupe only since the last clean-slate reset |

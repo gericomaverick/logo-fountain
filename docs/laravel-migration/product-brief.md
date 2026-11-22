@@ -111,7 +111,7 @@ Purchase → set password → brief → concepts → feedback and revisions (wit
 - Migrating any data (there is none).
 
 ### Future vision (post-launch candidates, not commitments)
-VAT on receipts · brief reference uploads · realtime updates in place of polling · a "Mark in design" admin action (F-13) · fixing the system-message deduplication (F-14) · storage housekeeping with an audited retention policy · a second admin seat.
+VAT on receipts · brief reference uploads · realtime updates in place of polling · a "Mark in design" admin action (F-13) · storage housekeeping with an audited retention policy · a second admin seat.
 
 ## Open questions for the owner
 1. Are the UX quality targets above the right bar, or do you want different ones?

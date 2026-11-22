@@ -16,7 +16,7 @@ The Phase 0 output of BMAD `document-project` (deep scan, apps/web only), 2026-1
 
 ## Findings (ruled on 2026-11-18)
 
-**Outcomes:** the owner decided F-1 (enable), F-2 (fix), F-3 (defer), F-6 (fix), F-7 (make impossible) and F-9 (email the client). F-4, F-5, F-8 and F-11 follow the recommendation below. F-10, F-12, F-13 and F-14 keep parity (an assumption logged for review). The resulting Laravel targets are the **DV-** rows in `01-feature-inventory.md` → "Decided deviations".
+**Outcomes:** the owner decided F-1 (enable), F-2 (fix), F-3 (defer), F-6 (fix), F-7 (make impossible) and F-9 (email the client). F-4, F-5, F-8 and F-11 follow the recommendation below. F-10 and F-13 keep parity (an assumption logged for review). F-12 and F-14 kept parity until 2026-11-22, when the owner ruled them fixes (DV-16, DV-17). The resulting Laravel targets are the **DV-** rows in `01-feature-inventory.md` → "Decided deviations".
 
 | # | Area | Finding | Recommendation |
 |---|---|---|---|

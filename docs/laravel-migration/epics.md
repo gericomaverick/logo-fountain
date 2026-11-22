@@ -416,7 +416,7 @@ Every screen follows UX §14 priority order and §12 patterns. L7 and L7a are gr
 
 ### Story 6.10: Messages and read state
 **Covers:** C-14, C-15, FR31, FR32, X-16, N-06, N-11 · **Gate:** `@messages&@api`, `@messages&@ui` · **After:** 6.2b, 2.7
-- A new message shows a tab dot until viewed. System lines render as events. Dedup-by-body holds. The client message sends N-11 once.
+- A new message shows a tab dot until viewed. System lines render as events. System messages are deduplicated by body only since the last clean-slate reset (DV-17, owner 2026-11-22; Next dedupes across the whole thread, F-14). The client message sends N-11 once.
 
 ### Story 6.11: Files tab and final download
 **Covers:** C-13, FR30 · **Gate:** `@finals&@api`, `@finals&@ui`, `@invoices&@ui` · **After:** 6.2b, 3.1, 5.7
@@ -471,8 +471,8 @@ Every screen follows UX §14 priority order and §12 patterns. L7 and L7a are gr
 - Replacing while DELIVERED serves the newest file, and old signed URLs still work until they expire. Errors use the standard shape. 95,000,001 bytes is rejected.
 
 ### Story 7.8b: Notify retry and admin download
-**Covers:** D-12, D-13, F-12 · **Gate:** `@admin&@api` · **After:** 7.8a, 2.7
-- Notify needs the current `assetId` and `projectUpdatedAt`, otherwise 409. Re-uploading while FINAL_FILES_READY re-notifies (F-12). The admin download doesn't change state.
+**Covers:** D-12, D-13, DV-16 · **Gate:** `@admin&@api` · **After:** 7.8a, 2.7
+- Notify needs the current `assetId` and `projectUpdatedAt`, otherwise 409. Re-uploading while FINAL_FILES_READY does **not** email the client (DV-16, owner 2026-11-22; Next re-notifies, F-12): only the first publication emails automatically, and the admin uses notify to tell the client. Write DV-16's `@deviation` test and remove its entry from `laravel-only-destinations.json`. The admin download doesn't change state.
 
 ### Story 7.9: Entitlement override and clean-slate reset
 **Covers:** D-14, D-15, FR43, FR44 · **Gate:** `@admin&@api`, `@entitlements&@ui` · **After:** 7.2
@@ -481,6 +481,7 @@ Every screen follows UX §14 priority order and §12 patterns. L7 and L7a are gr
   - resets the status (BRIEF_SUBMITTED, or AWAITING_BRIEF if there's no brief);
   - deletes the listed records, and optionally the non-system messages;
   - zeroes usage while keeping limits;
+  - starts a new system-message window, so system messages appear again after the reset (DV-17: write its `@deviation` test with 6.10 and remove its entry from `laravel-only-destinations.json`);
   - keeps the stored files;
   - writes an audit row that lists what was retained.
 - The legacy entitlements reset endpoint still returns 409.
