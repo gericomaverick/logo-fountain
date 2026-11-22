@@ -121,25 +121,38 @@ Pest gate green plus the full Laravel suite (`bin/test`: Pint, Larastan, Pest). 
 (Filled in by the dev agent; see `templates/story-conversion-record.md`. Write "none" rather than leaving a section out.)
 
 ### Laravel implementation
+`App\Support\LifecycleMail::sendOnce` (marker, recipient, config, in that order; marker via `Audit::record` in the caller's transaction), `App\Jobs\SendLifecycleMail`, `App\Mail\LifecycleMailable`, minimal base layout `resources/views/mail/layouts/base*.blade.php`. See *Built* below for packages and config.
 
 ### Deviations from Next.js
 | Behaviour | Next.js | Laravel | Why | Decision ref |
 |---|---|---|---|---|
+| Send timing | inline in the route | queued job after commit (`ShouldQueueAfterCommit`, `queue.database.after_commit=true`) | never block or undo the action | DV-8, ADR-018, ADR-019 |
+| Retry | none | 4 tries, backoff 10/60/300 s | epic §2.7 | Q3 |
+| Failure surface | throws to the route | `failed_jobs`; text `Postmark send failed (<status>)`, no provider body | DV-8 | DV-8 |
+| `sent` meaning | Postmark accepted | queued | DV-8 | Q4 |
+| Marker timing | after a successful send | at dispatch, in the caller's transaction; no resend after exhausted retries | duplicate window | Q1 (built as recommended, **awaiting owner**) |
+| Transport | `fetch` to Postmark API | Symfony Postmark transport | Laravel mail | ADR-018 |
+| Base branch | n/a | 2-4-tx plus merge of 2-2-models | Project/Client/AuditEvent needed | Q5 (**awaiting owner**) |
 
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|
+| Pest feature | `tests/Feature/Mail/*` (29), incl. `LifecycleMailAfterCommitTest.php` (real `database` queue), `LifecycleMailTest.php`, retry test into `failed_jobs`, config transport test | X-18, DV-8, N-14 |
 
-Test-port ledger rows resolved:
+Test-port ledger rows resolved: none.
 
 ### Test evidence
-**Not run, and why:**
+Full `bin/test`: 566 passed; Pint and Larastan clean.
+**Not run, and why:** real Postmark (live-mode is owner-only); parity `@email` journeys (need Next stack); the optional L3 race test was **not built**.
 
 ### Gotchas
+Skips write no marker. `config/mail.php` falls back to `hello@example.com` when no from is set, so `not_configured` may not fire for from (follow-up). `alreadySent` reads via `DatabaseRoles::RUNTIME`; the first calling feature story should assert it shares the `Db::serializable()` connection. A client send for a missing project returns `missing_recipient`; an admin send proceeds with "Client"/"Unknown brand".
 
 ### Docs updated
+`01-feature-inventory.md` X-18 (in progress) and N-14 (base only); `DECISIONS.md`, `RISKS.md`, `handoff.md`.
 
 ### Open items
+ADR-018 note for the owner (text below under *Built*), Q1, Q5.
 
 ### Built (2026-11-22, builder 2-7-mail)
 
