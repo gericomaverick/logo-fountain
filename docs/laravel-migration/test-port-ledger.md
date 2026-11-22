@@ -97,7 +97,7 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 89 | `src/lib/entitlements.test.ts` | 3 | K-07 | Pest unit | | Not started |
 | 90 | `src/lib/final-approval.test.ts` | 2 | C-12 | Keep TS (UI) | | Not started |
 | 91 | `src/lib/final-deliverable-access.test.ts` | 2 | C-13 | Pest unit | | Not started |
-| 92 | `src/lib/final-deliverable-filename.test.ts` | 2 | C-13,X-11 | Pest unit | | Not started |
+| 92 | `src/lib/final-deliverable-filename.test.ts` | 2 | C-13,X-11 | Pest unit | `tests/Unit/Support/Storage/FinalDeliverableFilenameTest.php` (2 ported + UTC edge) | Done (3.1) |
 | 93 | `src/lib/local-dev-extra-project.test.ts` | 1 | O-02 | Pest (seed command) | | Not started |
 | 94 | `src/lib/local-dev-seed.test.ts` | 1 | O-02 | Pest (seed command) | | Not started |
 | 95 | `src/lib/magic-link-email.test.ts` | 3 | K-03,A-11 | Pest feature | | Not started |
@@ -111,7 +111,7 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 103 | `src/lib/project-state-machine.test.ts` | 6 | X-07 | Pest unit + keep TS (shared fixture) | `tests/Unit/Domain/ProjectStateFixtureTest.php` (all `state-machine.json` cases), `tests/Unit/Domain/ProjectStateEdgeTest.php` (X-07, 2.3); TS half: Next's Vitest `shared-rule-fixtures.test.ts` over the same `state-machine.json` (0.6b) | **Ported** (story 2.3) |
 | 104 | `src/lib/project-status.test.ts` | 10 | X-07,C-03 | Pest unit | `tests/Unit/Domain/ProjectStatusFixtureTest.php` (all `display-status.json` cases), `ProjectStateEdgeTest.php` pass-through (2.3) | **Ported** (story 2.3) |
 | 105 | `src/lib/request-origin.test.ts` | 15 | X-01,X-04 | Pest unit + feature | `tests/Unit/CanonicalOriginTest.php` (X-04, 1.3), `tests/Feature/OriginGuardTest.php` (X-01, 1.4) | **Ported** (stories 1.3 + 1.4) |
-| 106 | `src/lib/storage/r2.test.ts` | 10 | X-10,X-11 | Pest unit (S3 mock) + L3 SeaweedFS | | Not started |
+| 106 | `src/lib/storage/r2.test.ts` | 10 | X-10,X-11 | Pest unit (S3 mock) + L3 SeaweedFS | `PrivateStorageTest`, `DownloadDispositionTest`, `SignedUrlExpiryTest`, `ObjectKeyTest`, `PrivateStorageSeaweedTest`, `ObjectStoreCollisionRaceTest` (3.1). The file has 8 `it` blocks: 7 ported; "fresh immutable final paths" (`:34`) is caller path-building (7.8a), not the store; the ledger's 10 = 8 + dataset expansion | Done (3.1), minus `:34` → 7.8a |
 | 107 | `src/lib/system-messages.test.ts` | 2 | N-15 | Pest feature | | Not started |
 | 108 | `src/lib/upload-validation.test.ts` | 12 | X-12 | Pest unit + shared golden corpus | | Not started |
 | 109 | `src/lib/webhook-error-classification.test.ts` | 2 | K-05 | Pest unit | | Not started |
