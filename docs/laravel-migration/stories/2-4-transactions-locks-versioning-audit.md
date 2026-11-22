@@ -1,6 +1,6 @@
 # Story 2.4: Transactions, locks, versioning, audit
 
-**Status:** ready-for-dev (2026-11-21) · **DoD variant:** Laravel-only · **Epic:** 2 · **Covers:** X-08, X-09, X-17, ADR-011, NFR-R3 · **Gate:** `@pg-race` · **After:** 2.1 (stack on `workbench/schema`, the 2.1 builder's branch; unmerged)
+**Status:** review (2026-11-22, branch `workbench/2-4-tx`) · **DoD variant:** Laravel-only · **Epic:** 2 · **Covers:** X-08, X-09, X-17, ADR-011, NFR-R3 · **Gate:** `@pg-race` · **After:** 2.1 (stack on `workbench/schema`, the 2.1 builder's branch; unmerged)
 
 > Created with BMAD `create-story`, from the researcher draft in `reports/story-drafts-60.md` (Workbench), with its `file:line` citations spot-checked against `apps/web` and the docs and corrected (see *Doc / code disagreements*). Structure follows `stories/2-1-schema-migrations-and-roles.md` and `templates/story-conversion-record.md`. Docs only: no portal code was written for this file.
 
@@ -110,25 +110,50 @@ The audit row is **not visible** to the parity suite for any payload Next writes
 ---
 
 ## Conversion record
-(Filled in by the dev agent; see `templates/story-conversion-record.md`. Write "none" rather than leaving a section out.)
+(Filled in by the dev agent, Workbench builder "2-4-tx", 2026-11-22. Branch `workbench/2-4-tx`, based on `workbench/schema` `4e323ee`.)
 
 ### Laravel implementation
+- `apps/portal/app/Support/Db.php:61` `Db::serializable(Closure $work, Throwable|Closure $conflict)`: runs on `pgsql`; throws `LogicException` if a transaction is already open (no nesting, including the RefreshDatabase wrapper); each attempt sets `SERIALIZABLE` plus `SET LOCAL lock_timeout`/`statement_timeout` = 5 s (`:34-36`); 3 attempts in total (`:26`) on 40001/40P01 (`:39`) with 10–50 ms jitter, then throws the caller's conflict; 55P03/57014 (`:42`) throw the conflict at once; any other error is rethrown unchanged. The retry loop is its own (Laravel's `transaction()` is called with 1 attempt), so after-commit callbacks of a failed attempt are discarded.
+- `Db.php:105` `Db::guardedProjectUpdate($projectId, $expectedStatus, $expectedVersion, $values, $conflict)`: one `UPDATE … SET version = version + 1, updated_at = now() WHERE id, status, version`; affected ≠ 1 → caller's conflict; returns the new version; refuses `id`/`version` in `$values`. It's a query-builder helper because 2.2's `Project` model isn't on this branch (story *Dependencies*).
+- `app/Support/Locks.php:16-28` `credential` / `provision` / `conceptUpload`: `pg_advisory_xact_lock(hashtextextended(key, 0))` with Next's exact key strings (`fence.ts:8` `auth:<id>`, `checkout-fulfillment.ts:449` `provision:<email>`, `concepts/route.ts:249` `<projectId>:<requestKey>`); throw outside a transaction.
+- `app/Support/Audit.php:27` `Audit::record(type, project, actor, payload): string` (id): inserts on `pgsql` inside whatever transaction is open; payload JSON-normalised (`{}` for null/empty, lists refused) then `Scrubber::scrubAuditPayload()` (`Scrubber.php:96`): the log rules minus email masking, plus a top-level string `checkoutSessionId` kept (`:59`).
+- No route codes added: conflicts are caller-supplied (ADR-011 line 8); `ErrorCodes` gains its 409 constants with the Actions (Epics 7/8).
 
 ### Deviations from Next.js
 | Behaviour | Next.js | Laravel | Why | Decision ref |
 |---|---|---|---|---|
+| Serialization failure | immediate 409 | 3 attempts (10–50 ms jitter), then the same 409 | NFR-R3 | ADR-011; DECISIONS 2026-11-22 |
+| Version guard | `updatedAt` | `projects.version` via `Db::guardedProjectUpdate` | explicit guard | ADR-011 |
+| Transaction timeouts | Prisma maxWait 2 s / timeout 5 s → P2028 → 409 | `SET LOCAL lock_timeout`/`statement_timeout` 5 s → caller's 409, no retry | no pool wait in PHP-FPM | OQ 2 (recommendation taken); DECISIONS 2026-11-22 |
+| Audit payloads | stored as given | scrubbed (tokens, credentials, secret keys, signed URLs); `checkoutSessionId` and emails kept | arch §5 | owner 2026-11-21 (*Decided*, OQ 1) |
+ADR-011 *Consequences* would name the retry count; accepted ADRs aren't edited, so it's in DECISIONS and here.
 
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|
+| L3 `@pg-race` | `tests/Concurrency/SerializableTest.php` (isolation/timeouts set; nesting throws; real concurrent writer retried; exhaustion → supplied 409, no partial write; forced 40001/40P01 retried with count; 23505/23503/23514 and domain errors not retried; lock/statement timeout → 409, 1 attempt; failed attempt discards after-commit callbacks; 40001 at COMMIT retried; 4-process race, version = ok count) | X-17, NFR-R3 |
+| L3 `@pg-race` | `tests/Concurrency/ProjectVersionGuardTest.php` (+1 exactly; stale version / changed status / unknown id → conflict, nothing changed; `id`/`version` refused; 6-process race: exactly one winner; ordinary updates don't move `version`, no trigger) | X-17 |
+| L3 `@pg-race` | `tests/Concurrency/LocksTest.php` (exactly three locks; held under Next's key until commit, released on rollback; other keys free; outside a transaction throws; second holder waits; 8-process receipt convergence) | X-09 |
+| L2 Pest | `tests/Feature/Support/AuditTest.php` (row shape; Model/string/null refs; `{}` default; lists refused; 19 Next payload shapes stored with identical jsonb; redaction; `checkoutSessionId` top-level only; emails kept; rollback leaves no row) | X-08 |
+| L1 Pest | `tests/Unit/ScrubberTest.php` "scrubs audit payloads with the audit profile…" | X-08 |
 
-Test-port ledger rows resolved:
+Test-port ledger rows resolved: #96 (still partial): test 4 lock half (`LocksTest` "converges advisory-locked receipts…"), test 5 audit half (`AuditTest` "leaves no row…"). Receipt-reader halves → 7.5a; test 3 and test 5's entitlement half → 7.x; test 6 → 5.x.
 
 ### Test evidence
-**Not run, and why:**
+2026-11-22, stack lf-wb4: `bin/test` → agents-guide check OK, Pint OK, Larastan level 9 no errors, Pest **470 passed (1361 assertions)**. `vendor/bin/pest --group=pg-race` → **71 passed (226 assertions)**; race line `serializable: 36 ok, 4 conflicts, 54 attempts`. Mutation check: with `Locks::conceptUpload` commented out in the child, the receipt race fails (8 writes, not 1).
+**Not run, and why:** `bin/ui-test`, `bin/browser-test` and the parity suite (nothing in this story is UI- or route-visible); no Next-side comparison (DoD is Laravel-only).
 
 ### Gotchas
+- `App\Support\Db` and the `DB` facade collide (PHP class names are case-insensitive): alias the facade `Database` in files that use both.
+- The truncation harness never disconnects; `--group=pg-race` exhausted PG's 100 slots until the 2.4 files disconnected in `afterEach` (RISKS 2026-11-22).
+- jsonb reorders keys: compare stored payloads in SQL (`payload = ?::jsonb`) or with `toEqual`.
+- Race children get the test DB name from config (`tests/Support/RaceChildren.php`), not a hard-coded `portal_test`.
+All promoted to `AGENTS.md` §8.
 
 ### Docs updated
+`apps/portal/AGENTS.md` §5 (Transactions, Audit rows) and §8; `01-feature-inventory.md` X-08, X-09, X-17; `test-port-ledger.md` #96; `stories/sprint-status.yaml` (→ review); `docs/governance/DECISIONS.md`, `RISKS.md` (2026-11-22). ASSUMPTIONS: none. `handoff.md`: not touched (the brief gives it to the last branch).
 
 ### Open items
+- Owner: confirm OQ 2–3 as built (5 s timeouts; 3 attempts, 10–50 ms).
+- If 2.2's `Project` model should own the guard, a later story can wrap `Db::guardedProjectUpdate` in it.
+- Lead: move the disconnect into `TruncatesDatabaseAsOwner` (outside this story's files).
