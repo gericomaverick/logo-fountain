@@ -107,7 +107,7 @@ Test-port ledger rows resolved: #108 images half (row stays open for 3.3).
 **Not run, and why:** parity L4/L5 (no route until 7.5a); the Next side (no apps/web change).
 
 ### Decided / Open
-Q2 (generated cases built in PHP) and Q3 (image-decoder arch guard) built as recommended, awaiting owner. Q4 (php.ini limits) is 7.5a's.
+Q2 (generated cases built in PHP) and Q3 (image-decoder arch guard) built as recommended, **decided (owner)**. Q4 (php.ini limits) is 7.5a's.
 
 ### Gotchas
 None promoted to AGENTS.md (no new pattern).
