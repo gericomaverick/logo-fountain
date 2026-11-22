@@ -97,8 +97,8 @@ The audit row is **not visible** to the parity suite for any payload Next writes
 
 ## Open questions (with recommendations)
 1. **Emails in audit payloads. Decided (owner): no email masking in audit payloads.** The Scrubber masks every email (`Scrubber.php:51`). No Next audit payload has an email field, but free text can hold one: the concept-upload receipt stores the concept's `notes` and replays them as the response (`concept-upload-request.ts:14-17`), so masking would make a replayed upload answer differently from the first, and the admin audit endpoint would show masked text. *Recommendation:* the audit profile doesn't mask emails (an email isn't a secret; the `AGENTS.md` §5 *Audit* rule names secrets, signed URLs and tokens). Sensitive URL params in free text are still redacted: that is the rule's intent, and no known payload has one.
-2. **Transaction timeouts.** Next's `P2028` (maxWait 2 s / timeout 5 s) also yields 409. *Recommendation:* set `SET LOCAL lock_timeout` / `statement_timeout` (e.g. 5 s) inside `Db::serializable()`, treat their SQLSTATEs (`55P03`, `57014`) as non-retryable conflicts mapped to the caller's 409; record the values in ADR-011 *Consequences*. `SET LOCAL` lasts only for that transaction, so it can't shorten the credential fence's 20 s lock wait (`fence.ts:8-9`; 4.2 runs the fence in its own transaction and sets its own timeout); 4.2 must not wrap the fence in `Db::serializable()`.
-3. **Retry count/backoff.** Not specified. *Recommendation:* 3 attempts total, 10–50 ms jittered backoff; test the count; record in ADR-011 *Consequences*.
+2. **Transaction timeouts. Decided (owner, 2026-11-22): 5 s lock/statement timeouts, as built.** Next's `P2028` (maxWait 2 s / timeout 5 s) also yields 409. *Recommendation:* set `SET LOCAL lock_timeout` / `statement_timeout` (e.g. 5 s) inside `Db::serializable()`, treat their SQLSTATEs (`55P03`, `57014`) as non-retryable conflicts mapped to the caller's 409; record the values in ADR-011 *Consequences*. `SET LOCAL` lasts only for that transaction, so it can't shorten the credential fence's 20 s lock wait (`fence.ts:8-9`; 4.2 runs the fence in its own transaction and sets its own timeout); 4.2 must not wrap the fence in `Db::serializable()`.
+3. **Retry count/backoff. Decided (owner, 2026-11-22): 3 attempts, 10–50 ms waits, as built.** Not specified. *Recommendation:* 3 attempts total, 10–50 ms jittered backoff; test the count; record in ADR-011 *Consequences*.
 4. **Lock signatures.** *Recommendation:* exactly `architecture.md:144`; no other lock types.
 
 ## Doc / code disagreements and citation fixes
@@ -124,7 +124,7 @@ The audit row is **not visible** to the parity suite for any payload Next writes
 |---|---|---|---|---|
 | Serialization failure | immediate 409 | 3 attempts (10–50 ms jitter), then the same 409 | NFR-R3 | ADR-011; DECISIONS 2026-11-22 |
 | Version guard | `updatedAt` | `projects.version` via `Db::guardedProjectUpdate` | explicit guard | ADR-011 |
-| Transaction timeouts | Prisma maxWait 2 s / timeout 5 s → P2028 → 409 | `SET LOCAL lock_timeout`/`statement_timeout` 5 s → caller's 409, no retry | no pool wait in PHP-FPM | OQ 2 (recommendation taken); DECISIONS 2026-11-22 |
+| Transaction timeouts | Prisma maxWait 2 s / timeout 5 s → P2028 → 409 | `SET LOCAL lock_timeout`/`statement_timeout` 5 s → caller's 409, no retry | no pool wait in PHP-FPM | OQ 2 (decided (owner)); DECISIONS 2026-11-22 |
 | Audit payloads | stored as given | scrubbed (tokens, credentials, secret keys, signed URLs); `checkoutSessionId` and emails kept | arch §5 | owner 2026-11-21 (*Decided*, OQ 1) |
 ADR-011 *Consequences* would name the retry count; accepted ADRs aren't edited, so it's in DECISIONS and here.
 
@@ -154,7 +154,7 @@ All promoted to `AGENTS.md` §8.
 `apps/portal/AGENTS.md` §5 (Transactions, Audit rows) and §8; `01-feature-inventory.md` X-08, X-09, X-17; `test-port-ledger.md` #96; `stories/sprint-status.yaml` (→ review); `docs/governance/DECISIONS.md`, `RISKS.md` (2026-11-22). ASSUMPTIONS: none. `handoff.md`: not touched (the brief gives it to the last branch).
 
 ### Open items
-- Owner: OQ 2–3 built as the story's recommendation (5 s timeouts; 3 attempts, 10–50 ms waits), awaiting owner confirmation.
+- Owner: OQ 2–3 (5 s timeouts; 3 attempts, 10–50 ms waits) decided (owner, 2026-11-22), as built.
 - **Follow-up for whichever of 2.2/2.4 lands second (story test plan): AC 5's other half is untestable on this branch** (no `Project` model exists; only `app/Models/User.php`). When the `Project` model lands, add a test that `version` is not mass-assignable and that an Eloquent `save()` leaves it unchanged. Not verified here.
 - If 2.2's `Project` model should own the guard, a later story can wrap `Db::guardedProjectUpdate` in it.
 - Lead: move the disconnect into `TruncatesDatabaseAsOwner` (outside this story's files).

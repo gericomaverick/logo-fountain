@@ -1,6 +1,6 @@
 # Story 2.7: Lifecycle mail pipeline
 
-**Status:** ready-for-dev (2026-11-22), **start blocked on the owner's answers to *Open questions* 1 and 5** · **DoD variant:** Laravel-only · **Epic:** 2 · **Covers:** X-18, DV-8, N-14 (minimal base only), NFR-R5 (lifecycle half), ADR-018, ADR-019 · **Gate:** Pest · **After:** 2.4, 1.1a (stack on `workbench/2-4-tx`, the 2.4 builder's branch, which contains 2.1 `workbench/schema` but **not** 2.2; unmerged). Whether to bring in 2.2 is *Open questions* 5 (**OPEN, owner**).
+**Status:** ready-for-dev (2026-11-22), *Open questions* 1 and 5 decided (owner, 2026-11-22), as built · **DoD variant:** Laravel-only · **Epic:** 2 · **Covers:** X-18, DV-8, N-14 (minimal base only), NFR-R5 (lifecycle half), ADR-018, ADR-019 · **Gate:** Pest · **After:** 2.4, 1.1a (stack on `workbench/2-4-tx`, the 2.4 builder's branch, which contains 2.1 `workbench/schema` but **not** 2.2; unmerged). Whether to bring in 2.2 is *Open questions* 5 (**OPEN, owner**).
 
 > Created with BMAD `create-story`, from the researcher draft in `reports/story-drafts-2-4100.md` (Workbench). Its `file:line` citations were checked against `apps/web`, the portal on `workbench/2-4-tx` and `workbench/2-2-models`, the vendored framework and the docs, and corrected (see *Doc / code disagreements*). The structure follows `stories/2-5-shared-rate-limit-store.md` and `templates/story-conversion-record.md`. Docs only: no portal code was written for this file.
 
@@ -86,11 +86,11 @@ Pest gate green plus the full Laravel suite (`bin/test`: Pint, Larastan, Pest). 
 - **Follow-ups:** 4.4 replaces the minimal base with the branded one (logo). The feature stories call `sendOnce` from their Actions and port the per-email content tests. Epic 9 runs the supervised `queue:work` worker (ADR-019; owner/ops).
 
 ## Open questions (with recommendations)
-1. **Marker timing. OPEN (owner decides: it changes observable behaviour).** Next writes the marker only after Postmark accepts (`:170`); the epic says `sendOnce` "checks and writes" it (`epics.md:267`). Options: (a) **at dispatch**, in the caller's transaction: a rollback leaves no marker, and inside `Db::serializable()` two concurrent actions can't both pass the check (serialisation failure, then `already_sent` on retry); but a job that exhausts its retries leaves a marker, so that email is never sent for that event, where Next would resend if the action were repeated. (b) **after send**, in the job (Next's timing): a failed email can be retried by repeating the action, but two jobs for one event can both send. *Recommendation:* (a), with permanent failures visible in `failed_jobs` and the log for the operator. This is the stronger "exactly-once-ish" (X-18) and matches the epic text.
+1. **Marker timing. Decided (owner, 2026-11-22): option (a), at dispatch in the caller's transaction, as built.** Next writes the marker only after Postmark accepts (`:170`); the epic says `sendOnce` "checks and writes" it (`epics.md:267`). Options: (a) **at dispatch**, in the caller's transaction: a rollback leaves no marker, and inside `Db::serializable()` two concurrent actions can't both pass the check (serialisation failure, then `already_sent` on retry); but a job that exhausts its retries leaves a marker, so that email is never sent for that event, where Next would resend if the action were repeated. (b) **after send**, in the job (Next's timing): a failed email can be retried by repeating the action, but two jobs for one event can both send. *Recommendation:* (a), with permanent failures visible in `failed_jobs` and the log for the operator. This is the stronger "exactly-once-ish" (X-18) and matches the epic text.
 2. **`after_commit`. Decided: `true` (ADR-019, accepted 2026-11-19).** `config/queue.php:44` says `false` today; this story sets it (AC 5). No owner action; the conflict is the skeleton default, not a disagreement with the ADR.
 3. **Attempts.** The epic gives backoff only. *Recommendation:* `$tries = 4` (first try plus one retry per backoff value).
 4. **What `sent` means.** *Recommendation:* queued. Callers today only branch on `skipped` (webhook, `finals/notify`), so this is safe; say it in the helper's docblock and the record.
-5. **2.2 dependency and stack order. OPEN (owner decides).** The brief and epic put 2.7 after 2.4 only (brief §3, `epics.md:266`). Checked: `workbench/2-4-tx` does **not** contain 2.2 (it has only `app/Models/User.php`); 2.2 (`workbench/2-2-models`, status review) has `Project`, `Client`, `ClientMembership`, `Profile`, `AuditEvent`. Markers need no model (`Audit::record` takes a string id); recipient lookup reads `clients.billing_email`, memberships and `users.email`. Options: (a) branch from `workbench/2-4-tx` and merge `workbench/2-2-models` in (a trial `git merge-tree` shows conflicts only in `apps/portal/AGENTS.md`, `docs/governance/DECISIONS.md` and `RISKS.md`, all docs); (b) stack on 2.4 only and do the lookup with the query builder, switching to models when 2.2 merges. *Recommendation:* (a): the feature stories that call `sendOnce` will have models, and the doc conflicts are additive. The builder doesn't start on either option until the owner answers (see below).
+5. **2.2 dependency and stack order. Decided (owner, 2026-11-22): base `2-4-tx` with `2-2-models` merged, as built.** The brief and epic put 2.7 after 2.4 only (brief §3, `epics.md:266`). Checked: `workbench/2-4-tx` does **not** contain 2.2 (it has only `app/Models/User.php`); 2.2 (`workbench/2-2-models`, status review) has `Project`, `Client`, `ClientMembership`, `Profile`, `AuditEvent`. Markers need no model (`Audit::record` takes a string id); recipient lookup reads `clients.billing_email`, memberships and `users.email`. Options: (a) branch from `workbench/2-4-tx` and merge `workbench/2-2-models` in (a trial `git merge-tree` shows conflicts only in `apps/portal/AGENTS.md`, `docs/governance/DECISIONS.md` and `RISKS.md`, all docs); (b) stack on 2.4 only and do the lookup with the query builder, switching to models when 2.2 merges. *Recommendation:* (a): the feature stories that call `sendOnce` will have models, and the doc conflicts are additive. The builder doesn't start on either option until the owner answers (see below).
 6. **Postmark packages.** Resolved by reading: absent (AC 9). *Recommendation:* add them here; if no release meets the pin age, stop and ask (pin policy).
 7. **`not_configured` in Laravel.** Next checks the token and from address only. *Recommendation:* `not_configured` when `mail.from.address` is empty, or when the lifecycle mailer is `postmark` and its token is empty, so dev (Mailpit/log) and tests (`array`) still exercise the path. Record as a deviation if the dev agent changes it.
 8. **Gate tag.** Inventory X-18 says `@email` (`:148`); the epic and `laravel-only-destinations.json:18` say Pest. *Recommendation:* Pest here, as the epic; the inventory's `@email` stays for the later Laravel parity journeys.
@@ -130,9 +130,9 @@ Pest gate green plus the full Laravel suite (`bin/test`: Pint, Larastan, Pest). 
 | Retry | none | 4 tries, backoff 10/60/300 s | epic §2.7 | Q3 |
 | Failure surface | throws to the route | `failed_jobs`; text `Postmark send failed (<status>)`, no provider body | DV-8 | DV-8 |
 | `sent` meaning | Postmark accepted | queued | DV-8 | Q4 |
-| Marker timing | after a successful send | at dispatch, in the caller's transaction; no resend after exhausted retries | duplicate window | Q1 (built as recommended, **awaiting owner**) |
+| Marker timing | after a successful send | at dispatch, in the caller's transaction; no resend after exhausted retries | duplicate window | Q1 (decided (owner), as built) |
 | Transport | `fetch` to Postmark API | Symfony Postmark transport | Laravel mail | ADR-018 |
-| Base branch | n/a | 2-4-tx plus merge of 2-2-models | Project/Client/AuditEvent needed | Q5 (**awaiting owner**) |
+| Base branch | n/a | 2-4-tx plus merge of 2-2-models | Project/Client/AuditEvent needed | Q5 (decided (owner), as built) |
 
 ### Tests
 | Layer | Test file / title | Inventory IDs |
@@ -152,7 +152,7 @@ Skips write no marker. `config/mail.php` falls back to `hello@example.com` when 
 `01-feature-inventory.md` X-18 (in progress) and N-14 (base only); `DECISIONS.md`, `RISKS.md`, `handoff.md`.
 
 ### Open items
-ADR-018 note for the owner (text below under *Built*), Q1, Q5.
+ADR-018 note for the owner (text below under *Built*; now ADR-029). Q1 and Q5 decided (owner, 2026-11-22).
 
 ### Built (2026-11-22, builder 2-7-mail)
 
