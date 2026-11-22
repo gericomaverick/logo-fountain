@@ -13,6 +13,8 @@ x-php: &php
   image: ${COMPOSE_PROJECT_NAME:-lf-portal}-php:dev
   volumes:
     - .:/var/www/html
+    # Story 2.3 (AC 8): the shared 0.6b rule fixtures, read in place by the Pest fixture tests (tests/Support/ParityFixture.php).
+    - ../../tests/parity/fixtures/rules:/var/www/parity-fixtures/rules:ro
 
 services:
   postgres:
