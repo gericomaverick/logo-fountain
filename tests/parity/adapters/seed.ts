@@ -53,7 +53,18 @@ function runSeeder(name: string) {
       stdio: "pipe",
     });
   } else {
-    execFileSync("php", ["artisan", "parity:seed", name], { cwd: join(root, "../../apps/portal"), env: process.env, stdio: "pipe" });
+    // Story 2.6 AC 9: inside the portal container of the stack scripts/laravel-stack.mjs started (same project and
+    // compose files). `exec` doesn't carry the host env, so PARITY_MODE goes in explicitly; the overlay needs its
+    // base URL to interpolate.
+    const compose = ["compose", "-f", join(root, "../../apps/portal/compose.yaml"), "-f", join(root, "infra/laravel.compose.yaml")];
+    execFileSync("docker", [...compose, "exec", "-T", "-e", "PARITY_MODE=1", "app", "php", "artisan", "parity:seed", name], {
+      env: {
+        ...process.env,
+        COMPOSE_PROJECT_NAME: process.env.PARITY_LARAVEL_PROJECT || "lf-parity-laravel",
+        PARITY_LARAVEL_BASE_URL: process.env.PARITY_LARAVEL_BASE_URL || process.env.PARITY_BASE_URL || "",
+      },
+      stdio: "pipe",
+    });
   }
 }
 

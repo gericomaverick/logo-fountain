@@ -131,6 +131,7 @@ Requirement series → code: A → `Actions/Auth`, middleware, `Support/RateLimi
 - Security decisions use `$request->getRealMethod()` (a `_method` override must never skip a check) and the decoded routing path (1.4).
 - No `serve => true` on local disks: it registers an unguarded `PUT /storage/{path}` (1.4).
 - Parity against Laravel: `tests/parity/scripts/laravel-stack.mjs "<gate>" [--only <title regex>]` starts its own portal stack. `tests/parity/converted-tags.txt` lists the gates CI must keep green (1.4).
+- `parity:seed` needs `-e PARITY_MODE=1` on `docker compose exec` (exec doesn't pass the host env) and `parity.parity_marker` in the target database: the parity overlay creates it; Pest creates and drops it per test (`Tests\Support\ParityFacts`) (2.6).
 - Workflow edits: no unquoted `: ` inside a step name or value (YAML reads it as a key, and GitHub rejects the whole file). Validate with `docker run --rm -v "$PWD":/repo -w /repo rhysd/actionlint:1.7.7` before pushing (1.5 merge).
 - Never use `$request->ip()` for limits or audit: use `ClientAddress::for($request)` (a Pest scan blocks `->ip()` in `app/`). `TrustProxies` is removed on purpose: it trusts every proxy on `*.on-forge.com` hosts (`vendor/.../TrustProxies.php:69-77`). Don't add it back (1.5).
 - Porting a JS rule: JS `$` = PHP `$` with `/D`; the `trim()` sets differ (JS strips `\f` and NBSP, PHP strips `\0`). Use `App\Support\NodeCompat` (1.5).

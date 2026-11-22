@@ -15,6 +15,9 @@ x-php: &php
     - .:/var/www/html
     # Story 2.3 (AC 8): the shared 0.6b rule fixtures, read in place by the Pest fixture tests (tests/Support/ParityFixture.php).
     - ../../tests/parity/fixtures/rules:/var/www/parity-fixtures/rules:ro
+    # Story 2.6 (AC 10): the shared parity scenarios and seed-facts SQL, read in place by parity:seed and its tests.
+    - ../../tests/parity/fixtures/scenarios:/var/www/parity-fixtures/scenarios:ro
+    - ../../tests/parity/fixtures/seed-facts:/var/www/parity-fixtures/seed-facts:ro
 
 services:
   postgres:

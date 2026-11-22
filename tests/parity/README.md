@@ -10,7 +10,7 @@ PARITY_TARGET=next PARITY_START_NEXT=1 node scripts/run.mjs "@smoke"   # run a g
 PARITY_TARGET=laravel PARITY_BASE_URL=http://127.0.0.1:8000 node scripts/run.mjs "@auth&@api"
 node scripts/laravel-stack.mjs ["<gate>"] [--only "<title regex>"] [--keep]   # own portal compose stack on :8000, then down -v
 ```
-`laravel-stack.mjs` (story 1.4) starts `apps/portal`'s compose stack as project `lf-parity-laravel` with `PUBLIC_SITE_URL` = the base URL (`infra/laravel.compose.yaml`), runs the gate (default: every line of `converted-tags.txt`; none → exit 0) and removes the stack. Override `PARITY_LARAVEL_PORT` / `PARITY_LARAVEL_PROJECT` / `PORTAL_PG_PORT` for parallel copies. Seeding on Laravel (`php artisan parity:seed`) and the infra services aren't wired yet (Epic 2).
+`laravel-stack.mjs` (story 1.4) starts `apps/portal`'s compose stack as project `lf-parity-laravel` with `PUBLIC_SITE_URL` = the base URL (`infra/laravel.compose.yaml`), runs the gate (default: every line of `converted-tags.txt`; none → exit 0) and removes the stack. Override `PARITY_LARAVEL_PORT` / `PARITY_LARAVEL_PROJECT` / `PORTAL_PG_PORT` for parallel copies. `seed()` on Laravel runs `php artisan parity:seed` in that stack's app container; the overlay's one-shot `parity-marker` service arms its guard (story 2.6). The infra services (Mailpit, stripe-fake, SeaweedFS) aren't wired yet.
 
 | Path | Purpose |
 |---|---|

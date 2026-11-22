@@ -5,3 +5,38 @@ services:
   app:
     environment:
       PUBLIC_SITE_URL: ${PARITY_LARAVEL_BASE_URL:?set by scripts/laravel-stack.mjs}
+    depends_on:
+      parity-marker:
+        condition: service_completed_successfully
+
+  # Story 2.6 (AC 2, Open question 2): the marker parity:seed's guard requires, in the `portal` database of this
+  # stack only (a dev stack never runs this overlay). A one-shot client, not an init script: the portal postgres
+  # image runs init files against the `postgres` database, and the init directory is a read-only bind mount.
+  # Modelled on infra/postgres/init/10-parity.sh; idempotent, owned by the migrate role.
+  parity-marker:
+    image: postgres:18.7@sha256:eb63372c1e05c755f55fa30cbd07aecc443676fc6c0fa90b9002d01537841e1a
+    environment:
+      PGPASSWORD: dev-only-migrate
+    command:
+      - psql
+      - --no-psqlrc
+      - -v
+      - ON_ERROR_STOP=1
+      - -h
+      - postgres
+      - -U
+      - portal_migrate
+      - -d
+      - portal
+      - -c
+      - >-
+        CREATE SCHEMA IF NOT EXISTS parity;
+        CREATE TABLE IF NOT EXISTS parity.parity_marker (id smallint PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+        purpose text NOT NULL, created_at timestamptz NOT NULL DEFAULT now());
+        INSERT INTO parity.parity_marker (purpose) VALUES ('Disposable Laravel parity test database. Seeding and
+        destructive test tooling may run here.') ON CONFLICT DO NOTHING;
+        GRANT USAGE ON SCHEMA parity TO portal_runtime;
+        GRANT SELECT ON parity.parity_marker TO portal_runtime;
+    depends_on:
+      postgres:
+        condition: service_healthy
