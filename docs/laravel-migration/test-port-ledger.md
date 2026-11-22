@@ -84,7 +84,7 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 76 | `src/lib/brief-wizard.test.ts` | 5 | C-05 | Keep TS (UI) | | Not started |
 | 77 | `src/lib/brief.test.ts` | 3 | C-05,C-07 | Pest unit + keep TS (shared fixture) | | Not started |
 | 78 | `src/lib/chat-messages.test.ts` | 14 | C-14 | Keep TS (UI) | | Not started |
-| 79 | `src/lib/checkout-auth-email-rate-limit.test.ts` | 3 | K-04,X-06 | Pest unit (shared-store limiter) | | Not started |
+| 79 | `src/lib/checkout-auth-email-rate-limit.test.ts` | 3 | K-04,X-06 | Pest unit (shared-store limiter) | `tests/Feature/Support/CheckoutEmailLimitTest.php` (#1–3, Next's values; L2 on PostgreSQL, the store is under test) | **Ported** (3/3, story 2.5) |
 | 80 | `src/lib/checkout-fulfillment.test.ts` | 6 | K-06,K-09 | Pest feature | | Not started |
 | 81 | `src/lib/checkout-success.test.ts` | 2 | K-02 | Keep TS (UI) | | Not started |
 | 82 | `src/lib/client-invoices.test.ts` | 4 | K-11 | Pest unit (Stripe fakes) | | Not started |
