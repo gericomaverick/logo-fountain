@@ -34,6 +34,7 @@ npm run test:e2e                                        # last recorded: 5–6 P
 ## Session log (newest first, one line each)
 
 - 2026-11-22: **Workbench builder "2-2-models": story 2.2 → review** on `workbench/2-2-models` (stacked on `workbench/schema`). 20 models, `ProjectPolicy`/`ConceptPolicy`, client concept scope + arch test; `bin/test` 463 passed; stack `lf-wb3` removed.
+- 2026-11-22: **Workbench builder "2-3-state": story 2.3 → review** on `workbench/2-3-state` (stacked on `workbench/schema` `4e323ee`). `App\Domain\ProjectState` enum + `ProjectTransitions`/`ProjectTimeline`/`ProjectStatus`, all 606 shared-fixture cases via a read-only compose mount; `bin/test` 1033 passed on `lf-wb5` (removed after the gates). See story 2.3 Conversion record.
 - 2026-11-21: **Workbench builder "schema": story 2.1 → review** on `workbench/schema` (was `workbench/2.1`). Migrations, `db:grants`, DB guards, harness; `bin/test` 403 passed; stack `lf-wb1` removed after the gates. See story 2.1 Conversion record.
 - 2026-11-21: **"schema": critic review fixes for 2.1** (still `review`): AGENTS §2 migrate row adds `db:grants`; admin-flag trigger hardened against a temporary `pg_class` (deviation from Next, DECISIONS) + `RuntimeRoleTest` asserts no `TEMP`; AC 7 code corrected to `23001`; ASSUMPTIONS narrowed; O-06 notes the Epic 9 deploy step. `bin/test` 403 passed (1161 assertions), split 370 + 33. CI not dispatched (owner's call); `composer.json` `setup` still migrates without `db:grants` (open item).
 
