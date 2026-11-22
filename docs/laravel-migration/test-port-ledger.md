@@ -101,7 +101,7 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 93 | `src/lib/local-dev-extra-project.test.ts` | 1 | O-02 | Pest (seed command) | | Not started |
 | 94 | `src/lib/local-dev-seed.test.ts` | 1 | O-02 | Pest (seed command) | | Not started |
 | 95 | `src/lib/magic-link-email.test.ts` | 3 | K-03,A-11 | Pest feature | | Not started |
-| 96 | `src/lib/postgres.integration.test.ts` | 6 | K-05,K-06,X-09 | L3 Pest real-PG (1:1) | `tests/Concurrency/RuntimeRoleTest.php` (tests 1–2) | **Partly ported** (2/6, story 2.1; tests 3–6 → 2.4 / 5.x / 7.5a) |
+| 96 | `src/lib/postgres.integration.test.ts` | 6 | K-05,K-06,X-09 | L3 Pest real-PG (1:1) | `tests/Concurrency/RuntimeRoleTest.php` (tests 1–2); `tests/Concurrency/LocksTest.php` "converges advisory-locked receipts…" (test 4, lock half); `tests/Feature/Support/AuditTest.php` "leaves no row when the surrounding transaction rolls back" (test 5, audit half) | **Partly ported** (2/6 plus the 2.4 halves of tests 4–5, stories 2.1, 2.4; receipt-reader halves of 4–5 → 7.5a, entitlement half of 5 and test 3 → 7.x, test 6 → 5.x) |
 | 97 | `src/lib/project-display-name.test.ts` | 5 | C-01,K-11 | Pest unit + keep TS | | Not started |
 | 98 | `src/lib/project-hub.test.ts` | 12 | C-03,C-04 | Keep TS (UI) | | Not started |
 | 99 | `src/lib/project-journey.test.ts` | 10 | C-03 | Keep TS (UI) | | Not started |

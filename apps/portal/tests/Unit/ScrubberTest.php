@@ -121,3 +121,22 @@ it('is idempotent', function () {
     expect(Scrubber::scrubString($once))->toBe($once)
         ->and(Scrubber::scrub(Scrubber::scrub(['password' => 'p', 'note' => $s])))->toBe(Scrubber::scrub(['password' => 'p', 'note' => $s]));
 });
+
+// Story 2.4: the audit profile (owner decisions: checkoutSessionId kept at the top level, no email masking).
+it('scrubs audit payloads with the audit profile, keeping object types', function () {
+    $session = 'cs_test_a1B2c3D4e5F6g7H8i9J0kLmNoPqRsTuVwXyZ';
+    $payload = (object) ['checkoutSessionId' => $session, 'token' => 't', 'note' => 'ask jo@example.com', 'empty' => new stdClass,
+        'list' => [(object) ['checkoutSessionId' => $session, 'url' => 'https://x.test/a?token=abc']]];
+
+    $out = Scrubber::scrubAuditPayload($payload);
+
+    expect($out)->toBeInstanceOf(stdClass::class)
+        ->and($out->checkoutSessionId)->toBe($session)
+        ->and($out->token)->toBe(SCRUBBED)
+        ->and($out->note)->toBe('ask jo@example.com')
+        ->and($out->empty)->toEqual(new stdClass)
+        ->and($out->list[0]->checkoutSessionId)->toBe(SCRUBBED)
+        ->and($out->list[0]->url)->toBe('https://x.test/a?'.SCRUBBED)
+        ->and(Scrubber::scrubAuditPayload(['checkoutSessionId' => 123]))->toBe(['checkoutSessionId' => SCRUBBED])
+        ->and(Scrubber::scrubAuditPayload(Scrubber::scrubAuditPayload($payload)))->toEqual($out);
+});

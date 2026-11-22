@@ -53,10 +53,10 @@ Config: `config/database.php`. Dev roles (attributes, database `CONNECT`): `dock
 |---|---|---|
 | Naming | Pint (PSR-12, `laravel` preset). Classes singular nouns; Actions verb phrases (`RequestRevision`). Tables snake_case plural, columns snake_case. JSON keys **camelCase as today**, mapped in API Resources (no auto-casing) | arch §5, ADR-012 |
 | JSON shape | One API Resource per endpoint with a golden contract test. Never add or remove a field without updating the parity schema and the inventory | ADR-003, `MIG/02-test-strategy.md` |
-| Transactions | Multi-row changes only inside an Action transaction. Lifecycle changes: `Db::serializable()` (no nesting) + `projects.version` guard. Advisory locks only via `Locks::credential/provision/conceptUpload` | ADR-007, ADR-011, story 2.4 |
+| Transactions | Multi-row changes only inside an Action transaction. Lifecycle changes: `Db::serializable($work, $conflict)` (no nesting; 3 attempts on 40001/40P01, then the route's 409) + `Db::guardedProjectUpdate()` (the only writer of `projects.version`). Advisory locks only via `Locks::credential/provision/conceptUpload` | ADR-007, ADR-011, story 2.4 |
 | Side effects | Emails, storage cleanup and external calls **after commit**; storage *upload* happens before the publication transaction | ADR-016, ADR-018, ADR-019 |
-| Audit | Only `Audit::record(type, project, actor, payload)`. Payloads never hold secrets, signed URLs or tokens (scrubber is unit-tested) | arch §5, story 2.4 |
 | Authorisation | Policies (`ProjectPolicy`, `ConceptPolicy`). Membership miss → 404 `PROJECT_NOT_FOUND`. Admin endpoints use `admin` middleware. Abilities `participate` (member) / `view` (admin or member) / `administer` (admin); no `Gate::before`. Admin = `User::isAdmin()` (flag + verified email). Client concept/asset lookups only via `Concept::visibleToClient()`, `Project::clientVisibleConcepts()` / `clientVisibleAssets()` (arch test) | ADR-020, story 2.2 |
+| Audit | Only `Audit::record(type, project, actor, payload)`. Payloads never hold secrets, signed URLs or tokens (`Scrubber::scrubAuditPayload`, unit-tested) | arch §5, story 2.4 |
 | Config | `env()` only in `config/*.php`. Boot validators for `PUBLIC_SITE_URL`, proxy config, DB role pair, price IDs (production refuses to boot or serve auth) | ADR-010, ADR-013, story 1.3 |
 | Frontend | Pages use only `Components/ui`; tokens only; one primary button per view; copy in components or `lib/copy.ts`; every list/panel has empty, loading, error and partial states | ADR-022, `MIG/ux-design.md` §8 §12 §14 |
 | Tests | Every Action → Pest feature test. Every endpoint → parity contract test. Every concurrency guard → L3 race test. Every screen → L7 baseline + axe | `MIG/02-test-strategy.md` |
@@ -103,6 +103,8 @@ Requirement series → code: A → `Actions/Auth`, middleware, `Support/RateLimi
 - Every model uses `Concerns/HasMillisecondTimestamps` (`timestamp(3)`); jsonb columns returned verbatim use the `'object'` cast, so `{}` stays `{}` (2.2).
 - `ProfileFactory::admin()` sets `is_admin` as the owner, so it needs committed rows: use `TruncatesDatabaseAsOwner` (as `Feature/Models`, `Feature/Policies` do) (2.2).
 - Never `migrate` on the default (runtime) connection, in tests too. `tests/TestCase.php` migrates `portal_test` once per process as `pgsql_migrate` + `db:grants` (`Tests\Support\MigratesAsOwner`); `Feature/Schema` uses `RefreshDatabaseAsOwner` (transacts `pgsql` only: rows written via `pgsql_migrate`/`pgsql_limits` commit, and the owner can't see uncommitted runtime rows), `Concurrency` uses `TruncatesDatabaseAsOwner`. Never let the owner drop or alter a table the runtime touched inside the test transaction: it waits for that transaction forever (2.1).
+- Do not run the credential fence (`Locks::credential`, story 4.2) inside `Db::serializable()`: the lock would be taken after the transaction's snapshot is set, so it would not serialise the data reads. Use a plain `DB::transaction` (2.4 review).
+- `Locks::*` outside `Db::serializable()` has no wait limit; add `SET LOCAL lock_timeout` in the caller's plain transaction where Next had Prisma's limits (2.4 review).
 - `ON DELETE RESTRICT` raises SQLSTATE `23001` (restrict_violation), not `23503` (2.1).
 - `migrate:fresh` drops tables but not functions: raw-SQL functions use `CREATE OR REPLACE` and `down()` drops them (2.1).
 - `docker/postgres/01-roles.sh` runs only on a fresh volume: after changing it, `docker compose down -v` (2.1).
@@ -145,7 +147,11 @@ Requirement series → code: A → `Actions/Auth`, middleware, `Support/RateLimi
 - Where Next sends exactly `no-store`, use `RawCacheControlHeaderBag::noStore()` (`app/Http/RawCacheControlHeaderBag.php`) (1.6).
 - API errors: throw `ApiException` (envelope `{error:{message,code?,details?}}`); never hand-build error JSON (1.6). 1.3's two 503 middlewares still build theirs inline; refactor them when touched.
 - A middleware can't try/catch a route's exceptions (the handler already rendered them): inspect `$response->exception` (1.6).
-- Logs are scrubbed by `Support/Scrubber.php` on every channel. `Audit::record` must call `Scrubber::scrub()` too (1.6).
+- Logs are scrubbed by `Support/Scrubber.php` on every channel. `Audit::record` uses its audit profile `Scrubber::scrubAuditPayload()`: a top-level `checkoutSessionId` is kept and emails aren't masked (owner); logs still redact both (1.6, 2.4).
+- Tests that reach `Db::serializable()`, directly or through an Action, use the truncation harness (`tests/Concurrency`), never `RefreshDatabase`: its wrapping transaction makes the nesting guard throw (2.4).
+- `App\Support\Db` and the `DB` facade are the same name to PHP (class names are case-insensitive): in a file that uses both, `use Illuminate\Support\Facades\DB as Database;` (2.4).
+- `Db::serializable()` work can run up to 3 times: no side effects outside the database in it; queue them with `DB::afterCommit()` (a failed attempt discards them) (2.4).
+- The truncation harness doesn't disconnect between tests and PG has 100 slots: `afterEach` disconnect `pgsql` and `pgsql_migrate` (see `tests/Concurrency/SerializableTest.php`) (2.4).
 - `env()` only in `config/*.php`; a Pest scan (`tests/Feature/ConfigBootValidationTest.php`) backs Larastan's rule (1.3).
 - Production-only behaviour: test it with a real `php artisan` subprocess and `APP_ENV=production` (see `ConfigBootValidationTest.php`), not by flipping config in-process (1.3).
 - Symfony appends `, private` to `Cache-Control`: `no-store` becomes `no-store, private`, but parity expects exactly `no-store` (1.3, 1.6).
