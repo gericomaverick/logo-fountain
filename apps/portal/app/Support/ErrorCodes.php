@@ -35,4 +35,6 @@ final class ErrorCodes
     public const RATE_LIMITED = 'RATE_LIMITED';
 
     public const UNAUTHORIZED = 'UNAUTHORIZED';
+
+    public const SESSION_VERIFICATION_UNAVAILABLE = 'SESSION_VERIFICATION_UNAVAILABLE';
 }

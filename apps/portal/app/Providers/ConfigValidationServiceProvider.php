@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Support\Auth\SessionCookie;
 use App\Support\DatabaseRoles;
 use Illuminate\Support\ServiceProvider;
 
@@ -23,5 +24,8 @@ class ConfigValidationServiceProvider extends ServiceProvider
         $connections = config('database.connections', []);
         DatabaseRoles::assertValid($connections);
         DatabaseRoles::assertLimitsUsesRuntime($connections);
+        /** @var array<string, mixed> $session */
+        $session = config('session', []);
+        SessionCookie::assertProductionValid($session);
     }
 }

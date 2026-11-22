@@ -18,3 +18,6 @@ pest()->group('storage')->in('Feature/Storage');
 pest()->use(TruncatesDatabaseAsOwner::class)->in('Feature/Models', 'Feature/Policies');
 // Story 2.7: sendOnce runs inside Db::serializable() and the queue tests need real commits: truncation harness.
 pest()->use(TruncatesDatabaseAsOwner::class)->in('Feature/Mail');
+
+// Story 4.1: session tests commit real rows (sessions table, flipped admin flag) across requests.
+pest()->use(TruncatesDatabaseAsOwner::class)->in('Feature/Auth');

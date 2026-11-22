@@ -1,6 +1,8 @@
 <?php
 
-use Illuminate\Support\Str;
+use App\Support\Auth\SessionCookie;
+
+$cookie = SessionCookie::settings(env('APP_ENV') === 'production', env('PUBLIC_SITE_URL'));
 
 return [
 
@@ -32,7 +34,9 @@ return [
     |
     */
 
-    'lifetime' => (int) env('SESSION_LIFETIME', 120),
+    // Story 4.1: the database handler drops a row idle longer than this, so it must not undercut the
+    // seven-day cap (Next has no idle limit). The cap itself is App\Support\Auth\SessionCap.
+    'lifetime' => (int) env('SESSION_LIFETIME', 10080),
 
     'expire_on_close' => env('SESSION_EXPIRE_ON_CLOSE', false),
 
@@ -127,10 +131,7 @@ return [
     |
     */
 
-    'cookie' => env(
-        'SESSION_COOKIE',
-        Str::slug((string) env('APP_NAME', 'laravel')).'-session'
-    ),
+    'cookie' => $cookie['cookie'],
 
     /*
     |--------------------------------------------------------------------------
@@ -143,7 +144,8 @@ return [
     |
     */
 
-    'path' => env('SESSION_PATH', '/'),
+    // ADR-005: `__Host-` rules; never overridable by env.
+    'path' => '/',
 
     /*
     |--------------------------------------------------------------------------
@@ -156,7 +158,7 @@ return [
     |
     */
 
-    'domain' => env('SESSION_DOMAIN'),
+    'domain' => null,
 
     /*
     |--------------------------------------------------------------------------
@@ -169,7 +171,7 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    'secure' => $cookie['secure'],
 
     /*
     |--------------------------------------------------------------------------

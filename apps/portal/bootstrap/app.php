@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AuthJsonBoundary;
+use App\Http\Middleware\EnsureAuthAvailable;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RequireCanonicalOrigin;
 use App\Http\Middleware\SecurityHeaders;
@@ -10,11 +11,16 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
+use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Route;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
+        then: function (): void {
+            Route::middleware('web')->group(__DIR__.'/../routes/auth.php');
+        },
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -35,6 +41,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // spoofed X-Forwarded-For/-Proto/-Host reach ip(), isSecure() and the host. The client
         // address comes only from TrustedClientAddress (AUTH_CLIENT_IP_HEADER / AUTH_TRUSTED_PROXY_HOPS).
         $middleware->remove(TrustProxies::class);
+
+        // Story 4.1: the proxy check precedes the session lookup (`session/route.ts:6`), so it outranks StartSession.
+        $middleware->prependToPriorityList(before: StartSession::class, prepend: EnsureAuthAvailable::class);
 
         $middleware->web(append: [
             HandleInertiaRequests::class,

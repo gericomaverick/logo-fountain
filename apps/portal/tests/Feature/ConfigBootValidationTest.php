@@ -1,6 +1,7 @@
 <?php
 
 use App\Providers\ConfigValidationServiceProvider;
+use App\Support\Auth\SessionCookie;
 use App\Support\AuthProxyConfig;
 use App\Support\InvalidConfiguration;
 use Illuminate\Support\Facades\Process;
@@ -9,6 +10,10 @@ use Illuminate\Support\Facades\Process;
 
 function bootValidation(): void
 {
+    // Story 4.1: production also checks the session cookie, which config/session.php fixed at load time (testing).
+    if (app()->isProduction()) {
+        config(['session.cookie' => SessionCookie::PRODUCTION_NAME, 'session.secure' => true]);
+    }
     (new ConfigValidationServiceProvider(app()))->boot();
 }
 
@@ -67,7 +72,7 @@ it('fails boot in production when pgsql_limits is not the runtime role on the ru
 it('refuses to boot a real production process with a mismatched pgsql_limits, and boots with the valid trio', function () {
     // pgsql_limits reads the same DB_* variables as pgsql, so the mismatch is fed through a cached config file.
     $cache = function (array $limits): string {
-        $config = array_replace_recursive(config()->all(), ['app' => ['env' => 'production', 'debug' => false], 'database' => ['connections' => ['pgsql_limits' => $limits]]]);
+        $config = array_replace_recursive(config()->all(), ['app' => ['env' => 'production', 'debug' => false], 'session' => SessionCookie::settings(true, null), 'database' => ['connections' => ['pgsql_limits' => $limits]]]);
         $path = tempnam(sys_get_temp_dir(), 'lf-config-');
         file_put_contents($path, '<?php return '.var_export($config, true).';'.PHP_EOL);
 
