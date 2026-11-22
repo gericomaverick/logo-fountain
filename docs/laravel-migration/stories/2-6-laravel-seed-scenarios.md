@@ -1,6 +1,6 @@
 # Story 2.6: Laravel seed scenarios
 
-**Status:** ready-for-dev (2026-11-22) · **DoD variant:** Laravel-only · **Epic:** 2 · **Covers:** O-02 · **Gate:** Pest · **After:** 2.2 (stack on `workbench/2-2-models`, the 2.2 builder's branch, which already contains 2.1 `workbench/schema`; unmerged), 0.4 (Next seed, reference only)
+**Status:** review (2026-11-22) · **DoD variant:** Laravel-only · **Epic:** 2 · **Covers:** O-02 · **Gate:** Pest · **After:** 2.2 (stack on `workbench/2-2-models`, the 2.2 builder's branch, which already contains 2.1 `workbench/schema`; unmerged), 0.4 (Next seed, reference only)
 
 > Created with BMAD `create-story`, from the researcher draft in `reports/story-drafts-2-4100.md` (Workbench). Its `file:line` citations were checked against `apps/web`, `tests/parity`, the 2.2 branch and the docs, and corrected (see *Doc / code disagreements*). The structure follows `stories/2-5-shared-rate-limit-store.md` and `templates/story-conversion-record.md`. Docs only: no portal code was written for this file.
 
@@ -126,25 +126,109 @@ No owner decision blocks the start of 2.6.
 ---
 
 ## Conversion record
-(Filled in by the dev agent; see `templates/story-conversion-record.md`. Write "none" rather than leaving a section out.)
+Builder "2-6-seed" (Workbench), branch `workbench/2-6-seed`, base `workbench/2-2-models` (`39f9bbb`, which contains 2.1 `workbench/schema`). Laravel half only; the Next comparison is owner item 1 below.
 
 ### Laravel implementation
+- `app/Console/Commands/ParitySeed.php`: `parity:seed {scenario}`. A `ParitySeedError` → its message on stderr, exit 1; success prints the user/project counts and "0 objects".
+- `database/seeders/Parity/` (namespace `Database\Seeders\Parity`):
+  - `ScenarioId`: Next's `scenarioId`, byte for byte.
+  - `Fields`: a strict JSON reader (unknown keys are errors, so a new fixture field fails loudly instead of being dropped).
+  - `Scenario`, `ScenarioUser`, `ScenarioProject`: the loader. The whole file is validated before any write: member, author and sender keys exist; comments name a seeded concept; user keys are unique.
+  - `ParityGuard`: `assertTarget()` (mode, env, host; config only, no connection) then `assertMarker()`.
+  - `ParitySeeder`: the order is name check → guard (mode, env, host) → load → marker → one `transaction()` on `pgsql_migrate`: `TRUNCATE <TABLES> CASCADE` and raw inserts. The order, kind/key strings, timestamps (`now − createdDaysAgo` days, then one minute per event), `state_changed` payloads and actors, ON_HOLD reason, concept/final asset paths and sizes, the message thread and the final `projects.updated_at` stamp all follow `parity-seed.mjs:60-153` (re-read for this record).
+- `config/parity.php`: `mode` (`PARITY_MODE === '1'`), `scenarios_dir`, `seed_facts_dir`. Those are the only `env()` reads.
+- Shared facts SQL: `tests/parity/fixtures/seed-facts/seed-facts.sql` (the body: `fact|value` lines in a fixed order, read from `f_*` temp views), `seed-facts-laravel.sql` (views over the 2.1 tables) and `seed-facts-next.sql` (views over Prisma's tables, owner item). Run as `psql -X -At -v ON_ERROR_STOP=1 -f seed-facts-<app>.sql -f seed-facts.sql`. No absolute timestamps and no hashes: counts, statuses, ids, `prev>next@actor` chains, entitlement triples.
+- `apps/portal/compose.yaml` (x-php volumes): `tests/parity/fixtures/scenarios` and `tests/parity/fixtures/seed-facts` mounted read-only under `/var/www/parity-fixtures/`.
+- `tests/parity/infra/laravel.compose.yaml`: a one-shot `parity-marker` service (the pinned postgres image as a client) creates `parity.parity_marker` in the `portal` database of the parity stack. `app` waits for it to finish (`service_completed_successfully`). It is idempotent, and the dev stack never loads this overlay.
+- `tests/parity/adapters/seed.ts` Laravel branch: `docker compose -f apps/portal/compose.yaml -f infra/laravel.compose.yaml exec -T -e PARITY_MODE=1 app php artisan parity:seed <name>`, project `PARITY_LARAVEL_PROJECT || lf-parity-laravel` (AC 9). `laravel-stack.mjs` header updated.
+- Truncation list (Open question 6, final): `auth_rate_limits, auth_admin_bootstrap, auth_proofs, sessions, project_read_states, audit_events, concept_comments, revision_requests, messages, message_threads, file_assets, concepts, project_entitlements, project_orders, project_brief_drafts, project_briefs, projects, client_memberships, clients, profiles, users, stripe_events, jobs, failed_jobs`. Kept: `migrations, cache, cache_locks, job_batches` and the `parity` schema. A test fails if a new public table is in neither list.
 
 ### Deviations from Next.js
 | Behaviour | Next.js | Laravel | Why | Decision ref |
 |---|---|---|---|---|
+| Passwords | Better Auth hash in `AuthAccount` | bcrypt in `users.password`; the fact is "has a password" | Laravel can't read Better Auth hashes | 2.1 checklist row 1 |
+| Email verified | `emailVerified` boolean | `email_verified_at` = seed time | 2.1 decision | 2.1 *Decisions* |
+| Guard: database name | must be `lf_parity` | no name check; marker in `portal` only | Laravel parity DB is `portal`, like dev | Open question 2; DECISIONS 2026-11-22 |
+| Guard: URL parsing | `PARITY_DATABASE_URL` protocol + host | host of the `pgsql_migrate` config (`url` wins over `host`) | the seed writes through that connection | AC 2 |
+| Runner | Node on the host | `docker compose … exec -T -e PARITY_MODE=1 app php artisan` | brief §7 | AC 9 |
+| Object storage | uploads after COMMIT when `R2_ENDPOINT` is set | rows only, "0 objects" | Epic 3 not built | Open question 4; 3.1 follow-up |
+| Truncation | 24 Prisma tables | 2.1 equivalents (no `AuthVerification`/`AuthAccount` tables) + `sessions`, `jobs`, `failed_jobs` | queue rows mustn't outlive a scenario | Open question 6 |
+| Version stamp | `Project.updatedAt` = last event | same, plus `projects.version` left at its default | ADR-011 `version` column is Laravel-only | ADR-011 |
+None is visible to the parity journeys, which assert facts and behaviour, not hashes.
 
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|
+| L1 Pest | `tests/Unit/Parity/ScenarioIdTest.php`: 8 golden values from Node's `scenarioId` + v4/variant shape | O-02 |
+| L2 Pest | `tests/Feature/Parity/ParitySeedTest.php`: dataset over the mounted directory (18) with facts = expectation from the JSON (`Tests\Support\ParityFacts`); count is 18; twice in a row + replace; admin via owner, runtime `is_admin` insert refused; `password: null`/verified mapping; bad name, path, unknown name, malformed JSON, unknown key, ghost member write nothing; missing mount names the mount; truncation list covers every public table | O-02 |
+| L2 Pest | `tests/Feature/Parity/ParityGuardTest.php`: one refusal per rule (mode, production, host, URL host, marker), nothing written; all 5 Next local hosts accepted; rule order; mode refused before the file is read | O-02 |
 
-Test-port ledger rows resolved:
+Test-port ledger rows resolved: none. `parity-seed-guard.test.ts` is 0.4's (Next) and has no ledger row; `ParityGuardTest` is its Laravel equivalent. Rows 93–94 (`local-dev-seed*`) are the Next local-dev seed, not this story, and stay `Not started`.
 
 ### Test evidence
+- `vendor/bin/pest tests/Unit/Parity tests/Feature/Parity` on `lf-wb7`: **51 passed (185 assertions)**. Pint and Larastan (level 9) clean.
+- `bin/test` (drift check, Pint, Larastan, full Pest) on `lf-wb7`: **516 passed (1784 assertions)**.
+- By hand on `lf-wb7`'s dev database `portal`: `parity:seed admin-queue` without `PARITY_MODE` → "parity seed refused: PARITY_MODE=1 is required", exit 1. Then the marker was created by hand, `exec -e PARITY_MODE=1 … parity:seed admin-queue` → "loaded "admin-queue" (2 users, 6 projects, 0 objects)", and `seed-facts-laravel.sql` + `seed-facts.sql` printed 82 lines. First 10:
+  ```
+  users|2
+  users.verified|2
+  users.password|2
+  profiles|2
+  profiles.admin|1
+  admin_bootstrap|222c2620-6a00-4b7b-be21-6a68ef66e9ce
+  projects.status:AWAITING_APPROVAL|2
+  projects.status:BRIEF_SUBMITTED|2
+  projects.status:DELIVERED|1
+  projects.status:REVISIONS_IN_PROGRESS|1
+  ```
+  The marker and seeded rows were dropped afterwards.
+- The overlay's `parity-marker` service, run twice against `lf-wb7` (`docker compose -f compose.yaml -f ../../tests/parity/infra/laravel.compose.yaml run --rm --no-deps parity-marker`): the second run inserted 0 rows (idempotent). The runtime role reads the marker in `portal`, `to_regclass('parity.parity_marker')` in the `postgres` database is NULL, and `parity:seed on-hold` then succeeded. `docker compose … config` validates the merged files.
+
 **Not run, and why:**
+- The Next seed and the Next half of AC 4 (`seed-facts-next.sql` has never run, so its Prisma column names are unchecked): brief §5, no Next stack. This is owner item 1.
+- `seed.ts` (TypeScript, not compiled, no `node_modules`) and a full `laravel-stack.mjs` run with the overlay: the command line was checked only by reading it and by the `config`/`run` above.
+- CI.
 
 ### Gotchas
+- `docker compose exec` doesn't pass the host environment: `-e PARITY_MODE=1` is needed, or the guard refuses (now in AGENTS.md §8).
+- Init scripts in the portal postgres image run against the `postgres` database (`POSTGRES_DB` is unset) and the init directory is a read-only bind mount. So the marker can't come from an init file (critic blocker 2).
+- The truncation harness only resets `public`. The Pest tests create and drop the `parity` schema around each test in `portal_test` (`ParityFacts::createMarker/dropMarker`).
 
 ### Docs updated
+This record; `sprint-status.yaml` (→ review); inventory O-02; `docs/governance/{DECISIONS,ASSUMPTIONS,RISKS}.md` (one line each); `apps/portal/AGENTS.md` §8 (one gotcha); `tests/parity/README.md` (seeding line); `laravel-stack.mjs` header; `handoff.md` (Now + session log, last branch of Epic 2).
+
+### Doc / code disagreements found while building
+1. **Facts SQL location.** AC 6 says `tests/parity/scripts/seed-facts.sql`. It is `tests/parity/fixtures/seed-facts/`, so it can be mounted read-only into the portal container like the scenarios, and the Pest gate can run it with `psql -f` (critic blocker 1). A psql script can't go through PDO.
+2. **Marker location.** Open question 2 recommends an init file (`90-parity-marker.sql`) mounted into the overlay's `postgres` service. That would land in the `postgres` database, not `portal` (gotcha 2). Instead it is a one-shot `parity-marker` service in the same overlay, so it is still parity stack only and needs no `down -v` for existing volumes (critic blocker 2).
+3. **Inventory columns.** The story says "fill the Laravel/Tests columns" of O-02, but the O table has only ID / Feature / Next.js source / Status. The Laravel and test paths went into the Status cell, which stays `In progress`.
+4. **Mount.** AC 10 names only the scenarios mount; a second read-only line (`seed-facts`) sits next to it for disagreement 1. 2.3 adds a `rules` line in the same list (hand-merge).
 
 ### Open items
+- **Owner: the Next comparison** (owner item 1). It needs the Next parity stack (`npm ci` in `tests/parity`, disk). From the repo root, as one loop over all 18 scenarios. `seed-facts-next.sql` may need column-name fixes on its first run.
+  ```sh
+  bash   # run the rest in bash: zsh doesn't word-split $L
+  export PATH="$HOME/.orbstack/bin:$PATH"; R=$PWD; F=tests/parity/fixtures/seed-facts
+  (cd tests/parity && npm run infra:up)          # Next parity Postgres on 127.0.0.1:55432, DB lf_parity
+  NEXT_URL=postgresql://lf_migrate:parity-test-only-migrate@127.0.0.1:55432/lf_parity
+  # Laravel parity stack, the same project, ports and files as laravel-stack.mjs, left running:
+  # (env on the command, not exported: COMPOSE_PROJECT_NAME would also rename the Next infra project lf-parity)
+  L="env COMPOSE_PROJECT_NAME=lf-parity-laravel PORTAL_HTTP_PORT=8000 PORTAL_PG_PORT=55541 PORTAL_VITE_PORT=15181
+     PORTAL_MAIL_PORT=18031 PORTAL_S3_PORT=18341 PARITY_LARAVEL_BASE_URL=http://127.0.0.1:8000
+     docker compose -f apps/portal/compose.yaml -f tests/parity/infra/laravel.compose.yaml"
+  $L up -d --build web
+  mkdir -p /tmp/seed-compare
+  for s in $(ls tests/parity/fixtures/scenarios/*.json | xargs -n1 basename | sed 's/\.json$//'); do
+    PARITY_MODE=1 PARITY_DATABASE_URL=$NEXT_URL node apps/web/scripts/parity-seed.mjs "$s" >/dev/null
+    cat $F/seed-facts-next.sql $F/seed-facts.sql | docker compose -f tests/parity/infra/docker-compose.test.yml exec -T postgres \
+      psql -X -At -v ON_ERROR_STOP=1 -U lf_migrate -d lf_parity > /tmp/seed-compare/$s.next
+    $L exec -T -e PARITY_MODE=1 app php artisan parity:seed "$s" >/dev/null
+    $L exec -T -e PGPASSWORD=dev-only-migrate app psql -X -At -v ON_ERROR_STOP=1 -h postgres -U portal_migrate -d portal \
+      -f /var/www/parity-fixtures/seed-facts/seed-facts-laravel.sql -f /var/www/parity-fixtures/seed-facts/seed-facts.sql > /tmp/seed-compare/$s.laravel
+    diff -u /tmp/seed-compare/$s.next /tmp/seed-compare/$s.laravel && echo "same: $s"
+  done
+  $L down -v --remove-orphans; (cd tests/parity && npm run infra:down)
+  ```
+  (`parity-seed.mjs` uploads objects only when `R2_ENDPOINT` is set, so the loop leaves it unset; the facts don't check objects.) When all 18 print `same`, O-02's parity part can close. The local-dev seed part of the row is separate.
+- **Owner:** the scenario count in `epics.md:115` and the 0.4 story still says 13 (Open question 1).
+- **Merge:** `apps/portal/compose.yaml` x-php volumes with 2.3's `rules` line; the AGENTS.md §8 line with the other Epic 2 branches.
+- **3.1:** object uploads in `ParitySeeder` (paths and sizes already match Next's).

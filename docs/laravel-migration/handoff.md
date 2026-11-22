@@ -2,16 +2,18 @@
 
 ## Now (overwrite this section at the end of every session)
 
-- **Updated:** 2026-11-21
+- **Updated:** 2026-11-22
 - **Machine:** the work moved to the **owner's Mac**. Docker is OrbStack (`export PATH="$HOME/.orbstack/bin:$PATH"`). Baseline re-verified here (table below). The `_bmad/bmm`/`core` symlinks dangle (no BMAD install on the Mac): follow the story files and `templates/`. Governance logs are now `docs/governance/{DECISIONS,RISKS,ASSUMPTIONS}.md`.
 - **Phase:** Epics 0 and 1 done. **Epic 2 is handed to Workbench** (the owner's agent harness, `~/Code/workbench`) as a trial: brief `briefs/workbench-epic-2.md`; Workbench profile `~/Code/workbench/projects/logo-fountain.json` + `logo-fountain.setup.sh` (each builder gets its own portal stack `lf-wbN`, ports 18080+N etc.; tested end to end: `bin/test` 318/318 in a builder copy).
 - **2.1** is at **`review`** on branch `workbench/schema` (Workbench builder "schema"; base main `129a599`): 22-table schema migrations, `php artisan db:grants`, admin-flag trigger, email checks, `pgsql_limits` validator, owner-migrating test harness. `bin/test` 403/403 on a fresh `lf-wb1` volume (Concurrency suite 33). CI not yet run on the branch (needs a PR or a manual dispatch). Record: story 2.1 → Conversion record. 2.2–2.7 backlog.
-- **Running:** nothing. The owner's stack `lf-portal` is up (port 8080).
+- **2.6** is at **`review`** on `workbench/2-6-seed` (Workbench builder "2-6-seed"; base `workbench/2-2-models` `39f9bbb`): `php artisan parity:seed <scenario>` seeds all 18 scenarios through the owner role in one transaction, behind a fail-closed guard; shared facts SQL `tests/parity/fixtures/seed-facts/`; parity overlay creates the marker. `bin/test` 516 passed on `lf-wb7`. Laravel half only. Record: `stories/2-6-laravel-seed-scenarios.md`.
+- **Running:** nothing from 2.6 (`lf-wb7` removed with `down -v`). The owner's stack `lf-portal` is up (port 8080).
 - **Next:** the owner starts Workbench (`cd ~/Code/workbench && npm start`, choose Logo Fountain) and points the lead at the brief. Workbench delivers 2.1 → 2.2–2.5 → 2.6/2.7 on stacked `workbench/*` branches; the owner merges in order. **If Workbench isn't used,** a Claude Code session runs the same brief with its own sub-agents.
 - **Blockers (owner):**
   - **Disk:** 21 GB free after clearing Table Trove's Xcode build output (2026-11-21). Two builder stacks may run (brief §5: more than 10 GB). The Next parity stack (`npm ci` in `apps/web` and `tests/parity`, plus its images) should now fit, which unblocks 2.6's Next-side comparison; re-check `df -h` first.
   - **Push works** (fixed 2026-11-21): `gh` is signed in as gericomaverick, and this repo's `origin` is HTTPS with a **repo-local** credential helper. The global git config is untouched; the owner's work SSH key (`~/.ssh/id_ed25519`) stays the default for `github.com`.
 - **Dated follow-up:** from 2026-11-23, bump Inertia to ^3.7 / `@inertiajs/react` 3.11.0 (update AGENTS.md §4 and `project-context.md`). Not in Workbench's brief.
+- **Epic 2 owner items:** merge the stacked `workbench/*` branches in order (2.1 `workbench/schema` → 2.2 `workbench/2-2-models` → 2.3–2.5 → 2.6 `workbench/2-6-seed` / 2.7), hand-merging `apps/portal/compose.yaml` x-php volumes (2.3 `rules` + 2.6 `scenarios`/`seed-facts`) and the AGENTS.md §8 lines; **run the 2.6 Next seed comparison** (the loop in the 2.6 record, *Open items*; needs the Next parity stack); correct the scenario count in `epics.md:115` (13 → 18). Check each story's status in `sprint-status.yaml` before merging: only branches at `review` are ready.
 - **Owner items (open):** banner copy (`resources/js/lib/status.ts` `BANNER_COPY`); Sfizia EULA (WOFF2); NFR-P2 throttling (RISKS 2026-11-20); key-screen approval and the one-project shortcut (before Epics 6/7); empty-state turnaround copy; brief reference uploads; launch date.
 - **Run the suites:** **Portal:** `cd apps/portal && docker compose up -d && bin/test && bin/ui-test && bin/browser-test`. **Parity on Next:** `cd tests/parity && npm ci && npm run infra:up && node scripts/next-stack.mjs ["<gate>"]` (needs disk). **Parity on Laravel:** `node tests/parity/scripts/laravel-stack.mjs "<gate>" [--only <regex>]`.
 
@@ -33,6 +35,7 @@ npm run test:e2e                                        # last recorded: 5–6 P
 
 ## Session log (newest first, one line each)
 
+- 2026-11-22: **Workbench builder "2-6-seed": story 2.6 → review** on `workbench/2-6-seed` (stacked on `workbench/2-2-models`). `parity:seed` + guard, shared seed-facts SQL, parity-marker overlay service, `seed.ts` Laravel branch; `bin/test` 516 passed; Next comparison left to the owner; stack `lf-wb7` removed.
 - 2026-11-22: **Workbench builder "2-2-models": story 2.2 → review** on `workbench/2-2-models` (stacked on `workbench/schema`). 20 models, `ProjectPolicy`/`ConceptPolicy`, client concept scope + arch test; `bin/test` 463 passed; stack `lf-wb3` removed.
 - 2026-11-21: **Workbench builder "schema": story 2.1 → review** on `workbench/schema` (was `workbench/2.1`). Migrations, `db:grants`, DB guards, harness; `bin/test` 403 passed; stack `lf-wb1` removed after the gates. See story 2.1 Conversion record.
 - 2026-11-21: **"schema": critic review fixes for 2.1** (still `review`): AGENTS §2 migrate row adds `db:grants`; admin-flag trigger hardened against a temporary `pg_class` (deviation from Next, DECISIONS) + `RuntimeRoleTest` asserts no `TEMP`; AC 7 code corrected to `23001`; ASSUMPTIONS narrowed; O-06 notes the Epic 9 deploy step. `bin/test` 403 passed (1161 assertions), split 370 + 33. CI not dispatched (owner's call); `composer.json` `setup` still migrates without `db:grants` (open item).
