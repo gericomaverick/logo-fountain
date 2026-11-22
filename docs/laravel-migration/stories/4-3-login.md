@@ -1,6 +1,6 @@
 # Story 4.3: Login
 
-**Status:** ready-for-dev (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-01, FR1 · **Gate:** `@auth&@api` (login) · **After:** 4.1, 4.2, 2.5 (done) · **Stacks on:** `main` (all listed dependencies are done); in the SERIAL chain it builds on the previous Epic 4 story's branch.
+**Status:** review (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-01, FR1 · **Gate:** `@auth&@api` (login) · **After:** 4.1, 4.2, 2.5 (done) · **Stacks on:** `main` (all listed dependencies are done); in the SERIAL chain it builds on the previous Epic 4 story's branch.
 
 > Created with the repo's create-story form. All `apps/web` `file:line` checked 2026-11-22.
 
@@ -60,24 +60,32 @@ Shares with 4.1: `routes/auth.php`, `IssueSession`, `SessionCap`; with 4.2: `Cre
 
 ## Conversion record
 
-> Fill at implementation, from `templates/story-conversion-record.md`. Write *Behaviour notes* before converting.
+**Stacks on:** `workbench/4-a-sessions` chain (4.1, 4.2).
 
 ### Inventory scope
-_(stub)_
+A-01. Ledger #24, #66 case 11. DV-19 proposed (inventory row added).
 ### Next.js source read
-_(stub)_
+`lib/auth/service.ts:62-67`, `server.ts:44`, `lib/auth/rate-limit.ts`, `api/auth/login/route.ts`, `login/route.test.ts`, `contract/auth-session.spec.ts:40`.
 ### Behaviour notes
-_(stub)_
+Every failure is one byte-identical 400 `INVALID_CREDENTIALS` with no cookie. Unverified mailboxes are refused (Better Auth `requireEmailVerification`), so Laravel checks `email_verified_at` itself. The failure bucket is per email + trusted IP and cleared on success.
 ### Laravel implementation
-_(stub)_
+- `app/Actions/Auth/Login.php` (fence, one hash comparison, `IssueSession`), `app/Http/Controllers/Auth/LoginController.php`, `routes/auth.php`.
+- `app/Http/Middleware/OmitSessionCookieOnFailure.php`, placed before `StartSession` in `bootstrap/app.php`, strips the session cookie from 4xx/5xx and the XSRF cookie always.
 ### Deviations from Next.js
 | Behaviour | Next.js | Laravel | Why | Decision ref |
 |---|---|---|---|---|
+| Login timing | Unverified | One hash comparison on every path | Don't reveal which accounts exist | DV-19 (proposed, awaiting owner) |
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|
+| L2 | `tests/Feature/Auth/LoginTest.php` (arms, bytes, no cookie, input, 72 bytes, production fail-closed, order, fence, no register) | A-01 |
+| L2 | `tests/Feature/Auth/LoginRateLimitTest.php` | A-01 |
+| L1 `@deviation` | `tests/Feature/Auth/LoginTimingTest.php` | DV-19 |
 ### Test evidence
-_(commands, pass/fail counts, what was not run and why)_
+GATE
 ### Gotchas
+A local `.env` with `SESSION_LIFETIME=120` broke 4.1's day-6 test; it now sets the 7-day lifetime itself. 4.1's "exactly one auth route" test now expects the login route too.
 ### Docs updated
+Inventory A-01 + DV-19, ledger #24/#66, sprint-status, DECISIONS.
 ### Open items
+DV-19 awaits the owner. L4 parity contract for login not run here.

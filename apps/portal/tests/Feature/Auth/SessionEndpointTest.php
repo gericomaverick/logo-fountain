@@ -12,7 +12,7 @@ use Tests\Support\SessionRows;
 const SESSION_ID = 'abcdefghijabcdefghijabcdefghijabcdefghij';
 
 beforeEach(function () {
-    config(['session.driver' => 'database']);
+    config(['session.driver' => 'database', 'session.lifetime' => 10080]); // the 7-day cap, whatever a local .env says
     Carbon::setTestNow('2026-11-22 12:00:00');
 });
 
@@ -125,9 +125,9 @@ it('answers 503 AUTH_UNAVAILABLE in production without a trusted address, before
     expect($queries)->toBe([]);
 });
 
-it('adds exactly one auth route', function () {
+it('adds only the session and login auth routes', function () {
     $auth = collect(app('router')->getRoutes()->getRoutes())->filter(fn ($r) => str_starts_with($r->uri(), 'api/auth'))
         ->map(fn ($r) => implode('|', array_diff($r->methods(), ['HEAD'])).' '.$r->uri())->values()->all();
 
-    expect($auth)->toBe(['GET api/auth/session']);
+    expect($auth)->toBe(['GET api/auth/session', 'POST api/auth/login']);
 });
