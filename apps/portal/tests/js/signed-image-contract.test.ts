@@ -1,4 +1,5 @@
 // Story 3.4 (DV-12, ADR-021): the PHP SignedImage <-> stableImage contract. @unit.
+import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
@@ -20,6 +21,11 @@ describe('SignedImage contract (DV-12)', () => {
         const cur = { imageKey: 'k1', url: url1, expiresAt: expiry1 };
         const out = stableImage(cur, { imageKey: 'k1', url: url2, expiresAt: expiry1 + 30_000 }, expiry1 - IMAGE_REFRESH_MARGIN_MS);
         assert.equal(out?.url, url2);
+    });
+    test('fixture captured from a real PHP sign(): expiresAt equals the URL expiry', () => {
+        const fx = JSON.parse(readFileSync(new URL('../fixtures/signed-image.json', import.meta.url), 'utf8'));
+        assert.deepEqual(Object.keys(fx), ['imageKey', 'url', 'expiresAt']);
+        assert.equal(signedUrlExpiry(fx.url), fx.expiresAt);
     });
     test('expiresAt as the server sends it equals the URL expiry', () => {
         assert.equal(signedUrlExpiry(url1), expiry1);

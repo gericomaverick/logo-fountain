@@ -99,7 +99,7 @@ Test-port ledger rows resolved: none (DV-12 has no Next test; no ledger row exis
 ### Test evidence
 `bin/test` (Pint, Larastan 9, Pest): 1369 passed / 0 failed. `bin/ui-test`: `npm run test:unit` in the vite container: 220 tests, 219 pass, 1 fail (design-lint "portal source is clean": 12 raw-colour/font-size findings in `resources/views/mail/layouts/base.blade.php`, not from this story; `bin/ui-test` stops there). The 3 new cases and media.test.ts pass.
 
-**Not run, and why:** no L4/L5 parity, no browser test (no payload or route yet). Fixture URLs in the vitest file are hand-shaped, not captured from a live `sign()`.
+**Not run, and why:** no L4/L5 parity, no browser test (no payload or route yet). Critic round: `tests/fixtures/signed-image.json` is now captured from a real `SignedImage::for()` (real `sign()`, MockHandler client); the Pest test asserts the fixture has the same keys, query-parameter names, path and imageKey as a live call, and the vitest asserts `signedUrlExpiry(fixture.url) === fixture.expiresAt`. The two-URL `stableImage` cases still use hand-shaped URLs (a re-sign with a later date cannot be captured offline without moving the SDK clock). Also added: an `expiresAt` test that fails on `now()+ttl`, and an exact log-context assertion. The design-lint failure above is pre-existing on main (mail layout from 2fe4258), not this story. This round ran only SignedImageTest (9 pass) and signed-image-contract (4 pass) on stack lf-wb13 (the one this copy's .env names), not the full suite.
 
 ### Gotchas
 `FileAsset::forceFill` on an unsaved model avoids any DB in unit tests. None promoted.

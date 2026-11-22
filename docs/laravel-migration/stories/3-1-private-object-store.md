@@ -93,31 +93,43 @@ X-10, X-11 (Laravel/Tests columns; both stay open until callers land). ADR-016. 
 `apps/web/src/lib/storage/r2.ts`, `r2.test.ts`, `final-deliverable-filename.ts` (+ test); `brownfield/storage-and-uploads.md` §1–4; ADR-016; `research-technical.md`.
 
 ### Behaviour notes
-_(fill)_
+Write order: key validated, then one conditional PUT (no read first); the 412 is the collision check. MD5 and sha256 are streamed from the temp file; Body is a stream. Disposition: invalid UTF-8 → U+FFFD (the PHP analogue of a lone surrogate); JS `trim` whitespace set matched with a Unicode regex. Account-ID regex now carries the `$` anchor (`D` flag, so a trailing newline fails; Next's `$` did too only via JS semantics).
 
 ### Laravel implementation
-_(files created or changed, and where each behaviour lives)_
+- `app/Support/Storage/PrivateStorage.php`: config factory (`fromConfig`, singleton in `AppServiceProvider`), `upload`, `sign`, `health`, `remove`, `objectKey`. `ObjectKeyCollision`, `SignedUrlExpiry`, `DownloadDisposition` beside it.
+- `app/Support/FinalDeliverableFilename.php` (#92). `composer.json`/lock: `aws/aws-sdk-php` ^3.402.
+- `.env.example`: `AWS_*` dev lines removed; `R2_*` set to the dev SeaweedFS (32-zero account, dev keys, `portal-concepts`/`portal-finals`, `R2_ENDPOINT=http://seaweedfs:8333`). A developer with an existing `.env` must copy these lines.
+- `upload()` takes an array of the four PreparedUpload fields; align when 3.2 lands.
+- Scrubber already redacts `X-Amz-*` URLs (`tests/Unit/ScrubberTest.php:9`), so AC 7 needed no new case.
 
 ### Deviations from Next.js
 | Behaviour | Next.js | Laravel | Why | Decision ref |
 |---|---|---|---|---|
+| Upload input | in-memory bytes | temp-file path, streamed | 95 MB ZIPs | AC 3 |
+| Collision | raw PreconditionFailed | `ObjectKeyCollision` | named, secret-free | OQ 4 |
+| Expiry type | `Number.isInteger` | PHP `int` only (rejects floats, numeric strings) | AC 5 | AC 5 |
 
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|
+| L1 unit | `tests/Unit/Support/Storage/{DownloadDisposition,SignedUrlExpiry,ObjectKey,FinalDeliverableFilename,PrivateStorage}Test.php` (SDK MockHandler) | X-10, X-11 |
+| L3 `@storage` | `tests/Feature/Storage/PrivateStorageSeaweedTest.php` | X-10 |
+| L3 `@pg-race` | `tests/Concurrency/ObjectStoreCollisionRaceTest.php` (8 children: 1 won, 7 collided) | X-10 |
+| Arch | `tests/Arch/StorageTest.php` | ADR-016 |
 
-Test-port ledger rows resolved: _(fill)_
+Test-port ledger rows resolved: #92 done; #106: 7 of the 8 `it` blocks ported; `r2.test.ts:34` (fresh final paths) belongs to 7.8a (callers build paths). The ledger's "10" = 8 `it` + dataset expansion.
 
 ### Test evidence
-_(commands, with passed / failed / skipped counts)_
+`bin/test` on stack lf-wb10: Pint pass, Larastan level 9 pass, Pest 1362 passed (3844 assertions), 0 failed, 0 skipped.
 
-**Not run, and why:** _(fill)_
+**Not run, and why:** L4/L5 parity and `@storage&@security` parity (callers not built, DoD Laravel-only); real R2.
 
 ### Gotchas
-_(mark the ones promoted to `apps/portal/AGENTS.md`)_
+- Pest defines test helper functions globally: a helper named `tmpFile` collides with PHP's `tmpfile` (case-insensitive); prefix helpers. Not promoted.
+- With `retries => 2` a 500 is attempted 3 times; mock tests must queue enough responses.
 
 ### Docs updated
-_(inventory · sprint-status · ledger · handoff · ADRs · DECISIONS/RISKS/ASSUMPTIONS)_
+Inventory X-10/X-11 · ledger #92/#106 · sprint-status → review · DECISIONS/RISKS/ASSUMPTIONS one line each. AGENTS.md unchanged (no new pattern).
 
 ### Open items
-_(follow-ups with an owner and a story)_
+Decided/Open: all recommendations (OQ 1-6) built as recommended, awaiting owner. OQ 5: the epic's 0.2-fallback line (`epics.md:276`) is stale: 0.2 recorded no fallback. Follow-ups: 3.2 aligns `PreparedUpload`; 7.8a owns final-path building (`r2.test.ts:34`); 7.5a calls `remove`.

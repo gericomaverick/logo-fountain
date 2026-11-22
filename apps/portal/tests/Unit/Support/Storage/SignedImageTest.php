@@ -16,6 +16,13 @@ function siStorage(): PrivateStorage
     return new PrivateStorage(new S3Client(T::options(new MockHandler([]))), 'concepts-bkt', 'finals-bkt');
 }
 
+function siQuery(string $url): array
+{
+    parse_str((string) parse_url($url, PHP_URL_QUERY), $q);
+
+    return $q;
+}
+
 function siAsset(string $path = 'p/c/v1.abc.png', string $bucket = 'concepts'): FileAsset
 {
     return (new FileAsset)->forceFill(['bucket' => $bucket, 'path' => $path]);
@@ -31,13 +38,30 @@ it('has exactly the SignedImage shape', function () {
 
 it('keeps the key across calls and time, changes it per path, and hides the path', function () {
     $a = SignedImage::for(siAsset(), siStorage());
-    $this->travel(2)->seconds();
+    $this->travel(2)->hours(); // Carbon moves; the SDK clock does not, so only the key logic is under test
     $b = SignedImage::for(siAsset(), siStorage());
     $c = SignedImage::for(siAsset('p/c/v2.def.png'), siStorage());
     expect($b['imageKey'])->toBe($a['imageKey'])
         ->and($c['imageKey'])->not->toBe($a['imageKey'])
-        ->and($a['imageKey'])->not->toContain('v1')
-        ->and($a['imageKey'])->not->toContain('concepts');
+        ->and($a['imageKey'])->not->toBe(hash('sha256', 'concepts|p/c/v1.abc.png'))
+        ->and($a['imageKey'])->toBe(substr(hash('sha256', 'concepts|p/c/v1.abc.png'), 0, 32));
+});
+
+it('expiresAt is not now() + ttl: it follows the URL signing time, not the Carbon clock', function () {
+    $this->travel(5)->hours();
+    $r = SignedImage::for(siAsset(), siStorage());
+    expect($r['expiresAt'])->toBeLessThan(now()->addSeconds(3600)->getTimestamp() * 1000 - 3600 * 1000);
+});
+
+it('matches the committed fixture the vitest contract reads (captured from a real sign())', function () {
+    $fx = json_decode(file_get_contents(base_path('tests/fixtures/signed-image.json')), true);
+    $live = SignedImage::for(siAsset(), siStorage());
+    $names = fn (string $u) => array_keys(siQuery($u));
+    expect(array_keys($fx))->toBe(array_keys($live))
+        ->and($fx['imageKey'])->toBe($live['imageKey'])
+        ->and($names($fx['url']))->toBe($names($live['url']))
+        ->and(parse_url($fx['url'], PHP_URL_PATH))->toBe(parse_url($live['url'], PHP_URL_PATH))
+        ->and($fx['expiresAt'])->toBeInt();
 });
 
 it('sends expiresAt equal to the URL X-Amz-Date + X-Amz-Expires in ms', function () {
@@ -55,7 +79,7 @@ it('returns null for no asset', function () {
 it('returns null and logs without the URL when signing fails', function () {
     Log::spy();
     expect(SignedImage::for(siAsset('p/c/x.png', 'nope'), siStorage()))->toBeNull();
-    Log::shouldHaveReceived('warning')->once()->withArgs(fn ($m, $ctx) => ! str_contains(json_encode([$m, $ctx]), 'X-Amz'));
+    Log::shouldHaveReceived('warning')->once()->with('Image signing failed', ['exception' => InvalidArgumentException::class]);
 });
 
 it('returns null when storage is unconfigured', function () {
