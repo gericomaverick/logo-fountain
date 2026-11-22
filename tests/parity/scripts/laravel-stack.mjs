@@ -7,8 +7,9 @@
 // app, web) as its own project with PUBLIC_SITE_URL = the base URL (infra/laravel.compose.yaml) →
 // wait for /up → run the gate N times with PARITY_TARGET=laravel → `docker compose down -v` (unless --keep).
 // PARITY_DATABASE_URL is the portal stack's DB, so its DB lock (adapters/seed.ts) never queues behind
-// runs on the shared lf-parity stack. Not wired yet: seeding (`php artisan parity:seed`, Epic 2) and the
-// parity infra services (Mailpit, stripe-fake, SeaweedFS) for the stories that need them.
+// runs on the shared lf-parity stack. Seeding is `php artisan parity:seed` in the app container (adapters/seed.ts,
+// story 2.6); the overlay's parity-marker service arms its guard. Not wired yet: the parity infra services
+// (Mailpit, stripe-fake, SeaweedFS) for the stories that need them.
 // Env: PARITY_LARAVEL_PORT (8000), PARITY_LARAVEL_PROJECT (lf-parity-laravel), PORTAL_*_PORT.
 import { spawn, spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
