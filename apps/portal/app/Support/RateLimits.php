@@ -151,8 +151,8 @@ final class RateLimits
         try {
             $rows = [];
             foreach ($sorted as $key) {
-                $db->insert('INSERT INTO auth_rate_limits (key, hits, window_start) VALUES (?, 0, ?) ON CONFLICT (key) DO NOTHING', [$key, $at]);
-                $row = $db->selectOne('SELECT hits, window_start FROM auth_rate_limits WHERE key = ? FOR UPDATE', [$key]);
+                // One statement creates-or-locks the row, so a concurrent cleanup can't delete it in between.
+                $row = $db->selectOne('INSERT INTO auth_rate_limits (key, hits, window_start) VALUES (?, 0, ?) ON CONFLICT (key) DO UPDATE SET hits = auth_rate_limits.hits RETURNING hits, window_start', [$key, $at]);
                 $rows[$key] = ['hits' => self::int($row, 'hits'), 'startMs' => self::timestampMs($row, 'window_start')];
             }
 
@@ -187,7 +187,11 @@ final class RateLimits
 
     private static function prune(CarbonImmutable $now): void
     {
-        self::db()->table(self::TABLE)->where('window_start', '<', self::timestamp($now->subSeconds(self::PRUNE_AFTER_SECONDS)))->delete();
+        // SKIP LOCKED: never wait on (or deadlock with) a row another request's transaction holds.
+        self::db()->delete(
+            'DELETE FROM auth_rate_limits WHERE key IN (SELECT key FROM auth_rate_limits WHERE window_start < ? FOR UPDATE SKIP LOCKED)',
+            [self::timestamp($now->subSeconds(self::PRUNE_AFTER_SECONDS))],
+        );
     }
 
     /** AC 2/9: a hit inside a transaction would be rolled back with it, or held under a business lock. */

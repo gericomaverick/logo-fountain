@@ -33,7 +33,7 @@ npm run test:e2e                                        # last recorded: 5–6 P
 
 ## Session log (newest first, one line each)
 
-- 2026-11-22: **Workbench builder "2-5-limits": story 2.5 → review** on `workbench/2-5-limits` (from `workbench/schema` `4e323ee`). `RateLimits` on `pgsql_limits` (auth + checkout modes, two-connection guard), ledger #79 ported; `bin/test` 449 passed; stack `lf-wb6` removed after the gates. Owner: ADR-009 *Consequences* note not made (accepted ADR). See story 2.5 Conversion record.
+- 2026-11-22: **Workbench builder "2-5-limits": story 2.5 → review** on `workbench/2-5-limits` (from `workbench/schema` `4e323ee`). `RateLimits` on `pgsql_limits` (auth + checkout modes, two-connection guard), ledger #79 ported; `bin/test` 450 passed after critic 4430 fixes (checkout create-or-lock race, SKIP LOCKED prune); stack removed after the gates. Owner: ADR-009 *Consequences* note not made (accepted ADR). See story 2.5 Conversion record.
 - 2026-11-21: **Workbench builder "schema": story 2.1 → review** on `workbench/schema` (was `workbench/2.1`). Migrations, `db:grants`, DB guards, harness; `bin/test` 403 passed; stack `lf-wb1` removed after the gates. See story 2.1 Conversion record.
 - 2026-11-21: **"schema": critic review fixes for 2.1** (still `review`): AGENTS §2 migrate row adds `db:grants`; admin-flag trigger hardened against a temporary `pg_class` (deviation from Next, DECISIONS) + `RuntimeRoleTest` asserts no `TEMP`; AC 7 code corrected to `23001`; ASSUMPTIONS narrowed; O-06 notes the Epic 9 deploy step. `bin/test` 403 passed (1161 assertions), split 370 + 33. CI not dispatched (owner's call); `composer.json` `setup` still migrates without `db:grants` (open item).
 

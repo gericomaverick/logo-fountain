@@ -72,12 +72,12 @@ it('allows 20 per trusted address across identities, then denies a fresh identit
 });
 
 it('hits every bucket even when one is already over (no short-circuit)', function () {
-    foreach (range(1, 7) as $ignored) {
-        RateLimits::consumeAuth(RL_SCOPE, RL_ADDRESS, 'a@example.com');
-    }
+    // The address bucket (hit first) is the one already over; the identity bucket after it must still be hit.
+    Buckets::seed(RL_SCOPE.':address:'.RL_ADDRESS, RateLimits::ADDRESS_LIMIT, Buckets::at(RL_T0 - 1000));
 
-    expect(Buckets::hits(RL_SCOPE.':identity:a@example.com'))->toBe(7)
-        ->and(Buckets::hits(RL_SCOPE.':address:'.RL_ADDRESS))->toBe(7);
+    expect(RateLimits::consumeAuth(RL_SCOPE, RL_ADDRESS, 'a@example.com')->allowed)->toBeFalse()
+        ->and(Buckets::hits(RL_SCOPE.':address:'.RL_ADDRESS))->toBe(RateLimits::ADDRESS_LIMIT + 1)
+        ->and(Buckets::hits(RL_SCOPE.':identity:a@example.com'))->toBe(1);
 });
 
 it('caps the counter at 100000', function () {

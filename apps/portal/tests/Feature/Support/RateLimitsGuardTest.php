@@ -25,7 +25,7 @@ function expectRefusedInside(string $connection, Closure $call, string $levels):
     try {
         DB::connection($connection)->transaction(function () use ($connection, $call) {
             if ($connection === 'pgsql') {
-                DB::connection('pgsql')->select('SELECT pg_advisory_xact_lock(25005)'); // as Locks::credential() would
+                DB::connection('pgsql')->select('SELECT pg_advisory_xact_lock(25007)'); // as Locks::credential() would
             }
             $call();
         });
@@ -60,7 +60,7 @@ it('runs at level 0 on both connections, including after a committed business tr
 
 it('lets the auth flow reserve before the fence and clear after it', function () {
     expect(RateLimits::reserveLogin('203.0.113.9', 'a@example.com')->allowed)->toBeTrue();
-    DB::connection('pgsql')->transaction(fn () => DB::connection('pgsql')->select('SELECT pg_advisory_xact_lock(25005)'));
+    DB::connection('pgsql')->transaction(fn () => DB::connection('pgsql')->select('SELECT pg_advisory_xact_lock(25007)'));
     RateLimits::clearLoginFailures('203.0.113.9', 'a@example.com');
 
     expect(Buckets::hits(RG_FAILURES))->toBeNull()->and(Buckets::hits('/api/auth/login:address:203.0.113.9'))->toBe(1);
