@@ -182,7 +182,7 @@ Test-port ledger rows resolved: none. `parity-seed-guard.test.ts` is 0.4's (Next
   projects.status:REVISIONS_IN_PROGRESS|1
   ```
   The marker and seeded rows were dropped afterwards.
-- The overlay's `parity-marker` service, run twice against `lf-wb7` (`docker compose -f compose.yaml -f ../../tests/parity/infra/laravel.compose.yaml run --rm --no-deps parity-marker`): the second run inserted 0 rows (idempotent). The runtime role reads the marker in `portal`, `to_regclass('parity.parity_marker')` in the `postgres` database is NULL, and `parity:seed on-hold` then succeeded. `docker compose … config` validates the merged files.
+- The overlay's `parity-marker` service, run twice against `lf-wb7` (`COMPOSE_PROJECT_NAME=lf-wb7 PARITY_LARAVEL_BASE_URL=http://127.0.0.1:8000 docker compose -f compose.yaml -f ../../tests/parity/infra/laravel.compose.yaml run --rm --no-deps parity-marker`; without `COMPOSE_PROJECT_NAME` the project is `lf-portal` and the marker would land in the owner's dev `portal`, so always set it): the second run inserted 0 rows (idempotent). The runtime role reads the marker in `portal`, `to_regclass('parity.parity_marker')` in the `postgres` database is NULL, and `parity:seed on-hold` then succeeded. `docker compose … config` validates the merged files.
 
 **Not run, and why:**
 - The Next seed and the Next half of AC 4 (`seed-facts-next.sql` has never run, so its Prisma column names are unchecked): brief §5, no Next stack. This is owner item 1.
@@ -204,12 +204,15 @@ This record; `sprint-status.yaml` (→ review); inventory O-02; `docs/governance
 4. **Mount.** AC 10 names only the scenarios mount; a second read-only line (`seed-facts`) sits next to it for disagreement 1. 2.3 adds a `rules` line in the same list (hand-merge).
 
 ### Open items
-- **Owner: the Next comparison** (owner item 1). It needs the Next parity stack (`npm ci` in `tests/parity`, disk). From the repo root, as one loop over all 18 scenarios. `seed-facts-next.sql` may need column-name fixes on its first run.
+- **Owner: the Next comparison** (owner item 1). It needs the Next parity stack (`npm ci` in `apps/web`, because `parity-seed.mjs` imports `pg`, `better-auth` and `@aws-sdk/client-s3` from there; `infra:up` is plain `docker compose` and needs no install; disk). From the repo root, as one loop over all 18 scenarios. `seed-facts-next.sql` may need column-name fixes on its first run.
   ```sh
   bash   # run the rest in bash: zsh doesn't word-split $L
   export PATH="$HOME/.orbstack/bin:$PATH"; R=$PWD; F=tests/parity/fixtures/seed-facts
   (cd tests/parity && npm run infra:up)          # Next parity Postgres on 127.0.0.1:55432, DB lf_parity
   NEXT_URL=postgresql://lf_migrate:parity-test-only-migrate@127.0.0.1:55432/lf_parity
+  NEXT_RT=postgresql://lf_runtime:parity-test-only-runtime@127.0.0.1:55432/lf_parity
+  # infra:up creates only the roles and parity.parity_marker; the Prisma tables come from parity-migrate (as next-stack.mjs does, tests/parity/README.md:51-54):
+  env -i PATH="$PATH" HOME="$HOME" PARITY_MODE=1 PARITY_DATABASE_URL=$NEXT_URL PARITY_RUNTIME_DATABASE_URL=$NEXT_RT node apps/web/scripts/parity-migrate.mjs
   # Laravel parity stack, the same project, ports and files as laravel-stack.mjs, left running:
   # (env on the command, not exported: COMPOSE_PROJECT_NAME would also rename the Next infra project lf-parity)
   L="env COMPOSE_PROJECT_NAME=lf-parity-laravel PORTAL_HTTP_PORT=8000 PORTAL_PG_PORT=55541 PORTAL_VITE_PORT=15181
