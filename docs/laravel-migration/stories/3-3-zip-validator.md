@@ -1,6 +1,6 @@
 # Story 3.3: ZIP validator
 
-**Status:** ready-for-dev (2026-11-22, created from `origin/main` df9e574) · **DoD variant:** Laravel-only · **Epic:** 3 · **Covers:** X-12 (ZIP), DV-13 · **Gate:** `@uploads&@unit` · **After:** 0.6a (done) · **Stacks on:** `main`. **Runs in parallel with 3.2**; the only shared files are the four identical ones below. This story's own files: `app/Support/Uploads/FinalZipValidator.php`, `app/Support/Uploads/Zip/*`, `tests/Unit/Support/Uploads/FinalZip*Test.php`, `tests/Arch/ZipValidatorTest.php`.
+**Status:** ready-for-dev (2026-11-22, created from `origin/main` df9e574) · **DoD variant:** Laravel-only · **Epic:** 3 · **Covers:** X-12 (ZIP), DV-13 · **Gate:** `@uploads&@unit` · **After:** 0.6a (done), **3.2** · **Stacks on:** 3.2 (same branch, one builder, serial: 3.2 then 3.3). The four shared files are created by 3.2; this story reuses them. This story's own files: `app/Support/Uploads/FinalZipValidator.php`, `app/Support/Uploads/Zip/*`, `tests/Unit/Support/Uploads/FinalZip*Test.php`, `tests/Arch/ZipValidatorTest.php`.
 
 > Created with BMAD `create-story` (docs only). Sources: `brownfield/storage-and-uploads.md` §6–7, `epics.md:284-286`, inventory X-12 (`01-feature-inventory.md:143`) and DV-13 (`:183`), ledger #108/#110, the golden corpus (`manifest.json`, 129 ZIP cases), Next files below; `file:line` checked on 2026-11-22.
 
@@ -8,7 +8,7 @@
 As the portal, I need a PHP port of the final-ZIP validator at the new 95 MB cap, so that every ZIP is judged as Next judged it (except size, DV-13) and a malicious archive can't reach storage or a client.
 
 ## Acceptance criteria
-1. **Corpus parity.** Every `kind: "zip"` manifest case (**129**: 90 `MALFORMED_ZIP`, 6 `ZIP_LIMIT_EXCEEDED`, 6 `INVALID_FILE_TYPE`, 5 `FILE_SIGNATURE_MISMATCH`, 1 `FILE_REQUIRED`, 1 `FILE_TOO_LARGE`, 20 accepted; counted 2026-11-22, recount when you start) returns the **Laravel-expected** code: `laravelExpectedCode` when present, else `expectedCode`. Also asserts `branch` messages where recorded.
+1. **Corpus parity.** Every `kind: "zip"` manifest case (**129**: 90 `MALFORMED_ZIP`, 6 `ZIP_LIMIT_EXCEEDED`, 6 `INVALID_FILE_TYPE`, 5 `FILE_SIGNATURE_MISMATCH`, 1 `FILE_REQUIRED`, **3 `FILE_TOO_LARGE`, 18 accepted** as Laravel-expected (Next's own counts are 1 and 20; `zip-95000001` and `zip-100mib-exact` flip to `FILE_TOO_LARGE` under DV-13); counted 2026-11-22, recount when you start) returns the **Laravel-expected** code: `laravelExpectedCode` when present, else `expectedCode`. Also asserts `branch` messages where recorded.
 2. **DV-13 cap.** Size 0 → `FILE_REQUIRED`; over **95,000,000 bytes** → `FILE_TOO_LARGE` with the new figure in the message ("Final ZIP exceeds the 95 MB limit"). Exactly 95,000,000 is accepted (`zip-95000000`); **95,000,001 → `FILE_TOO_LARGE`** (`zip-95000001`: Next accepts, Laravel rejects) and `zip-100mib-exact` (104,857,600) → `FILE_TOO_LARGE` (Next accepts); `zip-100mib-plus-1` is `FILE_TOO_LARGE` on both. 0.8e confirmed Next accepts 95,000,001 (`storage-and-uploads.md:57`). Size is decided from the declared size **before reading** (`upload-validation.ts:34-39`, test `:154-163`).
 3. **Type.** Extension `zip` **and** client MIME `application/zip` or `application/x-zip-compressed`, else `INVALID_FILE_TYPE` "Use a .zip file with an allowed ZIP MIME type" (`:186-189`); first 4 bytes `PK\x03\x04` (read as little-endian u32 `0x04034b50`) or `FILE_SIGNATURE_MISMATCH` "File is not a standard ZIP archive" (`:190`). Stored type is canonical `application/zip`, extension `zip` (`:191`; test `:135-141`).
 4. **Structure** (a byte-for-byte port of `validateZip`, `zip-validation.ts:30-131`): EOCD within the last 65,557 bytes with the comment ending exactly at EOF (`:36-38`); single volume, non-zero count (`:41`); count ≤ **1000** else `ZIP_LIMIT_EXCEEDED` (`:42`); central directory ends at the EOCD (`:43`); per-entry rules in `storage-and-uploads.md` §6.2 (no ZIP64/split/encryption, methods 0/8, flags `0x800|8|6`, UTF-8 strict or CP437, name safety incl. NFKC and Windows-reserved names, case-insensitive collisions, file-as-parent, external attributes, extra-field denylist `0x7075 0x6375 0x0001 0x000d 0x756e`, local = central header, descriptors, contiguous records).
@@ -33,15 +33,15 @@ As the portal, I need a PHP port of the final-ZIP validator at the new 95 MB cap
 - CRC-32 in JS is table-based on a signed-shift loop (`:12-16`); PHP `hash('crc32b')` output is big-endian hex: convert with `hexdec`.
 - 5 corpus cases are `generated` (not committed): `zip-95000000`, `zip-95000001`, `zip-100mib-exact`, `zip-100mib-plus-1` (size-only) and the 500 MiB bomb. See open question 2.
 
-### Shared files (3.2 and 3.3 stack on `main`, so these are specified here and in the other story)
-Both stories need the same three small files. **Each story creates them byte-identical** (Git merges an identical add/add cleanly); whichever merges second changes nothing in them. Don't edit them in one story only.
+### Shared files (created by 3.2; reuse, don't recreate)
+The four files below already exist from 3.2 (serial, same branch). Use them as they are; if 3.3 needs a change, make it as a normal edit and say so in the Conversion record.
 - `app/Support/Uploads/UploadValidationException.php`: `final class … extends \RuntimeException`, readonly public `string $errorCode` (one of `FILE_REQUIRED`, `FILE_TOO_LARGE`, `INVALID_FILE_TYPE`, `FILE_SIGNATURE_MISMATCH`, `MALFORMED_IMAGE`, `IMAGE_DIMENSIONS_TOO_LARGE`, `MALFORMED_ZIP`, `ZIP_LIMIT_EXCEEDED`), message = Next's message. Mirrors `UploadValidationError` (`upload-validation.ts:18-23`).
 - `app/Support/Uploads/PreparedUpload.php`: readonly `string $path` (validated temp file), `string $extension`, `string $contentType`, `int $size`. (Path, not a byte string: a 95 MB ZIP must not sit in memory twice; see open question 3 in 3.3.)
 - `tests/Support/UploadCorpus.php`: reads `manifest.json` from `config('parity.fixtures')`-style mounted dir `/var/www/parity-fixtures/uploads`, yields cases by `kind`, resolves the expected code (`laravelExpectedCode` when present, else `expectedCode`), and builds the `generated` cases that aren't committed.
 - `compose.yaml`: one added mount line `../../tests/parity/fixtures/uploads:/var/www/parity-fixtures/uploads:ro` next to the `rules`/`scenarios`/`seed-facts` mounts (`apps/portal/compose.yaml:17-20`), the same line in both stories.
 
 ## Tasks
-1. The four shared files (identical text to 3.2; skip if already merged identical).
+1. Confirm 3.2's four shared files are present; do not recreate.
 2. `FinalZipValidator::prepare()`: size/type/signature (AC 2, 3, 7).
 3. Structure walk (AC 4), then limits + streaming inflation (AC 5); corpus after each stage.
 4. `tests/Arch/ZipValidatorTest.php` (AC 6).
@@ -63,7 +63,7 @@ Both stories need the same three small files. **Each story creates them byte-ide
 - Consumer: 7.8a (final upload and replace; `@uploads&@api`, `@deviation` DV-13, "95,000,001 bytes is rejected", `epics.md:469-471`). 3.1 stores what this validates. Also owner-visible: the portal's PHP `upload_max_filesize`/`post_max_size` and the nginx body limit must allow ≥ 95,000,001 bytes through, or the HTTP response won't be `FILE_TOO_LARGE` (7.8a).
 
 ## Open questions (with recommendations)
-1. **Shared files across parallel stories.** As 3.2 open question 1. *Recommendation:* byte-identical shared files in both; or 3.3 `After: 3.2` if the owner prefers serial.
+1. **Shared files (decided: serial).** The owner decided 3.3 runs after 3.2 on the same branch; 3.2 creates the shared files.
 2. **Generated cases in Laravel.** Five cases aren't committed (`generate.mjs`, node). *Recommendation:* build them in `UploadCorpus` in PHP (sparse files for the four size cases; a streamed raw-deflate bomb for the 500 MiB case, written to a temp file), asserting the manifest `size` where it is recorded.
 3. **Bytes vs file path.** Next holds 95 MB in memory; PHP's default `memory_limit` (128M) would be tight with copies. *Recommendation:* the validator reads ranges from the file path (the structure walk needs only EOCD, the central directory and local headers; payload goes through the streaming inflater). Same output, different memory profile; no parity impact.
 4. **Epic vs Next: the ratio check on declared vs actual.** Epic says only "same code"; Next applies the ratio to declared (`:91`) and actual (`:109`) sizes. *Recommendation:* port both; the corpus decides.

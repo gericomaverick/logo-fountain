@@ -16,7 +16,7 @@ As the portal, I need one server helper that turns a stored image asset into `{i
 1. **imageKey stable.** **Given** an unchanged asset, **then** two calls (and two polls, with different signatures) return the **same** `imageKey`; a new object path (a new version, a replaced file) gives a different key. The key is derived from stored data only (never from the URL or time) and does not reveal the bucket or object path. See open question 1.
 2. **Rendered src unchanged.** **Given** an unchanged `imageKey`, **then** the rendered `src` is unchanged: a vitest case feeds two real presigned URLs for one key (produced by 3.1's `sign()`, captured as a fixture string) through `stableImage` and gets the first back.
 3. **Refresh near expiry.** **Given** a URL within 5 minutes of expiry, **then** it refreshes (component/unit test, as `media.test.ts:114`), with `expiresAt` as sent by the server **in epoch milliseconds**, equal to the URL's `X-Amz-Date + X-Amz-Expires` (a PHP test asserts equality, a vitest case asserts `signedUrlExpiry(url) === expiresAt`).
-4. **Never throws.** No asset, or any signing failure (storage unreachable, unconfigured) → `null` (the UI shows "Preview unavailable"), as `project-snapshot.ts:205-220`; the failure is logged **without** the URL.
+4. **Never throws.** No asset, or any signing failure (missing/invalid config; presigning is offline, so "unreachable" can't occur: test the unconfigured case) → `null` (the UI shows "Preview unavailable"), as `project-snapshot.ts:205-220`; the failure is logged **without** the URL.
 5. **Shape.** Exactly `{imageKey: string, url: string, expiresAt: int}` (matching `SignedImage`, `media.ts:141`); URL TTL 3600 s for concepts (`r2.ts:131`).
 6. **Not persisted or logged** (X-11): nothing stores the URL; a test asserts the helper writes no DB row and the Scrubber redacts it (3.1's case).
 
@@ -35,7 +35,7 @@ As the portal, I need one server helper that turns a stored image asset into `{i
 - The UI compares `imageKey` strings only; `expiresAt` is optional (the UI can read the URL), but sending it removes the guess.
 
 ## Laravel guidance
-- `app/Support/Storage/SignedImage.php`: `static for(?FileAsset $asset, ?PrivateStorage $storage = null): ?array`; calls 3.1's `sign('concepts', $asset->path, 3600)`; `expiresAt` = `now()` (ms) + ttl×1000, or parse the URL. Wrap in `try/catch (Throwable)` → log a scrubbed message → `null`.
+- `app/Support/Storage/SignedImage.php`: `static for(?FileAsset $asset, ?PrivateStorage $storage = null): ?array`; calls 3.1's `sign('concepts', $asset->path, 3600)`; `expiresAt` **must** be parsed from the URL (`X-Amz-Date` + `X-Amz-Expires`, as `media.ts` does), never `now()` + ttl: the SDK signs with its own clock truncated to the second, so `now()` breaks the AC3 equality. Wrap in `try/catch (Throwable)` → log a scrubbed message → `null`.
 - Payload builders (later stories) call it; they don't add `imageKey` themselves.
 
 ## Tasks
@@ -59,9 +59,9 @@ As the portal, I need one server helper that turns a stored image asset into `{i
 - Needs 3.1 merged (`sign()`). Consumers: snapshot/concept payload stories (Epics 5–7) must use `SignedImage::for`; their `@api` contract tests assert the `imageKey` field. DV-12 closes there.
 
 ## Open questions (with recommendations)
-1. **What is the `imageKey`?** Options: the `FileAsset` id; or a hash of `bucket/path`. *Recommendation:* the `FileAsset` id if it is an opaque uuid (check the model/migration when you start), else `hash('sha256', bucket|path)` first 32 hex. Never the raw path. (ADR-021 doesn't say; the epic doesn't either.)
+1. **What is the `imageKey`?** Options: the `FileAsset` id; or a hash of `bucket/path`. *Recommendation:* `hash('sha256', bucket|path)` first 32 hex (a replaced concept may update `path` in place on the same `FileAsset`, so an id-based key wouldn't change with the bytes and would break AC1). `FileAsset` uses `HasUuids` (opaque), so the id is only safe if you confirm replacement always creates a new row; otherwise `hash('sha256', bucket|path)` first 32 hex. Never the raw path. (ADR-021 doesn't say; the epic doesn't either.)
 2. **Component test vs vitest.** The epic says "component test"; the component and its tests already exist (1.8c). *Recommendation:* add only the contract file in task 3; don't re-test the component.
-3. **Stack.** 3.1 isn't on `main`. *Recommendation:* start only after 3.1 merges (or stack on its branch); if neither, write the helper against a `PrivateStorage` interface double and finish when 3.1 lands.
+3. **Stack.** 3.1 isn't on `main`. *Recommendation:* **wait: do not start until 3.1 is merged** (`sprint-status` can't express this) (or stack on its branch); if neither, write the helper against a `PrivateStorage` interface double and finish when 3.1 lands.
 4. **ADR check.** ADR-021 says the key is on "snapshot and concept payloads"; nothing is changed. Owner items: none.
 
 ## Doc / code disagreements and citation fixes

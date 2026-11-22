@@ -1,6 +1,6 @@
 # Story 3.2: Image validator
 
-**Status:** ready-for-dev (2026-11-22, created from `origin/main` df9e574) · **DoD variant:** Laravel-only · **Epic:** 3 · **Covers:** X-12 (images) · **Gate:** `@uploads&@unit` · **After:** 0.6a (done) · **Stacks on:** `main`. **Runs in parallel with 3.3**; files are disjoint except the four identical shared files below.
+**Status:** ready-for-dev (2026-11-22, created from `origin/main` df9e574) · **DoD variant:** Laravel-only · **Epic:** 3 · **Covers:** X-12 (images) · **Gate:** `@uploads&@unit` · **After:** 0.6a (done) · **Stacks on:** `main`. **Runs SERIAL with 3.3: one builder, one branch, 3.2 first then 3.3.** 3.2 creates the four shared files below once; 3.3 reuses them.
 
 > Created with BMAD `create-story` (docs only). Sources: `brownfield/storage-and-uploads.md` §5 and §7, `epics.md:280-282`, inventory X-12 (`01-feature-inventory.md:143`), ledger #108, the golden corpus (`tests/parity/fixtures/uploads/manifest.json`, 267 cases), Next files below, all `file:line` checked on 2026-11-22.
 
@@ -34,15 +34,15 @@ As the portal, I need a PHP port of the concept-image validator, so that every u
 - `app/Support/Uploads/ConceptImageValidator.php` (`prepare(string $path, string $clientName, ?string $clientMime, int $declaredSize): PreparedUpload`, so a controller passes `$file->getRealPath()`, `getClientOriginalName()`, `getClientMimeType()`, `getSize()`); format validators as private methods or small classes `PngValidator`, `JpegValidator`, `WebpValidator` in `app/Support/Uploads/Image/`. `unpack('N'/'V'/'n'/'v')` for integers; CRC with `hash('crc32b')`/`crc32()` (check endianness against `png-bad-crc`). Images are ≤ 10 MiB, so reading the file into one string is fine.
 - Mind 64-bit: width × height can exceed 2^63 for 32-bit dimensions; compare with the 40 MP limit by division (`$w > intdiv(40_000_000, max($h, 1))`), and cover `png-huge-dimensions` and `jpeg-max-dimensions`.
 
-### Shared files (3.2 and 3.3 stack on `main`, so these are specified here and in the other story)
-Both stories need the same three small files. **Each story creates them byte-identical** (Git merges an identical add/add cleanly); whichever merges second changes nothing in them. Don't edit them in one story only.
+### Shared files (created here, once; 3.3 reuses them)
+Both stories need the same four small files. **3.2 creates them**; 3.3 runs after 3.2 on the same branch and only reads or extends them (additions it needs go in as a normal edit in 3.3's commit).
 - `app/Support/Uploads/UploadValidationException.php`: `final class … extends \RuntimeException`, readonly public `string $errorCode` (one of `FILE_REQUIRED`, `FILE_TOO_LARGE`, `INVALID_FILE_TYPE`, `FILE_SIGNATURE_MISMATCH`, `MALFORMED_IMAGE`, `IMAGE_DIMENSIONS_TOO_LARGE`, `MALFORMED_ZIP`, `ZIP_LIMIT_EXCEEDED`), message = Next's message. Mirrors `UploadValidationError` (`upload-validation.ts:18-23`).
 - `app/Support/Uploads/PreparedUpload.php`: readonly `string $path` (validated temp file), `string $extension`, `string $contentType`, `int $size`. (Path, not a byte string: a 95 MB ZIP must not sit in memory twice; see open question 3 in 3.3.)
 - `tests/Support/UploadCorpus.php`: reads `manifest.json` from `config('parity.fixtures')`-style mounted dir `/var/www/parity-fixtures/uploads`, yields cases by `kind`, resolves the expected code (`laravelExpectedCode` when present, else `expectedCode`), and builds the `generated` cases that aren't committed.
 - `compose.yaml`: one added mount line `../../tests/parity/fixtures/uploads:/var/www/parity-fixtures/uploads:ro` next to the `rules`/`scenarios`/`seed-facts` mounts (`apps/portal/compose.yaml:17-20`), the same line in both stories.
 
 ## Tasks
-1. The four shared files (identical text to 3.3).
+1. Create the four shared files (3.3 reuses them).
 2. `ConceptImageValidator` size/type/prepare (AC 2, 3, 5).
 3. PNG, JPEG, WebP validators (AC 4), ordered as Next; run the corpus after each format.
 4. `tests/Unit/Support/Uploads/ConceptImageValidatorTest.php` (the ported unit cases) and `ConceptImageCorpusTest.php` (AC 1, dataset from `UploadCorpus`).
@@ -62,7 +62,7 @@ Both stories need the same three small files. **Each story creates them byte-ide
 - Consumer: 7.5a (concept upload route, `@uploads&@api` image subset). The ZIP twin is 3.3. Memory/ini limits for the route: 7.5a.
 
 ## Open questions (with recommendations)
-1. **Shared files across parallel stories.** 3.2 and 3.3 both stack on `main` and both need the exception, `PreparedUpload`, `UploadCorpus` and the compose mount. *Recommendation:* each creates them byte-identical (spec above and in 3.3). Alternative if the owner dislikes it: 3.3 stacks on 3.2 (`After: 3.2`), which serialises them.
+1. **Shared files (decided: serial).** The owner decided 3.2 then 3.3 run serially on one branch with one builder; 3.2 creates the exception, `PreparedUpload`, `UploadCorpus` and the compose mount once. No byte-identical duplication.
 2. **Generated corpus cases** (`image-exactly-10mib`, `-plus-1`, `-plus-1-wrong-type`, built by `generate.mjs`, node). The portal image has no node step for tests. *Recommendation:* build those three in `UploadCorpus` in PHP (sparse temp file with `ftruncate`, name/MIME from the manifest, assert the manifest `size`/`sha256` where cheap); don't require node.
 3. **Image-library arch guard.** The epic has an arch test only for ZIP (`ZipArchive`). *Recommendation:* also forbid `imagecreatefrom*`, `getimagesize`, `Imagick` in `app/Support/Uploads` here (one extra test line; same reason: a decoder accepts files this validator rejects). Optional; owner may drop it.
 4. **PHP ini limits.** Default `upload_max_filesize`/`post_max_size` would reject 10 MiB+ before the validator. Not this story; flagged for 7.5a (needs the portal `php.ini`).
