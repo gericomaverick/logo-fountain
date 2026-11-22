@@ -6,6 +6,8 @@ use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RequireCanonicalOrigin;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\TrustedClientAddress;
+use App\Support\ErrorCodes;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -53,4 +55,18 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+        // A-03 (4.1 AC 6): StartSession reads the `sessions` row before any route middleware, so a database
+        // failure there never reaches EnforceSessionCap's catch. On auth routes it is the same 503.
+        $exceptions->render(function (QueryException $e, Request $request) {
+            if (! $request->is('api/auth/*')) {
+                return null;
+            }
+            report($e);
+
+            return response()->json(
+                ['error' => ['code' => ErrorCodes::SESSION_VERIFICATION_UNAVAILABLE, 'message' => 'Could not verify session. Please retry.']],
+                503,
+                ['Cache-Control' => 'no-store'],
+            );
+        });
     })->create();
