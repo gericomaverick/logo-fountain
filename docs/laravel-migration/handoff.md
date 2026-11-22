@@ -34,6 +34,7 @@ npm run test:e2e                                        # last recorded: 5–6 P
 ## Session log (newest first, one line each)
 
 - 2026-11-22: **Workbench's first Epic 2 run reviewed for tokens.** It used 41M tokens in about 3 hours, 95% of the cost on Opus. Results: 2.1–2.6 at review on `workbench/*` branches, 2.7 has a story file only, 2.4 is waiting on the owner about timeouts and retries. Workbench `72da5ae` fixes this: routing, a limit of 3 agents busy and 1 on Opus, output caps, per-role reading, pointer briefs, cache-write accounting. Brief §3a added.
+- 2026-11-22: **Workbench builder "2-2-models": story 2.2 → review** on `workbench/2-2-models` (stacked on `workbench/schema`). 20 models, `ProjectPolicy`/`ConceptPolicy`, client concept scope + arch test; `bin/test` 463 passed; stack `lf-wb3` removed.
 - 2026-11-21: **Workbench builder "schema": story 2.1 → review** on `workbench/schema` (was `workbench/2.1`). Migrations, `db:grants`, DB guards, harness; `bin/test` 403 passed; stack `lf-wb1` removed after the gates. See story 2.1 Conversion record.
 - 2026-11-21: **"schema": critic review fixes for 2.1** (still `review`): AGENTS §2 migrate row adds `db:grants`; admin-flag trigger hardened against a temporary `pg_class` (deviation from Next, DECISIONS) + `RuntimeRoleTest` asserts no `TEMP`; AC 7 code corrected to `23001`; ASSUMPTIONS narrowed; O-06 notes the Epic 9 deploy step. `bin/test` 403 passed (1161 assertions), split 370 + 33. CI not dispatched (owner's call); `composer.json` `setup` still migrates without `db:grants` (open item).
 
