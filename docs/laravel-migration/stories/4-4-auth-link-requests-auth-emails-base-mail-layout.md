@@ -1,6 +1,6 @@
 # Story 4.4: Auth link requests, auth emails, base mail layout
 
-**Status:** ready-for-dev (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-06, A-11, N-01, N-02, N-03, N-14 (base layout), ADR-018 · **Gate:** `@auth&@api` (link endpoints), `@email&@api` · **After:** 4.2, 2.7 (done) · **Stacks on:** `main` (dependencies done); in the SERIAL chain, the previous Epic 4 story's branch. Shared files: `routes/auth.php`, `app/Actions/Auth/`, `resources/views/mail/layouts/`, `app/Support/Mail/MailTheme.php`
+**Status:** review (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-06, A-11, N-01, N-02, N-03, N-14 (base layout), ADR-018 · **Gate:** `@auth&@api` (link endpoints), `@email&@api` · **After:** 4.2, 2.7 (done) · **Stacks on:** `main` (dependencies done); in the SERIAL chain, the previous Epic 4 story's branch. Shared files: `routes/auth.php`, `app/Actions/Auth/`, `resources/views/mail/layouts/`, `app/Support/Mail/MailTheme.php`
 
 > Created with the repo's create-story form. All `apps/web` `file:line` checked 2026-11-22.
 
