@@ -56,7 +56,7 @@ Config: `config/database.php`. Dev roles (attributes, database `CONNECT`): `dock
 | Transactions | Multi-row changes only inside an Action transaction. Lifecycle changes: `Db::serializable()` (no nesting) + `projects.version` guard. Advisory locks only via `Locks::credential/provision/conceptUpload` | ADR-007, ADR-011, story 2.4 |
 | Side effects | Emails, storage cleanup and external calls **after commit**; storage *upload* happens before the publication transaction | ADR-016, ADR-018, ADR-019 |
 | Audit | Only `Audit::record(type, project, actor, payload)`. Payloads never hold secrets, signed URLs or tokens (scrubber is unit-tested) | arch §5, story 2.4 |
-| Authorisation | Policies (`ProjectPolicy`, `ConceptPolicy`). Membership miss → 404 `PROJECT_NOT_FOUND`. Admin endpoints use `admin` middleware. Client concept/asset lookups only via `Concept::visibleToClient()` (arch test) | ADR-020, story 2.2 |
+| Authorisation | Policies (`ProjectPolicy`, `ConceptPolicy`). Membership miss → 404 `PROJECT_NOT_FOUND`. Admin endpoints use `admin` middleware. Abilities `participate` (member) / `view` (admin or member) / `administer` (admin); no `Gate::before`. Admin = `User::isAdmin()` (flag + verified email). Client concept/asset lookups only via `Concept::visibleToClient()`, `Project::clientVisibleConcepts()` / `clientVisibleAssets()` (arch test) | ADR-020, story 2.2 |
 | Config | `env()` only in `config/*.php`. Boot validators for `PUBLIC_SITE_URL`, proxy config, DB role pair, price IDs (production refuses to boot or serve auth) | ADR-010, ADR-013, story 1.3 |
 | Frontend | Pages use only `Components/ui`; tokens only; one primary button per view; copy in components or `lib/copy.ts`; every list/panel has empty, loading, error and partial states | ADR-022, `MIG/ux-design.md` §8 §12 §14 |
 | Tests | Every Action → Pest feature test. Every endpoint → parity contract test. Every concurrency guard → L3 race test. Every screen → L7 baseline + axe | `MIG/02-test-strategy.md` |
@@ -100,6 +100,8 @@ Checklist: `MIG/03-documentation-protocol.md` §3. Story record template: `MIG/t
 Requirement series → code: A → `Actions/Auth`, middleware, `Support/RateLimits` · K → `Actions/Checkout`, `Controllers/Webhooks` · C/D → `Actions/*` + `Pages` · N → `Mail/` · X → `Support/`, `Storage/`, middleware, `Domain/` · O → `Console/Commands`, `ops/`, `compose.yaml`.
 
 ## 8. Gotchas (promoted from story records)
+- Every model uses `Concerns/HasMillisecondTimestamps` (`timestamp(3)`); jsonb columns returned verbatim use the `'object'` cast, so `{}` stays `{}` (2.2).
+- `ProfileFactory::admin()` sets `is_admin` as the owner, so it needs committed rows: use `TruncatesDatabaseAsOwner` (as `Feature/Models`, `Feature/Policies` do) (2.2).
 - Never `migrate` on the default (runtime) connection, in tests too. `tests/TestCase.php` migrates `portal_test` once per process as `pgsql_migrate` + `db:grants` (`Tests\Support\MigratesAsOwner`); `Feature/Schema` uses `RefreshDatabaseAsOwner` (transacts `pgsql` only: rows written via `pgsql_migrate`/`pgsql_limits` commit, and the owner can't see uncommitted runtime rows), `Concurrency` uses `TruncatesDatabaseAsOwner`. Never let the owner drop or alter a table the runtime touched inside the test transaction: it waits for that transaction forever (2.1).
 - `ON DELETE RESTRICT` raises SQLSTATE `23001` (restrict_violation), not `23503` (2.1).
 - `migrate:fresh` drops tables but not functions: raw-SQL functions use `CREATE OR REPLACE` and `down()` drops them (2.1).
