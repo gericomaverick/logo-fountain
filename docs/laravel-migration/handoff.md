@@ -33,6 +33,7 @@ npm run test:e2e                                        # last recorded: 5–6 P
 
 ## Session log (newest first, one line each)
 
+- 2026-11-22: **Workbench's first Epic 2 run reviewed for tokens.** It used 41M tokens in about 3 hours, 95% of the cost on Opus. Results: 2.1–2.6 at review on `workbench/*` branches, 2.7 has a story file only, 2.4 is waiting on the owner about timeouts and retries. Workbench `72da5ae` fixes this: routing, a limit of 3 agents busy and 1 on Opus, output caps, per-role reading, pointer briefs, cache-write accounting. Brief §3a added.
 - 2026-11-21: **Moved to the owner's Mac; Epic 2 handed to Workbench.** OrbStack installed (a full disk had corrupted the first builds); portal baseline matches (318/217/260). Story 2.1 decisions: Laravel conventions (owner). Fixed Linux paths (`_bmad/*.json|yaml`, protocol, RESUME). Workbench profile and builder-stack setup rewritten for the portal and tested; brief `briefs/workbench-epic-2.md`. Push fixed: `gh` signed in as gericomaverick, `origin` HTTPS, repo-local credential helper (global git config untouched).
 
 - 2026-11-21: **Story 2.1 created (ready-for-dev).** `stories/2-1-schema-migrations-and-roles.md`: 22-table checklist from the Next SQL, trigger/checks/grants, `db:grants`, owner-migrating test harness, 10 open questions with recommendations.
