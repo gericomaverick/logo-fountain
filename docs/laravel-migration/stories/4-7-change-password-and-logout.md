@@ -8,7 +8,7 @@
 As a signed-in person, I can change my password (which signs me out everywhere) and sign out, and I'm told the truth about whether it worked.
 
 ## Acceptance criteria
-1. **Logout `POST /api/auth/logout`.** Origin guard first, then the proxy check, then sign-out (`logout/route.ts:6-8`). Success → `200 {ok:true}` and a clearing `Set-Cookie`. Failure → `503 {error:{code:"LOGOUT_FAILED",message:"Could not sign out. Please retry."}}` (`:14`). Logout with no session is `200 {ok:true}`? see open question 1.
+1. **Logout `POST /api/auth/logout`.** Origin guard first, then the proxy check, then sign-out (`logout/route.ts:6-8`). Success → `200 {ok:true}` and a clearing `Set-Cookie`. Failure → `503 {error:{code:"LOGOUT_FAILED",message:"Could not sign out. Please retry."}}` (`:14`). Logout with no session is `200 {ok:true}` (recommended behaviour; open question 1 only asks for confirmation).
 2. **Confirmed.** After logout, `GET /api/auth/session` returns `{authenticated:false}` (contract `auth-session.spec.ts:81`; client helper `lib/auth/logout.ts:2-12`, ported in 4.9b).
 3. **Change `POST /api/auth/password {currentPassword,newPassword}`.** Anonymous → `401 UNAUTHORIZED` before the limiter (`password/route.ts:9-10`; `route.test.ts:32`).
 4. **Limit** `consumeAuth(path, address, userId)`; sixth attempt → `429 {error:{code:"RATE_LIMITED"}}` (contract `auth-session.spec.ts:100`).

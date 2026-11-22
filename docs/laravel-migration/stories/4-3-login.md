@@ -16,7 +16,7 @@ As a client or admin, I sign in with my email and password, and every kind of fa
 6. **Production fail-closed.** No trusted client address → `503 AUTH_UNAVAILABLE` **before** the failure bucket is reserved (`route.test.ts:51`, already `EnsureAuthAvailable`).
 7. **Ordering.** Proxy check, Origin guard, JSON boundary, then the body, as Next's wrapper (`http.ts:18-43`; already built in 1.3/1.6; this story adds a test that login uses them).
 8. **No remember-me, no registration, no `/register` route.**
-9. **Timing (proposed DV-19, pending owner):** an unknown, unverified or password-less account costs one hash comparison against a fixed dummy hash, so response time doesn't reveal existence. Build it; owner may veto.
+9. **Timing (proposed DV-19, pending owner):** an unknown, unverified or password-less account costs one hash comparison against a fixed dummy hash, so response time doesn't reveal existence. Build it; owner may veto. (Next behaviour unverified; see Deviations.)
 
 ## Inventory scope
 A-01. Ledger #24 (`login/route.test.ts`, 10 tests: those about origin/wrapper are covered by 1.3/1.4/1.6 and re-asserted here for the login route), #66 case 11, #56 (`auth-shell.test.ts`, Keep TS) untouched.
@@ -33,7 +33,7 @@ A-01. Ledger #24 (`login/route.test.ts`, 10 tests: those about origin/wrapper ar
 `app/Actions/Auth/Login.php` (plain class, no HTTP), `app/Http/Controllers/Auth/LoginController.php`, route in `routes/auth.php`. No Fortify/Breeze/Jetstream (A-14). Hashing via `Hash::check` with a pre-computed dummy hash constant.
 
 ## Planned deviations from Next.js
-**Proposed DV-19** (login timing equalised). Next: `service.ts:62-66` returns without hashing for an unknown user. Laravel: always one hash comparison. `@deviation` test: with an unknown email, the hasher is called exactly once (a spy), which fails on Next. Needs the owner's ruling (§8 of the brief); build it meanwhile, behind no flag.
+**Proposed DV-19** (login timing equalised). Laravel guarantees one hash comparison for every login attempt. Next is unverified: `service.ts:62-66` falls through to Better Auth `signInEmail` (`:65`), whose unknown-user behaviour is unproven (library not installed in apps/web/node_modules). `@deviation` test: with an unknown email, the hasher is called exactly once (a spy). Asserts Laravel only; no claim about Next. Needs the owner's ruling (§8 of the brief); build it meanwhile, behind no flag.
 
 ## Tasks
 1. `Login` action (AC 1–5, 9). 2. Controller + route (AC 6, 7). 3. Tests; contract-shaped Pest HTTP tests for each failure arm. 4. Record, inventory A-01, ledger #24/#66 case 11, sprint-status.

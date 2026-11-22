@@ -9,9 +9,9 @@ As a signed-in person, I need my session to end exactly seven days after I signe
 
 ## Acceptance criteria
 1. **Valid session.** `GET /api/auth/session` with a live session whose user has a verified email returns `{authenticated:true,userId,email,isAdmin}` (`session/route.ts:11`). No session → `{authenticated:false}` (`:10`).
-2. **Absolute cap, boundary.** A session valid iff `now < issued_at + 604800 s` (`service.ts:16`, `server.ts:12`). Age 6 d 23 h 59 m 59 s → true; exactly 7 d → false; 7 d + 1 s → `{authenticated:false}`. Test with a frozen clock.
+2. **Absolute cap, boundary.** A session valid iff `now < issued_at + 604800 s` (`service.ts:18`, `server.ts:12`). Age 6 d 23 h 59 m 59 s → true; exactly 7 d → false; 7 d + 1 s → `{authenticated:false}`. Test with a frozen clock.
 3. **No sliding.** Using the session (any number of requests) never changes `issued_at`; Laravel's `last_activity` write must not extend it. A test makes requests at day 6 and shows the session still ends at day 7.
-4. **Unverified mailbox is not a session.** A row for a user with `email_verified_at` null returns `{authenticated:false}` (`service.ts:16`).
+4. **Unverified mailbox is not a session.** A row for a user with `email_verified_at` null returns `{authenticated:false}` (`service.ts:18`).
 5. **Fresh DB read every time.** `isAdmin` = verified email **and** `profiles.is_admin` read from the DB per request (`admin.ts`, brownfield §1). Flip the flag in the DB; the next call reflects it. No cookie or cache authority (A-04).
 6. **DB failure.** Any exception during the lookup → `503 {error:{code:"SESSION_VERIFICATION_UNAVAILABLE",message:"Could not verify session. Please retry."}}` (`:12`), nothing else leaked. A missing session is **not** a failure.
 7. **Cookie.** Production: name `__Host-lf_session`, `Secure`, `HttpOnly`, `SameSite=Lax`, `Path=/`, no `Domain`. Non-production: `lf_session`, `Secure` only when the canonical origin is https (`server.ts:37`). Asserted from config and from a real response's `Set-Cookie`.
