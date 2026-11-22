@@ -2,11 +2,12 @@
 
 namespace App\Support;
 
+use stdClass;
 use Throwable;
 
 /**
- * X-14 / NFR-S3: removes secrets, tokens and signed URLs from anything about to be logged (and,
- * from the Audit story on, from audit payloads). Pure and idempotent.
+ * X-14 / NFR-S3: removes secrets, tokens and signed URLs from anything about to be logged, and
+ * (story 2.4, through scrubAuditPayload()) from audit payloads. Pure and idempotent.
  *
  * - Values under a sensitive key (password, token, secret, cookie, authorization, signature,
  *   api key, session id, ...) become "[REDACTED]".
@@ -17,6 +18,10 @@ use Throwable;
  *
  * - Email addresses keep their first character and domain (`c***@parity.test`).
  * - Throwables become a scrubbed {class, message, code, file, trace (no args), previous} array.
+ *
+ * The audit profile (scrubAuditPayload) applies the same key and string rules, also inside objects, except:
+ * emails are not masked (owner, story 2.4 OQ 1), and a top-level string `checkoutSessionId` is kept verbatim
+ * (owner, 2026-11-21: Next stores it and the admin audit endpoint returns it). Logs keep redacting both.
  */
 final class Scrubber
 {
@@ -50,6 +55,9 @@ final class Scrubber
 
     private const EMAIL = '/\b([A-Za-z0-9._%+-])[A-Za-z0-9._%+-]*@([A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+)\b/';
 
+    /** Top-level audit payload keys whose string value is stored verbatim (story 2.4, owner decision). */
+    public const AUDIT_KEPT_KEYS = ['checkoutSessionId'];
+
     public static function scrub(mixed $value, int $depth = 0): mixed
     {
         if (is_string($value)) {
@@ -75,7 +83,56 @@ final class Scrubber
         return $out;
     }
 
+    /**
+     * The audit profile (story 2.4): the log rules applied to arrays and stdClass trees (as decoded from JSON),
+     * without email masking, keeping a top-level string `checkoutSessionId`. Objects keep their type, so an
+     * empty object stays `{}`.
+     *
+     * @template T of array<array-key, mixed>|stdClass
+     *
+     * @param  T  $payload
+     * @return T
+     */
+    public static function scrubAuditPayload(array|stdClass $payload): array|stdClass
+    {
+        /** @var T */
+        return self::scrubAudit($payload, 0);
+    }
+
     public static function scrubString(string $value): string
+    {
+        return self::scrubText($value, true);
+    }
+
+    private static function scrubAudit(mixed $value, int $depth): mixed
+    {
+        if (is_string($value)) {
+            return self::scrubText($value, false);
+        }
+        $isObject = $value instanceof stdClass;
+        if (! $isObject && ! is_array($value)) {
+            return $value;
+        }
+        if ($depth >= self::MAX_DEPTH) {
+            return self::REDACTED;
+        }
+
+        $out = [];
+        foreach ((array) $value as $key => $item) {
+            if ($depth === 0 && is_string($item) && in_array($key, self::AUDIT_KEPT_KEYS, true)) {
+                $out[$key] = $item;
+
+                continue;
+            }
+            $out[$key] = is_string($key) && self::isSensitiveKey($key) && $item !== null && $item !== ''
+                ? self::REDACTED
+                : self::scrubAudit($item, $depth + 1);
+        }
+
+        return $isObject ? (object) $out : $out;
+    }
+
+    private static function scrubText(string $value, bool $maskEmails): string
     {
         // Whole query and fragment of a URL that carries a credential: everything after "?" or "#".
         $value = (string) preg_replace_callback(self::URL, function (array $m): string {
@@ -95,7 +152,9 @@ final class Scrubber
             $value = (string) preg_replace($pattern, $replacement, $value);
         }
 
-        return (string) preg_replace_callback(self::EMAIL, fn (array $m): string => $m[1].'***@'.$m[2], $value);
+        return $maskEmails
+            ? (string) preg_replace_callback(self::EMAIL, fn (array $m): string => $m[1].'***@'.$m[2], $value)
+            : $value;
     }
 
     public static function isSensitiveKey(string $key): bool
