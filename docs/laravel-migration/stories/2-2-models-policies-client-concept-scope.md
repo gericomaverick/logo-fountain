@@ -1,6 +1,6 @@
 # Story 2.2: Models, policies, client concept scope
 
-**Status:** review (2026-11-22) · **DoD variant:** Laravel-only · **Epic:** 2 · **Covers:** C-20, D-20, DV-7, ADR-020 · **Gate:** Pest (arch plus unit) · **After:** 2.1 (stack on `workbench/schema`, the 2.1 builder's branch; unmerged)
+**Status:** done (2026-11-22) · **DoD variant:** Laravel-only · **Epic:** 2 · **Covers:** C-20, D-20, DV-7, ADR-020 · **Gate:** Pest (arch plus unit) · **After:** 2.1 (stack on `workbench/schema`, the 2.1 builder's branch; unmerged)
 
 > Created with BMAD `create-story`, from the researcher draft in `reports/story-drafts-60.md` (Workbench), with its `file:line` citations spot-checked against `apps/web` and the docs and corrected (see *Doc / code disagreements*). The BMAD workflow files are not reachable on this machine, so the structure follows `stories/2-1-schema-migrations-and-roles.md` and `templates/story-conversion-record.md`. Docs only: no portal code was written for this file.
 

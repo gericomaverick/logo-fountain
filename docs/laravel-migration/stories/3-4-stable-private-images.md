@@ -108,5 +108,5 @@ Test-port ledger rows resolved: none (DV-12 has no Next test; no ledger row exis
 inventory DV-12 · sprint-status → review · DECISIONS/RISKS/ASSUMPTIONS one line each · ledger: no row · no ADR.
 
 ### Open items
-- Q1 key = `sha256(bucket|path)[:32]`, Q2 contract file only, Q3 stacked on 3.1's branch, Q4 no ADR change: **built as recommended, awaiting owner**.
+- Q1 key = `sha256(bucket|path)[:32]`, Q2 contract file only, Q3 stacked on 3.1's branch, Q4 no ADR change: **built as recommended, accepted by owner**.
 - Payload stories 5.x–7.x must call `SignedImage::for` and assert `imageKey` in `@api`; DV-12 closes there.

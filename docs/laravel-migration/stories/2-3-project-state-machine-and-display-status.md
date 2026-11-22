@@ -1,6 +1,6 @@
 # Story 2.3: Project state machine and display status
 
-**Status:** review (2026-11-22, branch `workbench/2-3-state`, stacked on `workbench/schema` `4e323ee`) · **DoD variant:** Laravel-only · **Epic:** 2 · **Covers:** X-07, C-03 (status) · **Gate:** `@unit` · **After:** 2.1, 0.6b (done) (stack on `workbench/schema`, the 2.1 builder's branch; unmerged)
+**Status:** done (2026-11-22, branch `workbench/2-3-state`, stacked on `workbench/schema` `4e323ee`) · **DoD variant:** Laravel-only · **Epic:** 2 · **Covers:** X-07, C-03 (status) · **Gate:** `@unit` · **After:** 2.1, 0.6b (done) (stack on `workbench/schema`, the 2.1 builder's branch; unmerged)
 
 > Created with BMAD `create-story`, from the researcher draft in `reports/story-drafts-60.md` (Workbench), with its `file:line` citations spot-checked against `apps/web` and the docs and corrected (see *Doc / code disagreements*). Structure follows `stories/2-1-schema-migrations-and-roles.md` and `templates/story-conversion-record.md`. Docs only: no portal code was written for this file.
 

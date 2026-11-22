@@ -1,6 +1,6 @@
 # Story 2.5: Shared rate-limit store
 
-**Status:** review (2026-11-22, builder `2-5-limits`, branch `workbench/2-5-limits`) · **DoD variant:** Laravel-only · **Epic:** 2 · **Covers:** X-06, ADR-009, NFR-S4 · **Gate:** `@pg-race`, `@unit` · **After:** 2.1 (stack on `workbench/schema`, the 2.1 builder's branch; unmerged)
+**Status:** done (2026-11-22, builder `2-5-limits`, branch `workbench/2-5-limits`) · **DoD variant:** Laravel-only · **Epic:** 2 · **Covers:** X-06, ADR-009, NFR-S4 · **Gate:** `@pg-race`, `@unit` · **After:** 2.1 (stack on `workbench/schema`, the 2.1 builder's branch; unmerged)
 
 > Created with BMAD `create-story`, from the researcher draft in `reports/story-drafts-60.md` (Workbench), with its `file:line` citations spot-checked against `apps/web` and the docs and corrected (see *Doc / code disagreements*). The draft left bucket values open; they are filled in here from `apps/web/src/lib/auth/rate-limit.ts` and `brownfield/auth-and-security.md` §8. Structure follows `stories/2-1-schema-migrations-and-roles.md` and `templates/story-conversion-record.md`. Docs only: no portal code was written for this file.
 

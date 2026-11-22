@@ -1,6 +1,6 @@
 # Story 2.1: Schema migrations and roles
 
-**Status:** review (2026-11-21) · **DoD variant:** Laravel-only · **Epic:** 2 (first story; 2.2–2.7 depend on it) · **Covers:** X-15, A-19, O-06, ADR-012, ADR-013 (+ ADR-009 consequence, ADR-011 column) · **Gate:** `@pg-race` (Pest L3, `tests/Concurrency`) plus Pest · **After:** 1.1a (done)
+**Status:** done (2026-11-21) · **DoD variant:** Laravel-only · **Epic:** 2 (first story; 2.2–2.7 depend on it) · **Covers:** X-15, A-19, O-06, ADR-012, ADR-013 (+ ADR-009 consequence, ADR-011 column) · **Gate:** `@pg-race` (Pest L3, `tests/Concurrency`) plus Pest · **After:** 1.1a (done)
 
 > Created with BMAD `create-story`. The BMAD workflow files are not reachable on this machine (`_bmad/bmm` is a symlink to `/home/openclaw/...`, which doesn't exist here), so the structure follows the existing story files and `templates/story-conversion-record.md`. Docs only: no portal code was written for this file.
 

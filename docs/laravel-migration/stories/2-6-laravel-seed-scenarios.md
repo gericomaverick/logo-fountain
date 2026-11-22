@@ -1,6 +1,6 @@
 # Story 2.6: Laravel seed scenarios
 
-**Status:** review (2026-11-22) · **DoD variant:** Laravel-only · **Epic:** 2 · **Covers:** O-02 · **Gate:** Pest · **After:** 2.2 (stack on `workbench/2-2-models`, the 2.2 builder's branch, which already contains 2.1 `workbench/schema`; unmerged), 0.4 (Next seed, reference only)
+**Status:** done (2026-11-22) · **DoD variant:** Laravel-only · **Epic:** 2 · **Covers:** O-02 · **Gate:** Pest · **After:** 2.2 (stack on `workbench/2-2-models`, the 2.2 builder's branch, which already contains 2.1 `workbench/schema`; unmerged), 0.4 (Next seed, reference only)
 
 > Created with BMAD `create-story`, from the researcher draft in `reports/story-drafts-2-4100.md` (Workbench). Its `file:line` citations were checked against `apps/web`, `tests/parity`, the 2.2 branch and the docs, and corrected (see *Doc / code disagreements*). The structure follows `stories/2-5-shared-rate-limit-store.md` and `templates/story-conversion-record.md`. Docs only: no portal code was written for this file.
 

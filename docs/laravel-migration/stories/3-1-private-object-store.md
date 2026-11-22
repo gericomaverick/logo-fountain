@@ -132,4 +132,4 @@ Test-port ledger rows resolved: #92 done; #106: 7 of the 8 `it` blocks ported; `
 Inventory X-10/X-11 · ledger #92/#106 · sprint-status → review · DECISIONS/RISKS/ASSUMPTIONS one line each. AGENTS.md unchanged (no new pattern).
 
 ### Open items
-Decided/Open: all recommendations (OQ 1-6) built as recommended, awaiting owner. OQ 5: the epic's 0.2-fallback line (`epics.md:276`) is stale: 0.2 recorded no fallback. Follow-ups: 3.2 aligns `PreparedUpload`; 7.8a owns final-path building (`r2.test.ts:34`); 7.5a calls `remove`.
+Decided/Open: all recommendations (OQ 1-6) built as recommended; **OQ 1-5 accepted by owner**, OQ 6 awaiting owner. OQ 5: the epic's 0.2-fallback line (`epics.md:276`) is stale: 0.2 recorded no fallback. Follow-ups: 3.2 aligns `PreparedUpload`; 7.8a owns final-path building (`r2.test.ts:34`); 7.5a calls `remove`.
