@@ -19,6 +19,9 @@ final class ErrorCodes
 
     public const FORBIDDEN = 'FORBIDDEN';
 
+    /** 400: every failed sign-in (A-01, `login/route.ts:7`). */
+    public const INVALID_CREDENTIALS = 'INVALID_CREDENTIALS';
+
     public const INVALID_JSON = 'INVALID_JSON';
 
     /** 403: a mutation without canonical Origin/Referer provenance (X-01, `lib/request-origin.ts:103`). */

@@ -3,6 +3,7 @@
 use App\Http\Middleware\AuthJsonBoundary;
 use App\Http\Middleware\EnsureAuthAvailable;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\OmitSessionCookieOnFailure;
 use App\Http\Middleware\RequireCanonicalOrigin;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\TrustedClientAddress;
@@ -44,6 +45,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Story 4.1: the proxy check precedes the session lookup (`session/route.ts:6`), so it outranks StartSession.
         $middleware->prependToPriorityList(before: StartSession::class, prepend: EnsureAuthAvailable::class);
+        // Story 4.3: a failed sign-in sets no cookie, so this must wrap StartSession too.
+        $middleware->prependToPriorityList(before: StartSession::class, prepend: OmitSessionCookieOnFailure::class);
 
         $middleware->web(append: [
             HandleInertiaRequests::class,
