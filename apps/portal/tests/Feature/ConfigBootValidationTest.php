@@ -52,6 +52,44 @@ it('refuses to boot a real production process with equal DB users, without print
     expect($good->successful())->toBeTrue();
 });
 
+it('fails boot in production when pgsql_limits is not the runtime role on the runtime target', function (string $key, string $value) {
+    app()->detectEnvironment(fn () => 'production');
+    config(["database.connections.pgsql_limits.{$key}" => $value]);
+
+    bootValidation();
+})->throws(InvalidConfiguration::class, 'pgsql_limits must use the runtime role on the same host, port and database as pgsql (ADR-009)')->with([
+    'username' => ['username', 'portal_migrate'],
+    'host' => ['host', 'elsewhere'],
+    'port' => ['port', '5433'],
+    'database' => ['database', 'elsewhere'],
+]);
+
+it('refuses to boot a real production process with a mismatched pgsql_limits, and boots with the valid trio', function () {
+    // pgsql_limits reads the same DB_* variables as pgsql, so the mismatch is fed through a cached config file.
+    $cache = function (array $limits): string {
+        $config = array_replace_recursive(config()->all(), ['app' => ['env' => 'production', 'debug' => false], 'database' => ['connections' => ['pgsql_limits' => $limits]]]);
+        $path = tempnam(sys_get_temp_dir(), 'lf-config-');
+        file_put_contents($path, '<?php return '.var_export($config, true).';'.PHP_EOL);
+
+        return $path;
+    };
+    $run = fn (string $path) => Process::path(base_path())->env(['APP_ENV' => 'production', 'APP_DEBUG' => 'false', 'APP_CONFIG_CACHE' => $path])
+        ->run(['php', 'artisan', 'about', '--only=environment']);
+    $bad = $cache(['username' => 'portal_migrate', 'password' => 'not-printed-secret']);
+    $good = $cache([]);
+
+    try {
+        $refused = $run($bad);
+        $booted = $run($good);
+        expect($refused->failed())->toBeTrue()
+            ->and($refused->output().$refused->errorOutput())->toContain('pgsql_limits must use the runtime role')->not->toContain('not-printed-secret')
+            ->and($booted->successful())->toBeTrue();
+    } finally {
+        unlink($bad);
+        unlink($good);
+    }
+});
+
 it('passes the preflight outside production unless --production is given', function () {
     config(['portal.auth_client_ip_header' => null, 'portal.auth_trusted_proxy_hops' => null, 'portal.public_site_url' => null]);
 

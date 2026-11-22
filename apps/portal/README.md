@@ -3,7 +3,8 @@
 The client and admin portal, replacing `apps/web` (Next.js). Plan and status: `docs/laravel-migration/`.
 
 ```bash
-docker compose up -d      # first run: .env, composer install, key, migrations (the init service)
+docker compose up -d      # first run: .env, composer install, key, migrations + db:grants (the init service)
+                          # roles come from docker/postgres/01-roles.sh on a fresh volume only: after it changes, docker compose down -v
 open http://localhost:8080          # app (and /up for the health check)
 bin/test                  # Pint, Larastan level 9, Pest
 bin/artisan security:check          # no private credential can reach the browser bundle (O-04)
