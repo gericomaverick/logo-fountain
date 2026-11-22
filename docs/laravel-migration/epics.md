@@ -112,7 +112,7 @@ As the team, I want minimal Next seams that are inert unless `PARITY_MODE=1`, so
 - Inventory row O-09 lists each seam and file, with a DECISIONS entry approving them.
 
 ### Story 0.4: Seed scenarios (Next)
-As the team, I want `npm run parity:seed -- <scenario>` for the 13 scenarios, defined once in `tests/parity/fixtures/scenarios/*.json` (reused by 2.6), so that tests start from known states.
+As the team, I want `npm run parity:seed -- <scenario>` for the 18 scenarios, defined once in `tests/parity/fixtures/scenarios/*.json` (reused by 2.6), so that tests start from known states.
 **Covers:** O-02 · **Gate:** `@unit` · **After:** 0.2, 0.3
 - **Given** any of: `PARITY_MODE` unset; a DB host other than `127.0.0.1`, `localhost` or `postgres`; a DB name other than `lf_parity`; or no `parity_marker` table, **then** the seed refuses (each case unit-tested).
 - **Given** `two-tenants`, **then** clients A and B exist with known credentials and distinct projects.
