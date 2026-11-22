@@ -74,7 +74,89 @@ final class UploadCorpus
             return self::DIR.'/'.$case['file'];
         }
 
-        return self::$built[$case['file']] ??= self::buildGeneratedImage($case);
+        return self::$built[$case['file']] ??= str_starts_with($case['file'], '.generated/image-')
+            ? self::buildGeneratedImage($case)
+            : self::buildGeneratedZip($case);
+    }
+
+    /**
+     * The generated ZIP cases (generate.mjs zipOfSize / zipTotalOverLimit). `zip-95000000` is built in full and checked
+     * against the manifest sha256. The three over-limit size cases are sparse files of the manifest size (rejected from
+     * the declared size before any read). The bomb is 6 entries x 100 MiB of the generator's block, deflated by zlib
+     * (not byte-identical to Next's fixed-Huffman stream; same intent: ratio < 100 per entry, total over 500 MiB).
+     */
+    private static function buildGeneratedZip(array $case): string
+    {
+        $path = tempnam(sys_get_temp_dir(), 'corpus-');
+        register_shutdown_function(static fn () => @unlink($path));
+        $f = fopen($path, 'wb');
+        $zeros = str_repeat("\0", 1 << 20);
+        $header = static fn (string $name, int $crc, int $csize, int $size, int $method): string => pack('VvvvvvVVVvv', 0x04034B50, 20, 0, $method, 0, 0x21, $crc, $csize, $size, strlen($name), 0).$name;
+        $central = static fn (string $name, int $crc, int $csize, int $size, int $method, int $offset): string => pack('VvvvvvvVVVvvvvvVV', 0x02014B50, 0x031E, 20, 0, $method, 0, 0x21, $crc, $csize, $size, strlen($name), 0, 0, 0, 0, (0100644 << 16) & 0xFFFFFFFF, $offset).$name;
+        $eocd = static fn (int $n, int $cdSize, int $cdOffset): string => pack('VvvvvVVv', 0x06054B50, 0, 0, $n, $n, $cdSize, $cdOffset, 0);
+
+        if ($case['id'] === 'zip-total-expanded-over-500mib') {
+            $block = '';
+            $r = 11;
+            for ($i = 0; $i < 160; $i++) {
+                $r = ($r * 1103515245 + 12345) & 0x7FFFFFFF;
+                $block .= chr(1 + ($r >> 8) % 255);
+            }
+            $block .= str_repeat("\0", 25_000);
+            $size = 100 * 1024 * 1024;
+            $deflate = deflate_init(ZLIB_ENCODING_RAW, ['level' => 9]);
+            $crc = hash_init('crc32b');
+            $payload = '';
+            for ($o = 0; $o < $size; $o += strlen($block)) {
+                $piece = substr($block, 0, min(strlen($block), $size - $o));
+                hash_update($crc, $piece);
+                $payload .= deflate_add($deflate, $piece, ZLIB_NO_FLUSH);
+            }
+            $payload .= deflate_add($deflate, '', ZLIB_FINISH);
+            $crcInt = (int) hexdec(hash_final($crc));
+            $offset = 0;
+            $cd = '';
+            for ($i = 1; $i <= 6; $i++) {
+                $name = "part-{$i}.bin";
+                $h = $header($name, $crcInt, strlen($payload), $size, 8);
+                fwrite($f, $h.$payload);
+                $cd .= $central($name, $crcInt, strlen($payload), $size, 8, $offset);
+                $offset += strlen($h) + strlen($payload);
+            }
+            fwrite($f, $cd.$eocd(6, strlen($cd), $offset));
+            fclose($f);
+
+            return $path;
+        }
+
+        $name = 'artwork.bin';
+        $dataLength = $case['size'] - (30 + 46 + 22 + 2 * strlen($name));
+        $crc = hash_init('crc32b');
+        for ($left = $dataLength; $left > 0; $left -= strlen($zeros)) {
+            hash_update($crc, $left >= strlen($zeros) ? $zeros : substr($zeros, 0, $left));
+        }
+        $crcInt = (int) hexdec(hash_final($crc));
+        $h = $header($name, $crcInt, $dataLength, $dataLength, 0);
+        $cd = $central($name, $crcInt, $dataLength, $dataLength, 0, 0);
+        fwrite($f, $h);
+        if ($case['code'] === null) {
+            for ($left = $dataLength; $left > 0; $left -= strlen($zeros)) {
+                fwrite($f, $left >= strlen($zeros) ? $zeros : substr($zeros, 0, $left));
+            }
+        } else {
+            ftruncate($f, strlen($h) + $dataLength);
+            fseek($f, 0, SEEK_END);
+        }
+        fwrite($f, $cd.$eocd(1, strlen($cd), strlen($h) + $dataLength));
+        fclose($f);
+        if (filesize($path) !== $case['size']) {
+            throw new RuntimeException("Generated corpus case {$case['id']} is not {$case['size']} bytes.");
+        }
+        if ($case['code'] === null && hash_file('sha256', $path) !== $case['sha256']) {
+            throw new RuntimeException("Generated corpus case {$case['id']} does not match the manifest sha256.");
+        }
+
+        return $path;
     }
 
     /** generate.mjs pngPadded(): the committed 8×8 RGBA PNG with a tEXt chunk of 'Comment\0' + 'x' padding before IEND. */

@@ -84,31 +84,37 @@ X-12 (ZIP), DV-13: Laravel/Tests columns; X-12 stays open for 7.8a. Ledger #108 
 `apps/web/src/lib/zip-validation.ts`, `upload-validation.ts:186-193`, `zip-validation.test.ts`, `upload-validation.test.ts:134-163`, `golden-upload-corpus.test.ts`, `manifest.json`; `brownfield/storage-and-uploads.md` §6–7; DV-13.
 
 ### Behaviour notes
-_(fill)_
+Check order of `validateZip` is kept: first failing rule decides MALFORMED_ZIP vs ZIP_LIMIT_EXCEEDED. Size is judged from the declared size before any read (0 -> FILE_REQUIRED, >95,000,000 -> FILE_TOO_LARGE, DV-13), then extension + client MIME, then `PK\x03\x04`, then structure. Names: cp437 unless flag 0x800, NFKC-canonical, no control/`\`/`:`, no reserved/trailing dot-space components, case-insensitive collisions. Payloads are inflated in 16 KiB chunks with running size, ratio and 500 MiB total checks, plus CRC.
 
 ### Laravel implementation
-_(files created or changed, and where each behaviour lives)_
+`app/Support/Uploads/FinalZipValidator.php` (entry, mirrors `prepareFinalZip`), `Zip/ZipStructure.php` (port of `validateZip`), `Zip/ZipFile.php` (ranged fseek/fread; nothing whole in memory). Inflation via `inflate_init/inflate_add` (raw), CRC via `hash('crc32b')`. No ZipArchive (arch test).
 
 ### Deviations from Next.js
 | Behaviour | Next.js | Laravel | Why | Decision ref |
 |---|---|---|---|---|
+| Final ZIP cap | 100 MiB | 95,000,000 bytes, message "Final ZIP exceeds the 95 MB limit" | Cloudflare cap | DV-13 |
+| Out-of-range read | RangeError | MALFORMED_ZIP | no corpus case; safe default | none |
+| Corpus bomb bytes | fixed-Huffman stream | zlib-deflated equivalent, built in PHP | no node in the test stack | built as recommended |
 
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|
+| Unit + corpus | `tests/Unit/Support/Uploads/FinalZipCorpusTest.php` (129 zip cases, +1 count) | X-12 |
+| Unit | `FinalZipValidatorTest.php`, `FinalZipStreamingTest.php` (bounded memory) | X-12 |
+| Arch | `tests/Arch/ZipValidatorTest.php` | X-12 |
 
-Test-port ledger rows resolved: _(fill)_
+Test-port ledger rows resolved: #108 (ZIP half), #110.
 
 ### Test evidence
-_(commands, with passed / failed / skipped counts)_
+`bin/test`: Pint, Larastan, Pest 1590 passed / 4409 assertions, 0 failed, 0 skipped. Corpus file: 130 passed.
 
-**Not run, and why:** _(fill)_
+**Not run, and why:** HTTP upload path (7.5a); generated 95,000,001 / 100 MiB cases are sparse files (rejected on declared size), not byte-identical to Next's.
 
 ### Gotchas
-_(mark the ones promoted to `apps/portal/AGENTS.md`)_
+`inflate_add` warns on corrupt data (silenced with a temporary error handler). cp437 table needs the final U+00A0, not a plain space. Not promoted to AGENTS.md.
 
 ### Docs updated
-_(inventory · sprint-status · ledger · handoff · ADRs · DECISIONS/RISKS/ASSUMPTIONS)_
+Inventory X-12, ledger #108/#110, sprint-status, DECISIONS/RISKS/ASSUMPTIONS.
 
 ### Open items
-_(follow-ups with an owner and a story)_
+7.5a: php.ini `upload_max_filesize`/`post_max_size`; X-12 stays open for HTTP wiring.
