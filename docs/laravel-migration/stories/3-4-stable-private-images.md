@@ -1,6 +1,6 @@
 # Story 3.4: Stable private images
 
-**Status:** review (2026-11-22, created from `origin/main` df9e574) · **DoD variant:** Laravel-only · **Epic:** 3 · **Covers:** DV-12, ADR-021 · **Gate:** `@unit` · **After:** 1.8c (done, on `main`), 3.1 (**not on `main` yet**) · **Stacks on:** `main` once 3.1 is merged; until then on `workbench/epic-3-stories`' 3.1 branch.
+**Status:** done (2026-11-22, merged to main; created from `origin/main` df9e574) · **DoD variant:** Laravel-only · **Epic:** 3 · **Covers:** DV-12, ADR-021 · **Gate:** `@unit` · **After:** 1.8c (done, on `main`), 3.1 (**not on `main` yet**) · **Stacks on:** `main` once 3.1 is merged; until then on `workbench/epic-3-stories`' 3.1 branch.
 
 > Created with BMAD `create-story` (docs only). Sources: ADR-021, `epics.md:288-292`, inventory DV-12 (`01-feature-inventory.md:182`), `stories/1-8c-…md:44, 122`, the code on `main`.
 

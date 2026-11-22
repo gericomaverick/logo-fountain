@@ -1,6 +1,6 @@
 # Story 3.3: ZIP validator
 
-**Status:** ready-for-dev (2026-11-22, created from `origin/main` df9e574) · **DoD variant:** Laravel-only · **Epic:** 3 · **Covers:** X-12 (ZIP), DV-13 · **Gate:** `@uploads&@unit` · **After:** 0.6a (done), **3.2** · **Stacks on:** 3.2 (same branch, one builder, serial: 3.2 then 3.3). The four shared files are created by 3.2; this story reuses them. This story's own files: `app/Support/Uploads/FinalZipValidator.php`, `app/Support/Uploads/Zip/*`, `tests/Unit/Support/Uploads/FinalZip*Test.php`, `tests/Arch/ZipValidatorTest.php`.
+**Status:** done (2026-11-22, merged to main; created from `origin/main` df9e574) · **DoD variant:** Laravel-only · **Epic:** 3 · **Covers:** X-12 (ZIP), DV-13 · **Gate:** `@uploads&@unit` · **After:** 0.6a (done), **3.2** · **Stacks on:** 3.2 (same branch, one builder, serial: 3.2 then 3.3). The four shared files are created by 3.2; this story reuses them. This story's own files: `app/Support/Uploads/FinalZipValidator.php`, `app/Support/Uploads/Zip/*`, `tests/Unit/Support/Uploads/FinalZip*Test.php`, `tests/Arch/ZipValidatorTest.php`.
 
 > Created with BMAD `create-story` (docs only). Sources: `brownfield/storage-and-uploads.md` §6–7, `epics.md:284-286`, inventory X-12 (`01-feature-inventory.md:143`) and DV-13 (`:183`), ledger #108/#110, the golden corpus (`manifest.json`, 129 ZIP cases), Next files below; `file:line` checked on 2026-11-22.
 

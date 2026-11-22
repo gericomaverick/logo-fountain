@@ -1,6 +1,6 @@
 # Story 3.1: Private object store
 
-**Status:** ready-for-dev (2026-11-22, created from `origin/main` df9e574) · **DoD variant:** Laravel-only · **Epic:** 3 · **Covers:** X-10, X-11, ADR-016 · **Gate:** `@storage&@unit`, `@pg-race` · **After:** 1.1a, 0.2 (both done) · **Stacks on:** `main`; touches `composer.json`/`composer.lock`, `config/portal.php`, `.env.example`, new files under `app/Support/Storage/`. 3.2, 3.3 and 3.4 don't touch these (3.4 *uses* this story's `sign()`).
+**Status:** done (2026-11-22, merged to main; created from `origin/main` df9e574) · **DoD variant:** Laravel-only · **Epic:** 3 · **Covers:** X-10, X-11, ADR-016 · **Gate:** `@storage&@unit`, `@pg-race` · **After:** 1.1a, 0.2 (both done) · **Stacks on:** `main`; touches `composer.json`/`composer.lock`, `config/portal.php`, `.env.example`, new files under `app/Support/Storage/`. 3.2, 3.3 and 3.4 don't touch these (3.4 *uses* this story's `sign()`).
 
 > Created with BMAD `create-story` (docs only; no portal code written). Sources: `brownfield/storage-and-uploads.md` §1–4, ADR-016, `epics.md:273-278`, inventory X-10/X-11 (`01-feature-inventory.md:141-142`), ledger #92 and #106, and the Next files below, each `file:line` checked against `apps/web` on 2026-11-22.
 

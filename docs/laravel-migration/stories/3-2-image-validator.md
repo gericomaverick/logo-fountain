@@ -1,6 +1,6 @@
 # Story 3.2: Image validator
 
-**Status:** ready-for-dev (2026-11-22, created from `origin/main` df9e574) · **DoD variant:** Laravel-only · **Epic:** 3 · **Covers:** X-12 (images) · **Gate:** `@uploads&@unit` · **After:** 0.6a (done) · **Stacks on:** `main`. **Runs SERIAL with 3.3: one builder, one branch, 3.2 first then 3.3.** 3.2 creates the four shared files below once; 3.3 reuses them.
+**Status:** done (2026-11-22, merged to main; created from `origin/main` df9e574) · **DoD variant:** Laravel-only · **Epic:** 3 · **Covers:** X-12 (images) · **Gate:** `@uploads&@unit` · **After:** 0.6a (done) · **Stacks on:** `main`. **Runs SERIAL with 3.3: one builder, one branch, 3.2 first then 3.3.** 3.2 creates the four shared files below once; 3.3 reuses them.
 
 > Created with BMAD `create-story` (docs only). Sources: `brownfield/storage-and-uploads.md` §5 and §7, `epics.md:280-282`, inventory X-12 (`01-feature-inventory.md:143`), ledger #108, the golden corpus (`tests/parity/fixtures/uploads/manifest.json`, 267 cases), Next files below, all `file:line` checked on 2026-11-22.
 
