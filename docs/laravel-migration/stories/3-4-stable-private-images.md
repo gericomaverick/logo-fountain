@@ -1,6 +1,6 @@
 # Story 3.4: Stable private images
 
-**Status:** ready-for-dev (2026-11-22, created from `origin/main` df9e574) · **DoD variant:** Laravel-only · **Epic:** 3 · **Covers:** DV-12, ADR-021 · **Gate:** `@unit` · **After:** 1.8c (done, on `main`), 3.1 (**not on `main` yet**) · **Stacks on:** `main` once 3.1 is merged; until then on `workbench/epic-3-stories`' 3.1 branch.
+**Status:** review (2026-11-22, created from `origin/main` df9e574) · **DoD variant:** Laravel-only · **Epic:** 3 · **Covers:** DV-12, ADR-021 · **Gate:** `@unit` · **After:** 1.8c (done, on `main`), 3.1 (**not on `main` yet**) · **Stacks on:** `main` once 3.1 is merged; until then on `workbench/epic-3-stories`' 3.1 branch.
 
 > Created with BMAD `create-story` (docs only). Sources: ADR-021, `epics.md:288-292`, inventory DV-12 (`01-feature-inventory.md:182`), `stories/1-8c-…md:44, 122`, the code on `main`.
 
@@ -78,31 +78,35 @@ DV-12: Laravel/Tests columns; row stays open until payload stories use the helpe
 `apps/web/src/lib/project-snapshot.ts:205-220`, `lib/storage/r2.ts:62-68,131`; portal `resources/js/lib/media.ts`, `PrivateImage.tsx`, `tests/js/media.test.ts`; ADR-021.
 
 ### Behaviour notes
-_(fill)_
+Next re-signs every poll (new `X-Amz-Date`/signature), so the URL changes and the image flickers. Object paths are random and immutable, so a value from `bucket|path` is stable exactly while the bytes are. `expiresAt` is parsed from the URL, never `now()+ttl`, because the SDK signs with its own truncated clock.
 
 ### Laravel implementation
-_(files created or changed, and where each behaviour lives)_
+`apps/portal/app/Support/Storage/SignedImage.php` (`for()`, `key()`): key = first 32 hex of `sha256(bucket|path)`; URL from `PrivateStorage::sign(bucket, path, 3600)`; any `Throwable` (also unconfigured storage) → `null` with a log of the exception class only. Tests: `tests/Unit/Support/Storage/SignedImageTest.php`, `tests/js/signed-image-contract.test.ts`.
 
 ### Deviations from Next.js
 | Behaviour | Next.js | Laravel | Why | Decision ref |
 |---|---|---|---|---|
+| `imageKey`, `expiresAt` | none | added fields | DV-12 | ADR-021 |
 
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|
+| L1 Pest | `SignedImageTest.php` (7 cases) | DV-12 |
+| L1 node:test | `signed-image-contract.test.ts` (3 cases) | DV-12 |
 
-Test-port ledger rows resolved: _(fill)_
+Test-port ledger rows resolved: none (DV-12 has no Next test; no ledger row exists).
 
 ### Test evidence
-_(commands, with passed / failed / skipped counts)_
+`bin/test` (Pint, Larastan 9, Pest): 1369 passed / 0 failed. `bin/ui-test`: `npm run test:unit` in the vite container: 220 tests, 219 pass, 1 fail (design-lint "portal source is clean": 12 raw-colour/font-size findings in `resources/views/mail/layouts/base.blade.php`, not from this story; `bin/ui-test` stops there). The 3 new cases and media.test.ts pass.
 
-**Not run, and why:** _(fill)_
+**Not run, and why:** no L4/L5 parity, no browser test (no payload or route yet). Critic round: `tests/fixtures/signed-image.json` is now captured from a real `SignedImage::for()` (real `sign()`, MockHandler client); the Pest test asserts the fixture has the same keys, query-parameter names, path and imageKey as a live call, and the vitest asserts `signedUrlExpiry(fixture.url) === fixture.expiresAt`. The two-URL `stableImage` cases still use hand-shaped URLs (a re-sign with a later date cannot be captured offline without moving the SDK clock). Also added: an `expiresAt` test that fails on `now()+ttl`, and an exact log-context assertion. The design-lint failure above is pre-existing on main (mail layout from 2fe4258), not this story. This round ran only SignedImageTest (9 pass) and signed-image-contract (4 pass) on stack lf-wb13 (the one this copy's .env names), not the full suite.
 
 ### Gotchas
-_(mark the ones promoted to `apps/portal/AGENTS.md`)_
+`FileAsset::forceFill` on an unsaved model avoids any DB in unit tests. None promoted.
 
 ### Docs updated
-_(inventory · sprint-status · ledger · handoff · ADRs · DECISIONS/RISKS/ASSUMPTIONS)_
+inventory DV-12 · sprint-status → review · DECISIONS/RISKS/ASSUMPTIONS one line each · ledger: no row · no ADR.
 
 ### Open items
-_(follow-ups with an owner and a story)_
+- Q1 key = `sha256(bucket|path)[:32]`, Q2 contract file only, Q3 stacked on 3.1's branch, Q4 no ADR change: **built as recommended, awaiting owner**.
+- Payload stories 5.x–7.x must call `SignedImage::for` and assert `imageKey` in `@api`; DV-12 closes there.

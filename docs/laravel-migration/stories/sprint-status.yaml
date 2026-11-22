@@ -64,7 +64,7 @@ development_status:
   3-1-private-object-store: review
   3-2-image-validator: review
   3-3-zip-validator: review
-  3-4-stable-private-images: ready-for-dev
+  3-4-stable-private-images: review
   epic-3-retrospective: optional
 
   epic-4: backlog
