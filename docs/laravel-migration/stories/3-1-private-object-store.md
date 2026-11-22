@@ -24,7 +24,7 @@ From `epics.md:275-278` and ADR-016, expanded.
 ## Inventory scope
 - **X-10** (`01-feature-inventory.md:141`), **X-11** (`:142`): Laravel/Tests columns filled; both stay open until the callers (5.x/6.x/7.x, X-13) use the store and the `@storage` parity runs. Not in scope: validators (3.2, 3.3), the upload routes and request-key replay (7.5a, 7.8a, X-13), signed-URL placement in payloads (3.4 and Epic 6/7).
 - ADR-016: implemented as written (record consequences in the Conversion record, not in the ADR).
-- Ledger **#106** `r2.test.ts` (10 tests, "Pest unit (S3 mock) + L3 SeaweedFS", `test-port-ledger.md:114`) and **#92** `final-deliverable-filename.test.ts` (2, `:100`).
+- Ledger **#106** `r2.test.ts` (10 tests; the plan below maps cases 1–7 plus 8 = 8 cases, so the Conversion record must reconcile which of the 10 are ported or dropped; also add the `$` anchor Next has at `r2.ts:108` to the md5 check `^[a-f0-9]{32}$`, "Pest unit (S3 mock) + L3 SeaweedFS", `test-port-ledger.md:114`) and **#92** `final-deliverable-filename.test.ts` (2, `:100`).
 
 ## Next.js source read
 - `apps/web/src/lib/storage/r2.ts` (138 lines): namespaces `:11-17`; key rules `:19-25`; expiry `:27-30`; disposition `:32-40`; class + upload `:42-60`; sign `:62-68`; health `:70-81`; remove `:83-98`; config `:101-121`; wrappers `:123-138`.
