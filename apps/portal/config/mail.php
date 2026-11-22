@@ -55,7 +55,8 @@ return [
 
         'postmark' => [
             'transport' => 'postmark',
-            // 'message_stream_id' => env('POSTMARK_MESSAGE_STREAM_ID'),
+            // Story 2.7 (ADR-018): the lifecycle stream, as Next's `MessageStream: "outbound"`.
+            'message_stream_id' => 'outbound',
             // 'client' => [
             //     'timeout' => 5,
             // ],
@@ -111,7 +112,8 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
+        // POSTMARK_FROM is Next's name for it (story 2.7); MAIL_FROM_ADDRESS is Laravel's.
+        'address' => env('POSTMARK_FROM', env('MAIL_FROM_ADDRESS', 'hello@example.com')),
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
