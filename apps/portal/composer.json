@@ -12,7 +12,9 @@
         "php": "^8.5",
         "inertiajs/inertia-laravel": "^3.5.2",
         "laravel/framework": "^13.40",
-        "laravel/tinker": "^3.0"
+        "laravel/tinker": "^3.0",
+        "symfony/http-client": "^8.1",
+        "symfony/postmark-mailer": "^8.1"
     },
     "require-dev": {
         "brianium/paratest": "^7.27",

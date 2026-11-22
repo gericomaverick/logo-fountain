@@ -57,7 +57,7 @@ development_status:
   2-4-transactions-locks-versioning-audit: review
   2-5-shared-rate-limit-store: review
   2-6-laravel-seed-scenarios: review
-  2-7-lifecycle-mail-pipeline: backlog
+  2-7-lifecycle-mail-pipeline: review
   epic-2-retrospective: optional
 
   epic-3: backlog

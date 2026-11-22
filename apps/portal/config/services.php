@@ -14,8 +14,9 @@ return [
     |
     */
 
+    // Story 2.7 (ADR-018): Next's env names are kept so the production env doesn't change on cutover.
     'postmark' => [
-        'key' => env('POSTMARK_API_KEY'),
+        'token' => env('POSTMARK_SERVER_TOKEN'),
     ],
 
     // O-07 (story 1.3). Used from Epic 5 (ADR-014).

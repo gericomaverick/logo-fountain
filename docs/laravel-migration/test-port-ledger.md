@@ -105,7 +105,7 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 97 | `src/lib/project-display-name.test.ts` | 5 | C-01,K-11 | Pest unit + keep TS | | Not started |
 | 98 | `src/lib/project-hub.test.ts` | 12 | C-03,C-04 | Keep TS (UI) | | Not started |
 | 99 | `src/lib/project-journey.test.ts` | 10 | C-03 | Keep TS (UI) | | Not started |
-| 100 | `src/lib/project-lifecycle-email.test.ts` | 10 | N-04…N-12 | Pest feature (Mail::fake + marker dedupe) | | Not started |
+| 100 | `src/lib/project-lifecycle-email.test.ts` | 10 | N-04…N-12 | Pest feature (Mail::fake + marker dedupe) | `tests/Feature/Mail/*` (29 tests; queue faked for dedupe, real `jobs` for after-commit) | Built (2.7) |
 | 101 | `src/lib/project-overview.test.ts` | 9 | C-03 | Keep TS (UI) | | Not started |
 | 102 | `src/lib/project-snapshot.test.ts` | 3 | C-02,C-03 | Pest feature + L4 snapshot contract | | Not started |
 | 103 | `src/lib/project-state-machine.test.ts` | 6 | X-07 | Pest unit + keep TS (shared fixture) | `tests/Unit/Domain/ProjectStateFixtureTest.php` (all `state-machine.json` cases), `tests/Unit/Domain/ProjectStateEdgeTest.php` (X-07, 2.3); TS half: portal `resources/js/lib/status.ts` (1.8b fixture) | **Ported** (story 2.3) |

@@ -14,3 +14,5 @@ pest()->use(TruncatesDatabaseAsOwner::class)->in('Concurrency');
 // (ProfileFactory::admin() sets the flag as the owner), so they use the truncation harness.
 pest()->extend(TestCase::class)->use(RefreshDatabaseAsOwner::class)->in('Unit/Models');
 pest()->use(TruncatesDatabaseAsOwner::class)->in('Feature/Models', 'Feature/Policies');
+// Story 2.7: sendOnce runs inside Db::serializable() and the queue tests need real commits: truncation harness.
+pest()->use(TruncatesDatabaseAsOwner::class)->in('Feature/Mail');
