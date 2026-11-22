@@ -37,3 +37,8 @@ it('percent-encodes the RFC 5987 extras and NFC-normalises', function () {
 it('trims Unicode whitespace like JS trim', function () {
     expect(DownloadDisposition::for("\u{00A0} x.zip \u{FEFF}"))->toContain('filename="x.zip"');
 });
+
+it('matches encodeURIComponent for ! and ~, and replaces astral characters per UTF-16 unit', function () {
+    expect(DownloadDisposition::for('a!~.zip'))->toContain("filename*=UTF-8''a!~.zip");
+    expect(DownloadDisposition::for("a\u{1F600}.zip"))->toContain('filename="a__.zip"')->toContain('%F0%9F%98%80');
+});

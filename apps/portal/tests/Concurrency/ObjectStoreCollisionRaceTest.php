@@ -28,4 +28,4 @@ it('8 concurrent creates of one key: exactly one wins, seven collide, stored byt
     $body = file_get_contents($s->sign('concepts', $key, 60));
     expect($body)->toBe("body-{$winners[0]}");
     $s->remove([['bucket' => 'concepts', 'path' => $key]]);
-});
+})->group('pg-race', 'storage');

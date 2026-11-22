@@ -24,8 +24,9 @@ final class DownloadDisposition
             $cleaned = self::DEFAULT_NAME;
         }
 
-        $ascii = (string) preg_replace('/[^\x20-\x7e]/u', '_', $cleaned);
-        $encoded = strtr(rawurlencode($cleaned), ["'" => '%27', '(' => '%28', ')' => '%29', '*' => '%2A']);
+        // JS replaces per UTF-16 unit, so an astral character becomes two underscores.
+        $ascii = (string) preg_replace('/[^\x20-\x7e]/u', '_', (string) preg_replace('/[\x{10000}-\x{10FFFF}]/u', '__', $cleaned));
+        $encoded = strtr(rawurlencode($cleaned), ['%21' => '!', "'" => '%27', '(' => '%28', ')' => '%29', '*' => '%2A']);
 
         return "attachment; filename=\"{$ascii}\"; filename*=UTF-8''{$encoded}";
     }

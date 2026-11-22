@@ -19,6 +19,13 @@ function psMockStorage(MockHandler $mock): PrivateStorage
     return new PrivateStorage(new S3Client(T::options($mock)), 'concepts-bkt', 'finals-bkt');
 }
 
+function psConfigMode(S3Client $client, string $key): mixed
+{
+    $v = $client->getConfig($key);
+
+    return is_object($v) && property_exists($v, 'mode') ? $v->mode : $v;
+}
+
 function psTmpFile(string $body): string
 {
     $p = tempnam(sys_get_temp_dir(), 'ps');
@@ -114,8 +121,17 @@ it('builds the client from config with the required options', function () {
     $client = (fn () => $this->client)->call($storage);
     expect((string) $client->getEndpoint())->toBe('https://'.str_repeat('a', 32).'.eu.r2.cloudflarestorage.com')
         ->and($client->getRegion())->toBe('auto')
-        ->and($client->getConfig('request_checksum_calculation')->mode ?? $client->getConfig('request_checksum_calculation'))->not->toBeNull();
+        ->and($client->getConfig('use_path_style_endpoint'))->toBeFalse()
+        ->and(psConfigMode($client, 'request_checksum_calculation'))->toBe('when_required')
+        ->and(psConfigMode($client, 'response_checksum_validation'))->toBe('when_required');
 });
+
+it('refuses an endpoint override in production', function () {
+    config(['portal.r2' => ['account_id' => str_repeat('a', 32), 'access_key_id' => 'k', 'secret_access_key' => 's',
+        'concepts_bucket' => 'cbkt', 'final_deliverables_bucket' => 'fbkt', 'jurisdiction' => '', 'endpoint' => 'http://seaweedfs:8333']]);
+    $this->app['env'] = 'production';
+    PrivateStorage::fromConfig();
+})->throws(InvalidConfiguration::class, 'R2_ENDPOINT is not allowed in production');
 
 it('uses the endpoint override with path style', function () {
     config(['portal.r2' => ['account_id' => str_repeat('a', 32), 'access_key_id' => 'k', 'secret_access_key' => 's',
@@ -127,6 +143,7 @@ it('uses the endpoint override with path style', function () {
 it('validates configuration', function (array $override, string $message) {
     config(['portal.r2' => $override + ['account_id' => str_repeat('a', 32), 'access_key_id' => 'k', 'secret_access_key' => 's',
         'concepts_bucket' => 'cbkt', 'final_deliverables_bucket' => 'fbkt', 'jurisdiction' => '', 'endpoint' => null]]);
+    $this->expectExceptionMessage($message);
     PrivateStorage::fromConfig();
 })->with([
     'missing key' => [['access_key_id' => ''], 'Missing private storage configuration: R2_ACCESS_KEY_ID'],
@@ -141,5 +158,16 @@ it('retries a server error twice (3 attempts) and then gives up', function () {
     $err = fn () => psS3Error('InternalError', 500);
     $mock = new MockHandler([$err, $err, $err, new Result([])]);
     $out = psMockStorage($mock)->remove([['bucket' => 'concepts', 'path' => 'a']]);
+    expect($out['deleted'])->toBe(0)->and($mock->count())->toBe(1);
+});
+
+it('the client built from config retries twice (3 attempts)', function () {
+    config(['portal.r2' => ['account_id' => str_repeat('a', 32), 'access_key_id' => 'k', 'secret_access_key' => 's',
+        'concepts_bucket' => 'cbkt', 'final_deliverables_bucket' => 'fbkt', 'jurisdiction' => '', 'endpoint' => null]]);
+    $storage = PrivateStorage::fromConfig();
+    $err = fn () => psS3Error('InternalError', 500);
+    $mock = new MockHandler([$err, $err, $err, new Result([])]);
+    (fn () => $this->client)->call($storage)->getHandlerList()->setHandler($mock);
+    $out = $storage->remove([['bucket' => 'concepts', 'path' => 'a']]);
     expect($out['deleted'])->toBe(0)->and($mock->count())->toBe(1);
 });

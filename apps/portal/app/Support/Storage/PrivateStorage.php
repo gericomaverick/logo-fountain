@@ -57,6 +57,10 @@ final class PrivateStorage
             throw new InvalidConfiguration('Invalid R2 jurisdiction');
         }
         $override = is_string($c['endpoint'] ?? null) ? trim($c['endpoint']) : '';
+        if ($override !== '' && app()->isProduction()) {
+            // Next honours its endpoint seam only under PARITY_MODE, which is refused in production.
+            throw new InvalidConfiguration('R2_ENDPOINT is not allowed in production');
+        }
         $endpoint = $override !== '' ? $override : 'https://'.$account.($jurisdiction !== '' ? ".{$jurisdiction}" : '').'.r2.cloudflarestorage.com';
 
         $client = new S3Client([
