@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\Db;
 use App\Support\RateLimits;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\RateLimitBuckets as Buckets;
@@ -43,6 +44,20 @@ function expectRefusedInside(string $connection, Closure $call, string $levels):
 
 it('throws and writes nothing inside a business transaction on pgsql', function (Closure $call) {
     expectRefusedInside('pgsql', $call, 'pgsql level 1, pgsql_limits level 0');
+})->with('rate limit calls');
+
+it('throws and writes nothing inside Db::serializable()', function (Closure $call) {
+    try {
+        Db::serializable($call, new RuntimeException('unexpected conflict'));
+    } catch (LogicException $e) {
+        expect($e->getMessage())->toBe('RateLimits must be called outside every transaction (pgsql level 1, pgsql_limits level 0): call it before the business transaction or Locks (ADR-009).')
+            ->and(DB::connection('pgsql')->transactionLevel())->toBe(0)
+            ->and(Buckets::count())->toBe(1)
+            ->and(Buckets::hits(RG_FAILURES))->toBe(2);
+
+        return;
+    }
+    throw new RuntimeException('the call was not refused');
 })->with('rate limit calls');
 
 it('throws and writes nothing inside a transaction on pgsql_limits', function (Closure $call) {

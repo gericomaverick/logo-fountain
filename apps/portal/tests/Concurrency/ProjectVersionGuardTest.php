@@ -1,6 +1,7 @@
 <?php
 
 use App\Exceptions\ApiException;
+use App\Models\Project;
 use App\Support\DatabaseRoles;
 use App\Support\Db;
 use Illuminate\Support\Facades\DB as Database;
@@ -92,4 +93,20 @@ it('leaves the version alone on any ordinary update (no trigger, no default bump
 
     expect(guardedRow($projectId)['version'])->toBe(0)
         ->and(Database::connection(DatabaseRoles::MIGRATE)->scalar("SELECT count(*) FROM pg_trigger WHERE tgrelid = 'projects'::regclass AND NOT tgisinternal"))->toBe(0);
+})->group('pg-race');
+
+it('keeps version out of mass assignment and leaves it unchanged on an Eloquent save()', function () {
+    $projectId = guardedProject();
+    $project = Project::query()->findOrFail($projectId);
+
+    expect($project->isFillable('version'))->toBeFalse();
+
+    $project->fill(['version' => 41, 'package_code' => 'premium']);
+    expect($project->version)->toBe(0);
+
+    $project->status = 'on_hold';
+    $project->save();
+
+    expect(guardedRow($projectId)['version'])->toBe(0)
+        ->and(guardedRow($projectId)['status'])->toBe('on_hold');
 })->group('pg-race');
