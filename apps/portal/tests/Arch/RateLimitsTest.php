@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\File;
 it('names auth_rate_limits and the pgsql_limits connection only where allowed', function () {
     $rules = [
         '/auth_rate_limits/' => ['Support/RateLimits.php'],
-        '/pgsql_limits|DatabaseRoles::LIMITS/' => ['Support/RateLimits.php', 'Support/DatabaseRoles.php'],
+        '/pgsql_limits|DatabaseRoles::LIMITS/' => ['Support/RateLimits.php', 'Support/DatabaseRoles.php', 'Models/AuthRateLimit.php'], // the 2.2 model only pins its connection
     ];
     $violations = [];
     foreach (File::allFiles(app_path()) as $file) {

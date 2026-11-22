@@ -1,6 +1,6 @@
 <?php
 
-use App\Support\Db;
+use App\Support\Db as BusinessTx;
 use App\Support\RateLimits;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\RateLimitBuckets as Buckets;
@@ -48,7 +48,7 @@ it('throws and writes nothing inside a business transaction on pgsql', function 
 
 it('throws and writes nothing inside Db::serializable()', function (Closure $call) {
     try {
-        Db::serializable($call, new RuntimeException('unexpected conflict'));
+        BusinessTx::serializable($call, new RuntimeException('unexpected conflict'));
     } catch (LogicException $e) {
         expect($e->getMessage())->toBe('RateLimits must be called outside every transaction (pgsql level 1, pgsql_limits level 0): call it before the business transaction or Locks (ADR-009).')
             ->and(DB::connection('pgsql')->transactionLevel())->toBe(0)
