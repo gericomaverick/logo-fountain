@@ -91,6 +91,11 @@ dataset('next payloads', [
     'message_sent' => ['message_sent', '{"messageId":"m-1","isAdmin":false}'],
     'auth.password_reset' => ['auth.password_reset', '{"method":"token"}'],
     'auth.password_changed' => ['auth.password_changed', '{"method":"settings"}'],
+    'revision_requested' => ['revision_requested', '{"revisionRequestId":"rr-1","conceptId":"c-1"}'],
+    'revision_delivered' => ['revision_delivered', '{"revisionRequestId":"rr-1","consumedEntitlement":true}'],
+    'concept_approved' => ['concept_approved', '{"conceptId":"c-1","conceptNumber":2}'],
+    'concept_published' => ['concept_published', '{"conceptId":"c-1"}'],
+    'concept_revision_uploaded' => ['concept_revision_uploaded', '{"conceptId":"c-1","conceptNumber":2,"filePath":"projects/p-1/concepts/2/v2.png","published":true,"uploadMode":"revision","deliveredRevisionRequests":1}'],
     'empty object marker' => ['email_sent:brief_reminder', '{}'],
 ]);
 

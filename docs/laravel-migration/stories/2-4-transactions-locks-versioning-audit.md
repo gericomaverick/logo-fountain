@@ -134,13 +134,13 @@ ADR-011 *Consequences* would name the retry count; accepted ADRs aren't edited, 
 | L3 `@pg-race` | `tests/Concurrency/SerializableTest.php` (isolation/timeouts set; nesting throws; real concurrent writer retried; exhaustion → supplied 409, no partial write; forced 40001/40P01 retried with count; 23505/23503/23514 and domain errors not retried; lock/statement timeout → 409, 1 attempt; failed attempt discards after-commit callbacks; 40001 at COMMIT retried; 4-process race, version = ok count) | X-17, NFR-R3 |
 | L3 `@pg-race` | `tests/Concurrency/ProjectVersionGuardTest.php` (+1 exactly; stale version / changed status / unknown id → conflict, nothing changed; `id`/`version` refused; 6-process race: exactly one winner; ordinary updates don't move `version`, no trigger) | X-17 |
 | L3 `@pg-race` | `tests/Concurrency/LocksTest.php` (exactly three locks; held under Next's key until commit, released on rollback; other keys free; outside a transaction throws; second holder waits; 8-process receipt convergence) | X-09 |
-| L2 Pest | `tests/Feature/Support/AuditTest.php` (row shape; Model/string/null refs; `{}` default; lists refused; 19 Next payload shapes stored with identical jsonb; redaction; `checkoutSessionId` top-level only; emails kept; rollback leaves no row) | X-08 |
+| L2 Pest | `tests/Feature/Support/AuditTest.php` (row shape; Model/string/null refs; `{}` default; lists refused; 24 Next payload shapes (every audit type Next writes) stored with identical jsonb; redaction; `checkoutSessionId` top-level only; emails kept; rollback leaves no row) | X-08 |
 | L1 Pest | `tests/Unit/ScrubberTest.php` "scrubs audit payloads with the audit profile…" | X-08 |
 
 Test-port ledger rows resolved: #96 (still partial): test 4 lock half (`LocksTest` "converges advisory-locked receipts…"), test 5 audit half (`AuditTest` "leaves no row…"). Receipt-reader halves → 7.5a; test 3 and test 5's entitlement half → 7.x; test 6 → 5.x.
 
 ### Test evidence
-2026-11-22, stack lf-wb4: `bin/test` → agents-guide check OK, Pint OK, Larastan level 9 no errors, Pest **470 passed (1361 assertions)**. `vendor/bin/pest --group=pg-race` → **71 passed (226 assertions)**; race line `serializable: 36 ok, 4 conflicts, 54 attempts`. Mutation check: with `Locks::conceptUpload` commented out in the child, the receipt race fails (8 writes, not 1).
+2026-11-22, stack lf-wb4: `bin/test` → agents-guide check OK, Pint OK, Larastan level 9 no errors, Pest **475 passed (1366 assertions)**. `vendor/bin/pest --group=pg-race` → **71 passed (226 assertions)**; race line `serializable: 35 ok, 5 conflicts, 56 attempts` (re-run after review fixes, stack lf-2-4-tx, `down -v` after). Mutation check: with `Locks::conceptUpload` commented out in the child, the receipt race fails (8 writes, not 1).
 **Not run, and why:** `bin/ui-test`, `bin/browser-test` and the parity suite (nothing in this story is UI- or route-visible); no Next-side comparison (DoD is Laravel-only).
 
 ### Gotchas
@@ -154,6 +154,7 @@ All promoted to `AGENTS.md` §8.
 `apps/portal/AGENTS.md` §5 (Transactions, Audit rows) and §8; `01-feature-inventory.md` X-08, X-09, X-17; `test-port-ledger.md` #96; `stories/sprint-status.yaml` (→ review); `docs/governance/DECISIONS.md`, `RISKS.md` (2026-11-22). ASSUMPTIONS: none. `handoff.md`: not touched (the brief gives it to the last branch).
 
 ### Open items
-- Owner: confirm OQ 2–3 as built (5 s timeouts; 3 attempts, 10–50 ms).
+- Decided (owner): OQ 2–3 as built: 5 s timeouts; 3 attempts, 10–50 ms waits.
+- **Follow-up for whichever of 2.2/2.4 lands second (story test plan): AC 5's other half is untestable on this branch** (no `Project` model exists; only `app/Models/User.php`). When the `Project` model lands, add a test that `version` is not mass-assignable and that an Eloquent `save()` leaves it unchanged. Not verified here.
 - If 2.2's `Project` model should own the guard, a later story can wrap `Db::guardedProjectUpdate` in it.
 - Lead: move the disconnect into `TruncatesDatabaseAsOwner` (outside this story's files).

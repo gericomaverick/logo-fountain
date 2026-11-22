@@ -101,6 +101,8 @@ Requirement series → code: A → `Actions/Auth`, middleware, `Support/RateLimi
 
 ## 8. Gotchas (promoted from story records)
 - Never `migrate` on the default (runtime) connection, in tests too. `tests/TestCase.php` migrates `portal_test` once per process as `pgsql_migrate` + `db:grants` (`Tests\Support\MigratesAsOwner`); `Feature/Schema` uses `RefreshDatabaseAsOwner` (transacts `pgsql` only: rows written via `pgsql_migrate`/`pgsql_limits` commit, and the owner can't see uncommitted runtime rows), `Concurrency` uses `TruncatesDatabaseAsOwner`. Never let the owner drop or alter a table the runtime touched inside the test transaction: it waits for that transaction forever (2.1).
+- Do not run the credential fence (`Locks::credential`, story 4.2) inside `Db::serializable()`: the lock would be taken after the transaction's snapshot is set, so it would not serialise the data reads. Use a plain `DB::transaction` (2.4 review).
+- `Locks::*` outside `Db::serializable()` has no wait limit; add `SET LOCAL lock_timeout` in the caller's plain transaction where Next had Prisma's limits (2.4 review).
 - `ON DELETE RESTRICT` raises SQLSTATE `23001` (restrict_violation), not `23503` (2.1).
 - `migrate:fresh` drops tables but not functions: raw-SQL functions use `CREATE OR REPLACE` and `down()` drops them (2.1).
 - `docker/postgres/01-roles.sh` runs only on a fresh volume: after changing it, `docker compose down -v` (2.1).
