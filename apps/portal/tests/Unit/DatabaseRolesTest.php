@@ -85,3 +85,38 @@ it('normalises case, a trailing dot and the default port but does not infer host
     check(viaUrl(str_replace('127.0.0.1:5432', 'DB.INTERNAL.', RUNTIME_URL)), viaUrl(str_replace('127.0.0.1', 'db.internal', MIGRATE_URL)));
     expect(true)->toBeTrue();
 });
+
+// Story 2.1 AC 6 (ADR-009/013): pgsql_limits is the runtime role on the runtime's own target.
+
+function checkLimits(mixed $runtime, mixed $limits): void
+{
+    DatabaseRoles::assertLimitsUsesRuntime(['pgsql' => $runtime, 'pgsql_limits' => $limits]);
+}
+
+it('accepts pgsql_limits as the runtime role on the same target, by URL or by keys', function () {
+    checkLimits(viaUrl(RUNTIME_URL), viaUrl(str_replace('127.0.0.1:5432', '127.0.0.1', RUNTIME_URL)));
+    checkLimits(viaKeys('portal_runtime', 'a'), viaKeys('portal_runtime', 'a', port: 5432));
+    expect(true)->toBeTrue();
+});
+
+it('refuses a pgsql_limits with another username, host, port or database, without leaking the password', function (array $limits) {
+    try {
+        checkLimits(viaKeys('portal_runtime', 'runtime-secret'), $limits);
+        throw new RuntimeException('unexpected success');
+    } catch (InvalidConfiguration $e) {
+        expect($e->getMessage())->toBe('pgsql_limits must use the runtime role on the same host, port and database as pgsql (ADR-009)')
+            ->not->toContain('secret');
+    }
+})->with([
+    'username' => [viaKeys('portal_migrate', 'limits-secret')],
+    'host' => [viaKeys('portal_runtime', 'limits-secret', host: 'other-host')],
+    'port' => [viaKeys('portal_runtime', 'limits-secret', port: 5433)],
+    'database' => [viaKeys('portal_runtime', 'limits-secret', database: 'other')],
+]);
+
+it('refuses a missing or invalid pgsql_limits connection', function (mixed $limits) {
+    checkLimits(viaKeys('portal_runtime', 'a'), $limits);
+})->throws(InvalidConfiguration::class, 'pgsql_limits: expected an explicit non-Supabase PostgreSQL target')->with([
+    'missing' => [null],
+    'supabase' => [viaUrl('postgresql://portal_runtime:a@db.project.supabase.co/portal')],
+]);

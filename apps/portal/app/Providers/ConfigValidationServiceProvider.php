@@ -22,5 +22,6 @@ class ConfigValidationServiceProvider extends ServiceProvider
         /** @var array<string, mixed> $connections */
         $connections = config('database.connections', []);
         DatabaseRoles::assertValid($connections);
+        DatabaseRoles::assertLimitsUsesRuntime($connections);
     }
 }

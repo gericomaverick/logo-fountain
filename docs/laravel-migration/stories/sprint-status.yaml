@@ -50,11 +50,11 @@ development_status:
   1-9-app-shells-design-lint-ui-ci-job-lighthouse: done
   epic-1-retrospective: optional
 
-  epic-2: backlog
-  2-1-schema-migrations-and-roles: ready-for-dev
+  epic-2: in-progress
+  2-1-schema-migrations-and-roles: review
   2-2-models-policies-client-concept-scope: backlog
   2-3-project-state-machine-and-display-status: backlog
-  2-4-transactions-locks-versioning-audit: backlog
+  2-4-transactions-locks-versioning-audit: review
   2-5-shared-rate-limit-store: backlog
   2-6-laravel-seed-scenarios: backlog
   2-7-lifecycle-mail-pipeline: backlog
