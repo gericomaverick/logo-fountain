@@ -32,3 +32,4 @@ One decision per file. To change a decision, add a new ADR that supersedes it an
 | [026](ADR-026-observability.md) | Observability | Accepted |
 | [027](ADR-027-security-headers-middleware.md) | Security headers middleware | Accepted |
 | [028](ADR-028-ci.md) | CI | Accepted |
+| [029](ADR-029-epic-2-consequences.md) | Epic 2 consequences for ADR-009, ADR-011 and ADR-018 | Accepted |
