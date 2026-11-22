@@ -95,6 +95,7 @@ Check order of `validateZip` is kept: first failing rule decides MALFORMED_ZIP v
 | Final ZIP cap | 100 MiB | 95,000,000 bytes, message "Final ZIP exceeds the 95 MB limit" | Cloudflare cap | DV-13 |
 | Out-of-range read | RangeError | MALFORMED_ZIP | no corpus case; safe default | none |
 | Corpus bomb bytes | fixed-Huffman stream | zlib-deflated equivalent, built in PHP | no node in the test stack | built as recommended |
+| Corpus 95,000,001 / 100 MiB cases | real files of that size | sparse files, rejected on declared size; bytes not identical to Next's | size is judged before reading; avoids 100 MiB fixtures | built as recommended |
 
 ### Tests
 | Layer | Test file / title | Inventory IDs |

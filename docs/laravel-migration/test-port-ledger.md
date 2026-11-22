@@ -113,8 +113,8 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 105 | `src/lib/request-origin.test.ts` | 15 | X-01,X-04 | Pest unit + feature | `tests/Unit/CanonicalOriginTest.php` (X-04, 1.3), `tests/Feature/OriginGuardTest.php` (X-01, 1.4) | **Ported** (stories 1.3 + 1.4) |
 | 106 | `src/lib/storage/r2.test.ts` | 10 | X-10,X-11 | Pest unit (S3 mock) + L3 SeaweedFS | | Not started |
 | 107 | `src/lib/system-messages.test.ts` | 2 | N-15 | Pest feature | | Not started |
-| 108 | `src/lib/upload-validation.test.ts` | 12 | X-12 | Pest unit + shared golden corpus | | Resolved: images in story 3.2 (`ConceptImageValidatorTest`, `ConceptImageCorpusTest`), ZIP in 3.3 (`FinalZipValidatorTest`, `FinalZipCorpusTest`) |
+| 108 | `src/lib/upload-validation.test.ts` | 12 | X-12 | Pest unit + shared golden corpus | | Resolved for the unit/corpus level (HTTP path still open under X-12, 7.8a): images in story 3.2 (`ConceptImageValidatorTest`, `ConceptImageCorpusTest`), ZIP in 3.3 (`FinalZipValidatorTest`, `FinalZipCorpusTest`) |
 | 109 | `src/lib/webhook-error-classification.test.ts` | 2 | K-05 | Pest unit | | Not started |
-| 110 | `src/lib/zip-validation.test.ts` | 8 | X-12 | Pest unit + shared golden corpus | | Resolved: story 3.3 (`FinalZipValidatorTest`, `FinalZipCorpusTest`) |
+| 110 | `src/lib/zip-validation.test.ts` | 8 | X-12 | Pest unit + shared golden corpus | | Resolved for the unit/corpus level (HTTP path still open under X-12, 7.8a): story 3.3 (`FinalZipValidatorTest`, `FinalZipCorpusTest`) |
 
 Total: 110 files, 560 counted test declarations (Vitest reports 614 executed tests including `.each` expansions).

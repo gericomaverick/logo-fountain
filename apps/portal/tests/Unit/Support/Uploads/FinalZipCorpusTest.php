@@ -14,9 +14,10 @@ it('judges every zip corpus case as Laravel must', function (array $case) {
         $r = (new FinalZipValidator)->prepare($path, $case['filename'], $case['mime'], $declared);
     } catch (UploadValidationException $e) {
         expect($e->errorCode)->toBe($case['code']);
-        if ($case['code'] !== 'FILE_TOO_LARGE') {
-            expect($e->getMessage())->toBe($case['branch']);
-        }
+        // DV-13: the size message carries the new figure, so it differs from Next's recorded `branch`.
+        expect($e->getMessage())->toBe(
+            $case['code'] === 'FILE_TOO_LARGE' ? 'Final ZIP exceeds the 95 MB limit' : $case['branch']
+        );
 
         return;
     }
