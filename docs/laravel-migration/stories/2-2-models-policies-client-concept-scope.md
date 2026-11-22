@@ -126,12 +126,13 @@ No owner decision needed for 2.2.
 | L2 Pest | `tests/Feature/Models/RelationshipsTest.php` (2): every relation both ways; a model save never writes `is_admin` (an admin profile saves past the trigger) | — |
 | L2 Pest | `tests/Feature/Policies/ProjectPolicyTest.php` (6): member, non-member and other tenant, verified admin, admin member, admin `view` without a membership query, unverified admin on all three | C-20, D-20 |
 | L2 Pest | `tests/Feature/Policies/ConceptPolicyTest.php` (11): hidden concept + its file = random uuid (member and admin × draft/archived/deleted), visible allowed (member and admin × published/approved), project checked first | DV-7, C-20 |
-| Arch | `tests/Arch/ClientConceptScopeTest.php` (4): `Api` and `Pages` (minus `Admin`) don't use `Concept`/`FileAsset`; the same helper **fails** on `tests/Fixtures/Arch/LeakyClientController.php`; passes on `Fixtures/Arch/Scoped` only because `Admin` is ignored | ADR-020 |
+| Arch | `tests/Arch/ClientConceptScopeTest.php` (6): `Api` and `Pages` (minus `Admin`) don't use `Concept`/`FileAsset`; the same helper **fails** on `tests/Fixtures/Arch/LeakyClientController.php`; passes on `Fixtures/Arch/Scoped` only because `Admin` is ignored | ADR-020 |
 
 Test-port ledger rows resolved: none (the authz matrix is a parity spec).
 
 ### Test evidence
 - `bin/test` on a fresh `lf-wb3` volume, 2026-11-22: agents guide OK, Pint OK, Larastan 9 no errors, Pest **463 passed (1596 assertions)** (2.1 baseline 403 + 60 new).
+- Critic fixes (2.2-critic-2951), fresh `lf-wb2` volume: `bin/test` exit 0, Pint OK, Larastan 9 no errors, Pest **465 passed (1599 assertions)** (+2 arch tests: a source scan for `->concepts(`, `->fileAssets(`, `->conceptComments(`, `->revisionRequests(`, `->concept`, `->asset` in client controllers, with a second leaky fixture method proving it).
 - Touched tests alone: 60 passed (431 assertions) before the arch-fixture fix, then the arch file 4 passed (19 assertions).
 
 **Not run, and why:** parity, browser and UI checks (no endpoints or UI in this story); the DV-7 `@deviation` matrix (`contract/concept-status-matrix.spec.ts`) waits for the client concept routes.
@@ -141,9 +142,11 @@ Test-port ledger rows resolved: none (the authz matrix is a parity spec).
 - A Pest arch expectation is checked when the expectation object is released: to assert a rule **fails**, wrap it in a function and `expect(fn () => …)->toThrow(ExpectationFailedException::class)`.
 
 ### Docs updated
-`apps/portal/AGENTS.md` (§5 Authorisation row, §8 two gotchas); `01-feature-inventory.md` C-20, D-20, DV-7; `sprint-status.yaml`; `docs/governance/DECISIONS.md`, `RISKS.md`; `handoff.md` session log.
+`apps/portal/AGENTS.md` (§5 Authorisation row, §8 two gotchas); `01-feature-inventory.md` C-20, D-20, DV-7 (A-16 untouched); `ASSUMPTIONS.md`; `sprint-status.yaml`; `docs/governance/DECISIONS.md`, `RISKS.md`; `handoff.md` session log.
 
 ### Open items
 - **Version guard (2.4):** `version` is not mass-assignable, but a direct `$project->version = …; save()` still writes it. 2.4's `ProjectVersionGuardTest` wants a save to leave it unchanged: whichever of 2.2/2.4 merges second adds that guard (model `saving` hook or `Db`).
 - **Not-found details:** the policies return the message and code; Next's `details.nextStep` ("Check the project link." / "Check the concept link.") and 403 "Use an admin account." come from the 1.6 renderer when the first route maps a denied `Response` to `ApiException` (Epic 6/7, 4.8).
 - C-20, D-20 and DV-7 stay open until the client/admin routes and their contract tests land.
+
+- Not done (critic notes, later stories): `ConceptPolicy::participate` for approve/revision routes (Epic 6/7); empty audit payload as `stdClass` (2.4).

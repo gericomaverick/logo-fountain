@@ -35,6 +35,9 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasMillisecondTimestamps, HasUuids, NormalisesEmail, Notifiable;
 
+    /** `users` has no remember_token column (2.1): Auth::login($u, true) must not write one. */
+    protected $rememberTokenName = '';
+
     /**
      * "Admin" as Next's isAdminUser (`apps/web/src/lib/auth/admin.ts:4`): a verified email **and**
      * `profiles.is_admin`. An unverified admin is an ordinary user. The one place this is decided

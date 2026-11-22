@@ -44,7 +44,7 @@ function clientPathCaller(string $who): array
 
 $notFound = [false, 404, ErrorCodes::CONCEPT_NOT_FOUND, 'Concept not found'];
 
-it('answers a hidden concept and its file exactly as an unknown id', function (string $who, string $status) use ($notFound) {
+it('answers a hidden concept and its file exactly as an unknown id (scope returns null; denial is 404)', function (string $who, string $status) use ($notFound) {
     [$user, $project] = clientPathCaller($who);
     $concept = Concept::factory()->for($project)->status($status)->create();
     $asset = FileAsset::factory()->forConcept($concept)->create();

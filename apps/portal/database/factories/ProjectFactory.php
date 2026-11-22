@@ -16,7 +16,7 @@ class ProjectFactory extends Factory
     {
         return [
             'client_id' => Client::factory(),
-            'status' => 'BRIEF_PENDING',
+            'status' => 'AWAITING_BRIEF',
             'package_code' => 'essential',
         ];
     }
