@@ -1,12 +1,14 @@
 <?php
 
 use App\Actions\Checkout\FulfilCheckout;
+use App\Actions\Checkout\ProcessStripeEvent;
 use App\Actions\Checkout\RecordHopelessCheckout;
 use App\Jobs\SendLifecycleMail;
 use App\Support\Stripe\FulfilmentError;
 use App\Support\Stripe\HopelessCheckoutFailure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
+use Stripe\Event;
 use Tests\Support\FakeStripe;
 use Tests\Support\TruncatesDatabaseAsOwner;
 
@@ -132,3 +134,54 @@ it('sends no admin new-project email for a matching upsell', function () {
     $fulfil->followUp($session, $fulfil->fulfil($session), fn () => null);
     expect(DB::table('audit_events')->where('type', 'email_sent:admin_new_project')->count())->toBe(0);
 });
+
+// Critic B3 (DV-24, story 5.5 AC 15): a stale-from or downgrade session run through the webhook applies nothing, writes the
+// `upgrade_stale_from_package` audit (with its payload) and `checkout_stuck`, and mails the admin once, also on redelivery.
+function upsellWebhook(array $session, string $eventId): array
+{
+    $event = Event::constructFrom(['id' => $eventId, 'object' => 'event', 'type' => 'checkout.session.completed', 'created' => time(), 'data' => ['object' => $session]]);
+
+    return app(ProcessStripeEvent::class)->handle($event);
+}
+
+it('alerts the admin and audits, applying nothing, for a stale or downgrade upgrade via the webhook (DV-24)', function (string $from, string $to, string $bought, array $first) {
+    $p = upsellProject($bought);
+    foreach ($first as $i => $step) {
+        app(FulfilCheckout::class)->fulfil(upsellSession('cs_test_PRE'.$i.$bought, ['kind' => 'upgrade', 'projectId' => $p, 'fromPackage' => $step[0], 'toPackage' => $step[1]]));
+    }
+    $before = limits($p);
+    $package = DB::table('projects')->where('id', $p)->value('package_code');
+    $ordersBefore = DB::table('project_orders')->count();
+    $session = upsellSession('cs_test_STALE001', ['kind' => 'upgrade', 'projectId' => $p, 'fromPackage' => $from, 'toPackage' => $to]);
+
+    [$status, $body] = upsellWebhook($session, 'evt_stale_1');
+    [, $again] = upsellWebhook($session, 'evt_stale_1'); // redelivery of the same event
+    [$status2] = upsellWebhook($session, 'evt_stale_2'); // a new event for the same session
+
+    expect($status)->toBe(200)->and($body['received'])->toBeTrue()->and($status2)->toBe(200)
+        ->and($again['deduped'] ?? null)->toBeTrue()
+        ->and(limits($p))->toBe($before)
+        ->and(DB::table('projects')->where('id', $p)->value('package_code'))->toBe($package)
+        ->and(DB::table('project_orders')->count())->toBe($ordersBefore)
+        ->and(DB::table('audit_events')->where('type', 'upgrade_stale_from_package')->where('project_id', $p)->count())->toBe(1)
+        ->and(DB::table('audit_events')->where('type', 'checkout_stuck')->where('project_id', $p)->count())->toBe(1)
+        ->and(DB::table('audit_events')->where('type', 'package_upgrade_applied')->count())->toBe(count($first));
+    $payload = json_decode((string) DB::table('audit_events')->where('type', 'upgrade_stale_from_package')->value('payload'), true);
+    expect($payload)->toBeArray()->and($payload['checkoutSessionId'] ?? null)->toBe('cs_test_STALE001');
+    Queue::assertPushed(SendLifecycleMail::class, 1);
+    Queue::assertPushed(SendLifecycleMail::class, fn (SendLifecycleMail $j) => $j->subject === RecordHopelessCheckout::SUBJECT && str_contains($j->intro, 'cs_test_STALE001'));
+})->with([
+    'stale: project already upgraded' => ['essential', 'professional', 'essential', [['essential', 'professional']]],
+    'downgrade' => ['complete', 'essential', 'complete', []],
+    'same tier' => ['professional', 'professional', 'professional', []],
+])->group('deviation', 'upsell');
+
+it('does not repeat the mismatch audit on a redelivery when the admin mail is skipped', function () {
+    config(['portal.admin_notification_emails' => '']);
+    $p = upsellProject();
+    $session = upsellSession('cs_test_MISMAT02', ['kind' => 'addon', 'projectId' => $p, 'addonKey' => 'extra_revision'], ['customer_details' => ['email' => 'other@example.test', 'name' => 'O']]);
+    $fulfil = app(FulfilCheckout::class);
+    $fulfil->followUp($session, $fulfil->fulfil($session), fn () => null);
+    $fulfil->followUp($session, $fulfil->fulfil($session), fn () => null);
+    expect(DB::table('audit_events')->where('type', 'upsell_buyer_email_mismatch')->count())->toBe(1);
+})->group('deviation');

@@ -80,4 +80,5 @@ Reprocess retrieves the session and runs `FulfilCheckout::fulfil` then `followUp
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|
 | L2 | `tests/Feature/Checkout/ReprocessCheckoutTest.php` (guards, emails once + deduped, names, unpaid 409, 404/502, no mail in controller) | K-12, DV-6, DV-23 |
-| L3 | the race itself is covered by `tests/Concurrency/FulfilSideEffectsRaceTest.php` (5.3, same shared action); no reprocess-specific race test and no L4 parity run |  |
+| L3 `@pg-race` | `tests/Concurrency/FulfilSideEffectsRaceTest.php` "sends each email once when the webhook and the admin reprocess race on a new session" (real `ProcessStripeEvent` and `ReprocessCheckoutController` in 6 child processes; critic B1) | DV-6 |
+| L2 | `ReprocessCheckoutTest.php` "writes its own audit row" (critic B2, DV-26 proposed, awaiting owner); no L4 parity run |  |

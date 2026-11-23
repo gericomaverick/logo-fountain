@@ -9,8 +9,12 @@ use App\Actions\Auth\ResetPassword;
 use App\Actions\Checkout\Claim;
 use App\Actions\Checkout\ClaimStripeEvent;
 use App\Actions\Checkout\CompleteFulfilmentSideEffects;
+use App\Actions\Checkout\FulfilsCheckout;
+use App\Actions\Checkout\ProcessStripeEvent;
 use App\Exceptions\ApiException;
 use App\Exceptions\AuthFailure;
+use App\Http\Controllers\Api\ReprocessCheckoutController;
+use App\Models\User;
 use App\Support\Audit;
 use App\Support\Auth\AuthProofs;
 use App\Support\Auth\CredentialFence;
@@ -19,7 +23,10 @@ use App\Support\Db;
 use App\Support\Locks;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Database\Connection;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB as Database;
+use Stripe\Event;
+use Tests\Support\FakeStripe;
 
 require __DIR__.'/../../../vendor/autoload.php';
 $app = require __DIR__.'/../../../bootstrap/app.php';
@@ -202,6 +209,35 @@ $out = match ($mode) {
         }
 
         return ['subjects' => $subjects];
+    })(),
+
+    // Story 5.6 AC 6 (critic B1): the webhook path (ProcessStripeEvent) or the reprocess controller, from nothing, for one
+    // paid session. Stripe is the in-process fake. args: <webhook|reprocess> <sessionId> <adminUserId>
+    'fulfil-path' => (function () use ($args): array {
+        [$kind, $sessionId, $adminId] = $args;
+        $lineItems = ['object' => 'list', 'has_more' => false, 'url' => '/x', 'data' => [['id' => 'li_1', 'object' => 'item', 'price' => ['id' => config('catalog.packages.essential.price_id')]]]];
+        $session = ['id' => $sessionId, 'object' => 'checkout.session', 'payment_status' => 'paid', 'currency' => 'gbp', 'amount_total' => 100, 'payment_intent' => 'pi_'.$sessionId,
+            'customer_details' => ['email' => 'race@example.test', 'name' => 'Race Buyer'], 'metadata' => []];
+        $stripe = FakeStripe::install();
+        if ($kind === 'reprocess') {
+            $stripe->respondWith(200, $session);
+        }
+        $stripe->respondWith(200, $lineItems);
+        if ($kind === 'webhook') {
+            $event = Event::constructFrom(['id' => 'evt_'.$sessionId.'_'.getmypid(), 'object' => 'event', 'type' => 'checkout.session.completed', 'created' => time(), 'data' => ['object' => $session]]);
+            [$status] = app(ProcessStripeEvent::class)->handle($event);
+        } else {
+            $request = Request::create('/api/admin/checkout/reprocess', 'POST', [], [], [], ['CONTENT_TYPE' => 'application/json'], json_encode(['session_id' => $sessionId]));
+            $request->setUserResolver(fn () => User::query()->find($adminId));
+            $status = app(ReprocessCheckoutController::class)($request, app(FulfilsCheckout::class))->getStatusCode();
+        }
+        $transport = app('mail.manager')->mailer('array')->getSymfonyTransport();
+        $subjects = [];
+        foreach ($transport->messages() as $m) {
+            $subjects[] = $m->getOriginalMessage()->getSubject();
+        }
+
+        return ['status' => $status, 'subjects' => $subjects];
     })(),
 };
 

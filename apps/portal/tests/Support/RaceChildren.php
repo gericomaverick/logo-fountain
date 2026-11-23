@@ -49,13 +49,14 @@ final class RaceChildren
      * Story 4.2: different child modes released together.
      *
      * @param  list<array{0: string, 1: list<string>}>  $jobs  [mode, args] each
+     * @param  array<string, string>  $extraEnv
      * @return list<array<string, mixed>>
      */
-    public static function runMixed(array $jobs): array
+    public static function runMixed(array $jobs, array $extraEnv = []): array
     {
         $startAt = sprintf('%.3F', microtime(true) + 2.5);
         $env = ['APP_ENV' => 'testing', 'DB_CONNECTION' => 'pgsql', 'DB_DATABASE' => (string) config('database.connections.pgsql.database'), 'DB_URL' => '',
-            'CACHE_STORE' => 'array', 'QUEUE_CONNECTION' => 'sync', 'SESSION_DRIVER' => 'array', 'MAIL_MAILER' => 'array'];
+            'CACHE_STORE' => 'array', 'QUEUE_CONNECTION' => 'sync', 'SESSION_DRIVER' => 'array', 'MAIL_MAILER' => 'array'] + $extraEnv;
 
         $results = Process::pool(function (Pool $pool) use ($jobs, $startAt, $env): void {
             foreach ($jobs as [$mode, $args]) {

@@ -75,31 +75,6 @@ K-08, K-09, DV-1 (upsell half), DV-2, DV-5 (upsell half), DV-15 (email-mismatch 
 ## Conversion record
 
 ### Inventory scope
-K-08, K-09, DV-1, DV-2, DV-5, DV-15 (mismatch).
-### Next.js source read
-`checkout/session/route.ts`, `checkout-fulfillment.ts`, `webhook-upsell.spec.ts`.
-### Behaviour notes
-(fill on review)
-### Laravel implementation
-(fill on review)
-### Deviations from Next.js
-| Behaviour | Next.js | Laravel | Why | Decision ref |
-|---|---|---|---|---|
-(fill on review)
-### Tests
-| Layer | Test file / title | Inventory IDs |
-|---|---|---|
-(fill on review)
-### Test evidence
-(fill on review)
-### Gotchas
-(fill on review)
-### Docs updated
-(fill on review)
-### Open items
-(fill on review)
-
-### Inventory scope
 K-08, K-09, DV-1 (upsell half), DV-2, DV-5 (upsell half), DV-15 (email-mismatch half), DV-21, DV-24.
 ### Next.js source read
 `api/projects/[id]/checkout/session/route.ts`, `checkout-fulfillment.ts:182-323`, `webhook/route.ts:166-198`, `stripe-price-allowlist.ts`.
@@ -116,4 +91,4 @@ Metadata is parsed by `UpsellMetadata`; unparseable metadata falls through to pa
 | Stale `fromPackage` / downgrade | nothing applied, permanent failure `upgrade_stale_from_package`, admin alert | DV-24: built as recommended, awaiting owner |
 | Unknown project | permanent, audit + admin email | DV-21: built as recommended, awaiting owner |
 ### Tests
-`tests/Unit/EntitlementMathTest.php` (L1), `tests/Feature/Checkout/UpsellCheckoutStartTest.php`, `UpsellFulfilmentTest.php` (L2/L3). L4 parity specs and the `@pg-race` concurrent-delivery test were not written or run (see report).
+`tests/Unit/EntitlementMathTest.php` (L1), `tests/Feature/Checkout/UpsellCheckoutStartTest.php`, `UpsellFulfilmentTest.php` (L1/L2 only; no L3). The DV-24 stale/downgrade/same-tier path through the webhook is tested (critic B3). L4 parity specs and an upsell `@pg-race` test were not written or run.

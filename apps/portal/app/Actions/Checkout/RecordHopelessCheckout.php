@@ -38,10 +38,15 @@ final class RecordHopelessCheckout
 
                 return;
             }
-            if ($failure->audit !== null) {
-                Audit::record($failure->reason, $failure->projectId, null, $failure->audit); // DV-24: the type is the reason
+            // A second event for the same session (Stripe sends a new event id) must not write the rows again.
+            $flagged = DB::connection(DatabaseRoles::RUNTIME)->table('audit_events')->where('project_id', $failure->projectId)
+                ->where('type', 'checkout_stuck')->where('payload->checkoutSessionId', $failure->sessionId)->exists();
+            if (! $flagged) {
+                if ($failure->audit !== null) {
+                    Audit::record($failure->reason, $failure->projectId, null, $failure->audit); // DV-24: the type is the reason
+                }
+                Audit::record('checkout_stuck', $failure->projectId, null, ['checkoutSessionId' => $failure->sessionId, 'reason' => $failure->reason]);
             }
-            Audit::record('checkout_stuck', $failure->projectId, null, ['checkoutSessionId' => $failure->sessionId, 'reason' => $failure->reason]);
             LifecycleMail::sendOnce('payment_attention', $failure->projectId, $failure->sessionId, $message);
         });
     }

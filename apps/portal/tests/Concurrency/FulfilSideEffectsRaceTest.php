@@ -3,6 +3,7 @@
 use App\Actions\Checkout\CompleteFulfilmentSideEffects;
 use App\Actions\Checkout\FulfilCheckout;
 use App\Actions\Checkout\ProvisionAccess;
+use App\Models\Profile;
 use App\Support\DatabaseRoles;
 use Illuminate\Mail\Events\MessageSending;
 use Illuminate\Support\Facades\DB;
@@ -57,4 +58,28 @@ it('commits the auth token before the customer link is mailed', function () {
     app(CompleteFulfilmentSideEffects::class)->handle('cs_test_COMMIT01', $result->projectId, $access->userId, $access->needsSetup, false, fn () => null);
 
     expect($seen)->toBe([1]);
+})->group('pg-race');
+
+// Story 5.6 AC 6 (critic B1): the real routes. Webhook deliveries and admin reprocesses of one NEW session run together
+// through ProcessStripeEvent / ReprocessCheckoutController -> FulfilCheckout::followUp. Each email goes out once, one
+// order, one provisioned account. With Locks::fulfilSideEffects / fulfilSideEffectsSession / provision removed this fails.
+it('sends each email once when the webhook and the admin reprocess race on a new session', function () {
+    config(['mail.default' => 'array', 'mail.from.address' => 'from@example.test']);
+    $admin = Profile::factory()->admin()->create()->user;
+    $sid = 'cs_test_RACEWR01';
+    $jobs = [];
+    foreach (['webhook', 'reprocess', 'webhook', 'reprocess', 'reprocess', 'webhook'] as $kind) {
+        $jobs[] = ['fulfil-path', [$kind, $sid, (string) $admin->id]];
+    }
+
+    $children = RaceChildren::runMixed($jobs, ['ADMIN_NOTIFICATION_EMAILS' => 'ops@example.test', 'POSTMARK_FROM' => 'from@example.test']);
+
+    $subjects = array_merge(...array_map(fn (array $c) => $c['subjects'], $children));
+    expect(array_unique(array_column($children, 'status')))->toBe([200])
+        ->and($subjects)->toHaveCount(2) // one customer auth link, one admin "New project created"
+        ->and(DB::table('project_orders')->where('stripe_checkout_session_id', $sid)->count())->toBe(1)
+        ->and(DB::table('audit_events')->where('type', 'email_sent:checkout_auth:'.$sid)->count())->toBe(1)
+        ->and(DB::table('audit_events')->where('type', 'email_sent:admin_new_project')->count())->toBe(1)
+        ->and(DB::table('auth_proofs')->count())->toBe(1)
+        ->and(DB::table('audit_events')->where('type', 'checkout_reprocessed')->where('actor_id', $admin->id)->count())->toBe(3); // B2: one per reprocess
 })->group('pg-race');

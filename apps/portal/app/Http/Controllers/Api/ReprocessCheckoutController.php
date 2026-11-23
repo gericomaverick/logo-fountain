@@ -6,9 +6,11 @@ use App\Actions\Checkout\FulfilsCheckout;
 use App\Exceptions\ApiException;
 use App\Http\Controllers\Controller;
 use App\Models\ProjectOrder;
+use App\Support\Audit;
 use App\Support\ErrorCodes;
 use App\Support\Stripe\FulfilmentError;
 use App\Support\Stripe\HopelessCheckoutFailure;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Stripe\Exception\ApiErrorException;
@@ -44,17 +46,20 @@ final class ReprocessCheckoutController extends Controller
             $result = $fulfiller->fulfil($session);
             $result = $fulfiller->followUp($session, $result, static fn () => null);
         } catch (FulfilmentError $e) {
+            $this->audit($request, $sessionId, null, 'failed', $e->errorCode());
             if ($e->errorCode() === 'CHECKOUT_SESSION_NOT_PAID') {
                 throw new ApiException('Checkout session has not been paid; nothing was provisioned.', 409, ErrorCodes::CHECKOUT_SESSION_NOT_PAID);
             }
             throw $e;
         } catch (HopelessCheckoutFailure $e) {
+            $this->audit($request, $sessionId, $e->projectId, 'failed', $e->reason);
             if ($e->reason === HopelessCheckoutFailure::NO_PAYMENT_REQUIRED) {
                 throw new ApiException('Checkout session has not been paid; nothing was provisioned.', 409, ErrorCodes::CHECKOUT_SESSION_NOT_PAID);
             }
             throw $e;
         }
 
+        $this->audit($request, $sessionId, $result->projectId, $result->deduped ? 'already_fulfilled' : 'fulfilled');
         $orderId = ProjectOrder::query()->where('stripe_checkout_session_id', $sessionId)->value('id');
 
         return response()->json([
@@ -63,5 +68,21 @@ final class ReprocessCheckoutController extends Controller
             'provisionedUserId' => $result->provisionedUserId,
             'message' => $result->deduped ? 'Session already fulfilled; ensured access provisioning.' : 'Session fulfilled successfully.',
         ]);
+    }
+
+    /**
+     * DV-26 (proposed, awaiting owner; Next writes none): the reprocess itself leaves a row, even when everything was
+     * already done, so an admin's action is never invisible. `actor_id` is the admin; the payload names the checkout
+     * session, the admin's web session and the outcome.
+     */
+    private function audit(Request $request, string $sessionId, ?string $projectId, string $outcome, ?string $reason = null): void
+    {
+        $admin = $request->user();
+        Audit::record('checkout_reprocessed', $projectId, $admin instanceof Model ? $admin : null, array_filter([
+            'checkoutSessionId' => $sessionId,
+            'adminSessionId' => $request->hasSession() ? $request->session()->getId() : null,
+            'outcome' => $outcome,
+            'reason' => $reason,
+        ], static fn ($v) => $v !== null));
     }
 }

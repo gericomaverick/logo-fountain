@@ -11,7 +11,7 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 3 | `e2e/smoke.spec.ts` | 2 | A-15 | L5 parity @smoke | | Not started |
 | 4 | `src/app/admin/projects/[id]/concepts/read-state-regression.test.ts` | 2 | C-15,D-05 | Keep TS (UI) + L4 read-state contract | | Not started |
 | 5 | `src/app/api/admin/checkout/reprocess/route.test.ts` | 5 | K-12 | Pest feature (HTTP) + L4 parity contract | tests/Feature/Checkout/ReprocessCheckoutTest.php | Partly ported 5.6 |
-| 6 | `src/app/api/admin/health/route.test.ts` | 5 | D-18 | Pest feature (HTTP) + L4 parity contract | tests/Feature/Checkout/UpsellCheckoutStartTest.php | Partly ported 5.5 |
+| 6 | `src/app/api/admin/health/route.test.ts` | 5 | D-18 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 7 | `src/app/api/admin/projects/[id]/audit/route.test.ts` | 3 | D-16 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 8 | `src/app/api/admin/projects/[id]/concepts/[conceptId]/publish/route.test.ts` | 5 | D-06 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 9 | `src/app/api/admin/projects/[id]/concepts/[conceptId]/route.test.ts` | 8 | D-07 | Pest feature (HTTP) + L4 parity contract | | Not started |
@@ -44,7 +44,7 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 36 | `src/app/api/projects/[id]/approve/route.test.ts` | 1 | C-12 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 37 | `src/app/api/projects/[id]/brief/draft/route.test.ts` | 11 | C-06 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 38 | `src/app/api/projects/[id]/brief/route.test.ts` | 4 | C-07 | Pest feature (HTTP) + L4 parity contract | | Not started |
-| 39 | `src/app/api/projects/[id]/checkout/session/route.test.ts` | 2 | K-08 | Pest feature (HTTP) + L4 parity contract | | Not started |
+| 39 | `src/app/api/projects/[id]/checkout/session/route.test.ts` | 2 | K-08 | Pest feature (HTTP) + L4 parity contract | tests/Feature/Checkout/UpsellCheckoutStartTest.php | Partly ported 5.5 (L2 only; L4 parity not run) |
 | 40 | `src/app/api/projects/[id]/concepts/[conceptId]/assets/route.test.ts` | 4 | C-09 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 41 | `src/app/api/projects/[id]/concepts/[conceptId]/comments/route.test.ts` | 3 | C-10 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 42 | `src/app/api/projects/[id]/concepts/route.test.ts` | 4 | C-08 | Pest feature (HTTP) + L4 parity contract | | Not started |

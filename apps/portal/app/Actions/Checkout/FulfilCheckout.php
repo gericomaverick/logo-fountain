@@ -137,8 +137,10 @@ final class FulfilCheckout implements FulfilsCheckout
         Database::connection(DatabaseRoles::RUNTIME)->transaction(function () use ($sessionId, $result): void {
             Locks::fulfilSideEffects($sessionId);
             $marker = LifecycleMail::markerType('upsell_buyer_email_mismatch', $sessionId);
-            if (Database::connection(DatabaseRoles::RUNTIME)->table('audit_events')->where('project_id', $result->projectId)->where('type', $marker)->exists()) {
-                return;
+            $audits = Database::connection(DatabaseRoles::RUNTIME)->table('audit_events')->where('project_id', $result->projectId);
+            if ((clone $audits)->where('type', $marker)->exists()
+                || (clone $audits)->where('type', 'upsell_buyer_email_mismatch')->where('payload->checkoutSessionId', $sessionId)->exists()) {
+                return; // already audited (and mailed, or skipped): not again on a redelivery
             }
             Audit::record('upsell_buyer_email_mismatch', $result->projectId, null, ['checkoutSessionId' => $sessionId, 'purchaserEmail' => $result->purchaserEmail]);
             LifecycleMail::sendOnce('upsell_buyer_email_mismatch', $result->projectId, $sessionId, LifecycleMessage::admin(

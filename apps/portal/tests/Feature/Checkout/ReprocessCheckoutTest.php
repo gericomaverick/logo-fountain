@@ -98,3 +98,20 @@ it('sends no mail from the controller itself (ADR-015)', function () {
     $src = (string) file_get_contents(app_path('Http/Controllers/Api/ReprocessCheckoutController.php'));
     expect($src)->not->toContain('Mail::')->and($src)->not->toContain('LifecycleMail')->and($src)->not->toContain('SendAuthLink');
 });
+
+it('writes its own audit row, with the admin, the sessions and the outcome, even when nothing was left to do (DV-26)', function () {
+    rpAdmin();
+    $adminId = DB::table('sessions')->where('id', RP_SID)->value('user_id');
+    $s = FakeStripe::install();
+    $s->respondWith(200, rpSession())->respondWith(200, rpLineItems());
+    rpPost(['session_id' => 'cs_test_REPROC01'])->assertOk();
+    $s->respondWith(200, rpSession());
+    rpPost(['session_id' => 'cs_test_REPROC01'])->assertOk()->assertJsonPath('deduped', true);
+
+    $rows = DB::table('audit_events')->where('type', 'checkout_reprocessed')->orderBy('created_at')->get();
+    expect($rows)->toHaveCount(2)->and($rows->pluck('actor_id')->unique()->all())->toBe([$adminId]);
+    $payloads = $rows->map(fn ($r) => json_decode((string) $r->payload, true))->all();
+    expect(array_column($payloads, 'outcome'))->toBe(['fulfilled', 'already_fulfilled'])
+        ->and($payloads[1]['checkoutSessionId'])->toBe('cs_test_REPROC01')
+        ->and($payloads[1])->toHaveKey('adminSessionId');
+})->group('admin', 'api', 'deviation');
