@@ -143,6 +143,7 @@ Requirement series → code: A → `Actions/Auth`, middleware, `Support/RateLimi
 - Keep `@viteReactRefresh` before `@vite` in `app.blade.php`, or no React page renders in dev (1.7). Browse the dev app at `localhost`, not `127.0.0.1` (Vite CORS) (1.7).
 - Inline text links are always underlined (axe `link-in-text-block`) (1.7).
 - UI checks: `bin/ui-test` (lint, node:test unit tests, tsc) and `bin/browser-test` (Playwright L7/L7a in `tests/browser`, against the running stack) (1.7).
+- **Never run `bin/browser-test` (or `bin/ui-test`) against port 8080: that is the owner's own `lf-portal` stack, and a stale build there changes baselines. Always export `COMPOSE_PROJECT_NAME` and `PORTAL_HTTP_PORT` for your own stack first (see Parallel copies above); if `PORTAL_HTTP_PORT` is unset, stop.**
 - Pest must not depend on Vite: `tests/TestCase.php` calls `withoutVite()` (1.1b).
 - L3 concurrency tests go in `tests/Concurrency/*Test.php` (their own testsuite, run serially after L1/L2 in CI) (1.1b).
 - A new secret env var goes into `SecurityCheck::PRIVATE_KEYS`; a new token format gets a `bin/log-grep` pattern plus a self-test line (1.1b).
