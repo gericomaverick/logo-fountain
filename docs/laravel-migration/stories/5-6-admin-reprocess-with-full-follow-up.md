@@ -1,6 +1,6 @@
 # Story 5.6: Admin reprocess with full follow-up
 
-**Status:** ready-for-dev (created from `origin/workbench/4-integrate` b2e1115) · **DoD variant:** Laravel-only · **Epic:** 5 · **Covers:** K-12, DV-6, FR21, ADR-015 · **Gate:** `@admin&@api` (reprocess), `@deviation` (DV-6) · **After:** 5.3 · **Stacks on:** `origin/workbench/4-integrate`; in the SERIAL chain, the previous Epic 5 story's branch (see `epic-5-build-order` in 5.7). Test mode and fakes only (stripe-fake, postmark-shim); live Stripe/Postmark is the owner's.
+**Status:** ready-for-dev (created from `origin/workbench/4-integrate` b2e1115) · **DoD variant:** Conversion · **Epic:** 5 · **Covers:** K-12, DV-6, FR21, ADR-015 · **Gate:** `@admin&@api` (reprocess), `@deviation` (DV-6) · **After:** 5.3 · **Stacks on:** `origin/workbench/4-integrate`; in the SERIAL chain, the previous Epic 5 story's branch (see `epic-5-build-order` in 5.7). Test mode and fakes only (stripe-fake, postmark-shim); live Stripe/Postmark is the owner's.
 
 > Created with the repo's create-story form. All `apps/web` `file:line` read 2026-11-23; `apps/web` is frozen, so nothing here edits it.
 
@@ -11,9 +11,9 @@ As an admin, I can reprocess a paid session whose webhook never completed, and t
 1. **Guards.** `POST /api/admin/checkout/reprocess`: Origin guard first (`reprocess/route.ts:14-15`), signed-in admin only (`:17-18`; anonymous → 401, non-admin → 403 through the Epic 4 guards).
 2. **Body.** `{session_id}` trimmed; missing/blank → `400` (`:20-25`). **Proposed DV-23:** the body is the standard `{error:{code:"MISSING_SESSION_ID",message}}`; Next omits the code (`:24`).
 3. **Retrieve and fulfil.** Retrieves the session from Stripe (`:27-29`) and runs the **same** `FulfilCheckout` action as the webhook (`:31`; ADR-015), including the paid check, upsell routing and idempotency from 5.3/5.5.
-4. **Provisioning with names (DV-6).** Provisioning receives the checkout first/last name as in the webhook; Next passes none on reprocess (`:35` vs `webhook/route.ts:157-160`), so profile names are lost.
+4. **Provisioning with names (DV-6; goes beyond the DV-6 text, recorded under DV-6).** Provisioning receives the checkout first/last name as in the webhook; Next passes none on reprocess (`:35` vs `webhook/route.ts:157-160`), so profile names are lost.
 5. **Follow-up (DV-6).** After fulfilment, reprocess runs the shared `CompleteFulfilmentSideEffects`: the customer setup-or-sign-in email (marker `email_sent:checkout_auth:{sessionId}`) and, for new-project sessions, the admin new-project email (own marker). Next sends neither (`:31-37`). `@deviation`.
-6. **Idempotent.** Given a fulfilled but unemailed session, reprocess sends the customer and admin emails once; reprocessing again sends nothing new and answers `deduped:true`. A reprocess racing the webhook cannot double-send (the markers are the guard; no ledger write by reprocess, Open question 1).
+6. **Idempotent.** Given a fulfilled but unemailed session, reprocess sends the customer and admin emails once; reprocessing again sends nothing new and answers `deduped:true`. A reprocess racing the webhook cannot double-send Reprocess calls the same `CompleteFulfilmentSideEffects`, whose advisory lock on the session id serialises the marker check and the send (5.3 AC 9); the markers alone are not a guard, since they are written after the send. No ledger write by reprocess (Open question 1). `@pg-race`: webhook and reprocess concurrently → each mail once.
 7. **Response.** `200 {ok:true,deduped,projectId,orderId,clientId,purchaserEmail,orderStatus,provisionedUserId,message}`, message "Session fulfilled successfully." or "Session already fulfilled; ensured access provisioning." (`:39-49`).
 8. **Unpaid.** `409 {error:{code:"CHECKOUT_SESSION_NOT_PAID",message:"Checkout session has not been paid; nothing was provisioned."}}` and nothing is created or sent (`:51-61`).
 9. **Unknown session or Stripe failure. Proposed DV-23.** A Stripe 404 → `404 {error:{code:"CHECKOUT_SESSION_NOT_FOUND"}}`; other Stripe errors → `502 {error:{code:"STRIPE_UNAVAILABLE"}}`, no detail. Next rethrows anything but route-auth errors (`:63`; `lib/auth/require.ts:21-27`), an unhandled 500.
@@ -30,7 +30,7 @@ K-12, DV-6. Ledger: `reprocess` route test(s) (grep `test-port-ledger.md`).
 - Reprocessing an upsell session re-applies nothing (order exists) and sends only the customer email if its marker is missing.
 
 ## Laravel guidance
-`app/Http/Controllers/Admin/ReprocessCheckoutController.php` calling `FulfilCheckout` then `CompleteFulfilmentSideEffects` (5.3); shared action means one code path with the webhook (arch test: the webhook controller and this controller both call it, neither sends mail directly).
+`app/Http/Controllers/Api/Admin/ReprocessCheckoutController.php` calling `FulfilCheckout` then `CompleteFulfilmentSideEffects` (5.3); shared action means one code path with the webhook (arch test: the webhook controller and this controller both call it, neither sends mail directly).
 
 ## Planned deviations from Next.js
 | ID | Deviation | Status |
@@ -49,15 +49,16 @@ K-12, DV-6. Ledger: `reprocess` route test(s) (grep `test-port-ledger.md`).
 | L2 `@deviation` | AC 2, 9 | DV-23 |
 | L3 `@pg-race` | reprocess racing the webhook: each mail once | DV-6 |
 | L2 arch | no direct mail send in either controller | ADR-015 |
-| L4 parity | admin contract/journeys for reprocess | K-12 |
+| L4 parity `@deviation` | `journeys/deviations/dv-reprocess.spec.ts:14` (DV-6): passes on Laravel, fails on Next; plus the admin contract specs for reprocess | DV-6, K-12 |
 
-## Definition of done (Laravel-only, `epics.md:35`)
-`bin/test` green (Pint, Larastan level 9, Pest) with the tests below; the Conversion record filled; inventory Laravel/Tests columns, ledger rows, `sprint-status.yaml` → `review`, and one line each in DECISIONS / RISKS / ASSUMPTIONS where something was decided. No `apps/web` change. **Test mode only:** every Stripe call goes to stripe-fake (`STRIPE_SECRET_KEY` a `sk_test_…` value, `api_base` pointed at the fake) and every mail to the postmark-shim or Mailpit; no live Stripe or Postmark key, webhook secret or price ID is read, written or configured (live mode is the owner's). L4/L5 parity runs only where the header's gate says so.
+## Definition of done (Conversion, `epics.md:35`)
+`bin/test` green (Pint, Larastan level 9, Pest) with the tests below; the Conversion record filled; inventory Laravel/Tests columns, ledger rows, `sprint-status.yaml` → `review`, and one line each in DECISIONS / RISKS / ASSUMPTIONS where something was decided. No `apps/web` change. **Test mode only:** every Stripe call goes to stripe-fake (`STRIPE_SECRET_KEY` a `sk_test_…` value, `api_base` pointed at the fake) and every mail to the postmark-shim or Mailpit; no live Stripe or Postmark key, webhook secret or price ID is read, written or configured (live mode is the owner's). L4/L5 parity runs only where the header's gate says so. **Conversion variant (`epics.md:35`):** the Next result equals `tests/parity/expected-next-failures.txt` (the deviation specs named in the test plan fail on Next, everything else passes); every earlier gate stays green on Laravel; Laravel page-object methods the story's journeys use are implemented in `tests/parity/pages/laravel/` (accessible locators first, `data-testid` only in Laravel objects, shared journeys unchanged). The parity specs listed in the test plan run on Laravel and on Next.
 
 ## Open questions (with recommendations)
 1. **Should reprocess claim a ledger row?** *Recommendation:* no; the order's unique session ID and the email markers already make it safe.
 2. **DV-23.** *Recommendation:* approve.
-3. **Owner items:** DV-23 (DV-6 is approved).
+3. **Does a successful reprocess clear the DV-15 "stuck" flag?** *Recommendation:* no write; a later `order_fulfilled` for the session supersedes `checkout_stuck` (5.2 Open question 1).
+4. **Owner items:** DV-23 (DV-6 is approved). DV-23 changes reprocess errors from 500 to 404/502: the admin UI stories (Epic 8/9) must handle them.
 
 ## Conversion record
 

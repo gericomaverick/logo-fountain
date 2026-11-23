@@ -1,6 +1,6 @@
 # Story 5.1: Checkout start
 
-**Status:** ready-for-dev (created from `origin/workbench/4-integrate` b2e1115) · **DoD variant:** Laravel-only · **Epic:** 5 · **Covers:** K-01, K-13, DV-1, DV-4, DV-5, FR12, FR13 · **Gate:** `@checkout&@api`, `@deviation` (DV-1, DV-5) · **After:** 1.3, 0.5 · **Stacks on:** `origin/workbench/4-integrate`; in the SERIAL chain, the previous Epic 5 story's branch (see `epic-5-build-order` in 5.7). Test mode and fakes only (stripe-fake, postmark-shim); live Stripe/Postmark is the owner's.
+**Status:** ready-for-dev (created from `origin/workbench/4-integrate` b2e1115) · **DoD variant:** Conversion · **Epic:** 5 · **Covers:** K-01, K-13, DV-1, DV-4, DV-5, FR12, FR13 · **Gate:** `@checkout&@api`, `@deviation` (DV-1, DV-5) · **After:** 1.3, 0.5 · **Stacks on:** `origin/workbench/4-integrate`; in the SERIAL chain, the previous Epic 5 story's branch (see `epic-5-build-order` in 5.7). Test mode and fakes only (stripe-fake, postmark-shim); live Stripe/Postmark is the owner's.
 
 > Created with the repo's create-story form. All `apps/web` `file:line` read 2026-11-23; `apps/web` is frozen, so nothing here edits it.
 
@@ -15,7 +15,7 @@ As a prospect on the marketing site, I can start a package checkout (optionally 
 5. **Campaign slug.** Trimmed, cut to 80 characters, omitted when empty; sent only as `metadata.campaign_slug` next to `metadata.package_code` (`:12-16,58-61`). It is copied to the order in 5.3 (DV-4).
 6. **Success.** Redirect `303` to `session.url` (`:64-66`). A session without a URL → `500 CHECKOUT_URL_MISSING` (`:64`).
 7. **Stripe failure.** → `500 {error:{code:"CHECKOUT_SESSION_FAILED",message:…,nextStep:"Verify Stripe configuration and retry."}}` (`:67-70`). **Proposed DV-20:** the message is a fixed string; Next echoes `error.message` from Stripe (`:68-69`). The detail goes to the log only.
-8. **Price map.** Package → price ID lives in config, beside the display price (as K-08's note requires); placeholder IDs are detected at boot and logged (`lib/stripe.ts:19-27`, unverified beyond those lines). Tests use the fake's price IDs from `tests/parity/fixtures/stripe/prices.json`.
+8. **Price map.** Package → price ID lives in config, beside the display price (as K-08's note requires); placeholder IDs are detected at boot: **production refuses to boot** with one, other environments log it (`AGENTS.md` §5 boot validation, `ConfigBootValidationTest.php`; Next only logs, `lib/stripe.ts:19-27`). Tests use the fake's price IDs from `tests/parity/fixtures/stripe/prices.json`.
 9. **No account needed.** The route is public and anonymous; no Origin guard (it is a `GET` that redirects) and no session read.
 
 ## Inventory scope
@@ -29,7 +29,7 @@ K-01, K-13 (promotion codes), DV-1, DV-4 (metadata half), DV-5. Ledger rows for 
 - The session is created per request with no limiter (see Open question 2).
 
 ## Laravel guidance
-`app/Actions/Checkout/StartCheckout.php` (plain class), `app/Http/Controllers/Checkout/CheckoutStartController.php`, a `StripeCatalog` helper (package and upsell price maps, shared with 5.5). `StripeClient` from a container binding with `stripe_version=2026-02-25.clover` (ADR-014); the test binding sets `api_base` to stripe-fake. Return `redirect()->away($url, 303)`.
+`app/Actions/Checkout/StartCheckout.php` (plain class), `app/Http/Controllers/Api/CheckoutStartController.php`, a `StripeCatalog` helper (package and upsell price maps, shared with 5.5). `StripeClient` from a container binding with `stripe_version=2026-02-25.clover` (ADR-014); the test binding sets `api_base` to stripe-fake. Return `redirect()->away($url, 303)`.
 
 ## Planned deviations from Next.js
 | ID | Deviation | Status |
@@ -49,9 +49,10 @@ K-01, K-13 (promotion codes), DV-1, DV-4 (metadata half), DV-5. Ledger rows for 
 | L2 `@deviation` | AC 2 (promo flag), AC 3 (forged forwarded headers), AC 7 (generic message) | K-13, DV-1, DV-5, DV-20 |
 | L1 | `StripeCatalogTest.php`: maps, placeholder detection | K-01 |
 | L4 parity | `contract/checkout-contracts.spec.ts` start cases | K-01 |
+| L4 parity `@deviation` | `journeys/deviations/dv-checkout.spec.ts:43` (DV-1, packages half) and `:58` (DV-5, start half): pass on Laravel, fail on Next (listed in `expected-next-failures.txt`) | DV-1, DV-5 |
 
-## Definition of done (Laravel-only, `epics.md:35`)
-`bin/test` green (Pint, Larastan level 9, Pest) with the tests below; the Conversion record filled; inventory Laravel/Tests columns, ledger rows, `sprint-status.yaml` → `review`, and one line each in DECISIONS / RISKS / ASSUMPTIONS where something was decided. No `apps/web` change. **Test mode only:** every Stripe call goes to stripe-fake (`STRIPE_SECRET_KEY` a `sk_test_…` value, `api_base` pointed at the fake) and every mail to the postmark-shim or Mailpit; no live Stripe or Postmark key, webhook secret or price ID is read, written or configured (live mode is the owner's). L4/L5 parity runs only where the header's gate says so.
+## Definition of done (Conversion, `epics.md:35`)
+`bin/test` green (Pint, Larastan level 9, Pest) with the tests below; the Conversion record filled; inventory Laravel/Tests columns, ledger rows, `sprint-status.yaml` → `review`, and one line each in DECISIONS / RISKS / ASSUMPTIONS where something was decided. No `apps/web` change. **Test mode only:** every Stripe call goes to stripe-fake (`STRIPE_SECRET_KEY` a `sk_test_…` value, `api_base` pointed at the fake) and every mail to the postmark-shim or Mailpit; no live Stripe or Postmark key, webhook secret or price ID is read, written or configured (live mode is the owner's). L4/L5 parity runs only where the header's gate says so. **Conversion variant (`epics.md:35`):** the Next result equals `tests/parity/expected-next-failures.txt` (the deviation specs named in the test plan fail on Next, everything else passes); every earlier gate stays green on Laravel; Laravel page-object methods the story's journeys use are implemented in `tests/parity/pages/laravel/` (accessible locators first, `data-testid` only in Laravel objects, shared journeys unchanged). The parity specs listed in the test plan run on Laravel and on Next.
 
 ## Open questions (with recommendations)
 1. **DV-20 (no Stripe text in the 500).** *Recommendation:* approve; it is a leak of provider detail to an anonymous caller.

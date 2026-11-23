@@ -1,6 +1,6 @@
 # Story 5.4: Checkout success, continue, resend
 
-**Status:** ready-for-dev (created from `origin/workbench/4-integrate` b2e1115) · **DoD variant:** Laravel-only · **Epic:** 5 · **Covers:** K-02, K-03, K-04, FR14, FR58 · **Gate:** `@checkout&@api`, `@checkout&@ui` · **After:** 5.3, 1.9 · **Stacks on:** `origin/workbench/4-integrate`; in the SERIAL chain, the previous Epic 5 story's branch (see `epic-5-build-order` in 5.7). Test mode and fakes only (stripe-fake, postmark-shim); live Stripe/Postmark is the owner's.
+**Status:** ready-for-dev (created from `origin/workbench/4-integrate` b2e1115) · **DoD variant:** Conversion · **Epic:** 5 · **Covers:** K-02, K-03, K-04, FR14, FR58 · **Gate:** `@checkout&@api`, `@checkout&@ui` · **After:** 5.3, 1.9 · **Stacks on:** `origin/workbench/4-integrate`; in the SERIAL chain, the previous Epic 5 story's branch (see `epic-5-build-order` in 5.7). Test mode and fakes only (stripe-fake, postmark-shim); live Stripe/Postmark is the owner's.
 
 > Created with the repo's create-story form. All `apps/web` `file:line` read 2026-11-23; `apps/web` is frozen, so nothing here edits it.
 
@@ -30,7 +30,7 @@ K-02, K-03, K-04, FR58 (limits). Ledger rows for the three route tests and `chec
 - The limiter consumes before sending, so a failed send still costs an attempt.
 
 ## Laravel guidance
-`app/Http/Controllers/Checkout/CheckoutStatusController.php`, `CheckoutAuthEmailController.php` (one action, two routes), reuse `RateLimits::consumeCheckoutEmail` (2.5) and `SendAuthLink` (4.4, `flow=signin`). Pages as Blade/Livewire per the UI stack decided in 1.8; polling via the 1.8c `usePolling` equivalent.
+`app/Http/Controllers/Api/CheckoutStatusController.php`, `CheckoutAuthEmailController.php` (one action, two routes), reuse `RateLimits::consumeCheckoutEmail` (2.5) and `SendAuthLink` (4.4, `flow=signin`). Pages are React/Inertia (the portal UI, `resources/js`); polling via the 1.8c `usePolling` equivalent.
 
 ## Planned deviations from Next.js
 | ID | Deviation | Status |
@@ -46,11 +46,11 @@ K-02, K-03, K-04, FR58 (limits). Ledger rows for the three route tests and `chec
 | L2 `@checkout&@api` | `CheckoutStatusTest.php`: AC 1 (unknown = pending byte-identical) | K-02 |
 | L2 | `CheckoutSendLinkTest.php`: AC 2–4, 6, never returns the URL, never `setup` | K-03, K-04 |
 | L2/L3 | `CheckoutSendLimitTest.php`: AC 5 across two processes (`@pg-race`) | FR58 |
-| L2 `@checkout&@ui` | `tests/Browser/CheckoutSuccessTest.php`: AC 7–10 with a fake clock and stripe-fake | K-02 |
+| L2 `@checkout&@ui` | `tests/browser/checkout-success.spec.ts` (Playwright, the portal's browser suite): AC 7–10 with a fake clock and stripe-fake | K-02 |
 | L4 parity | `contract/checkout-contracts.spec.ts`; journey 1 success step | K-02–K-04 |
 
-## Definition of done (Laravel-only, `epics.md:35`)
-`bin/test` green (Pint, Larastan level 9, Pest) with the tests below; the Conversion record filled; inventory Laravel/Tests columns, ledger rows, `sprint-status.yaml` → `review`, and one line each in DECISIONS / RISKS / ASSUMPTIONS where something was decided. No `apps/web` change. **Test mode only:** every Stripe call goes to stripe-fake (`STRIPE_SECRET_KEY` a `sk_test_…` value, `api_base` pointed at the fake) and every mail to the postmark-shim or Mailpit; no live Stripe or Postmark key, webhook secret or price ID is read, written or configured (live mode is the owner's). L4/L5 parity runs only where the header's gate says so.
+## Definition of done (Conversion, `epics.md:35`)
+`bin/test` green (Pint, Larastan level 9, Pest) with the tests below; the Conversion record filled; inventory Laravel/Tests columns, ledger rows, `sprint-status.yaml` → `review`, and one line each in DECISIONS / RISKS / ASSUMPTIONS where something was decided. No `apps/web` change. **Test mode only:** every Stripe call goes to stripe-fake (`STRIPE_SECRET_KEY` a `sk_test_…` value, `api_base` pointed at the fake) and every mail to the postmark-shim or Mailpit; no live Stripe or Postmark key, webhook secret or price ID is read, written or configured (live mode is the owner's). L4/L5 parity runs only where the header's gate says so. **Conversion variant (`epics.md:35`):** the Next result equals `tests/parity/expected-next-failures.txt` (the deviation specs named in the test plan fail on Next, everything else passes); every earlier gate stays green on Laravel; Laravel page-object methods the story's journeys use are implemented in `tests/parity/pages/laravel/` (accessible locators first, `data-testid` only in Laravel objects, shared journeys unchanged). The parity specs listed in the test plan run on Laravel and on Next.
 
 ## Open questions (with recommendations)
 1. **DV-22.** *Recommendation:* approve both halves; (b) is a plain bug.
