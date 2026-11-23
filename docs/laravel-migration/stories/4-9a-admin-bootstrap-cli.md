@@ -83,3 +83,22 @@ The audit-type change is a deviation the owner has not seen: propose a DV row.
 **L4 parity run (2026-11-23, workbench/parity-4-5):** @auth 37 tests: Next 37 pass; Laravel 15 pass / 11 fail / 11 not reached. @checkout 28: Next 28 pass; Laravel 1 / 20 / 7. @entitlements 10: Next 10 pass; Laravel 0 / 10 / 0. Failures are the unwired Stripe/Postmark/Mailpit infra on the Laravel stack and not-yet-built pages/routes, listed with titles in `docs/laravel-migration/parity-run-2026-11-23.md`. This story's parity tests are not shown to match: stays at `review`.
 
 **Why no parity test (epic-45-close, 2026-11-23):** the admin bootstrap is an artisan command with no HTTP surface and no browser journey. The parity suite is black-box over HTTP and a UI, and it has no step that runs a shell command against either app, so there is nothing to run on both targets. Its Pest coverage (L2 `BootstrapAdminTest`, L3 `BootstrapSingleUseTest`, arch no-auto-run) is the whole check; the later admin API/journeys sign in as the bootstrapped admin through the seed.
+
+**Script-to-test table (epic-45-close, 2026-11-23).** `apps/web/scripts/bootstrap-admin.mjs` against `apps/portal/tests/Feature/Console/BootstrapAdminTest.php` (Pest alone; the L3 race is `tests/Concurrency/BootstrapSingleUseTest.php`).
+
+| Script behaviour | Script line | Pest test (BootstrapAdminTest.php) |
+|---|---|---|
+| Email must contain `@` | :10 | "refuses an email without an @" (:88) |
+| Grant needs exact ack and UUID | :10 | "refuses a grant without the ack, or with a non-UUID" (:36) |
+| Runs on the migration connection | :11 | "refuses to run on the runtime connection" (:81) |
+| One transaction under an advisory lock; rollback on refusal | :14-15, :36-38 | "refuses each bad state ... writes nothing" (:55); two parallel grants: `BootstrapSingleUseTest` |
+| Connection role must own the schema | :16-17 | "refuses when the connection role does not own the schema" (:110) |
+| Already consumed refuses | :18-19 | "grants admin once ..." (second run, :43); "refuses prepare once the bootstrap is consumed" (:93) |
+| Prepare creates unverified user and profile, prints UUID | :21-24 | "prepares an unprivileged, unverified identity" (:26) |
+| Prepare on an existing email reuses it (ON CONFLICT) | :22-23 | "prepare on an existing email reuses that user" (:102) |
+| Grant needs exact id + email, verified, locked | :26-27 | "refuses each bad state" cases unverified, wrong-uuid, wrong-email (:55) |
+| An existing admin refuses | :28-29 | case admin-exists (:55) |
+| Profile must exist (one row updated) | :30-31 | case no-profile (:55) |
+| Marker row id 1 with the user | :32 | "grants admin once ..." (:43) |
+| Audit row | :33 | same test; type differs by design (deviation table above) |
+| Success message | :34 | "grants admin once" expects "committed" |

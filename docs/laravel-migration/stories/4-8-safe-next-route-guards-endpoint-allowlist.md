@@ -1,6 +1,6 @@
 # Story 4.8: Safe-next, route guards, endpoint allowlist
 
-**Status:** review (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-13, A-14, A-15, A-16 · **Gate:** `@authz&@api` (auth part), `@unit` · **After:** 4.1, 0.6b (done) · **Stacks on:** `main` (dependencies done); in the SERIAL chain, the previous Epic 4 story's branch. Shared files: `app/Support/Auth/SafeNext.php`, `routes/auth.php`, `routes/web.php`, `tests/Arch/AuthTest.php`, `tests/Fixtures`
+**Status:** done (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-13, A-14, A-15, A-16 · **Gate:** `@authz&@api` (auth part), `@unit` · **After:** 4.1, 0.6b (done) · **Stacks on:** `main` (dependencies done); in the SERIAL chain, the previous Epic 4 story's branch. Shared files: `app/Support/Auth/SafeNext.php`, `routes/auth.php`, `routes/web.php`, `tests/Arch/AuthTest.php`, `tests/Fixtures`
 
 > Created with the repo's create-story form. All `apps/web` `file:line` checked 2026-11-22.
 
@@ -54,21 +54,24 @@ None.
 > Fill at implementation, from `templates/story-conversion-record.md`. Write *Behaviour notes* before converting.
 
 ### Inventory scope
-_(stub)_
+A-13, A-14, A-15, A-16. Ledger `safe-next.test.ts` (2 cases + fixtures), `authz` rows touching the auth part.
 ### Next.js source read
-_(stub)_
+`lib/auth/safe-next.ts:1-42`; `app/page.tsx:3-5`; `lib/auth/require.ts:29-47`; `lib/auth/admin.ts`; `lib/auth/server.ts:34`.
 ### Behaviour notes
-_(stub)_
+`next` is accepted only as a same-origin path; anything else (`//x`, `/\x`, encoded slashes, controls, absolute URLs) becomes the fallback `/dashboard`, the fixture `safe-next.json` is the source of truth for both stacks. Auth routes are exactly GET session and POST login, logout, password, magic-link, magic-link/verify, forgot-password, reset-password; nothing under `/api/auth/native`. Anonymous page requests redirect to `/login?next=<safe>`; `/` goes to `/login`; guarded API routes answer 401 UNAUTHORIZED / 403 FORBIDDEN with `nextStep`; roles are read from the DB on each request; an admin with an unverified mailbox is nobody.
 ### Laravel implementation
-_(stub)_
+`App\Support\Auth\SafeNext::path()`, used by `SendAuthLink` (link `next`) and `Http/Middleware/RequireVerifiedUser` (redirect `next`); middleware `RequireVerifiedUser` and `RequireAdmin` aliased in `bootstrap/app.php`; route allowlist in `routes/auth.php`, pinned by `tests/Arch/AuthTest.php`.
 ### Deviations from Next.js
 | Behaviour | Next.js | Laravel | Why | Decision ref |
 |---|---|---|---|---|
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|
+| L1 `@unit` | `tests/Unit/Support/Auth/SafeNextTest.php` (fixture-driven, caller fallback) | A-13 |
+| L2 `@authz&@api` | `tests/Feature/Auth/RouteGuardTest.php` | A-16 |
+| Arch | `tests/Arch/AuthTest.php` (exact route allowlist, no register/OAuth/native route, `next` through SafeNext) | A-14, A-15, A-13 |
 ### Test evidence
-_(commands, pass/fail counts, what was not run and why)_
+`bin/test` (Pint, Larastan level 9, Pest) green on epic-45-close: 2144 passed (6357 assertions), exit 0; typecheck and lint exit 0. L4 parity not re-run for this record; see the parity line below.
 ### Gotchas
 ### Docs updated
 ### Open items

@@ -1,5 +1,7 @@
 <?php
 
+use App\Actions\Auth\ChangePassword;
+use App\Exceptions\AuthFailure;
 use App\Models\Profile;
 use App\Models\User;
 use App\Support\Auth\AuthProofs;
@@ -103,4 +105,27 @@ it('treats a session past the seven-day cap as anonymous', function () {
     postChange($id, ['currentPassword' => CHG_OLD, 'newPassword' => CHG_NEW])->assertStatus(401);
 
     expect(Hash::check(CHG_OLD, (string) DB::table('users')->where('id', $user->id)->value('password')))->toBeTrue();
+});
+
+// Story 4.7 AC 6, ChangePassword.php:33-34: under the fence the session row and the verified mailbox are re-read.
+it('refuses at the action when the session row is gone, changing nothing', function () {
+    [$user, $id] = chgUser();
+    DB::table('sessions')->where('id', $id)->delete();
+
+    expect(fn () => app(ChangePassword::class)->handle($user->id, $id, time(), CHG_OLD, CHG_NEW))
+        ->toThrow(fn (AuthFailure $e) => expect($e->status)->toBe(401));
+
+    expect(Hash::check(CHG_OLD, (string) DB::table('users')->where('id', $user->id)->value('password')))->toBeTrue()
+        ->and(DB::table('sessions')->where('id', 'other-session')->exists())->toBeTrue();
+});
+
+it('refuses at the action when the mailbox is unverified, changing nothing', function () {
+    [$user, $id] = chgUser();
+    DB::table('users')->where('id', $user->id)->update(['email_verified_at' => null]);
+
+    expect(fn () => app(ChangePassword::class)->handle($user->id, $id, time(), CHG_OLD, CHG_NEW))
+        ->toThrow(fn (AuthFailure $e) => expect($e->status)->toBe(401));
+
+    expect(Hash::check(CHG_OLD, (string) DB::table('users')->where('id', $user->id)->value('password')))->toBeTrue()
+        ->and(DB::table('sessions')->where('user_id', $user->id)->count())->toBe(2);
 });

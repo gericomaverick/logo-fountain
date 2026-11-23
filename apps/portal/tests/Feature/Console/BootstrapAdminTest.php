@@ -83,3 +83,40 @@ it('refuses to run on the runtime connection', function () {
         ->expectsOutputToContain('migrate')->assertExitCode(1);
     expect(ownerDb()->table('users')->count())->toBe(0);
 });
+
+// Script gaps closed for the 4.9a record table (bootstrap-admin.mjs:10, :19, :22).
+it('refuses an email without an @ (script :10)', function () {
+    $this->artisan('portal:bootstrap-admin', ['--prepare' => true, '--email' => 'nobody'])->assertExitCode(1);
+    expect(ownerDb()->table('users')->count())->toBe(0);
+});
+
+it('refuses prepare once the bootstrap is consumed (script :19)', function () {
+    $user = Profile::factory()->create()->user;
+    $this->artisan('portal:bootstrap-admin', grantArgs($user->email, $user->id))->assertExitCode(0);
+
+    $this->artisan('portal:bootstrap-admin', ['--prepare' => true, '--email' => 'late@example.com'])
+        ->expectsOutputToContain('already consumed')->assertExitCode(1);
+    expect(ownerDb()->table('users')->where('email', 'late@example.com')->exists())->toBeFalse();
+});
+
+it('prepare on an existing email reuses that user (script :22-23)', function () {
+    $user = User::factory()->create();
+    $this->artisan('portal:bootstrap-admin', ['--prepare' => true, '--email' => strtoupper($user->email)])
+        ->expectsOutputToContain($user->id)->assertExitCode(0);
+    expect(ownerDb()->table('users')->where('email', $user->email)->count())->toBe(1)
+        ->and(ownerDb()->table('profiles')->where('id', $user->id)->exists())->toBeTrue();
+});
+
+it('refuses when the connection role does not own the schema (script :16-17)', function () {
+    $migrate = config('database.connections.'.DatabaseRoles::MIGRATE);
+    config(['database.connections.'.DatabaseRoles::MIGRATE => config('database.connections.pgsql')]);
+    DB::purge(DatabaseRoles::MIGRATE);
+    try {
+        $this->artisan('portal:bootstrap-admin', ['--prepare' => true, '--email' => 'owner@example.com'])
+            ->expectsOutputToContain('must own the schema')->assertExitCode(1);
+    } finally {
+        config(['database.connections.'.DatabaseRoles::MIGRATE => $migrate]);
+        DB::purge(DatabaseRoles::MIGRATE);
+    }
+    expect(ownerDb()->table('users')->count())->toBe(0);
+});
