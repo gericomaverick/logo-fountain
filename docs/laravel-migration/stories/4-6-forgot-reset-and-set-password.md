@@ -53,6 +53,8 @@ None. (Next's `WEAK_PASSWORD` code appears only in the thrown error; confirm the
 1. **Exact WEAK_PASSWORD body.** Next's wrapper maps `AuthFailure` to `{error:{code,message:generic}}` (`http.ts:42`). *Recommendation:* same; confirm against the contract suite.
 2. **Owner items: none.**
 
+**Decided (owner, 2026-11-23):** Q (generic message in the WEAK_PASSWORD body) as built.
+
 ## Conversion record
 
 ### Inventory scope
@@ -80,4 +82,4 @@ Order: rate limit by token, then WEAK_PASSWORD (before any proof read), then one
 ### Docs updated
 Inventory A-08, ledger #29, #66, #72, DECISIONS, sprint-status.
 ### Open items
-Q1 built as recommended (generic message in the WEAK_PASSWORD body), awaiting owner; exact JSON to confirm against L4. Confirm-password stays client-side.
+Q1 built as recommended (generic message in the WEAK_PASSWORD body), decided (owner, 2026-11-23); exact JSON to confirm against L4. Confirm-password stays client-side.

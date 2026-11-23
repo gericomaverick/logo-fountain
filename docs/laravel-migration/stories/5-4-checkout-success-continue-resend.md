@@ -35,7 +35,7 @@ K-02, K-03, K-04, FR58 (limits). Ledger rows for the three route tests and `chec
 ## Planned deviations from Next.js
 | ID | Deviation | Status |
 |---|---|---|
-| **DV-22** | Customer-safe troubleshooting copy; polling survives one failed poll | **Proposed, awaiting owner** (UX redesign, DV-UX, may already cover the copy) |
+| **DV-22** | Customer-safe troubleshooting copy; polling survives one failed poll | **Decided (owner, 2026-11-23)** (UX redesign, DV-UX, may already cover the copy) |
 
 ## Tasks
 1. Status endpoint. 2. Send-link action + routes. 3. Success and continue pages. 4. Tests. 5. Record, inventory (add DV-22 row), ledger, sprint-status.
@@ -68,7 +68,7 @@ Status exposes two fields only; unknown = pending byte-identical. Send-link is o
 ### Laravel implementation
 `CheckoutStatusController`, `CheckoutAuthEmailController`, routes in `routes/checkout.php` (no web group); pages `Pages/Checkout/{Success,Continue}.tsx`, `Components/ResendLink.tsx`, `lib/checkout.ts`; `Cache-Control: no-store` added on status (open question 2).
 ### Deviations from Next.js
-DV-22 (customer-safe copy; polling survives a failed poll via `usePolling`) implemented as proposed, awaiting owner approval. A purchaser with no user account answers 503 EMAIL_UNAVAILABLE (Next's `skipped`).
+DV-22 (customer-safe copy; polling survives a failed poll via `usePolling`) implemented as (decided, owner 2026-11-23) approval. A purchaser with no user account answers 503 EMAIL_UNAVAILABLE (Next's `skipped`).
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|

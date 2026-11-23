@@ -37,7 +37,7 @@ K-01, K-13 (promotion codes), DV-1, DV-4 (metadata half), DV-5. Ledger rows for 
 | DV-1 | `allow_promotion_codes=true` | Owner-approved |
 | DV-4 | Campaign slug in metadata (order copy in 5.3) | Recommendation |
 | DV-5 | Canonical URLs | Recommendation |
-| **DV-20** | Fixed error message, no Stripe text to the caller | **Proposed, awaiting owner** |
+| **DV-20** | Fixed error message, no Stripe text to the caller | **Decided (owner, 2026-11-23)** |
 
 ## Tasks
 1. Catalog + client binding. 2. StartCheckout + controller + route. 3. Tests. 4. Record, inventory (add DV-20 row), ledger, sprint-status.
@@ -74,7 +74,7 @@ Anonymous GET. `package_code` matched exactly and case-sensitively against the s
 |---|---|---|---|---|
 | Promotion codes | not enabled | `allow_promotion_codes=true` | F-1 | DV-1 (owner) |
 | Return URLs | from request headers | from `PUBLIC_SITE_URL` / marketing URL | forged Host | DV-5 |
-| Stripe failure message | echoes Stripe's text | fixed text, detail to log | provider leak | DV-20, proposed, awaiting owner |
+| Stripe failure message | echoes Stripe's text | fixed text, detail to log | provider leak | DV-20, (decided, owner 2026-11-23) |
 | Placeholder price ID | logged at boot | production refuses to boot; elsewhere logged | AGENTS.md §5 | story AC 8 |
 ### Tests
 | Layer | Test file / title | Inventory IDs |

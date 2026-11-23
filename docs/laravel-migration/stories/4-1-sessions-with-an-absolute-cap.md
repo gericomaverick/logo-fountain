@@ -70,6 +70,8 @@ None planned. Cookie name differs from Better Auth's by design (ADR-005).
 ## Doc / code disagreements
 - `brownfield` §1 says `created_at` "in the row or payload"; ADR-005 says payload. Use the payload.
 
+**Decided (owner, 2026-11-23):** Q1 (issued_at in the session payload, no migration) and Q2 (delete the expired row on first rejected read) as recommended.
+
 ## Conversion record
 
 **Stacks on:** `main` (workbench/4-a-sessions).
@@ -103,7 +105,7 @@ Inventory A-03/A-04, ledger #30, sprint-status, DECISIONS, RISKS, ASSUMPTIONS.
 Parity run of the session contract once the Next suite is installed.
 
 ## Critic round 1 (4-a-critic-9181) — recorded
-- **Boundary: built as recommended, awaiting owner.** Exactly 7 d is dead, matching Next (`service.ts:18`) and AC 2; the earlier "exactly 7 days is live" brief wording was not followed. Owner to confirm.
+- **Boundary: built as recommended, decided (owner, 2026-11-23).** Exactly 7 d is dead, matching Next (`service.ts:18`) and AC 2; the earlier "exactly 7 days is live" brief wording was not followed. Owner to confirm.
 - **`@auth&@api` gate: not run, the owner's call.** Header says Laravel-only but `apps/portal/AGENTS.md:76` makes a gate-bearing story a Conversion story. Not claimed as passed; L4 parity is unrun.
 - **503 on DB failure** now also covers the `sessions` read (`StartSession` runs before the middleware): a `QueryException|PDOException` renderer scoped to `api/auth/*` in `bootstrap/app.php`; the test breaks both `users` and `sessions` reads.
 - Noted for later (not changed): cap only on auth routes (settle before 4.8); anonymous requests write session rows; `SESSION_LIFETIME` not checked at boot; `issued_at` is whole seconds.

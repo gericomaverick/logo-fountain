@@ -77,4 +77,4 @@ A failed request still writes an anonymous session row (cookie omitted): assert 
 ### Docs updated
 Inventory A-05/A-18, ledger #27 and #66, DECISIONS, sprint-status.
 ### Open items
-Built as recommended (Q1: no server redirect), awaiting owner. Destination/failed-link page is 4.9b. L4 parity not run.
+Built as recommended (Q1: no server redirect), decided (owner, 2026-11-23). Destination/failed-link page is 4.9b. L4 parity not run.

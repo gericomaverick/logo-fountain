@@ -40,7 +40,7 @@ K-05 (ledger, classification), DV-15 (webhook half). Ledger: `webhook` route tes
 | ID | Deviation | Status |
 |---|---|---|
 | DV-15 | Unknown session, reused PI (other session) permanent + audit + admin email | Owner-approved (2026-11-19) |
-| **DV-21** | Upsell for a missing project is permanent | **Proposed, awaiting owner** |
+| **DV-21** | Upsell for a missing project is permanent | **Decided (owner, 2026-11-23)** |
 
 ## Tasks
 1. Classifier + tests. 2. Claim/lease/renew/complete/release. 3. Controller, route group without Origin guard, arch test. 4. DV-15 audit + admin email + stuck flag. 5. Tests. 6. Record, inventory (add DV-21 row), ledger, sprint-status.
@@ -95,4 +95,4 @@ Hopeless failures with a project need real fulfilment (5.3) to raise `paymentInt
 ### Docs updated
 Inventory K-05, ledger rows 52 (partial) and 109, sprint-status, DECISIONS/RISKS/ASSUMPTIONS.
 ### Open items
-"Flagged stuck" = audit `checkout_stuck` (no column); unknown-session alert goes to `ADMIN_NOTIFICATION_EMAILS`; DV-21 awaiting owner. Built as recommended, awaiting owner.
+"Flagged stuck" = audit `checkout_stuck` (no column); unknown-session alert goes to `ADMIN_NOTIFICATION_EMAILS`; DV-21 decided (owner, 2026-11-23). Built as recommended, decided (owner, 2026-11-23).
