@@ -50,12 +50,7 @@ export { seed };
 export { mailbox, proofLink, type Mail } from "../../adapters/mail";
 
 // ---------- postmark-shim ----------
-export async function failNextEmails(count: number) {
-  await fetch(`${POSTMARK_SHIM_URL}/__fail`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ count }) });
-}
-export async function clearEmailFailures() {
-  await fetch(`${POSTMARK_SHIM_URL}/__reset`, { method: "POST" });
-}
+export { clearEmailFailures, failNextEmailSends as failNextEmails } from "../../adapters/stripe";
 
 // ---------- stripe-fake ----------
 export async function stripeSession(id: string) {
