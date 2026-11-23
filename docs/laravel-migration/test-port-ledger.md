@@ -36,9 +36,9 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 28 | `src/app/api/auth/password/route.test.ts` | 4 | A-09 | Pest feature (HTTP) + L4 parity contract | `tests/Feature/Auth/ChangePasswordTest.php` (story 4.7) | Ported (L4 not run) |
 | 29 | `src/app/api/auth/reset-password/route.test.ts` | 3 | A-08 | Pest feature (HTTP) + L4 parity contract | `tests/Feature/Auth/ResetPasswordTest.php` (story 4.6) | Ported (L4 not run) |
 | 30 | `src/app/api/auth/session/route.test.ts` | 3 | A-03 | Pest feature (HTTP) + L4 parity contract | `tests/Feature/Auth/SessionEndpointTest.php` | Ported in 4.1 (L4 parity not run) |
-| 31 | `src/app/api/checkout/magic-link/route.test.ts` | 4 | K-03 | Pest feature (HTTP) + L4 parity contract | | Not started |
-| 32 | `src/app/api/checkout/resend-magic-link/route.test.ts` | 1 | K-04 | Pest feature (HTTP) + L4 parity contract | | Not started |
-| 33 | `src/app/api/checkout/status/route.test.ts` | 3 | K-02 | Pest feature (HTTP) + L4 parity contract | | Not started |
+| 31 | `src/app/api/checkout/magic-link/route.test.ts` | 4 | K-03 | Pest feature (HTTP) + L4 parity contract | | Partly ported (story 5.4): send-link cases in `CheckoutStatusTest.php`; 4 Next cases not mapped one-to-one; L4 not run |
+| 32 | `src/app/api/checkout/resend-magic-link/route.test.ts` | 1 | K-04 | Pest feature (HTTP) + L4 parity contract | | Partly ported (story 5.4): `CheckoutEmailLimitTest.php` and send-link cases; the per-destination limit is not tested through the route; L4 not run |
+| 33 | `src/app/api/checkout/status/route.test.ts` | 3 | K-02 | Pest feature (HTTP) + L4 parity contract | | Partly ported (story 5.4): `tests/Feature/Checkout/CheckoutStatusTest.php` (7 cases vs Next's 3); L4 not run |
 | 34 | `src/app/api/invoices/route.test.ts` | 2 | K-11 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 35 | `src/app/api/profile/route.test.ts` | 4 | C-17 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 36 | `src/app/api/projects/[id]/approve/route.test.ts` | 1 | C-12 | Pest feature (HTTP) + L4 parity contract | | Not started |
