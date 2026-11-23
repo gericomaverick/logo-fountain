@@ -89,3 +89,18 @@ it('passes every use of the request next through SafeNext', function () {
     }
     expect($offenders)->toBe([]);
 });
+
+// Story 4.9a AC 6 (A-12): the bootstrap command is never run automatically.
+it('does not run portal:bootstrap-admin from any hook, scheduler, seeder, route or image', function () {
+    $roots = [base_path('composer.json'), base_path('Dockerfile'), base_path('routes'), base_path('database/seeders'), base_path('docker'), base_path('../../.github')];
+    $hits = [];
+    foreach ($roots as $root) {
+        $files = is_dir($root) ? array_map(fn ($f) => $f->getPathname(), iterator_to_array(new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS)))) : (is_file($root) ? [$root] : []);
+        foreach ($files as $f) {
+            if (str_contains((string) file_get_contents($f), 'bootstrap-admin')) {
+                $hits[] = $f;
+            }
+        }
+    }
+    expect($hits)->toBe([]);
+});
