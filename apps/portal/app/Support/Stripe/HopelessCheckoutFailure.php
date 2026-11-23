@@ -18,7 +18,11 @@ final class HopelessCheckoutFailure extends RuntimeException
 
     public const UPSELL_PROJECT_MISSING = 'upsell_project_missing';
 
-    private function __construct(public readonly string $reason, public readonly string $sessionId, public readonly ?string $projectId)
+    /** DV-24 (story 5.5 AC 15): the project is no longer on the package the upgrade was bought from. */
+    public const UPGRADE_STALE_FROM_PACKAGE = 'upgrade_stale_from_package';
+
+    /** @param  array<string, mixed>|null  $audit  an extra audit payload, written under the reason's name when the project exists */
+    private function __construct(public readonly string $reason, public readonly string $sessionId, public readonly ?string $projectId, public readonly ?array $audit = null)
     {
         parent::__construct("Checkout session cannot be fulfilled ({$reason})");
     }
@@ -42,5 +46,12 @@ final class HopelessCheckoutFailure extends RuntimeException
     public static function upsellProjectMissing(string $sessionId): self
     {
         return new self(self::UPSELL_PROJECT_MISSING, $sessionId, null);
+    }
+
+    public static function upgradeStaleFromPackage(string $sessionId, string $projectId, string $projectPackage, string $fromPackage, string $toPackage): self
+    {
+        return new self(self::UPGRADE_STALE_FROM_PACKAGE, $sessionId, $projectId, [
+            'checkoutSessionId' => $sessionId, 'projectPackage' => $projectPackage, 'fromPackage' => $fromPackage, 'toPackage' => $toPackage,
+        ]);
     }
 }

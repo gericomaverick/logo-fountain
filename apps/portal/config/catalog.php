@@ -12,4 +12,11 @@ return [
         'complete' => ['price_id' => env('STRIPE_PRICE_COMPLETE', 'price_1ToTGBFM0K9Qd7oX2D5r9Z6i'), 'display_price' => '£1,495'],
     ],
 
+    // Story 5.5 (K-08): the upsell prices, keyed as Next's UPSELL_PRICE_TO_ACTION; display prices are minor-unit amounts.
+    'upsells' => [
+        'extra_revision' => ['price_id' => env('STRIPE_PRICE_EXTRA_REVISION', 'price_1ToTbLFM0K9Qd7oXscIEu2Bt'), 'display_price' => '£95', 'amount' => 9500],
+        'essential->professional' => ['price_id' => env('STRIPE_PRICE_UPGRADE_ESSENTIAL_PROFESSIONAL', 'price_1ToTXjFM0K9Qd7oXqfXEXy0x'), 'display_price' => '£495', 'amount' => 49500],
+        'professional->complete' => ['price_id' => env('STRIPE_PRICE_UPGRADE_PROFESSIONAL_COMPLETE', 'price_1ToTYMFM0K9Qd7oXBG8DOhY1'), 'display_price' => '£750', 'amount' => 75000],
+    ],
+
 ];

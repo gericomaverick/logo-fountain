@@ -49,3 +49,5 @@ YYYY-MM-DD — <Decision>. Rationale: <why>. Impact: <what changes>. #decision
 2026-11-23 — Story 5.1: checkout start built as recommended (DV-20: a fixed 500 message, Stripe text to the log only; DV-1 allow_promotion_codes; DV-5 canonical URLs; placeholder price IDs refuse to boot in production, Next only logs), awaiting owner. #decision
 2026-11-23 — Story 5.2: webhook ledger built as recommended against a stub fulfiller (flagged stuck = audit checkout_stuck, no column; unknown-session alert to ADMIN_NOTIFICATION_EMAILS; DV-21 awaiting owner), awaiting owner. #decision
 2026-11-23 — Story 5.3: a fourth advisory lock, `fulfil_side_effects:{sessionId}`, serialises the webhook and reprocess around the email markers (critic B4). Built as recommended, awaiting owner: architecture §5 lists three; ADR not edited. #decision
+
+2026-11-23 — Story 5.5: upsell built as recommended, awaiting owner: DV-24 (a stale `fromPackage` or a downgrade applies nothing, is a permanent failure `upgrade_stale_from_package` and alerts the admin), DV-21 (unknown project permanent), DV-2 additive upgrade; the three upsell price IDs are config with Next's values as defaults.

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\CheckoutAuthEmailController;
 use App\Http\Controllers\Api\CheckoutStartController;
 use App\Http\Controllers\Api\CheckoutStatusController;
+use App\Http\Controllers\Api\UpsellCheckoutController;
 use App\Http\Controllers\Webhooks\WebhookController;
 use Illuminate\Support\Facades\Route;
 
@@ -14,3 +15,6 @@ Route::get('/checkout/start', CheckoutStartController::class)->name('checkout.st
 Route::get('/api/checkout/status', CheckoutStatusController::class)->name('checkout.status');
 Route::post('/api/checkout/magic-link', CheckoutAuthEmailController::class)->name('checkout.magic-link');
 Route::post('/api/checkout/resend-magic-link', CheckoutAuthEmailController::class)->name('checkout.resend-magic-link');
+
+// Story 5.5 (K-08): the one signed-in checkout route, so it takes the `web` group (session) and the verified-user guard.
+Route::middleware(['web', 'auth.verified'])->post('/api/projects/{id}/checkout/session', UpsellCheckoutController::class)->name('checkout.upsell');

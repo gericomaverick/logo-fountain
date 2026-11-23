@@ -1,6 +1,6 @@
 # Story 5.5: Upsell checkout and additive fulfilment
 
-**Status:** ready-for-dev (created from `origin/workbench/4-integrate` b2e1115) · **DoD variant:** Conversion · **Epic:** 5 · **Covers:** K-08, K-09, DV-2, DV-5, DV-15, FR17, FR18 · **Gate:** `@upsell&@api`, `@deviation` (DV-2) · **After:** 5.3 · **Stacks on:** `origin/workbench/4-integrate`; in the SERIAL chain, the previous Epic 5 story's branch (see `epic-5-build-order` in 5.7). Test mode and fakes only (stripe-fake, postmark-shim); live Stripe/Postmark is the owner's.
+**Status:** review (created from `origin/workbench/4-integrate` b2e1115) · **DoD variant:** Conversion · **Epic:** 5 · **Covers:** K-08, K-09, DV-2, DV-5, DV-15, FR17, FR18 · **Gate:** `@upsell&@api`, `@deviation` (DV-2) · **After:** 5.3 · **Stacks on:** `origin/workbench/4-integrate`; in the SERIAL chain, the previous Epic 5 story's branch (see `epic-5-build-order` in 5.7). Test mode and fakes only (stripe-fake, postmark-shim); live Stripe/Postmark is the owner's.
 
 > Created with the repo's create-story form. All `apps/web` `file:line` read 2026-11-23; `apps/web` is frozen, so nothing here edits it.
 
@@ -98,3 +98,22 @@ K-08, K-09, DV-1, DV-2, DV-5, DV-15 (mismatch).
 (fill on review)
 ### Open items
 (fill on review)
+
+### Inventory scope
+K-08, K-09, DV-1 (upsell half), DV-2, DV-5 (upsell half), DV-15 (email-mismatch half), DV-21, DV-24.
+### Next.js source read
+`api/projects/[id]/checkout/session/route.ts`, `checkout-fulfillment.ts:182-323`, `webhook/route.ts:166-198`, `stripe-price-allowlist.ts`.
+### Behaviour notes
+Metadata is parsed by `UpsellMetadata`; unparseable metadata falls through to package fulfilment and fails the allowlist (AC 11). The project row is locked for the entitlement read-modify-write and the order is re-checked under that lock. The `fromPackage` of an add-on is recorded, never used.
+### Laravel implementation
+`StartUpsellCheckout` + `UpsellCheckoutController` (`POST /api/projects/{id}/checkout/session`, `web` + `auth.verified`, membership via `ProjectPolicy::participate`), `config/catalog.php` `upsells`, `FulfilUpsell`, `EntitlementMath`, `UpsellMetadata`, `PackageEntitlements::tierLimit`, `HopelessCheckoutFailure::upgradeStaleFromPackage`, DV-15 mismatch branch in `FulfilCheckout::followUp` (audit + admin email once, under `Locks::fulfilSideEffects`).
+### Deviations from Next.js
+| Behaviour | Laravel | Decision ref |
+|---|---|---|
+| Promotion codes, canonical URLs, fixed 500 message | as 5.1 | DV-1, DV-5, DV-20 |
+| Upgrade adds the tier difference | 1/1 + add-on, then Professional = 2/3 | DV-2 |
+| Buyer email differs | entitlements applied, no account, audit + one admin email | DV-15 |
+| Stale `fromPackage` / downgrade | nothing applied, permanent failure `upgrade_stale_from_package`, admin alert | DV-24: built as recommended, awaiting owner |
+| Unknown project | permanent, audit + admin email | DV-21: built as recommended, awaiting owner |
+### Tests
+`tests/Unit/EntitlementMathTest.php` (L1), `tests/Feature/Checkout/UpsellCheckoutStartTest.php`, `UpsellFulfilmentTest.php` (L2/L3). L4 parity specs and the `@pg-race` concurrent-delivery test were not written or run (see report).

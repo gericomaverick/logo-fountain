@@ -17,4 +17,10 @@ final class PackageEntitlements
 
         return [['key' => 'concepts', 'limit' => $limit], ['key' => 'revisions', 'limit' => $limit]];
     }
+
+    /** The tier's limit (concepts and revisions share it); null for a code that is not a package. */
+    public static function tierLimit(string $packageCode): ?int
+    {
+        return self::LIMITS[$packageCode] ?? null;
+    }
 }

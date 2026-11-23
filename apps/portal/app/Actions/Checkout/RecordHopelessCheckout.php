@@ -38,6 +38,9 @@ final class RecordHopelessCheckout
 
                 return;
             }
+            if ($failure->audit !== null) {
+                Audit::record($failure->reason, $failure->projectId, null, $failure->audit); // DV-24: the type is the reason
+            }
             Audit::record('checkout_stuck', $failure->projectId, null, ['checkoutSessionId' => $failure->sessionId, 'reason' => $failure->reason]);
             LifecycleMail::sendOnce('payment_attention', $failure->projectId, $failure->sessionId, $message);
         });

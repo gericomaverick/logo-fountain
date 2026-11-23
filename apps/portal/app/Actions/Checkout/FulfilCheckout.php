@@ -9,6 +9,9 @@ use App\Models\ProjectOrder;
 use App\Support\Audit;
 use App\Support\DatabaseRoles;
 use App\Support\Db;
+use App\Support\LifecycleMail;
+use App\Support\LifecycleMessage;
+use App\Support\Locks;
 use App\Support\Stripe\FulfilmentError;
 use App\Support\Stripe\HopelessCheckoutFailure;
 use App\Support\Stripe\StripeCatalog;
@@ -30,6 +33,7 @@ final class FulfilCheckout implements FulfilsCheckout
         private readonly StripeCatalog $catalog,
         private readonly ProvisionAccess $provision,
         private readonly CompleteFulfilmentSideEffects $sideEffects,
+        private readonly FulfilUpsell $upsell,
     ) {}
 
     public function fulfil(array $session): FulfilmentResult
@@ -45,9 +49,9 @@ final class FulfilCheckout implements FulfilsCheckout
         }
 
         $email = CheckoutSessionData::purchaserEmail($session, $this->stripe);
-        if ($this->isUpsell($session)) {
-            // Story 5.5 owns additive fulfilment; until then Stripe retries rather than losing a paid event.
-            throw new FulfilmentError('Upsell fulfilment is not available yet', 'UPSELL_NOT_AVAILABLE');
+        $upsell = UpsellMetadata::parse($session);
+        if ($upsell !== null) {
+            return $this->upsell->handle($session, $upsell, $email); // story 5.5 (K-09); unparseable metadata falls through (AC 11)
         }
 
         $existing = $this->existing($sessionId, $email);
@@ -103,6 +107,9 @@ final class FulfilCheckout implements FulfilsCheckout
         $userId = null;
         $returning = false;
         $needsSetup = false;
+        if ($result->purchaserEmail !== null && $this->isUpsell($session) && $this->emailMismatch($session, $result)) {
+            return $result->withProvisioning(null, false); // DV-15 (5.5 AC 12): no account for a stranger's email
+        }
         if ($result->purchaserEmail !== null) {
             $names = CheckoutSessionData::names($session);
             $access = $this->provision->handle($result->clientId, $result->purchaserEmail, $names['first'], $names['last']);
@@ -112,6 +119,37 @@ final class FulfilCheckout implements FulfilsCheckout
         $this->sideEffects->handle($sessionId, $result->projectId, $userId, $needsSetup, ! $this->isUpsell($session), $renew);
 
         return $result->withProvisioning($userId, $returning);
+    }
+
+    /**
+     * DV-15 (story 5.5 AC 12): the buyer's email is not the client's billing email. The entitlements are already
+     * applied; audit it and alert the admin once, under the session lock (the reprocess race, critic B4).
+     *
+     * @param  array<string, mixed>  $session
+     */
+    private function emailMismatch(array $session, FulfilmentResult $result): bool
+    {
+        $billing = Client::query()->whereKey($result->clientId)->value('billing_email');
+        if (CheckoutSessionData::email($billing) === $result->purchaserEmail) {
+            return false;
+        }
+        $sessionId = is_string($session['id'] ?? null) ? $session['id'] : '';
+        Database::connection(DatabaseRoles::RUNTIME)->transaction(function () use ($sessionId, $result): void {
+            Locks::fulfilSideEffects($sessionId);
+            $marker = LifecycleMail::markerType('upsell_buyer_email_mismatch', $sessionId);
+            if (Database::connection(DatabaseRoles::RUNTIME)->table('audit_events')->where('project_id', $result->projectId)->where('type', $marker)->exists()) {
+                return;
+            }
+            Audit::record('upsell_buyer_email_mismatch', $result->projectId, null, ['checkoutSessionId' => $sessionId, 'purchaserEmail' => $result->purchaserEmail]);
+            LifecycleMail::sendOnce('upsell_buyer_email_mismatch', $result->projectId, $sessionId, LifecycleMessage::admin(
+                RecordHopelessCheckout::SUBJECT,
+                "Checkout session {$sessionId} was an upsell paid by an email that is not the client's billing email. The upgrade was applied; no account was created for it.",
+                'Open admin',
+                '/admin',
+            ));
+        });
+
+        return true;
     }
 
     /** @param array<string, mixed> $session */

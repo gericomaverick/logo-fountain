@@ -31,6 +31,16 @@ final class ErrorCodes
     /** 400: forgot-password without a plausible address (`forgot-password/route.ts:9`). */
     public const INVALID_EMAIL = 'INVALID_EMAIL';
 
+    public const INVALID_KIND = 'INVALID_KIND';
+
+    public const INVALID_ADDON_KEY = 'INVALID_ADDON_KEY';
+
+    public const INVALID_UPGRADE_PATH = 'INVALID_UPGRADE_PATH';
+
+    public const UNSUPPORTED_UPGRADE_PATH = 'UNSUPPORTED_UPGRADE_PATH';
+
+    public const PRICE_NOT_CONFIGURED = 'PRICE_NOT_CONFIGURED';
+
     public const INVALID_JSON = 'INVALID_JSON';
 
     /** Story 5.4 (K-02/K-03): checkout status and send-link. */

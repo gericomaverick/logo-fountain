@@ -85,7 +85,7 @@ development_status:
   5-2-webhook-ledger-and-classification: review
   5-3-fulfilment-and-access-provisioning: review
   5-4-checkout-success-continue-resend: review
-  5-5-upsell-checkout-and-additive-fulfilment: ready-for-dev
+  5-5-upsell-checkout-and-additive-fulfilment: review
   5-6-admin-reprocess-with-full-follow-up: ready-for-dev
   5-7-invoices-and-receipts-api: ready-for-dev
   epic-5-retrospective: optional
