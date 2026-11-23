@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -25,6 +26,19 @@ final class OmitSessionCookieOnFailure
             $domain = config('session.domain');
             if (is_string($name)) {
                 $response->headers->removeCookie($name, is_string($path) ? $path : '/', is_string($domain) ? $domain : null);
+            }
+        }
+
+        // `:clear` (story 4.7): a successful sign-out sends an expired session cookie in place of the fresh anonymous one.
+        if ($when === 'clear' && $response->getStatusCode() < 400) {
+            $name = config('session.cookie');
+            $path = config('session.path');
+            $domain = config('session.domain');
+            $path = is_string($path) ? $path : '/';
+            $domain = is_string($domain) ? $domain : null;
+            if (is_string($name)) {
+                $response->headers->removeCookie($name, $path, $domain);
+                $response->headers->setCookie(Cookie::create($name, '', 1, $path, $domain, (bool) config('session.secure'), true, false, 'lax'));
             }
         }
 

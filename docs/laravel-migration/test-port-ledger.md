@@ -30,10 +30,10 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 22 | `src/app/api/admin/projects/route.test.ts` | 4 | D-01 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 23 | `src/app/api/auth/forgot-password/route.test.ts` | 3 | A-07 | Pest feature (HTTP) + L4 parity contract | | Ported (story 4.4, request half) |
 | 24 | `src/app/api/auth/login/route.test.ts` | 10 | A-01 | Pest feature (HTTP) + L4 parity contract | `tests/Feature/Auth/LoginTest.php`, `LoginRateLimitTest.php`, `LoginTimingTest.php` (story 4.3) | **Ported** (L4 parity contract not run by this story) |
-| 25 | `src/app/api/auth/logout/route.test.ts` | 2 | A-02 | Pest feature (HTTP) + L4 parity contract | | Not started |
+| 25 | `src/app/api/auth/logout/route.test.ts` | 2 | A-02 | Pest feature (HTTP) + L4 parity contract | `tests/Feature/Auth/LogoutTest.php` (story 4.7) | Ported (L4 not run) |
 | 26 | `src/app/api/auth/magic-link/route.test.ts` | 3 | A-05 | Pest feature (HTTP) + L4 parity contract | | Ported (story 4.4, request half) |
 | 27 | `src/app/api/auth/magic-link/verify/route.test.ts` | 3 | A-05 | Pest feature (HTTP) + L4 parity contract | `tests/Feature/Auth/MagicLinkVerifyTest.php` (story 4.5) | Ported (L4 not run) |
-| 28 | `src/app/api/auth/password/route.test.ts` | 4 | A-09 | Pest feature (HTTP) + L4 parity contract | | Not started |
+| 28 | `src/app/api/auth/password/route.test.ts` | 4 | A-09 | Pest feature (HTTP) + L4 parity contract | `tests/Feature/Auth/ChangePasswordTest.php` (story 4.7) | Ported (L4 not run) |
 | 29 | `src/app/api/auth/reset-password/route.test.ts` | 3 | A-08 | Pest feature (HTTP) + L4 parity contract | `tests/Feature/Auth/ResetPasswordTest.php` (story 4.6) | Ported (L4 not run) |
 | 30 | `src/app/api/auth/session/route.test.ts` | 3 | A-03 | Pest feature (HTTP) + L4 parity contract | `tests/Feature/Auth/SessionEndpointTest.php` | Ported in 4.1 (L4 parity not run) |
 | 31 | `src/app/api/checkout/magic-link/route.test.ts` | 4 | K-03 | Pest feature (HTTP) + L4 parity contract | | Not started |
@@ -77,7 +77,7 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 69 | `src/lib/auth/http.test.ts` | 3 | A-01…A-09 | Pest feature (auth wrapper) | | Not started |
 | 70 | `src/lib/auth/logout.test.ts` | 5 | A-02 | Keep TS (UI) | | Not started |
 | 71 | `src/lib/auth/safe-next.test.ts` | 4 | A-13 | Pest unit + keep TS (shared fixture) | | Not started |
-| 72 | `src/lib/auth/validation.test.ts` | 6 | A-07…A-09 | Keep TS (UI) + Pest rule | `PasswordRulesTest` (story 4.6: new-password rule; the rest in 4.7) | Partly ported |
+| 72 | `src/lib/auth/validation.test.ts` | 6 | A-07…A-09 | Keep TS (UI) + Pest rule | `PasswordRulesTest` (4.6), `ChangePasswordTest` (4.7 change cases) | Ported |
 | 73 | `src/lib/brief-choices.test.ts` | 25 | C-05 | Keep TS (UI) | | Not started |
 | 74 | `src/lib/brief-draft.test.ts` | 5 | C-06 | Keep TS (UI) | | Not started |
 | 75 | `src/lib/brief-submission-confirmation.test.ts` | 6 | C-07 | Keep TS (UI) | | Not started |

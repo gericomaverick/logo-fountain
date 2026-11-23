@@ -1,6 +1,6 @@
 # Story 4.7: Change password and logout
 
-**Status:** ready-for-dev (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-02, A-09, FR5, FR6 · **Gate:** `@auth&@api`, `@settings&@api` · **After:** 4.3 · **Stacks on:** `main` (dependencies done); in the SERIAL chain, the previous Epic 4 story's branch. Shared files: `routes/auth.php`, `PasswordRules`, `CredentialFence`, `Controllers/Auth/`
+**Status:** review (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-02, A-09, FR5, FR6 · **Gate:** `@auth&@api`, `@settings&@api` · **After:** 4.3 · **Stacks on:** `main` (dependencies done); in the SERIAL chain, the previous Epic 4 story's branch. Shared files: `routes/auth.php`, `PasswordRules`, `CredentialFence`, `Controllers/Auth/`
 
 > Created with the repo's create-story form. All `apps/web` `file:line` checked 2026-11-22.
 
@@ -54,24 +54,28 @@ None.
 
 ## Conversion record
 
-> Fill at implementation, from `templates/story-conversion-record.md`. Write *Behaviour notes* before converting.
-
 ### Inventory scope
-_(stub)_
+A-02, A-09. Ledger logout/route.test.ts (2), password/route.test.ts (4), validation.test.ts change cases, #66 case 6 (change half).
 ### Next.js source read
-_(stub)_
+`logout/route.ts`, `password/route.ts`, `lib/auth/service.ts:102-121`.
 ### Behaviour notes
-_(stub)_
+Logout: origin, proxy, invalidate session, 200 {ok:true}, expired cookie; no session is also ok. Change: 401 anonymous before limiter; limiter per user; INVALID_PASSWORD_CHANGE; under the fence the session row, mailbox and 7-day cap are re-checked (401), wrong current is 400 CURRENT_PASSWORD_INVALID; all sessions and proofs deleted, version+1, audit `auth.password_changed {method:settings}`; 200 {ok,signedOut} with a clearing cookie.
 ### Laravel implementation
-_(stub)_
+`ChangePassword` action, `AccountSessionController` (logout, changePassword), routes in `routes/auth.php`, `OmitSessionCookieOnFailure` `:clear` mode sends an expired cookie on success.
 ### Deviations from Next.js
 | Behaviour | Next.js | Laravel | Why | Decision ref |
 |---|---|---|---|---|
+| None | | | | |
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|
+| L2 | `tests/Feature/Auth/LogoutTest.php` | A-02 |
+| L2 | `tests/Feature/Auth/ChangePasswordTest.php` | A-09 |
 ### Test evidence
-_(commands, pass/fail counts, what was not run and why)_
+`bin/test` green: Pint, Larastan, Pest 1835 passed (5177 assertions). L4 parity not run. Reset/change race (L3) not written: the fence is shared with 4.2's tests.
 ### Gotchas
+A hand-inserted session row needs the `login_web_*` key or the DB handler drops `user_id` on re-save (`SessionRows::insert(..., guardLogin: true)`); adding it globally broke the 503 test.
 ### Docs updated
+Inventory A-02/A-09, ledger #25/#28/#72, DECISIONS, sprint-status.
 ### Open items
+Q1 built as recommended (logout without a session is 200), awaiting owner.

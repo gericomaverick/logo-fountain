@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\AccountSessionController;
 use App\Http\Controllers\Auth\AuthLinkRequestController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\MagicLinkController;
@@ -35,4 +36,12 @@ Route::prefix('api/auth')->middleware([EnsureAuthAvailable::class, 'auth.json', 
 // A-07/A-08 (story 4.6): reset and setup links both post here. Signs nobody in, so no cookie even on success.
 Route::prefix('api/auth')->middleware([EnsureAuthAvailable::class, 'auth.json', OmitSessionCookieOnFailure::class.':always'])->group(function () {
     Route::post('/reset-password', [PasswordResetController::class, 'store'])->name('auth.reset-password');
+});
+
+// A-02 / A-09 (story 4.7). Logout: origin, then proxy, then sign-out (no body). Change: session cap decides who is asking.
+Route::prefix('api/auth')->middleware([EnsureAuthAvailable::class, 'auth.json:headers', OmitSessionCookieOnFailure::class.':clear'])->group(function () {
+    Route::post('/logout', [AccountSessionController::class, 'logout'])->name('auth.logout');
+});
+Route::prefix('api/auth')->middleware([EnsureAuthAvailable::class, 'auth.json', EnforceSessionCap::class, OmitSessionCookieOnFailure::class.':clear'])->group(function () {
+    Route::post('/password', [AccountSessionController::class, 'changePassword'])->name('auth.password');
 });
