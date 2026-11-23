@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { ResendLink } from '@/Components/ResendLink';
 import { Button } from '@/Components/ui/Button';
@@ -12,7 +12,11 @@ import { checkoutInterval, POLL_INTERVALS } from '@/lib/polling';
 /** K-02: polls every 2 s, every 10 s after 45 s with a "still waiting" panel (customer-safe copy, DV-22). */
 export default function Success() {
     const sessionId = new URLSearchParams(window.location.search).get('session_id')?.trim() ?? '';
-    const [started] = useState(() => Date.now());
+    const [waited, setWaited] = useState(false);
+    useEffect(() => {
+        const t = setTimeout(() => setWaited(true), POLL_INTERVALS.checkoutSlowAfter);
+        return () => clearTimeout(t);
+    }, []);
     const polling = usePolling({
         interval: checkoutInterval,
         immediate: true,
@@ -22,7 +26,7 @@ export default function Success() {
         stopWhen: (data) => data.fulfilled,
     });
     const fulfilled = polling.data?.fulfilled === true;
-    const slow = !fulfilled && Date.now() - started >= POLL_INTERVALS.checkoutSlowAfter;
+    const slow = !fulfilled && waited;
 
     if (!sessionId) {
         return (
