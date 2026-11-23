@@ -4,7 +4,7 @@
 @endphp
 <div style="background:{{ $c('bg') }};padding:24px;font-family:Inter,Arial,sans-serif;color:{{ $c('fg') }};">
 <div style="max-width:620px;margin:0 auto;background:{{ $c('surface') }};border:1px solid {{ $c('divider') }};border-radius:14px;overflow:hidden;">
-<div style="padding:20px 24px;border-bottom:1px solid #f0ecff;background:#faf9ff;">
+<div style="padding:20px 24px;border-bottom:1px solid {{ $c('divider') }};background:{{ $c('bg') }};">
 <img src="{{ T::logoUrl() }}" alt="Logo Fountain" style="height:34px;display:block;"/>
 </div>
 <div style="padding:28px 24px;">
