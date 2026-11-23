@@ -46,3 +46,4 @@ DV-UX/A-06/N-01/C-01 after setting a password from the setup link the customer r
 DV-15 K-05 a session Stripe does not know is a permanent failure reported to the admin @deviation @webhook @email @api
 DV-15 K-06 a payment intent already used by another session is a permanent failure reported to the admin @deviation @webhook @email @api
 DV-15 K-09 an upsell paid with a different email still applies, provisions nobody new, and alerts the admin @deviation @webhook @upsell @email @api
+DV-25 K-06 a 100%-off session (no_payment_required) is fulfilled like a paid one @deviation @webhook @checkout @email @api

@@ -51,6 +51,8 @@ dataset('invoice cases', function () {
         'payment intent only: charge invoice object, unsettled' => [false, [ivIntent(['id' => 'ch_9', 'object' => 'charge', 'invoice' => ivInvoice(['status' => 'open'])])], null, 'pi_9', ['invoice', 'in_1', IV_PDF, IV_HOSTED, null], 1],
         'payment intent only: charge invoice by id' => [true, [ivIntent(['id' => 'ch_9', 'object' => 'charge', 'invoice' => 'in_1']), ivInvoice()], null, 'pi_9', IV_PDF_ONLY, 2],
         'payment intent with an unexpanded charge yields nothing' => [true, [ivIntent('ch_9')], null, 'pi_9', IV_NONE, 1],
+        'DV-25 free order: no payment intent, no invoice, nothing to show' => [true, [['id' => 'cs_1', 'object' => 'checkout.session', 'invoice' => null, 'payment_intent' => null]], 'cs_1', null, IV_NONE, 1],
+        'DV-25 free order: a zero-value paid invoice still resolves to its PDF' => [true, [['id' => 'cs_1', 'object' => 'checkout.session', 'payment_intent' => null, 'invoice' => ivInvoice(['amount_due' => 0, 'total' => 0])]], 'cs_1', null, IV_PDF_ONLY, 1],
         'blank ids make no call' => [true, [], '  ', '', IV_NONE, 0],
     ];
 });

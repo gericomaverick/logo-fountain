@@ -2,7 +2,6 @@
 
 use App\Actions\Checkout\FulfilCheckout;
 use App\Support\Stripe\FulfilmentError;
-use App\Support\Stripe\HopelessCheckoutFailure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Tests\Support\FakeStripe;
@@ -44,11 +43,19 @@ it('fulfils a paid session once: client, project, entitlements, order, audit', f
     expect($again->deduped)->toBeTrue()->and(DB::table('projects')->count())->toBe(1)->and(DB::table('project_orders')->count())->toBe(1);
 });
 
-it('refuses anything but paid; no_payment_required is permanent', function () {
+it('refuses an unpaid session', function () {
     FakeStripe::install();
     expect(fn () => app(FulfilCheckout::class)->fulfil(paidSession(['payment_status' => 'unpaid'])))->toThrow(FulfilmentError::class, 'not paid');
-    expect(fn () => app(FulfilCheckout::class)->fulfil(paidSession(['payment_status' => 'no_payment_required'])))->toThrow(HopelessCheckoutFailure::class);
     expect(DB::table('projects')->count())->toBe(0);
+});
+
+it('DV-25: a no_payment_required (100%-off) session is fulfilled like a paid one, with a £0 order', function () {
+    lineItems(FakeStripe::install(), [config('catalog.packages.professional.price_id')]);
+    $r = app(FulfilCheckout::class)->fulfil(paidSession(['payment_status' => 'no_payment_required', 'amount_total' => 0, 'payment_intent' => null]));
+    expect($r->deduped)->toBeFalse()->and($r->orderStatus)->toBe('FULFILLED')
+        ->and(DB::table('projects')->count())->toBe(1)
+        ->and(DB::table('project_entitlements')->pluck('limit_int', 'key')->all())->toBe(['concepts' => 2, 'revisions' => 2])
+        ->and((int) DB::table('project_orders')->value('total_cents'))->toBe(0);
 });
 
 it('needs exactly one allowlisted price', function () {

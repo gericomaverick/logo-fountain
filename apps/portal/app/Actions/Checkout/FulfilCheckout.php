@@ -40,10 +40,8 @@ final class FulfilCheckout implements FulfilsCheckout
     {
         $sessionId = is_string($session['id'] ?? null) ? $session['id'] : '';
         $paymentStatus = $session['payment_status'] ?? null;
-        if ($paymentStatus === 'no_payment_required') {
-            throw HopelessCheckoutFailure::noPaymentRequired($sessionId); // DV-25: never silent
-        }
-        if ($paymentStatus !== 'paid') {
+        // DV-25 (owner, 2026-11-23): a completed 100%-off session is fulfilled like a paid one. Any other state is not.
+        if ($paymentStatus !== 'paid' && $paymentStatus !== 'no_payment_required') {
             $shown = is_string($paymentStatus) ? $paymentStatus : 'missing';
             throw new FulfilmentError("Checkout session is not paid (payment_status: {$shown})", 'CHECKOUT_SESSION_NOT_PAID');
         }
@@ -166,7 +164,14 @@ final class FulfilCheckout implements FulfilsCheckout
     {
         $order = ProjectOrder::query()->where('stripe_checkout_session_id', $sessionId)->first();
 
-        return $order === null ? null : new FulfilmentResult($order->client_id, $order->project_id, $email, true, $order->status);
+        if ($order === null) {
+            return null;
+        }
+        // A repeat delivery provisions for the stored billing email, never the current payload's: if they differ
+        // ProvisionAccess would refuse forever (transient retry, no alert) for a customer who has already paid.
+        $billing = CheckoutSessionData::email(Client::query()->whereKey($order->client_id)->value('billing_email'));
+
+        return new FulfilmentResult($order->client_id, $order->project_id, $billing, true, $order->status);
     }
 
     /** Exactly one allowlisted price among the first ten line items (`:128-145`). */

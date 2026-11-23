@@ -57,7 +57,7 @@ None. (Equalising latency for unknown accounts is not attempted; open question 2
 2. **Timing equalisation for unknown accounts.** Next does less work for them. *Recommendation:* leave it; the response body is identical and the endpoint is rate-limited; note it in RISKS.
 3. **Owner items: none.**
 
-**Decided (owner, 2026-11-23):** Q1 (Laravel Mailable via the Postmark transport) and Q2 (no timing equalisation for unknown accounts; noted in RISKS) as recommended.
+**Decided (owner, 2026-11-23):** Q1 (Laravel Mailable via the Postmark transport) as recommended. **Q2 corrected (owner, 2026-11-23): equal time for known and unknown accounts.** The request does the same account lookup on both paths and queues `SendAuthLinkMail` (the proof and the email are issued in the job; an unknown account sends nothing); the response never waits on a send (DV-27). Applies to magic-link and forgot-password. The checkout resend-link route (story 5.4) is a separate endpoint and still sends synchronously.
 
 ## Conversion record
 

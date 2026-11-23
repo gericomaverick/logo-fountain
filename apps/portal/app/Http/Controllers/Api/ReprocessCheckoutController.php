@@ -53,9 +53,6 @@ final class ReprocessCheckoutController extends Controller
             throw $e;
         } catch (HopelessCheckoutFailure $e) {
             $this->audit($request, $sessionId, $e->projectId, 'failed', $e->reason);
-            if ($e->reason === HopelessCheckoutFailure::NO_PAYMENT_REQUIRED) {
-                throw new ApiException('Checkout session has not been paid; nothing was provisioned.', 409, ErrorCodes::CHECKOUT_SESSION_NOT_PAID);
-            }
             throw $e;
         }
 

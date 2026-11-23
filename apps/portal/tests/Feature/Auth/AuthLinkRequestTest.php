@@ -1,7 +1,10 @@
 <?php
 
+use App\Actions\Auth\SendAuthLink;
+use App\Jobs\SendAuthLinkMail;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
 use Tests\Support\ProbeTransport;
 
 // Story 4.4 AC 1-3, 11 (A-05/A-07 request halves; ledger: forgot-password/route.test.ts, magic-link/route.test.ts).
@@ -85,3 +88,27 @@ it('runs the origin guard before any work', function (string $path) {
 
     expect(ProbeTransport::$sent)->toBe([]);
 })->with(['/api/auth/magic-link', '/api/auth/forgot-password']);
+
+it('Q2: queues the email for a known account and for an unknown one alike; the response never waits on a send', function (string $path, array $expected) {
+    Queue::fake();
+    User::factory()->create(['email' => 'ada@example.test']);
+
+    $known = postAuth($path, ['email' => 'ada@example.test']);
+    $unknown = postAuth($path, ['email' => 'nobody@example.test'], address: '203.0.113.8');
+
+    expect($unknown->getContent())->toBe($known->getContent())->and($unknown->getStatusCode())->toBe($known->getStatusCode())
+        ->and($unknown->headers->get('content-type'))->toBe($known->headers->get('content-type'));
+    $known->assertOk()->assertExactJson($expected);
+    Queue::assertPushed(SendAuthLinkMail::class, 2); // one job per request, whichever the account
+    expect(ProbeTransport::$sent)->toBe([])->and(DB::table('auth_proofs')->count())->toBe(0); // nothing sent or issued in the request
+})->with([['/api/auth/magic-link', MAGIC], ['/api/auth/forgot-password', FORGOT]]);
+
+it('Q2: the queued job sends one email for a known account and nothing for an unknown one', function () {
+    $user = User::factory()->create(['email' => 'ada@example.test']);
+
+    (new SendAuthLinkMail(null, 'magic', '/dashboard'))->handle(app(SendAuthLink::class));
+    expect(ProbeTransport::$sent)->toBe([])->and(DB::table('auth_proofs')->count())->toBe(0);
+
+    (new SendAuthLinkMail($user->id, 'magic', '/dashboard'))->handle(app(SendAuthLink::class));
+    expect(ProbeTransport::$sent)->toHaveCount(1)->and(DB::table('auth_proofs')->count())->toBe(1);
+});

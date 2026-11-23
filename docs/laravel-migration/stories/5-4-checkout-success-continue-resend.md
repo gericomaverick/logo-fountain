@@ -83,3 +83,5 @@ This record, sprint-status.
 Browser spec and parity; owner: DV-22.
 
 **L4 parity run (2026-11-23, workbench/parity-4-5):** @auth 37 tests: Next 37 pass; Laravel 15 pass / 11 fail / 11 not reached. @checkout 28: Next 28 pass; Laravel 1 / 20 / 7. @entitlements 10: Next 10 pass; Laravel 0 / 10 / 0. Failures are the unwired Stripe/Postmark/Mailpit infra on the Laravel stack and not-yet-built pages/routes, listed with titles in `docs/laravel-migration/parity-run-2026-11-23.md`. This story's parity tests are not shown to match: stays at `review`.
+
+**Note (owner correction 2026-11-23, DV-25):** a 100%-off checkout is now fulfilled, so its success/continue pages read like any paid order (status is by order existence, unchanged). The resend-link route still sends synchronously; the Q2 equal-time change (story 4.4, DV-27) covers magic-link and forgot-password only. Not changed here; for the owner to decide.

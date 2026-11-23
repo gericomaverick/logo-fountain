@@ -34,6 +34,12 @@ final class SendAuthLink
         return $user === null ? null : $this->handle($user, $kind, $next);
     }
 
+    /** The one account lookup the request path does, the same for a known and an unknown address. */
+    public function find(string $email): ?User
+    {
+        return User::query()->where('email', $email)->first();
+    }
+
     /** @param  'setup'|'reset'|'magic'  $kind */
     public function handle(User $user, string $kind, string $next = '/dashboard'): string
     {

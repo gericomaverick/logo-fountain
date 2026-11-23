@@ -41,7 +41,7 @@ K-06, K-07, N-01, N-02, N-10, DV-4 (order half). Ledger rows for `checkout-fulfi
 |---|---|---|
 | DV-4 | Campaign slug copied to `project_orders.campaign_slug` | Recommendation |
 | DV-8 | Emails queued after commit (2.7), not inline. Applies to the **admin new-project email (N-10) only**; the customer auth email (AC 9) is sent in auth mode, not queued | Recommendation |
-| DV-25 | 100%-off promotion codes: `no_payment_required` is alerted, not silent (see AC 1) | **Decided (owner, 2026-11-23)** |
+| DV-25 | 100%-off promotion codes: `no_payment_required` is fulfilled like a paid one (see AC 1) | **Decided (owner, correction 2026-11-23)**: supersedes the earlier "keep the alert" decision; AC 1's alert wording below is superseded |
 
 ## Tasks
 1. Entitlement table + FulfilCheckout. 2. ProvisionAccess. 3. CompleteFulfilmentSideEffects. 4. Wire into 5.2's controller. 5. Tests. 6. Record, inventory, ledger, sprint-status.
@@ -55,7 +55,7 @@ K-06, K-07, N-01, N-02, N-10, DV-4 (order half). Ledger rows for `checkout-fulfi
 | L2 `@deviation` | AC 5 campaign slug on the order | DV-4 |
 | L3 `@pg-race` | concurrent provisioning for one email creates one user/membership | K-06 |
 | L3 `@pg-race` | webhook and `CompleteFulfilmentSideEffects` concurrently for one session: customer and admin mail each sent once (advisory lock) | N-01, N-10 |
-| L2 | `no_payment_required` session: not fulfilled, audit + admin alert, event processed | DV-25 |
+| L2 | `no_payment_required` session: fulfilled like a paid one (£0 order, entitlements, emails), no alert | DV-25 |
 | L2/L3 (moved from 5.2) | Real `FulfilCheckout` behind 5.2's ledger: N concurrent deliveries → one client/project/order; response fields `projectId`, `orderStatus`, `purchaserEmail`, `provisionedUserId`, `isReturningCustomer`; unknown session (line items 404) and reused payment intent (other session) → permanent + audit + admin "Payment needs attention" once; same-session reuse → `deduped` | 5.2 AC 5, 7, 11; DV-15 |
 | L4 parity | `contract/webhook-fulfilment.spec.ts` (5); and, deferred from 5.2: `webhook-ledger.spec.ts`, `webhook-payment-states.spec.ts`, `journeys/deviations/dv-15-webhook-hopeless-failures.spec.ts:21,32` (DV-15 specs pass on Laravel, fail on Next) | K-05, K-06, DV-15 |
 
@@ -82,7 +82,7 @@ Customer email: sent synchronously in auth mode (not queued), marker `email_sent
 |---|---|---|---|---|
 | Campaign slug | stays in Stripe metadata | copied to `project_orders.campaign_slug` | attribution | DV-4 |
 | Admin email | inline | queued after commit | ADR-018/019 | DV-8 |
-| 100%-off session | closed silently | permanent, audited, admin alerted | never silent | DV-25 ((decided, owner 2026-11-23)) |
+| 100%-off session | closed silently | fulfilled like a paid one (£0 order) | free codes work | DV-25 (decided, owner correction 2026-11-23) |
 | Double-send guard | none (a concurrent webhook and reprocess can both send) | advisory lock `fulfil_side_effects:{session}` serialises them | critic B4 | Built as recommended; not in the owner list (DV-19..26 and 4.x Q1-Q5 only): architecture §5 lists three locks; this is a fourth. The ADR is not edited. |
 ### Tests
 | Layer | Test file / title | Inventory IDs |
@@ -101,3 +101,5 @@ Inventory K-05, K-06, K-07, N-10; ledger rows 52, 80 (and row 5 reverted: it is 
 DV-25 and the fourth lock await the owner. Concurrent-provisioning race test. N-01/N-02 inventory rows still point at 4.4 only.
 
 **L4 parity run (2026-11-23, workbench/parity-4-5):** @auth 37 tests: Next 37 pass; Laravel 15 pass / 11 fail / 11 not reached. @checkout 28: Next 28 pass; Laravel 1 / 20 / 7. @entitlements 10: Next 10 pass; Laravel 0 / 10 / 0. Failures are the unwired Stripe/Postmark/Mailpit infra on the Laravel stack and not-yet-built pages/routes, listed with titles in `docs/laravel-migration/parity-run-2026-11-23.md`. This story's parity tests are not shown to match: stays at `review`.
+
+**Correction (owner, 2026-11-23, DV-25):** `FulfilCheckout::fulfil` accepts `paid` and `no_payment_required`; any other status still throws `CHECKOUT_SESSION_NOT_PAID`. `HopelessCheckoutFailure::noPaymentRequired` is removed. `existing()` now provisions for the stored billing email on a deduped repeat (an email changed at Stripe made `ProvisionAccess` throw forever with no alert). Tests: `FulfilCheckoutTest`, `WebhookFulfilmentTest`; parity `dv-25-free-checkout.spec.ts`.

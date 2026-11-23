@@ -194,3 +194,28 @@ it('aborts before any email when the claim is lost mid-fulfilment (lease fence)'
         ->and(Mail::mailer('array')->getSymfonyTransport()->messages())->toHaveCount(0)
         ->and(DB::table('audit_events')->where('type', 'like', 'email_sent:%')->count())->toBe(0);
 });
+
+it('a repeat delivery whose Stripe email differs from the stored billing email still completes (provisions for the stored email)', function () {
+    whEssentialItems(FakeStripe::install());
+    [$p, $s] = signedEvent('checkout.session.completed', paidSessionFor('cs_test_DRIFT001'), 'evt_d1');
+    postWebhook($p, $s)->assertOk();
+
+    $changed = paidSessionFor('cs_test_DRIFT001', ['customer_details' => ['email' => 'other@example.test', 'name' => 'Ada Lovelace']]);
+    [$p2, $s2] = signedEvent('checkout.session.completed', $changed, 'evt_d2');
+    $r = postWebhook($p2, $s2)->assertOk();
+    expect($r->json())->toMatchArray(['fulfilled' => true, 'deduped' => true, 'purchaserEmail' => 'buyer@example.test'])
+        ->and(DB::table('users')->count())->toBe(1)->and(DB::table('project_orders')->count())->toBe(1);
+});
+
+it('DV-25 through the route: a 100%-off no_payment_required session is fulfilled like a paid one, with no admin alert', function () {
+    whEssentialItems(FakeStripe::install());
+    [$p, $s] = signedEvent('checkout.session.completed', paidSessionFor('cs_test_FREE0001', ['payment_status' => 'no_payment_required', 'amount_total' => 0, 'payment_intent' => null]), 'evt_free');
+    $r = postWebhook($p, $s)->assertOk();
+    expect($r->json())->toMatchArray(['fulfilled' => true, 'deduped' => false, 'orderStatus' => 'FULFILLED', 'purchaserEmail' => 'buyer@example.test'])
+        ->and(DB::table('projects')->count())->toBe(1)->and(DB::table('users')->count())->toBe(1)
+        ->and(DB::table('project_entitlements')->count())->toBeGreaterThan(0)
+        ->and((int) DB::table('project_orders')->value('total_cents'))->toBe(0)
+        ->and(Mail::mailer('array')->getSymfonyTransport()->messages())->toHaveCount(1) // the setup email to the buyer
+        ->and(Queue::pushed(SendLifecycleMail::class, fn (SendLifecycleMail $j) => $j->admin)->count())->toBeGreaterThan(0) // the admin purchase email
+        ->and(whAlertsSent())->toBe(0);
+});
