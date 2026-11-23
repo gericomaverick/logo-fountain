@@ -46,3 +46,4 @@ YYYY-MM-DD — <Decision>. Rationale: <why>. Impact: <what changes>. #decision
 2026-11-23 — Story 4.7: logout/change-password built as recommended (logout with no session is 200), awaiting owner. Change signs out everywhere and clears the cookie. #decision
 2026-11-23 — Story 4.9a: bootstrap CLI built as recommended (uses the 2.1 table `auth_admin_bootstrap`, no migration), awaiting owner. The `operator-admin-bootstrap` advisory lock is taken inline on `pgsql_migrate`, not added to `Locks` (architecture §5 lists three). #decision
 2026-11-23 — Story 4.9b: auth screens built as recommended (flat token-built brand panel, set/reset share one form, `/` redirects to /login, token pages strip the fragment before render), awaiting owner. Visual baselines generated, not approved. #decision
+2026-11-23 — Story 4.4 (critic 11640 N1): the new logo header now also appears on the 2.7 lifecycle mails, a visible change versus main, awaiting owner. #decision
