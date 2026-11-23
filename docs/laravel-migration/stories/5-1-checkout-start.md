@@ -91,3 +91,5 @@ stripe-php sends booleans as the text "true"/"false". Larastan needed an ignore 
 Inventory K-01, K-13, DV-20 rows; sprint-status → review; DECISIONS, RISKS, ASSUMPTIONS one line each; `.env.example` (STRIPE_API_BASE); `compose.yaml` mounts the stripe fixtures.
 ### Open items
 Owner: DV-20 (and DV-1, DV-5 already recommended). Rate limit on the route not built (RISKS). L4 parity and Laravel page objects not run or built here.
+
+**L4 parity run (2026-11-23, workbench/parity-4-5):** @auth 37 tests: Next 37 pass; Laravel 15 pass / 11 fail / 11 not reached. @checkout 28: Next 28 pass; Laravel 1 / 20 / 7. @entitlements 10: Next 10 pass; Laravel 0 / 10 / 0. Failures are the unwired Stripe/Postmark/Mailpit infra on the Laravel stack and not-yet-built pages/routes, listed with titles in `docs/laravel-migration/parity-run-2026-11-23.md`. This story's parity tests are not shown to match: stays at `review`.

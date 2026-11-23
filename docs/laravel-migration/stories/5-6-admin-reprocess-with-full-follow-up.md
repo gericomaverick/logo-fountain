@@ -82,3 +82,5 @@ Reprocess retrieves the session and runs `FulfilCheckout::fulfil` then `followUp
 | L2 | `tests/Feature/Checkout/ReprocessCheckoutTest.php` (guards, emails once + deduped, names, unpaid 409, 404/502, no mail in controller) | K-12, DV-6, DV-23 |
 | L3 `@pg-race` | `tests/Concurrency/FulfilSideEffectsRaceTest.php` "sends each email once when the webhook and the admin reprocess race on a new session" (real `ProcessStripeEvent` and `ReprocessCheckoutController` in 6 child processes; critic B1) | DV-6 |
 | L2 | `ReprocessCheckoutTest.php` "writes its own audit row" (critic B2, DV-26 (decided, owner 2026-11-23)); no L4 parity run |  |
+
+**L4 parity run (2026-11-23, workbench/parity-4-5):** @auth 37 tests: Next 37 pass; Laravel 15 pass / 11 fail / 11 not reached. @checkout 28: Next 28 pass; Laravel 1 / 20 / 7. @entitlements 10: Next 10 pass; Laravel 0 / 10 / 0. Failures are the unwired Stripe/Postmark/Mailpit infra on the Laravel stack and not-yet-built pages/routes, listed with titles in `docs/laravel-migration/parity-run-2026-11-23.md`. This story's parity tests are not shown to match: stays at `review`.

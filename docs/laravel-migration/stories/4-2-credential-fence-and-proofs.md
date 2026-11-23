@@ -92,3 +92,5 @@ Real actions (4.5/4.6) must call `CredentialFence::run`; the arch test enforces 
 ## Critic round 1 — recorded
 - Arch rule for `CredentialFence::run` now uses a comment-stripping, span-checking scanner (`tests/Arch/AuthTest.php`), proven against deliberate-violation fixtures. `app/Actions/Auth` does not exist yet, so the directory rule passes vacuously until 4.5, which must keep it.
 - Noted for later: `AuthProofs::validate` does not check proof owner against the open fence; nested fence becomes a savepoint; lock-timeout test uses a second in-process connection; login/reset race doesn't assert ordering.
+
+**L4 parity run (2026-11-23, workbench/parity-4-5):** @auth 37 tests: Next 37 pass; Laravel 15 pass / 11 fail / 11 not reached. @checkout 28: Next 28 pass; Laravel 1 / 20 / 7. @entitlements 10: Next 10 pass; Laravel 0 / 10 / 0. Failures are the unwired Stripe/Postmark/Mailpit infra on the Laravel stack and not-yet-built pages/routes, listed with titles in `docs/laravel-migration/parity-run-2026-11-23.md`. This story's parity tests are not shown to match: stays at `review`.
