@@ -47,3 +47,4 @@ DV-15 K-05 a session Stripe does not know is a permanent failure reported to the
 DV-15 K-06 a payment intent already used by another session is a permanent failure reported to the admin @deviation @webhook @email @api
 DV-15 K-09 an upsell paid with a different email still applies, provisions nobody new, and alerts the admin @deviation @webhook @upsell @email @api
 DV-25 K-06 a 100%-off session (no_payment_required) is fulfilled like a paid one @deviation @webhook @checkout @email @api
+DV-28 K-06 a repeat delivery with a different purchaser email still succeeds for the stored purchaser @deviation @webhook @checkout @api

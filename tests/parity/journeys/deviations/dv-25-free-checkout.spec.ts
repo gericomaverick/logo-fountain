@@ -4,7 +4,7 @@ import { releaseDb } from "../../adapters/seed";
 // fails on Next, which refuses anything but "paid" (listed in expected-next-failures.txt).
 import { expect, test } from "../../fixtures";
 import { messagesTo, waitForMessages } from "../../adapters/mail";
-import { adminClient, adminSnapshot, buildEvent, deliverEvent, loadStripeFixture, seedOnceForRun } from "../../adapters/stripe";
+import { adminClient, adminSnapshot, buildEvent, deliverEvent, loadStripeFixture, patchSession, seedOnceForRun } from "../../adapters/stripe";
 
 test.beforeAll(async () => {
   await seedOnceForRun();
@@ -20,4 +20,19 @@ test("DV-25 K-06 a 100%-off session (no_payment_required) is fulfilled like a pa
   const snapshot = await adminSnapshot(admin, res.body.projectId);
   expect(snapshot.entitlementUsage.revisions.limit).toBeGreaterThan(0);
   await waitForMessages(() => messagesTo(loaded.email!));
+});
+
+// DV-28 (owner item 3, 2026-11-23): a repeat delivery of an already-fulfilled session whose payload carries a different
+// purchaser email. Next re-provisions for the payload's email (`checkout-fulfillment.ts:341-352` returns it,
+// `ensureAccessProvisioning` `:453` then refuses it against the stored billing email) so the redelivery fails for a
+// customer who already paid. Laravel provisions for the stored billing email and answers 200 (deduped).
+test("DV-28 K-06 a repeat delivery with a different purchaser email still succeeds for the stored purchaser @deviation @webhook @checkout @api", async () => {
+  const loaded = await loadStripeFixture("package-essential-paid");
+  const first = await deliverEvent(buildEvent("checkout.session.completed", loaded.session));
+  expect(first.status).toBe(200);
+  const other = `other-${loaded.email}`;
+  const patched = await patchSession(loaded, { customer_details: { ...loaded.session.customer_details, email: other } });
+  const second = await deliverEvent(buildEvent("checkout.session.completed", patched));
+  expect(second.status).toBe(200);
+  expect(second.body).toMatchObject({ received: true, fulfilled: true, projectId: first.body.projectId });
 });

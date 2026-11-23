@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Actions\Auth\SendAuthLink;
 use App\Exceptions\ApiException;
+use App\Jobs\SendAuthLinkMail;
 use App\Http\Controllers\Controller;
 use App\Models\ProjectOrder;
 use App\Support\ErrorCodes;
@@ -54,14 +55,12 @@ final class CheckoutAuthEmailController extends Controller
             throw new ApiException('Sign-in email is temporarily unavailable.', 503, ErrorCodes::EMAIL_UNAVAILABLE);
         }
 
+        // Q2 (DV-27): the same work and the same answer whether or not the purchaser has an account: one lookup, one
+        // queue insert. The proof and the email happen in the job. Always `magic`: the session id never sets a password.
         try {
-            // Always `magic` (sign-in): the session id is never authority to set a password.
-            $issued = $send->request($email, 'magic');
+            SendAuthLinkMail::dispatch($send->find($email)?->id, 'magic', '/dashboard');
         } catch (Throwable) {
             throw new ApiException('Unable to send sign-in email.', 500, ErrorCodes::AUTH_EMAIL_SEND_FAILED);
-        }
-        if ($issued === null) {
-            throw new ApiException('Sign-in email is temporarily unavailable.', 503, ErrorCodes::EMAIL_UNAVAILABLE);
         }
 
         return response()->json(['ok' => true, 'delivery' => 'email']);
