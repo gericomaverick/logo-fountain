@@ -83,3 +83,5 @@ Order: rate limit by token, then WEAK_PASSWORD (before any proof read), then one
 Inventory A-08, ledger #29, #66, #72, DECISIONS, sprint-status.
 ### Open items
 Q1 built as recommended (generic message in the WEAK_PASSWORD body), decided (owner, 2026-11-23); exact JSON to confirm against L4. Confirm-password stays client-side.
+
+**L4 parity run (2026-11-23, workbench/parity-4-5):** @auth 37 tests: Next 37 pass; Laravel 15 pass / 11 fail / 11 not reached. @checkout 28: Next 28 pass; Laravel 1 / 20 / 7. @entitlements 10: Next 10 pass; Laravel 0 / 10 / 0. Failures are the unwired Stripe/Postmark/Mailpit infra on the Laravel stack and not-yet-built pages/routes, listed with titles in `docs/laravel-migration/parity-run-2026-11-23.md`. This story's parity tests are not shown to match: stays at `review`.

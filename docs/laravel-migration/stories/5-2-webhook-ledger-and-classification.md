@@ -96,3 +96,5 @@ Hopeless failures with a project need real fulfilment (5.3) to raise `paymentInt
 Inventory K-05, ledger rows 52 (partial) and 109, sprint-status, DECISIONS/RISKS/ASSUMPTIONS.
 ### Open items
 "Flagged stuck" = audit `checkout_stuck` (no column); unknown-session alert goes to `ADMIN_NOTIFICATION_EMAILS`; DV-21 decided (owner, 2026-11-23). Built as recommended, decided (owner, 2026-11-23).
+
+**L4 parity run (2026-11-23, workbench/parity-4-5):** @auth 37 tests: Next 37 pass; Laravel 15 pass / 11 fail / 11 not reached. @checkout 28: Next 28 pass; Laravel 1 / 20 / 7. @entitlements 10: Next 10 pass; Laravel 0 / 10 / 0. Failures are the unwired Stripe/Postmark/Mailpit infra on the Laravel stack and not-yet-built pages/routes, listed with titles in `docs/laravel-migration/parity-run-2026-11-23.md`. This story's parity tests are not shown to match: stays at `review`.
