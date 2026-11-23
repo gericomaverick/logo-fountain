@@ -1,6 +1,6 @@
 # Story 5.2: Webhook ledger and classification
 
-**Status:** ready-for-dev (created from `origin/workbench/4-integrate` b2e1115) · **DoD variant:** Conversion · **Epic:** 5 · **Covers:** K-05, ADR-014, DV-15, NFR-R1 · **Gate:** `@webhook&@api`, `@pg-race`, `@deviation` (DV-15) · **After:** 2.4, 0.5 · **Stacks on:** `origin/workbench/4-integrate`; in the SERIAL chain, the previous Epic 5 story's branch (see `epic-5-build-order` in 5.7). Test mode and fakes only (stripe-fake, postmark-shim); live Stripe/Postmark is the owner's.
+**Status:** review (created from `origin/workbench/4-integrate` b2e1115) · **DoD variant:** Conversion · **Epic:** 5 · **Covers:** K-05, ADR-014, DV-15, NFR-R1 · **Gate:** `@webhook&@api`, `@pg-race`, `@deviation` (DV-15) · **After:** 2.4, 0.5 · **Stacks on:** `origin/workbench/4-integrate`; in the SERIAL chain, the previous Epic 5 story's branch (see `epic-5-build-order` in 5.7). Test mode and fakes only (stripe-fake, postmark-shim); live Stripe/Postmark is the owner's.
 
 > Created with the repo's create-story form. All `apps/web` `file:line` read 2026-11-23; `apps/web` is frozen, so nothing here edits it.
 
@@ -91,8 +91,8 @@ Built against a stub fulfiller (`FulfilsCheckout`, bound to `PendingFulfiller`, 
 ### Test evidence
 See the story commit: `bin/test` gate. L4 parity (`webhook-ledger.spec.ts`, `dv-15`) NOT RUN.
 ### Gotchas
-Hopeless failures with a project need real fulfilment (5.3) to raise `paymentIntentReused`/`upsellProjectMissing`; only the unknown-session path (async retrieve 404) is raised here. Not tested: the `payment_attention` email with a project, and lease renewal mid-fulfilment (needs the real fulfiller).
+Hopeless failures with a project need real fulfilment (5.3) to raise `paymentIntentReused`/`upsellProjectMissing`; only the unknown-session path (async retrieve 404) is raised here. Since critic 12802: the project alert, lost-claim write-nothing, lease fence, async retrieve and its 404 are tested in `WebhookFulfilmentTest.php`; `upsellProjectMissing` waits for 5.5.
 ### Docs updated
-Inventory K-05, ledger rows 52 and 109, sprint-status, DECISIONS/RISKS/ASSUMPTIONS.
+Inventory K-05, ledger rows 52 (partial) and 109, sprint-status, DECISIONS/RISKS/ASSUMPTIONS.
 ### Open items
 "Flagged stuck" = audit `checkout_stuck` (no column); unknown-session alert goes to `ADMIN_NOTIFICATION_EMAILS`; DV-21 awaiting owner. Built as recommended, awaiting owner.

@@ -1,6 +1,6 @@
 # Story 5.3: Fulfilment and access provisioning
 
-**Status:** ready-for-dev (created from `origin/workbench/4-integrate` b2e1115) · **DoD variant:** Conversion · **Epic:** 5 · **Covers:** K-06, K-07, FR15, FR16, DV-4, N-01, N-02, N-10 · **Gate:** `@webhook&@api`, `@email&@api` (checkout emails) · **After:** 5.2, 4.4, 2.7 · **Stacks on:** `origin/workbench/4-integrate`; in the SERIAL chain, the previous Epic 5 story's branch (see `epic-5-build-order` in 5.7). Test mode and fakes only (stripe-fake, postmark-shim); live Stripe/Postmark is the owner's.
+**Status:** review (created from `origin/workbench/4-integrate` b2e1115) · **DoD variant:** Conversion · **Epic:** 5 · **Covers:** K-06, K-07, FR15, FR16, DV-4, N-01, N-02, N-10 · **Gate:** `@webhook&@api`, `@email&@api` (checkout emails) · **After:** 5.2, 4.4, 2.7 · **Stacks on:** `origin/workbench/4-integrate`; in the SERIAL chain, the previous Epic 5 story's branch (see `epic-5-build-order` in 5.7). Test mode and fakes only (stripe-fake, postmark-shim); live Stripe/Postmark is the owner's.
 
 > Created with the repo's create-story form. All `apps/web` `file:line` read 2026-11-23; `apps/web` is frozen, so nothing here edits it.
 
@@ -74,22 +74,28 @@ K-06, K-07, N-01, N-02, N-10, DV-4 (order half).
 ### Next.js source read
 `checkout-fulfillment.ts`, `webhook/route.ts:148-207`.
 ### Behaviour notes
-(fill on review)
+Customer email: sent synchronously in auth mode (not queued), marker `email_sent:checkout_auth:{session}` written AFTER the send, as Next (`webhook/route.ts:166-196`). A crash between send and marker resends on retry: at-least-once, never a dropped customer email. Admin new-project email: marker written at dispatch, job queued after commit (2.7, ADR-019, DV-8); the gap there (crash after commit, before the job row) is recorded in RISKS. No message thread is created at fulfilment (Next does not).
 ### Laravel implementation
-(fill on review)
+`FulfilCheckout` (one transaction: client, project, entitlements, order, two audits; unique session id converges concurrent deliveries; a unique `stripe_payment_intent_id` violation by another session is DV-15 `paymentIntentReused`), `ProvisionAccess` (lock `provision:{email}`), `CompleteFulfilmentSideEffects` (each email in its own transaction under `Locks::fulfilSideEffects`), `CheckoutSessionData`, `PackageEntitlements`; `FulfilsCheckout` now bound to `FulfilCheckout` (the 5.2 stub is gone). Upsell sessions throw a retryable `UPSELL_NOT_AVAILABLE` until 5.5.
 ### Deviations from Next.js
 | Behaviour | Next.js | Laravel | Why | Decision ref |
 |---|---|---|---|---|
-(fill on review)
+| Campaign slug | stays in Stripe metadata | copied to `project_orders.campaign_slug` | attribution | DV-4 |
+| Admin email | inline | queued after commit | ADR-018/019 | DV-8 |
+| 100%-off session | closed silently | permanent, audited, admin alerted | never silent | DV-25 (proposed, awaiting owner) |
+| Double-send guard | none (a concurrent webhook and reprocess can both send) | advisory lock `fulfil_side_effects:{session}` serialises them | critic B4 | Built as recommended, awaiting owner: architecture §5 lists three locks; this is a fourth. The ADR is not edited. |
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|
-(fill on review)
+| L2 | `tests/Feature/Checkout/FulfilCheckoutTest.php` (fulfil, refuse unpaid/no_payment_required, one allowlisted price, NEEDS_CONTACT, provision + each email once across retries) | K-06, K-07, N-01, N-10 |
+| L2 | `tests/Feature/Checkout/WebhookFulfilmentTest.php` (route over the real fulfiller: response fields, second event for one session `deduped`, lease renewed mid-fulfilment, claim lost mid-fulfilment aborts before any email) | K-05, K-06 |
+| L3 `@pg-race` | `tests/Concurrency/FulfilSideEffectsRaceTest.php`: 6 processes, customer and admin mail each once (fails with 7 mails when the lock is removed) | N-01, N-10 |
+| L3 `@pg-race` | `tests/Concurrency/LocksTest.php` (fourth lock: key, commit, rollback, outside a transaction) | X-09 |
 ### Test evidence
-(fill on review)
+Pest on the builder's own stack: the files above pass (see the report). Not run: L4 parity (`contract/webhook-fulfilment.spec.ts` and the deferred 5.2 specs); ProvisionAccess has no dedicated file (covered through FulfilCheckoutTest); the concurrent-provisioning `@pg-race` row of the plan is not built.
 ### Gotchas
-(fill on review)
+Race children need `POSTMARK_FROM` (the container's `.env` leaves it empty, so auth mail counts as unconfigured and is silently skipped outside production); `RaceChildren::run` takes extra env for that. `LocksTest` had an apostrophe parse error in a test title (fixed).
 ### Docs updated
-(fill on review)
+Inventory K-05, K-06, K-07, N-10; ledger rows 52, 80 (and row 5 reverted: it is 5.6's); sprint-status; DECISIONS, RISKS.
 ### Open items
-(fill on review)
+DV-25 and the fourth lock await the owner. Concurrent-provisioning race test. N-01/N-02 inventory rows still point at 4.4 only.

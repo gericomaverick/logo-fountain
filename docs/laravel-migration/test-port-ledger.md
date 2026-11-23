@@ -10,7 +10,7 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 2 | `e2e/client-flows.spec.ts` | 4 | C-01,C-03,C-05 | L5 parity | | Not started |
 | 3 | `e2e/smoke.spec.ts` | 2 | A-15 | L5 parity @smoke | | Not started |
 | 4 | `src/app/admin/projects/[id]/concepts/read-state-regression.test.ts` | 2 | C-15,D-05 | Keep TS (UI) + L4 read-state contract | | Not started |
-| 5 | `src/app/api/admin/checkout/reprocess/route.test.ts` | 5 | K-12 | Pest feature (HTTP) + L4 parity contract | tests/Feature/Checkout/WebhookTest.php (L4 not run) | Ported 5.2 |
+| 5 | `src/app/api/admin/checkout/reprocess/route.test.ts` | 5 | K-12 | Pest feature (HTTP) + L4 parity contract | | Not started (5.6 owns reprocess) |
 | 6 | `src/app/api/admin/health/route.test.ts` | 5 | D-18 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 7 | `src/app/api/admin/projects/[id]/audit/route.test.ts` | 3 | D-16 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 8 | `src/app/api/admin/projects/[id]/concepts/[conceptId]/publish/route.test.ts` | 5 | D-06 | Pest feature (HTTP) + L4 parity contract | | Not started |
@@ -57,7 +57,7 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 49 | `src/app/api/projects/[id]/route.test.ts` | 5 | C-02 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 50 | `src/app/api/projects/route.test.ts` | 1 | C-02 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 51 | `src/app/api/route-guards.test.ts` | 7 | X-01 | Pest arch test: every mutating route has OriginGuard middleware + L6 matrix | `tests/Arch/OriginGuardTest.php` (origin half) | **Partly ported** (origin half, story 1.4; the rest with the route stories) |
-| 52 | `src/app/api/stripe/webhook/route.test.ts` | 21 | K-05,K-06 | Pest feature (HTTP) + L4 parity contract | | Not started |
+| 52 | `src/app/api/stripe/webhook/route.test.ts` | 21 | K-05,K-06 | Pest feature (HTTP) + L4 parity contract | tests/Feature/Checkout/WebhookTest.php, WebhookFulfilmentTest.php, tests/Concurrency/WebhookClaimRaceTest.php (L4 not run) | Partly ported 5.2/5.3: signature, ledger, claim, lease fence, classification, DV-15 alert, async retrieve, real fulfilment through the route (about 20 Pest cases for the 21 Next tests; per-test mapping not done, so not marked Ported) |
 | 53 | `src/app/project/[id]/brief/brief-feedback.test.ts` | 10 | C-05,C-06 | Keep TS (UI) | | Not started |
 | 54 | `src/app/project/[id]/brief/editor-focus.test.ts` | 2 | C-05 | Keep TS (UI) | | Not started |
 | 55 | `src/components/allowances.test.ts` | 5 | C-03 | Keep TS (UI) | | Not started |
@@ -85,7 +85,7 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 77 | `src/lib/brief.test.ts` | 3 | C-05,C-07 | Pest unit + keep TS (shared fixture) | | Not started |
 | 78 | `src/lib/chat-messages.test.ts` | 14 | C-14 | Keep TS (UI) | | Not started |
 | 79 | `src/lib/checkout-auth-email-rate-limit.test.ts` | 3 | K-04,X-06 | Pest unit (shared-store limiter) | `tests/Feature/Support/CheckoutEmailLimitTest.php` (#1–3, Next's values; L2 on PostgreSQL, the store is under test) | **Ported** (3/3, story 2.5) |
-| 80 | `src/lib/checkout-fulfillment.test.ts` | 6 | K-06,K-09 | Pest feature | | Not started |
+| 80 | `src/lib/checkout-fulfillment.test.ts` | 6 | K-06,K-09 | Pest feature | tests/Feature/Checkout/FulfilCheckoutTest.php (K-06 half; the upsell/K-09 tests wait for 5.5) | Partly ported 5.3 |
 | 81 | `src/lib/checkout-success.test.ts` | 2 | K-02 | Keep TS (UI) | | Not started |
 | 82 | `src/lib/client-invoices.test.ts` | 4 | K-11 | Pest unit (Stripe fakes) | | Not started |
 | 83 | `src/lib/concept-activity.test.ts` | 2 | C-15 | Pest unit + keep TS | | Not started |

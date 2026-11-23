@@ -8,6 +8,7 @@ use App\Actions\Auth\ConfirmMagicLink;
 use App\Actions\Auth\ResetPassword;
 use App\Actions\Checkout\Claim;
 use App\Actions\Checkout\ClaimStripeEvent;
+use App\Actions\Checkout\CompleteFulfilmentSideEffects;
 use App\Exceptions\ApiException;
 use App\Exceptions\AuthFailure;
 use App\Support\Audit;
@@ -188,6 +189,19 @@ $out = match ($mode) {
         $claim = (new ClaimStripeEvent)->claim($args[0], 'checkout.session.completed', time());
 
         return ['won' => $claim instanceof Claim];
+    })(),
+
+    // Story 5.3 AC 9: the webhook's and a second path's side effects for one session; counts the mails THIS process sent.
+    'side-effects' => (function () use ($args): array {
+        [$sessionId, $projectId, $userId] = $args;
+        (new CompleteFulfilmentSideEffects)->handle($sessionId, $projectId, $userId, true, true, fn () => null);
+        $transport = app('mail.manager')->mailer('array')->getSymfonyTransport();
+        $subjects = [];
+        foreach ($transport->messages() as $m) {
+            $subjects[] = $m->getOriginalMessage()->getSubject();
+        }
+
+        return ['subjects' => $subjects];
     })(),
 };
 

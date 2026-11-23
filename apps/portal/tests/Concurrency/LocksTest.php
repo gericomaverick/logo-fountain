@@ -36,9 +36,10 @@ dataset('locks', [
     'credential (auth:<id>)' => [fn () => Locks::credential('7d3c1d1e-0000-4000-8000-000000000001'), 'auth:7d3c1d1e-0000-4000-8000-000000000001'],
     'provision (provision:<email>)' => [fn () => Locks::provision('buyer@example.test'), 'provision:buyer@example.test'],
     'conceptUpload (<projectId>:<requestKey>)' => [fn () => Locks::conceptUpload('5e9a0c2b-0000-4000-8000-000000000002', 'req-1'), '5e9a0c2b-0000-4000-8000-000000000002:req-1'],
+    'fulfilSideEffects (fulfil_side_effects:<session>)' => [fn () => Locks::fulfilSideEffects('cs_test_1'), 'fulfil_side_effects:cs_test_1'],
 ]);
 
-it('exposes exactly the locks of architecture §5 plus story 5.3's side-effects lock', function () {
+it('exposes exactly the locks of architecture §5 plus the story 5.3 side-effects lock (built as recommended, awaiting owner)', function () {
     $methods = array_map(fn (ReflectionMethod $m) => $m->getName(), (new ReflectionClass(Locks::class))->getMethods(ReflectionMethod::IS_PUBLIC));
 
     expect($methods)->toBe(['credential', 'provision', 'fulfilSideEffects', 'conceptUpload']);
