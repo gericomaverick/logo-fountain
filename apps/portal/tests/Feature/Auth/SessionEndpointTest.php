@@ -2,6 +2,7 @@
 
 use App\Models\Profile;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\SessionRows;
@@ -92,20 +93,20 @@ it('reads isAdmin from the database on every request', function () {
     getSession()->assertExactJson(['authenticated' => false]);
 });
 
-it('answers 503 and leaks nothing when the lookup fails', function () {
+it('answers 503 and leaks nothing when the lookup fails', function (string $table) {
     $user = User::factory()->create();
     sessionFor($user, 10);
-    DB::connection()->beforeExecuting(function (string $query) {
-        if (str_contains($query, 'from "users"')) {
-            throw new RuntimeException('SQLSTATE[08006] password=hunter2 at db.internal');
+    DB::connection()->beforeExecuting(function (string $query) use ($table) {
+        if (str_contains($query, 'from "'.$table.'"')) {
+            throw new QueryException('pgsql', $query, [], new PDOException('SQLSTATE[08006] password=hunter2 at db.internal'));
         }
     });
 
     $res = getSession()->assertStatus(503);
     expect($res->json())->toBe(['error' => ['code' => 'SESSION_VERIFICATION_UNAVAILABLE', 'message' => 'Could not verify session. Please retry.']])
         ->and($res->getContent())->not->toContain('hunter2')->not->toContain('SQLSTATE')
-        ->and($res->headers->get('Cache-Control'))->toBe('no-store');
-});
+        ->and($res->headers->get('Cache-Control'))->toContain('no-store');
+})->with(['users read' => ['users'], 'sessions read (StartSession)' => ['sessions']]);
 
 it('carries no-store and the site referrer policy', function () {
     $res = $this->getJson('/api/auth/session');
