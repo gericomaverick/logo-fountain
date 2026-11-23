@@ -58,24 +58,31 @@ None planned. Screens are a restyle to design A, as UX §14 specifies.
 > Fill at implementation, from `templates/story-conversion-record.md`. Write *Behaviour notes* before converting.
 
 ### Inventory scope
-_(stub)_
+A-05 (callback page), A-06 (set-password page, now Done for the page), A-07 (forgot-password page), A-08 (reset-password page); Login screen (A-01 UI).
 ### Next.js source read
-_(stub)_
+`app/login/page.tsx`, `set-password`, `forgot-password`, `auth/callback`, `lib/auth/client.ts`, `validation.ts`, `logout.ts`, `safe-next.ts`.
 ### Behaviour notes
-_(stub)_
+Token in URL fragment, stripped before first render; callback only confirms on button; failures show one fixed text; login `next` via SafeNext; set and reset share one form posting `reset-password`.
 ### Laravel implementation
-_(stub)_
+Routes in `routes/web.php`; pages `resources/js/Pages/Auth/*`; layout `Layouts/AuthShell.tsx`; `Components/auth/PasswordForm.tsx`; `lib/auth.ts`, `lib/safe-next.ts`, `lib/strip-fragment.ts`. `/` redirects to /login; old token showcase moved to local-only `/dev/tokens`.
 ### Deviations from Next.js
 | Behaviour | Next.js | Laravel | Why | Decision ref |
 |---|---|---|---|---|
+| Fragment strip | one `replaceState` | repeated for 2s | Inertia 3 restores the hash after boot | RISKS 2026-11-23 |
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|
+| Unit | `tests/js/auth.test.ts` | A-05..A-08 |
+| Pest | `tests/Feature/Auth/AuthScreensTest.php` | A-05..A-08 |
+| Browser | `tests/browser/auth-screens.spec.ts` (@auth @ui @visual) | A-05..A-08 |
 ### Test evidence
-_(commands, pass/fail counts, what was not run and why)_
+bin/test (Pint, Larastan, Pest): 1957 passed, 1 warning. Browser: auth-screens 16 passed, theme 18 passed. typecheck and lint clean. `test:unit` fails only on the pre-existing design-lint findings in `resources/views/mail/layouts/base.blade.php:7` (not this story); 226 other unit tests pass, including the new auth ones. Not run: Lighthouse.
 ### Gotchas
+Vite in the container served stale files after host edits; `docker compose restart vite` fixed it.
 ### Docs updated
+Inventory A-05..A-08, DECISIONS, RISKS, sprint-status.
 ### Open items
+Visual baselines in `tests/browser/__screenshots__/auth-screens.spec.ts/` are generated, NOT approved: owner to review. Ledger unchanged (no Next test files ported by this story).
 
 ## epic-4-build-order
 SERIAL, one builder, each story forked from the previous branch: **4.1 → 4.2 → 4.3 → 4.4 → 4.5 → 4.6 → 4.7 → 4.8 → 4.9a → 4.9b.**

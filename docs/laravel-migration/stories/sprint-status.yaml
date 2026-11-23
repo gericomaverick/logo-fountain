@@ -77,7 +77,7 @@ development_status:
   4-7-change-password-and-logout: review
   4-8-safe-next-route-guards-endpoint-allowlist: ready-for-dev
   4-9a-admin-bootstrap-cli: review
-  4-9b-auth-screens: ready-for-dev
+  4-9b-auth-screens: review
   epic-4-retrospective: optional
 
   epic-5: backlog
