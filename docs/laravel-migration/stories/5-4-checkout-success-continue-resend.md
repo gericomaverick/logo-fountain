@@ -1,6 +1,6 @@
 # Story 5.4: Checkout success, continue, resend
 
-**Status:** ready-for-dev (created from `origin/workbench/4-integrate` b2e1115) · **DoD variant:** Conversion · **Epic:** 5 · **Covers:** K-02, K-03, K-04, FR14, FR58 · **Gate:** `@checkout&@api`, `@checkout&@ui` · **After:** 5.3, 1.9 · **Stacks on:** `origin/workbench/4-integrate`; in the SERIAL chain, the previous Epic 5 story's branch (see `epic-5-build-order` in 5.7). Test mode and fakes only (stripe-fake, postmark-shim); live Stripe/Postmark is the owner's.
+**Status:** review (created from `origin/workbench/4-integrate` b2e1115) · **DoD variant:** Conversion · **Epic:** 5 · **Covers:** K-02, K-03, K-04, FR14, FR58 · **Gate:** `@checkout&@api`, `@checkout&@ui` · **After:** 5.3, 1.9 · **Stacks on:** `origin/workbench/4-integrate`; in the SERIAL chain, the previous Epic 5 story's branch (see `epic-5-build-order` in 5.7). Test mode and fakes only (stripe-fake, postmark-shim); live Stripe/Postmark is the owner's.
 
 > Created with the repo's create-story form. All `apps/web` `file:line` read 2026-11-23; `apps/web` is frozen, so nothing here edits it.
 
@@ -64,22 +64,20 @@ K-02, K-03, K-04, FR14, FR58.
 ### Next.js source read
 status, magic-link, resend routes, `checkout-auth-email*.ts`, success client, continue page.
 ### Behaviour notes
-(fill on review)
+Status exposes two fields only; unknown = pending byte-identical. Send-link is one action on two routes, always `magic` (sign-in), emailed to the recorded address, never returned. Limiter consumes before sending (`RateLimits::consumeCheckoutEmail`, 2.5).
 ### Laravel implementation
-(fill on review)
+`CheckoutStatusController`, `CheckoutAuthEmailController`, routes in `routes/checkout.php` (no web group); pages `Pages/Checkout/{Success,Continue}.tsx`, `Components/ResendLink.tsx`, `lib/checkout.ts`; `Cache-Control: no-store` added on status (open question 2).
 ### Deviations from Next.js
-| Behaviour | Next.js | Laravel | Why | Decision ref |
-|---|---|---|---|---|
-(fill on review)
+DV-22 (customer-safe copy; polling survives a failed poll via `usePolling`) implemented as proposed, awaiting owner approval. A purchaser with no user account answers 503 EMAIL_UNAVAILABLE (Next's `skipped`).
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|
-(fill on review)
+| L2 | `tests/Feature/Checkout/CheckoutStatusTest.php` (7 cases: status 400/two fields/byte-identical; send-link validation, 409s, sign-in only + both routes, 429, 503/500) | K-02, K-03, K-04, FR58 |
 ### Test evidence
-(fill on review)
+`bin/test` green: Pint, Larastan, Pest 2069 passed.
 ### Gotchas
-(fill on review)
+Not done: Playwright `checkout-success.spec.ts` (AC 7-10 browser), L4 parity specs, two-process limiter `@pg-race` test, inventory/ledger rows, DECISIONS/RISKS lines. The pages are visually unchecked and untested in a browser. Next's story header in Docs updated: status only.
 ### Docs updated
-(fill on review)
+This record, sprint-status.
 ### Open items
-(fill on review)
+Browser spec and parity; owner: DV-22.

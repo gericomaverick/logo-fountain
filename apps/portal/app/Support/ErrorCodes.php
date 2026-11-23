@@ -33,6 +33,17 @@ final class ErrorCodes
 
     public const INVALID_JSON = 'INVALID_JSON';
 
+    /** Story 5.4 (K-02/K-03): checkout status and send-link. */
+    public const MISSING_SESSION_ID = 'MISSING_SESSION_ID';
+
+    public const NOT_FULFILLED = 'NOT_FULFILLED';
+
+    public const MISSING_EMAIL = 'MISSING_EMAIL';
+
+    public const EMAIL_UNAVAILABLE = 'EMAIL_UNAVAILABLE';
+
+    public const AUTH_EMAIL_SEND_FAILED = 'AUTH_EMAIL_SEND_FAILED';
+
     /** 403: a mutation without canonical Origin/Referer provenance (X-01, `lib/request-origin.ts:103`). */
     public const INVALID_ORIGIN = 'INVALID_ORIGIN';
 

@@ -28,6 +28,8 @@ Route::get('/login', function (Request $request) {
 Route::get('/forgot-password', fn () => Inertia::render('Auth/ForgotPassword'))->name('password.forgot');
 Route::get('/set-password', fn () => Inertia::render('Auth/SetPassword'))->name('password.set');
 Route::get('/reset-password', fn () => Inertia::render('Auth/ResetPassword'))->name('password.reset');
+Route::get('/checkout/success', fn () => Inertia::render('Checkout/Success'))->name('checkout.success');
+Route::get('/checkout/continue', fn () => Inertia::render('Checkout/Continue'))->name('checkout.continue');
 Route::get('/auth/callback', fn () => Inertia::render('Auth/Callback'))->name('auth.callback');
 
 // Story 4.8 open question 1: the only guarded page until Epic 6 builds the dashboard; later epics attach
