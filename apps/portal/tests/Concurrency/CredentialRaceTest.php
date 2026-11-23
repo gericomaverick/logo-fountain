@@ -1,12 +1,14 @@
 <?php
 
 use App\Exceptions\AuthFailure;
+use App\Models\Profile;
 use App\Models\User;
 use App\Support\Auth\AuthProofs;
 use App\Support\Auth\CredentialFence;
 use App\Support\DatabaseRoles;
 use Illuminate\Database\Connection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Tests\Support\RaceChildren;
 use Tests\Support\SessionRows;
 
@@ -74,6 +76,41 @@ it('has one winner between a reset and a change', function () {
     expect(wins($results))->toBe(1)
         ->and(versionOf($user))->toBe(1)
         ->and(DB::table('sessions')->where('user_id', $user->id)->count())->toBe(0);
+})->group('pg-race');
+
+// The real ResetPassword / ChangePassword actions (the tests above use 4.2's fence-only stand-ins).
+it('gives two real concurrent ResetPassword calls on one token a single winner', function () {
+    $user = User::factory()->create();
+    Profile::factory()->create(['id' => $user->id]); // the audit actor
+    $token = AuthProofs::issue($user, 'reset');
+    SessionRows::insert('sess-a', $user->id, time());
+
+    $results = RaceChildren::run('reset-real', 2, [$token, 'a brand new password']);
+
+    expect(wins($results))->toBe(1)
+        ->and(versionOf($user))->toBe(1)
+        ->and(DB::table('sessions')->where('user_id', $user->id)->count())->toBe(0)
+        ->and(DB::table('auth_proofs')->where('user_id', $user->id)->count())->toBe(0)
+        ->and(DB::table('audit_events')->where('type', 'auth.password_reset')->count())->toBe(1);
+})->group('pg-race');
+
+it('gives a real ResetPassword and a real ChangePassword one winner', function () {
+    $user = User::factory()->create(['password' => Hash::make('old password 123')]);
+    Profile::factory()->create(['id' => $user->id]);
+    $token = AuthProofs::issue($user, 'reset');
+    SessionRows::insert('sess-a', $user->id, time());
+
+    $results = RaceChildren::runMixed([
+        ['reset-real', [$token, 'reset chosen password']],
+        ['change-real', [$user->id, 'sess-a', time(), 'old password 123', 'change chosen password']],
+    ]);
+
+    $hash = (string) DB::table('users')->where('id', $user->id)->value('password');
+    expect(wins($results))->toBe(1)
+        ->and(versionOf($user))->toBe(1)
+        ->and(DB::table('sessions')->where('user_id', $user->id)->count())->toBe(0)
+        ->and(DB::table('auth_proofs')->where('user_id', $user->id)->count())->toBe(0)
+        ->and(Hash::check($results[0]['won'] ? 'reset chosen password' : 'change chosen password', $hash))->toBeTrue();
 })->group('pg-race');
 
 it('answers the generic AuthFailure when the lock is held past the lock timeout', function () {

@@ -42,11 +42,19 @@ function codeOnly(string $src): string
     return $out;
 }
 
-/** True if every credential write marker sits inside a CredentialFence::run( ... ) call's parentheses. */
+/** Credential WRITES: assigning/bumping the password or credential_version, or writing auth_proofs. Reads and hash checks are not writes. */
+const CREDENTIAL_WRITE = '->\s*password\s*(?:=(?!=)|\.=)'
+    .'|[\'"]password[\'"]\s*=>'
+    .'|credential_version[\'"]?\s*(?:\+\+|--|\+=|-=|=(?!=)|=>)'
+    .'|increment\(\s*[\'"]credential_version'
+    .'|[\'"]auth_proofs[\'"]\s*\)[^;]*?->\s*(?:insert|insertGetId|insertOrIgnore|update|upsert|delete|truncate|increment|decrement)\('
+    .'|AuthProofs::(?:issue|consume|revoke\w*)\(';
+
+/** True if every credential write sits inside a CredentialFence::run( ... ) call's parentheses. */
 function writesOnlyInsideFence(string $src): bool
 {
     $code = codeOnly($src);
-    preg_match_all('/credential_version|password|auth_proofs/', $code, $m, PREG_OFFSET_CAPTURE);
+    preg_match_all('~'.CREDENTIAL_WRITE.'~s', $code, $m, PREG_OFFSET_CAPTURE);
     if ($m[0] === []) {
         return true;
     }
@@ -81,6 +89,17 @@ it('has the fence scanner reject unfenced credential writes (deliberate violatio
     'fence only in a comment' => ['<?php // CredentialFence::run(fn () => 1)'."\n".'$u->password = $h;'],
     'write outside the fence' => ['<?php CredentialFence::run(fn () => 1); $u->credential_version++;'],
     'auth_proofs delete outside' => ['<?php DB::table("auth_proofs")->delete(); CredentialFence::run(fn () => 1);'],
+    'password array write outside' => ['<?php $db->table("users")->update(["password" => $h]); CredentialFence::run(fn () => 1);'],
+    'proof issue outside' => ['<?php AuthProofs::issue($u, "reset"); CredentialFence::run(fn () => 1);'],
+]);
+
+it('has the fence scanner accept reads and hash checks outside the fence', function (string $src) {
+    expect(writesOnlyInsideFence($src))->toBeTrue();
+})->with([
+    'password parameter and Hash::check' => ['<?php function f(string $password) { return Hash::check($password, self::DUMMY_HASH); }'],
+    'hasPassword reads the column' => ['<?php function hasPassword($db) { return $db->table("users")->value("password") !== null; } CredentialFence::run($id, fn () => 1);'],
+    'version read' => ['<?php $v = (int) $db->table("users")->value("credential_version");'],
+    'proof read' => ['<?php $db->table("auth_proofs")->where("user_id", 1)->exists();'],
 ]);
 
 it('has the fence scanner accept fenced writes', function () {
@@ -88,8 +107,7 @@ it('has the fence scanner accept fenced writes', function () {
         ->and(writesOnlyInsideFence('<?php return 1;'))->toBeTrue();
 });
 
-// app/Actions/Auth does not exist until 4.5; this passes vacuously until then. 4.5 must keep it (the
-// scanner itself is proven above) and its record should note the directory now exists.
+// app/Actions/Auth exists since story 4.4/4.5; this now scans real actions (the scanner is proven above).
 it('has every credential-writing auth action call CredentialFence::run', function () {
     $dir = app_path('Actions/Auth');
     $offenders = [];

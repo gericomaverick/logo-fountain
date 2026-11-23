@@ -3,7 +3,9 @@
 // Story 2.4: one child process of an L3 race test (started in parallel by Tests\Support\RaceChildren).
 // argv: <mode> <startAt unix time, float> <mode args...>. Prints one JSON line; exits non-zero on any other error.
 
+use App\Actions\Auth\ChangePassword;
 use App\Actions\Auth\ConfirmMagicLink;
+use App\Actions\Auth\ResetPassword;
 use App\Exceptions\ApiException;
 use App\Exceptions\AuthFailure;
 use App\Support\Audit;
@@ -129,6 +131,29 @@ $out = match ($mode) {
                 }
                 $db->table('sessions')->insert(['id' => $sessionId, 'user_id' => $userId, 'payload' => '', 'last_activity' => time()]);
             });
+
+            return ['won' => true];
+        } catch (AuthFailure) {
+            return ['won' => false];
+        }
+    })(),
+
+    // Story 4.6/4.7 review: the REAL actions (the stand-ins above stay as 4.2's fence-only proof).
+    'reset-real' => (function () use ($args): array {
+        [$token, $newPassword] = $args;
+        try {
+            (new ResetPassword)->handle($token, $newPassword);
+
+            return ['won' => true];
+        } catch (AuthFailure) {
+            return ['won' => false];
+        }
+    })(),
+
+    'change-real' => (function () use ($args): array {
+        [$userId, $sessionId, $issuedAt, $current, $new] = $args;
+        try {
+            (new ChangePassword)->handle($userId, $sessionId, (int) $issuedAt, $current, $new);
 
             return ['won' => true];
         } catch (AuthFailure) {
