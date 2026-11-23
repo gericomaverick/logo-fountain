@@ -38,10 +38,10 @@ dataset('locks', [
     'conceptUpload (<projectId>:<requestKey>)' => [fn () => Locks::conceptUpload('5e9a0c2b-0000-4000-8000-000000000002', 'req-1'), '5e9a0c2b-0000-4000-8000-000000000002:req-1'],
 ]);
 
-it('exposes exactly the three locks of architecture §5', function () {
+it('exposes exactly the locks of architecture §5 plus story 5.3's side-effects lock', function () {
     $methods = array_map(fn (ReflectionMethod $m) => $m->getName(), (new ReflectionClass(Locks::class))->getMethods(ReflectionMethod::IS_PUBLIC));
 
-    expect($methods)->toBe(['credential', 'provision', 'conceptUpload']);
+    expect($methods)->toBe(['credential', 'provision', 'fulfilSideEffects', 'conceptUpload']);
 })->group('pg-race');
 
 it('holds the lock under Next\'s key until commit', function (Closure $take, string $key) {

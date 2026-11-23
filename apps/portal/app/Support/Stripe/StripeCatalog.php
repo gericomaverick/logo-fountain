@@ -25,6 +25,18 @@ final readonly class StripeCatalog
         return array_keys($this->packages);
     }
 
+    /** The package a price ID belongs to (`PRICE_ID_TO_PACKAGE`); placeholders never match. */
+    public function packageForPriceId(string $priceId): ?string
+    {
+        foreach ($this->packages as $code => $package) {
+            if ($package['price_id'] === $priceId && ! self::isPlaceholder($priceId)) {
+                return $code;
+            }
+        }
+
+        return null;
+    }
+
     /** Exact, case-sensitive match (`checkout/start/route.ts:7-10`); anything else, a price ID included, is null. */
     public function priceIdForPackage(?string $code): ?string
     {

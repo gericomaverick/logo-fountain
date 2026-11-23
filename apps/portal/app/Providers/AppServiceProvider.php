@@ -2,8 +2,8 @@
 
 namespace App\Providers;
 
+use App\Actions\Checkout\FulfilCheckout;
 use App\Actions\Checkout\FulfilsCheckout;
-use App\Actions\Checkout\PendingFulfiller;
 use App\Support\Storage\PrivateStorage;
 use App\Support\Stripe\StripeCatalog;
 use Illuminate\Support\ServiceProvider;
@@ -16,8 +16,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Story 5.2: the webhook's fulfilment seam; story 5.3 rebinds it to the real FulfilCheckout.
-        $this->app->bind(FulfilsCheckout::class, PendingFulfiller::class);
+        // Story 5.2: the webhook's fulfilment seam; story 5.3 binds the real FulfilCheckout.
+        $this->app->bind(FulfilsCheckout::class, FulfilCheckout::class);
         $this->app->singleton(PrivateStorage::class, fn (): PrivateStorage => PrivateStorage::fromConfig());
         $this->app->singleton(StripeCatalog::class, fn (): StripeCatalog => StripeCatalog::fromConfig());
         // ADR-014: one client with the pinned API version. `api_base` points at stripe-fake in tests; a missing key

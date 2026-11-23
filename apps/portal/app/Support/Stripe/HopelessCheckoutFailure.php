@@ -14,6 +14,8 @@ final class HopelessCheckoutFailure extends RuntimeException
 
     public const PAYMENT_INTENT_REUSED = 'payment_intent_reused';
 
+    public const NO_PAYMENT_REQUIRED = 'no_payment_required';
+
     public const UPSELL_PROJECT_MISSING = 'upsell_project_missing';
 
     private function __construct(public readonly string $reason, public readonly string $sessionId, public readonly ?string $projectId)
@@ -29,6 +31,12 @@ final class HopelessCheckoutFailure extends RuntimeException
     public static function paymentIntentReused(string $sessionId, ?string $projectId = null): self
     {
         return new self(self::PAYMENT_INTENT_REUSED, $sessionId, $projectId);
+    }
+
+    /** DV-25: a fully discounted session is never fulfilled silently (story 5.3 AC 1). */
+    public static function noPaymentRequired(string $sessionId): self
+    {
+        return new self(self::NO_PAYMENT_REQUIRED, $sessionId, null);
     }
 
     public static function upsellProjectMissing(string $sessionId): self

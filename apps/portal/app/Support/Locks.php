@@ -24,6 +24,12 @@ final class Locks
         self::acquire('provision:'.$email);
     }
 
+    /** Checkout side effects (story 5.3 AC 9): serialises the webhook and reprocess around the email markers. */
+    public static function fulfilSideEffects(string $sessionId): void
+    {
+        self::acquire('fulfil_side_effects:'.$sessionId);
+    }
+
     /** Concept upload receipts (Next `api/admin/projects/[id]/concepts/route.ts:249`). */
     public static function conceptUpload(string $projectId, string $requestKey): void
     {

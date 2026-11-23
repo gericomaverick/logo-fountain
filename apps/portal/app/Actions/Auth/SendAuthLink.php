@@ -79,12 +79,16 @@ final class SendAuthLink
         return is_string($hash) && $hash !== '';
     }
 
+    public static function configured(): bool
+    {
+        return trim(Config::string('mail.from.address', '')) !== ''
+            && (config('mail.default') !== 'postmark' || trim(Config::string('services.postmark.token', '')) !== '');
+    }
+
     /** Next: "Authentication email delivery is not configured" (`mail.ts:19`). */
     private function assertConfigured(): void
     {
-        $unset = trim(Config::string('mail.from.address', '')) === ''
-            || (config('mail.default') === 'postmark' && trim(Config::string('services.postmark.token', '')) === '');
-        if ($unset) {
+        if (! self::configured()) {
             throw new RuntimeException('Authentication email delivery is not configured');
         }
     }
