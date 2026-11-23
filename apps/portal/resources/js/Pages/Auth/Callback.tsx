@@ -8,7 +8,7 @@ import { postAuth, takeMailboxProof } from '@/lib/auth';
 import { safeAuthNextPath } from '@/lib/safe-next';
 import { AuthShell } from '@/Layouts/AuthShell';
 
-const MISSING = 'This sign-in link is missing or expired. Request a fresh magic link to continue.';
+const MISSING = 'This sign-in link is missing or expired. Request a new sign-in link to continue.';
 
 /** A-05: the page never confirms by itself (mail scanners open links); only the button posts the token. */
 export default function Callback() {
@@ -36,8 +36,8 @@ export default function Callback() {
     }
 
     return (
-        <AuthShell title="Complete sign-in" subtitle="Your mailbox proof expires after one hour.">
-            <p className="text-base text-fg-2">Confirm sign-in to use your single-use email link.</p>
+        <AuthShell title="Complete sign-in">
+            <p className="text-base text-fg-2">Confirm to finish signing in. This link works once and expires after an hour.</p>
             {failure ? (
                 <InlineAlert tone="danger" announce>
                     {failure}
@@ -47,7 +47,7 @@ export default function Callback() {
                 Confirm sign-in
             </Button>
             <p className="text-sm text-fg-2">
-                <Link href="/login">Request a fresh magic link</Link>
+                <Link href="/login">Request a new sign-in link</Link>
             </p>
         </AuthShell>
     );

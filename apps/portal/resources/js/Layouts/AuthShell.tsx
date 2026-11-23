@@ -1,8 +1,6 @@
 import { Head } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 
-import { ThemeSwitcher } from '@/Components/ui/ThemeSwitcher';
-
 /**
  * The auth screens' layout (UX §14, story 4.9b): a centred form column, and on desktop only a flat brand panel
  * built from the tokens (open question 1: no new imagery). One h1 per screen; the form is the primary action.
@@ -22,7 +20,6 @@ export function AuthShell({ title, subtitle, children }: Props) {
                             {subtitle ? <p className="text-base text-fg-2">{subtitle}</p> : null}
                         </header>
                         {children}
-                        <ThemeSwitcher />
                     </div>
                 </main>
                 <aside aria-hidden="true" className="hidden flex-col justify-end bg-accent-soft p-10 lg:flex">

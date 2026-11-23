@@ -10,16 +10,48 @@ const SCREENS = [
     ['callback', '/auth/callback', 'Complete sign-in'],
 ] as const;
 
-for (const [name, path, heading] of SCREENS) {
-    test(`@visual @ui ${name}: baseline and axe`, async ({ page }) => {
-        await page.goto(path);
-        await expect(page.getByRole('heading', { level: 1, name: heading })).toBeVisible();
+for (const scheme of ['light', 'dark'] as const) {
+    for (const [name, path, heading] of SCREENS) {
+        test(`@visual @ui ${name} (${scheme}): baseline and axe`, async ({ page }) => {
+            await page.emulateMedia({ colorScheme: scheme });
+            await page.goto(path);
+            await expect(page.getByRole('heading', { level: 1, name: heading })).toBeVisible();
+            await expect(page.locator('html')).toHaveAttribute('data-theme', scheme);
+            await page.evaluate(() => document.fonts.ready);
+            const results = await new AxeBuilder({ page }).analyze();
+            expect(results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')).toEqual([]);
+            await expect(page).toHaveScreenshot(scheme === 'light' ? `${name}.png` : `${name}-dark.png`);
+        });
+    }
+
+    test(`@visual @ui login validation errors (${scheme}): baseline and axe`, async ({ page }) => {
+        await page.emulateMedia({ colorScheme: scheme });
+        await page.goto('/login');
+        await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+        await expect(page.getByText('Enter your email address.').first()).toBeVisible();
         await page.evaluate(() => document.fonts.ready);
         const results = await new AxeBuilder({ page }).analyze();
         expect(results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')).toEqual([]);
-        await expect(page).toHaveScreenshot(`${name}.png`);
+        await expect(page).toHaveScreenshot(`login-errors-${scheme}.png`);
+    });
+
+    test(`@visual @ui callback missing link (${scheme}): baseline and axe`, async ({ page }) => {
+        await page.emulateMedia({ colorScheme: scheme });
+        await page.goto('/auth/callback');
+        await page.getByRole('button', { name: 'Confirm sign-in' }).click();
+        await expect(page.getByText('This sign-in link is missing or expired.')).toBeVisible();
+        await page.evaluate(() => document.fonts.ready);
+        const results = await new AxeBuilder({ page }).analyze();
+        expect(results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')).toEqual([]);
+        await expect(page).toHaveScreenshot(`callback-missing-${scheme}.png`);
     });
 }
+
+test('@auth auth screens have no theme switcher and follow the system setting', async ({ page }) => {
+    await page.goto('/login');
+    await expect(page.getByRole('radiogroup')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /theme|light|dark|system/i })).toHaveCount(0);
+});
 
 test('@auth callback strips the token from the URL and does not confirm by itself', async ({ page }) => {
     let posted = false;

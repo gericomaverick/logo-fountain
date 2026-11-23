@@ -71,7 +71,7 @@ development_status:
   4-1-sessions-with-an-absolute-cap: done
   4-2-credential-fence-and-proofs: done
   4-3-login: done
-  4-4-auth-link-requests-auth-emails-base-mail-layout: review
+  4-4-auth-link-requests-auth-emails-base-mail-layout: done
   4-5-magic-link-confirm: done
   4-6-forgot-reset-and-set-password: done
   4-7-change-password-and-logout: done

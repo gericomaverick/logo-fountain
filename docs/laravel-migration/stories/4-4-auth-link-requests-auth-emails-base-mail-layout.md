@@ -1,6 +1,6 @@
 # Story 4.4: Auth link requests, auth emails, base mail layout
 
-**Status:** review (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-06, A-11, N-01, N-02, N-03, N-14 (base layout), ADR-018 · **Gate:** `@auth&@api` (link endpoints), `@email&@api` · **After:** 4.2, 2.7 (done) · **Stacks on:** `main` (dependencies done); in the SERIAL chain, the previous Epic 4 story's branch. Shared files: `routes/auth.php`, `app/Actions/Auth/`, `resources/views/mail/layouts/`, `app/Support/Mail/MailTheme.php`
+**Status:** done (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-06, A-11, N-01, N-02, N-03, N-14 (base layout), ADR-018 · **Gate:** `@auth&@api` (link endpoints), `@email&@api` · **After:** 4.2, 2.7 (done) · **Stacks on:** `main` (dependencies done); in the SERIAL chain, the previous Epic 4 story's branch. Shared files: `routes/auth.php`, `app/Actions/Auth/`, `resources/views/mail/layouts/`, `app/Support/Mail/MailTheme.php`
 
 > Created with the repo's create-story form. All `apps/web` `file:line` checked 2026-11-22.
 
@@ -61,46 +61,24 @@ None. (Equalising latency for unknown accounts is not attempted; open question 2
 
 ## Conversion record
 
-> Fill at implementation, from `templates/story-conversion-record.md`. Write *Behaviour notes* before converting.
-
-### Inventory scope
-_(stub)_
-### Next.js source read
-_(stub)_
-### Behaviour notes
-_(stub)_
-### Laravel implementation
-_(stub)_
-### Deviations from Next.js
-| Behaviour | Next.js | Laravel | Why | Decision ref |
-|---|---|---|---|---|
-### Tests
-| Layer | Test file / title | Inventory IDs |
-|---|---|---|
-### Test evidence
-_(commands, pass/fail counts, what was not run and why)_
-### Gotchas
-### Docs updated
-### Open items
-
-
-## Conversion record
-
 ### Inventory scope
 A-06 (link half), A-11 (send half), N-01, N-02, N-03, N-14 base layout. Ledger #23, #26 (request halves).
 ### Next.js source read
 `lib/auth/service.ts:21-58`, `lib/auth/mail.ts`, `lib/email-branding.ts`, `api/auth/magic-link/route.ts`, `api/auth/forgot-password/route.ts` and their tests.
 ### Behaviour notes
-Same 200 body for unknown account, limit denied and failed delivery. Setup degrades to sign-in when a password exists. Mail is sent synchronously after the fence commits; failure deletes the proof and throws a fixed message.
+Same 200 body for unknown account, limit denied and failed delivery. Setup degrades to sign-in when a password exists. The request does the same account lookup on known and unknown paths and queues `SendAuthLinkMail`; the proof and the email are issued in the job, so the response never waits on a send (owner ruling Q2, DV-27). A failed send deletes the proof.
 ### Laravel implementation
 `app/Actions/Auth/SendAuthLink.php`, `app/Http/Controllers/Auth/AuthLinkRequestController.php`, `app/Mail/AuthLinkMail.php`, `AuthProofs::issueIn/discard`, `MailTheme::logoUrl/safeUrl`, branded header in `mail/layouts/base.blade.php`, `routes/auth.php`.
 ### Deviations from Next.js
-`SafeNext::path` is a stub returning `/dashboard` until story 4.8 ports `safeAuthNextPath`. Mail colours were NOT moved to app.css tokens (kept the original palette so emails match Next); see DECISIONS.
+| Behaviour | Next.js | Laravel | Why | Decision ref |
+|---|---|---|---|---|
+| Send timing | Synchronous after the fence commits | Queued job; same work on known and unknown accounts | Equal timing, no send wait (Q2) | DV-27 |
+| Mail colours | Original palette | Same palette, not moved to `app.css` tokens | Emails match Next; palette move is an owner call | DECISIONS |
+
+`SafeNext` is real since story 4.8 (`app/Support/Auth/SafeNext.php`); `next` is sanitised before it goes into the link.
 ### Tests
 `tests/Feature/Auth/SendAuthLinkTest.php`, `AuthLinkRequestTest.php`, `tests/Feature/Mail/AuthLinkMailTest.php`; helper `tests/Support/ProbeTransport.php`.
 ### Test evidence
-`bin/test` green: Pint, Larastan 9, Pest 1783 passed (4958 assertions).
+Own tests run in the epic-45-close gate (see that report for counts). L4 parity contract `contract/auth-links.spec.ts` not run.
 ### Open items
-Palette move to tokens (owner call); `next` sanitising lands in 4.8; L4 parity contract not run.
-
-**L4 parity run (2026-11-23, workbench/parity-4-5):** @auth 37 tests: Next 37 pass; Laravel 15 pass / 11 fail / 11 not reached. @checkout 28: Next 28 pass; Laravel 1 / 20 / 7. @entitlements 10: Next 10 pass; Laravel 0 / 10 / 0. Failures are the unwired Stripe/Postmark/Mailpit infra on the Laravel stack and not-yet-built pages/routes, listed with titles in `docs/laravel-migration/parity-run-2026-11-23.md`. This story's parity tests are not shown to match: stays at `review`.
+Palette move to tokens (owner call).
