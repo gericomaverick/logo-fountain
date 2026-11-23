@@ -42,5 +42,7 @@ final class ErrorCodes
 
     public const UNAUTHORIZED = 'UNAUTHORIZED';
 
+    public const WEAK_PASSWORD = 'WEAK_PASSWORD';
+
     public const SESSION_VERIFICATION_UNAVAILABLE = 'SESSION_VERIFICATION_UNAVAILABLE';
 }

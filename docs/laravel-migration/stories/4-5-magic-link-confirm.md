@@ -71,7 +71,7 @@ Rate limit first (`consumeAuth(path, address, token)`), then shape (no DB), then
 | L2 | `tests/Feature/Auth/MagicLinkVerifyTest.php` (AC 1-3, 5-9) | A-05, A-18 |
 | L3 `@pg-race` | `tests/Concurrency/MagicLinkSingleUseTest.php` (AC 4, #66 case 3) | A-05 |
 ### Test evidence
-`bin/test` once: Pint + Larastan 9 green; Pest 1793 passed, 1 failed (route-list assertion in `SessionEndpointTest`, my route not listed): fixed, that file + MagicLinkVerifyTest re-run 22 passed; Pint re-run clean. Not run: full suite again, L4 parity contract. AC 2 is proven only as 'no GET route consumes' (GET `/auth/callback` is 4.9b), so the GET test asserts the proof row survives a GET to that path.
+`bin/test` once: Pint + Larastan 9 green; Pest 1793 passed, 1 failed (4.5 run; at 4.6 the full run is 1822 passed, 5130 assertions) (route-list assertion in `SessionEndpointTest`, my route not listed): fixed, that file + MagicLinkVerifyTest re-run 22 passed; Pint re-run clean. Not run: full suite again, L4 parity contract. AC 2 is proven only as 'no GET route consumes' (GET `/auth/callback` is 4.9b), so the GET test asserts the proof row survives a GET to that path.
 ### Gotchas
 A failed request still writes an anonymous session row (cookie omitted): assert `user_id IS NOT NULL` rows, not the table count. The route-list test in `SessionEndpointTest` must list each new auth route.
 ### Docs updated

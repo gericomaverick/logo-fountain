@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthLinkRequestController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\MagicLinkController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Middleware\EnforceSessionCap;
 use App\Http\Middleware\EnsureAuthAvailable;
@@ -29,4 +30,9 @@ Route::prefix('api/auth')->middleware([EnsureAuthAvailable::class, 'auth.json', 
 // A-05 confirm half (story 4.5): body-reading mutation that issues a session (no failure cookie).
 Route::prefix('api/auth')->middleware([EnsureAuthAvailable::class, 'auth.json', OmitSessionCookieOnFailure::class])->group(function () {
     Route::post('/magic-link/verify', [MagicLinkController::class, 'verify'])->name('auth.magic-link.verify');
+});
+
+// A-07/A-08 (story 4.6): reset and setup links both post here. Signs nobody in, so no cookie even on success.
+Route::prefix('api/auth')->middleware([EnsureAuthAvailable::class, 'auth.json', OmitSessionCookieOnFailure::class.':always'])->group(function () {
+    Route::post('/reset-password', [PasswordResetController::class, 'store'])->name('auth.reset-password');
 });

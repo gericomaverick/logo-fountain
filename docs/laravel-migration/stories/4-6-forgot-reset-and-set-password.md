@@ -1,6 +1,6 @@
 # Story 4.6: Forgot, reset and set password
 
-**Status:** ready-for-dev (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-07, A-08, FR3, FR4 · **Gate:** `@auth&@api` (forgot, reset) · **After:** 4.4 · **Stacks on:** `main` (dependencies done); in the SERIAL chain, the previous Epic 4 story's branch. Shared files: `routes/auth.php`, `app/Actions/Auth/`, `AuthProofs`, `CredentialFence`, `app/Support/Auth/PasswordRules.php`
+**Status:** review (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-07, A-08, FR3, FR4 · **Gate:** `@auth&@api` (forgot, reset) · **After:** 4.4 · **Stacks on:** `main` (dependencies done); in the SERIAL chain, the previous Epic 4 story's branch. Shared files: `routes/auth.php`, `app/Actions/Auth/`, `AuthProofs`, `CredentialFence`, `app/Support/Auth/PasswordRules.php`
 
 > Created with the repo's create-story form. All `apps/web` `file:line` checked 2026-11-22.
 
@@ -55,24 +55,29 @@ None. (Next's `WEAK_PASSWORD` code appears only in the thrown error; confirm the
 
 ## Conversion record
 
-> Fill at implementation, from `templates/story-conversion-record.md`. Write *Behaviour notes* before converting.
-
 ### Inventory scope
-_(stub)_
+A-08 (reset, set), A-07 consumption half, A-06 consumption half. Ledger reset-password/route.test.ts (3), validation.test.ts password cases, #66 cases 2, 4, 7.
 ### Next.js source read
-_(stub)_
+`reset-password/route.ts`, `lib/auth/service.ts:74-88`, `lib/auth/validation.ts:30-43`, `integration.test.ts:108-125`.
 ### Behaviour notes
-_(stub)_
+Order: rate limit by token, then WEAK_PASSWORD (before any proof read), then one fence: kind reset or setup, unexpired, version matches; set hash, verify mailbox, version+1, delete all proofs and sessions, audit `auth.password_reset {method}`. No session, no cookie even on success. Min length counts UTF-16 units as JS does; max is 72 bytes.
 ### Laravel implementation
-_(stub)_
+`app/Actions/Auth/ResetPassword.php`, `PasswordResetController`, `app/Support/Auth/PasswordRules.php`, `ErrorCodes::WEAK_PASSWORD`, route in `routes/auth.php`; `OmitSessionCookieOnFailure` takes a `:always` argument for this route.
 ### Deviations from Next.js
 | Behaviour | Next.js | Laravel | Why | Decision ref |
 |---|---|---|---|---|
+| None | | | | |
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|
+| L1 | `tests/Unit/Support/Auth/PasswordRulesTest.php` | A-07 |
+| L2 | `tests/Feature/Auth/ResetPasswordTest.php` | A-07, A-08 |
+| L3 `@pg-race` | `tests/Concurrency/ResetRollbackTest.php` (#66 case 7: audit trigger fault rolls back password, proof, sessions) | A-08 |
 ### Test evidence
-_(commands, pass/fail counts, what was not run and why)_
+`bin/test` green: Pint, Larastan 9, Pest 1822 passed (5130 assertions), after renaming test-file global constants that collided with `AuthJsonBoundaryTest`; `tests/Feature/Auth` + ResetRollbackTest 120 passed before it. L4 parity not run.
 ### Gotchas
+`audit_events.actor_id` has an FK to `profiles`, so tests need a Profile row. Pest global helper names must not collide with PHP built-ins (`reset`). Laravel adds the session cookie to every response, hence the `:always` omit.
 ### Docs updated
+Inventory A-08, ledger #29, #66, #72, DECISIONS, sprint-status.
 ### Open items
+Q1 built as recommended (generic message in the WEAK_PASSWORD body), awaiting owner; exact JSON to confirm against L4. Confirm-password stays client-side.

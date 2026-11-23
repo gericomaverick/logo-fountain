@@ -34,7 +34,7 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 26 | `src/app/api/auth/magic-link/route.test.ts` | 3 | A-05 | Pest feature (HTTP) + L4 parity contract | | Ported (story 4.4, request half) |
 | 27 | `src/app/api/auth/magic-link/verify/route.test.ts` | 3 | A-05 | Pest feature (HTTP) + L4 parity contract | `tests/Feature/Auth/MagicLinkVerifyTest.php` (story 4.5) | Ported (L4 not run) |
 | 28 | `src/app/api/auth/password/route.test.ts` | 4 | A-09 | Pest feature (HTTP) + L4 parity contract | | Not started |
-| 29 | `src/app/api/auth/reset-password/route.test.ts` | 3 | A-08 | Pest feature (HTTP) + L4 parity contract | | Not started |
+| 29 | `src/app/api/auth/reset-password/route.test.ts` | 3 | A-08 | Pest feature (HTTP) + L4 parity contract | `tests/Feature/Auth/ResetPasswordTest.php` (story 4.6) | Ported (L4 not run) |
 | 30 | `src/app/api/auth/session/route.test.ts` | 3 | A-03 | Pest feature (HTTP) + L4 parity contract | `tests/Feature/Auth/SessionEndpointTest.php` | Ported in 4.1 (L4 parity not run) |
 | 31 | `src/app/api/checkout/magic-link/route.test.ts` | 4 | K-03 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 32 | `src/app/api/checkout/resend-magic-link/route.test.ts` | 1 | K-04 | Pest feature (HTTP) + L4 parity contract | | Not started |
@@ -71,13 +71,13 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 63 | `src/lib/admin-dashboard.test.ts` | 4 | D-01 | Keep TS (UI) + Pest for controller sort | | Not started |
 | 64 | `src/lib/admin-final-publication.test.ts` | 6 | D-11,D-12 | Keep TS (UI) | | Not started |
 | 65 | `src/lib/admin-override-inputs.test.ts` | 2 | D-14 | Keep TS (UI) | | Not started |
-| 66 | `src/lib/auth.postgres.integration.test.ts` | 12 | A-01…A-11 | L3 Pest real-PG (1:1) | `tests/Concurrency/AdminFlagTriggerTest.php`, `RuntimeRoleTest.php` (last test, runtime half: can't promote, can't read bootstrap state); `CredentialRaceTest.php`, `AuthProofsTest.php` (story 4.2: cases 4, 5, 6) | **Partly ported** (story 2.1; 4.2 cases 4-6 (rollback seam in 4.6); 4.3 case 11 (login: `LoginTest`); 4.5 case 3 (`MagicLinkSingleUseTest`); the bootstrap-CLI half → 4.9a, the rest with the auth stories) |
+| 66 | `src/lib/auth.postgres.integration.test.ts` | 12 | A-01…A-11 | L3 Pest real-PG (1:1) | `tests/Concurrency/AdminFlagTriggerTest.php`, `RuntimeRoleTest.php` (last test, runtime half: can't promote, can't read bootstrap state); `CredentialRaceTest.php`, `AuthProofsTest.php` (story 4.2: cases 4, 5, 6) | **Partly ported** (story 2.1; 4.2 cases 4-6 (rollback seam in 4.6); 4.3 case 11 (login: `LoginTest`); 4.5 case 3 (`MagicLinkSingleUseTest`); 4.6 case 7 (`ResetRollbackTest`); the bootstrap-CLI half → 4.9a, the rest with the auth stories) |
 | 67 | `src/lib/auth/client-address.test.ts` | 7 | X-05 | Pest unit | `tests/Unit/ClientAddressTest.php` (#1–5, #7), `tests/Feature/ClientAddressPreflightTest.php` (#6) | **Ported** (7/7, story 1.5) |
 | 68 | `src/lib/auth/client.test.ts` | 2 | A-05 | Keep TS (UI) | | Not started |
 | 69 | `src/lib/auth/http.test.ts` | 3 | A-01…A-09 | Pest feature (auth wrapper) | | Not started |
 | 70 | `src/lib/auth/logout.test.ts` | 5 | A-02 | Keep TS (UI) | | Not started |
 | 71 | `src/lib/auth/safe-next.test.ts` | 4 | A-13 | Pest unit + keep TS (shared fixture) | | Not started |
-| 72 | `src/lib/auth/validation.test.ts` | 6 | A-07…A-09 | Keep TS (UI) + Pest rule | | Not started |
+| 72 | `src/lib/auth/validation.test.ts` | 6 | A-07…A-09 | Keep TS (UI) + Pest rule | `PasswordRulesTest` (story 4.6: new-password rule; the rest in 4.7) | Partly ported |
 | 73 | `src/lib/brief-choices.test.ts` | 25 | C-05 | Keep TS (UI) | | Not started |
 | 74 | `src/lib/brief-draft.test.ts` | 5 | C-06 | Keep TS (UI) | | Not started |
 | 75 | `src/lib/brief-submission-confirmation.test.ts` | 6 | C-07 | Keep TS (UI) | | Not started |

@@ -24,7 +24,7 @@ function setCookies(TestResponse $r): array
     return array_map(fn ($c) => $c->getName(), $r->baseResponse->headers->getCookies());
 }
 
-const FAILED = ['error' => ['code' => 'AUTH_FAILED', 'message' => 'Authentication could not be completed. Check your details or request a new link.']];
+const VERIFY_FAILED = ['error' => ['code' => 'AUTH_FAILED', 'message' => 'Authentication could not be completed. Check your details or request a new link.']];
 
 it('signs in, sets the cookie, deletes the proof and verifies the mailbox without a password', function () {
     $user = User::factory()->create(['email_verified_at' => null, 'password' => null]);
@@ -46,7 +46,7 @@ it('keeps an existing verified time and fails the second confirm', function () {
     $token = AuthProofs::issue($user, 'magic');
 
     verify($token)->assertOk();
-    verify($token)->assertStatus(400)->assertExactJson(FAILED);
+    verify($token)->assertStatus(400)->assertExactJson(VERIFY_FAILED);
 
     expect((string) DB::table('users')->where('id', $user->id)->value('email_verified_at'))->toStartWith('2026-01-01');
 });
@@ -54,7 +54,7 @@ it('keeps an existing verified time and fails the second confirm', function () {
 it('fails a malformed token before any lookup', function () {
     foreach (['short', str_repeat('a', 257), str_repeat('a', 19).'!', '', 12345, null] as $i => $bad) {
         $r = verify($bad, "203.0.113.{$i}");
-        $r->assertStatus(400)->assertExactJson(FAILED);
+        $r->assertStatus(400)->assertExactJson(VERIFY_FAILED);
         expect(setCookies($r))->toBe([]);
     }
 });
@@ -75,7 +75,7 @@ it('fails an unknown, expired, wrong-kind or outdated proof and leaves the proof
 
     $r = verify($token);
 
-    $r->assertStatus(400)->assertExactJson(FAILED);
+    $r->assertStatus(400)->assertExactJson(VERIFY_FAILED);
     expect(setCookies($r))->toBe([])
         ->and(DB::table('sessions')->whereNotNull('user_id')->count())->toBe(0)
         ->and(DB::table('auth_proofs')->count())->toBe(1);
