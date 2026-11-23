@@ -30,6 +30,16 @@ final class Locks
         self::acquire('fulfil_side_effects:'.$sessionId);
     }
 
+    /**
+     * Session-level form of the same key, for a step that must hold the lock ACROSS a committed transaction (the auth
+     * link: token committed, then mailed, then marked; critic B1). Must be released in a `finally`.
+     */
+    public static function fulfilSideEffectsSession(string $sessionId, bool $acquire): void
+    {
+        $fn = $acquire ? 'pg_advisory_lock' : 'pg_advisory_unlock';
+        DB::connection(DatabaseRoles::RUNTIME)->select("SELECT {$fn}(hashtextextended(?, 0))", ['fulfil_side_effects:'.$sessionId]);
+    }
+
     /** Concept upload receipts (Next `api/admin/projects/[id]/concepts/route.ts:249`). */
     public static function conceptUpload(string $projectId, string $requestKey): void
     {

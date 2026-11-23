@@ -37,10 +37,12 @@ final class CompleteFulfilmentSideEffects
     private function customerEmail(string $sessionId, string $projectId, string $userId, bool $needsSetup, Closure $renew): void
     {
         $marker = LifecycleMail::markerType('checkout_auth', $sessionId);
-        DB::connection(DatabaseRoles::RUNTIME)->transaction(function () use ($sessionId, $projectId, $userId, $needsSetup, $renew, $marker): void {
-            Locks::fulfilSideEffects($sessionId);
-            $sent = DB::connection(DatabaseRoles::RUNTIME)->table('audit_events')->where('project_id', $projectId)->where('type', $marker)->exists();
-            if ($sent) {
+        // No outer transaction: SendAuthLink commits the token before it mails (critic B1). The session lock is
+        // held at session level across that commit, the send and the marker, so a second run still sees the marker.
+        $db = DB::connection(DatabaseRoles::RUNTIME);
+        Locks::fulfilSideEffectsSession($sessionId, true);
+        try {
+            if ($db->table('audit_events')->where('project_id', $projectId)->where('type', $marker)->exists()) {
                 return;
             }
             $renew();
@@ -53,7 +55,9 @@ final class CompleteFulfilmentSideEffects
             }
             app(SendAuthLink::class)->handle(User::query()->findOrFail($userId), $needsSetup ? 'setup' : 'magic', "/project/{$projectId}");
             Audit::record($marker, $projectId, null, ['checkoutSessionId' => $sessionId]);
-        });
+        } finally {
+            Locks::fulfilSideEffectsSession($sessionId, false);
+        }
     }
 
     /** @param Closure(): void $renew */

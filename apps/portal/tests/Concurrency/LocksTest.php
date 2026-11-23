@@ -39,10 +39,10 @@ dataset('locks', [
     'fulfilSideEffects (fulfil_side_effects:<session>)' => [fn () => Locks::fulfilSideEffects('cs_test_1'), 'fulfil_side_effects:cs_test_1'],
 ]);
 
-it('exposes exactly the locks of architecture §5 plus the story 5.3 side-effects lock (built as recommended, awaiting owner)', function () {
+it('exposes exactly the locks of architecture §5 plus the story 5.3 side-effects lock and its session-level form (built as recommended, awaiting owner)', function () {
     $methods = array_map(fn (ReflectionMethod $m) => $m->getName(), (new ReflectionClass(Locks::class))->getMethods(ReflectionMethod::IS_PUBLIC));
 
-    expect($methods)->toBe(['credential', 'provision', 'fulfilSideEffects', 'conceptUpload']);
+    expect($methods)->toBe(['credential', 'provision', 'fulfilSideEffects', 'fulfilSideEffectsSession', 'conceptUpload']);
 })->group('pg-race');
 
 it('holds the lock under Next\'s key until commit', function (Closure $take, string $key) {
