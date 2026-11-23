@@ -23,3 +23,5 @@ YYYY-MM-DD — <Assumption>. Evidence: <basis>. Review by: <date>. #assumption
 2026-11-23 — Story 5.5: upsell metadata is trusted as far as it parses and is not re-checked against the paid line item (OQ 2). #assumption
 
 2026-11-23 — Story 5.6: the existing 5.3 race test stands in for a reprocess-specific one, as both call the same action. #assumption
+
+2026-11-23 — Story 5.7: no L4 parity run; the resolver and the three routes are proved against the in-process Stripe fake only, and the VAT line (K-11) is the hosted PDF/receipt itself and the later UI. #assumption

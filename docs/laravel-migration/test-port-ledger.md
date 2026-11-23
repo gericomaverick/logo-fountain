@@ -21,7 +21,7 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 13 | `src/app/api/admin/projects/[id]/finals/download/route.test.ts` | 6 | D-13 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 14 | `src/app/api/admin/projects/[id]/finals/notify/route.test.ts` | 9 | D-12 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 15 | `src/app/api/admin/projects/[id]/finals/route.test.ts` | 14 | D-11 | Pest feature (HTTP) + L4 parity contract | | Not started |
-| 16 | `src/app/api/admin/projects/[id]/invoices/route.test.ts` | 2 | D-19 | Pest feature (HTTP) + L4 parity contract | | Not started |
+| 16 | `src/app/api/admin/projects/[id]/invoices/route.test.ts` | 2 | D-19 | Pest feature (HTTP) + L4 parity contract | tests/Feature/Checkout/InvoicesApiTest.php | Partly ported 5.7 |
 | 17 | `src/app/api/admin/projects/[id]/reset/route.test.ts` | 4 | D-15 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 18 | `src/app/api/admin/projects/[id]/revision-requests/[rid]/delivered/route.test.ts` | 4 | D-09 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 19 | `src/app/api/admin/projects/[id]/revision-requests/route.test.ts` | 3 | D-08 | Pest feature (HTTP) + L4 parity contract | | Not started |
@@ -39,7 +39,7 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 31 | `src/app/api/checkout/magic-link/route.test.ts` | 4 | K-03 | Pest feature (HTTP) + L4 parity contract | | Partly ported (story 5.4): send-link cases in `CheckoutStatusTest.php`; 4 Next cases not mapped one-to-one; L4 not run |
 | 32 | `src/app/api/checkout/resend-magic-link/route.test.ts` | 1 | K-04 | Pest feature (HTTP) + L4 parity contract | | Partly ported (story 5.4): `CheckoutEmailLimitTest.php` and send-link cases; the per-destination limit is not tested through the route; L4 not run |
 | 33 | `src/app/api/checkout/status/route.test.ts` | 3 | K-02 | Pest feature (HTTP) + L4 parity contract | | Partly ported (story 5.4): `tests/Feature/Checkout/CheckoutStatusTest.php` (7 cases vs Next's 3); L4 not run |
-| 34 | `src/app/api/invoices/route.test.ts` | 2 | K-11 | Pest feature (HTTP) + L4 parity contract | | Not started |
+| 34 | `src/app/api/invoices/route.test.ts` | 2 | K-11 | Pest feature (HTTP) + L4 parity contract | tests/Feature/Checkout/InvoicesApiTest.php | Partly ported 5.7 |
 | 35 | `src/app/api/profile/route.test.ts` | 4 | C-17 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 36 | `src/app/api/projects/[id]/approve/route.test.ts` | 1 | C-12 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 37 | `src/app/api/projects/[id]/brief/draft/route.test.ts` | 11 | C-06 | Pest feature (HTTP) + L4 parity contract | | Not started |
@@ -50,7 +50,7 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 42 | `src/app/api/projects/[id]/concepts/route.test.ts` | 4 | C-08 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 43 | `src/app/api/projects/[id]/entitlements/route.test.ts` | 4 | C-16 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 44 | `src/app/api/projects/[id]/finals/route.test.ts` | 7 | C-13 | Pest feature (HTTP) + L4 parity contract | | Not started |
-| 45 | `src/app/api/projects/[id]/invoices/route.test.ts` | 2 | K-11 | Pest feature (HTTP) + L4 parity contract | | Not started |
+| 45 | `src/app/api/projects/[id]/invoices/route.test.ts` | 2 | K-11 | Pest feature (HTTP) + L4 parity contract | tests/Feature/Checkout/InvoicesApiTest.php | Partly ported 5.7 |
 | 46 | `src/app/api/projects/[id]/messages/route.test.ts` | 2 | C-14 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 47 | `src/app/api/projects/[id]/read-state/route.test.ts` | 3 | C-15 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 48 | `src/app/api/projects/[id]/revision-requests/route.test.ts` | 3 | C-11 | Pest feature (HTTP) + L4 parity contract | | Not started |
@@ -87,7 +87,7 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 79 | `src/lib/checkout-auth-email-rate-limit.test.ts` | 3 | K-04,X-06 | Pest unit (shared-store limiter) | `tests/Feature/Support/CheckoutEmailLimitTest.php` (#1–3, Next's values; L2 on PostgreSQL, the store is under test) | **Ported** (3/3, story 2.5) |
 | 80 | `src/lib/checkout-fulfillment.test.ts` | 6 | K-06,K-09 | Pest feature | tests/Feature/Checkout/FulfilCheckoutTest.php (K-06 half) and UpsellFulfilmentTest.php (K-09 half) | Partly ported 5.3, 5.5 |
 | 81 | `src/lib/checkout-success.test.ts` | 2 | K-02 | Keep TS (UI) | | Not started |
-| 82 | `src/lib/client-invoices.test.ts` | 4 | K-11 | Pest unit (Stripe fakes) | | Not started |
+| 82 | `src/lib/client-invoices.test.ts` | 4 | K-11 | Pest unit (Stripe fakes) | tests/Feature/Checkout/InvoiceResolverTest.php | Partly ported 5.7 |
 | 83 | `src/lib/concept-activity.test.ts` | 2 | C-15 | Pest unit + keep TS | | Not started |
 | 84 | `src/lib/concept-entitlement.test.ts` | 4 | K-14,D-05 | Pest feature | | Not started |
 | 85 | `src/lib/concept-thread.test.ts` | 2 | C-10 | Keep TS (UI) | | Not started |

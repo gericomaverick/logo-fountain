@@ -30,3 +30,5 @@ YYYY-MM-DD — <Risk>. Likelihood: <low|med|high>. Impact: <low|med|high>. Mitig
 2026-11-23 — Story 5.5: a customer who pays for a stale upgrade is not refunded automatically; the admin alert says refund by hand (DV-24, awaiting owner). #risk
 
 2026-11-23 — Story 5.6: reprocess is safe against the webhook only via the session advisory lock; any new send path must take `Locks::fulfilSideEffects`. #risk
+
+2026-11-23 — Story 5.7: one Stripe round trip (up to three with an invoice id) per order on every invoice list, no cache, as in Next; a project or client with many orders makes a slow page and spends Stripe rate limit. Add a short cache if it bites. #risk

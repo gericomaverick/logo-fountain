@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\CheckoutAuthEmailController;
 use App\Http\Controllers\Api\CheckoutStartController;
 use App\Http\Controllers\Api\CheckoutStatusController;
+use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\ReprocessCheckoutController;
 use App\Http\Controllers\Api\UpsellCheckoutController;
 use App\Http\Controllers\Webhooks\WebhookController;
@@ -22,3 +23,8 @@ Route::middleware(['web', 'auth.verified'])->post('/api/projects/{id}/checkout/s
 
 // Story 5.6 (K-12): admin reprocess of a paid session; the same fulfilment and follow-up as the webhook (ADR-015).
 Route::middleware(['web', 'admin'])->post('/api/admin/checkout/reprocess', ReprocessCheckoutController::class)->name('checkout.reprocess');
+
+// Story 5.7 (K-11, API half): invoice and receipt lists. Signed in; the project list needs membership, the admin list the admin role.
+Route::middleware(['web', 'auth.verified'])->get('/api/invoices', [InvoiceController::class, 'mine'])->name('invoices.mine');
+Route::middleware(['web', 'auth.verified'])->get('/api/projects/{id}/invoices', [InvoiceController::class, 'project'])->name('invoices.project');
+Route::middleware(['web', 'admin'])->get('/api/admin/projects/{id}/invoices', [InvoiceController::class, 'admin'])->name('invoices.admin');

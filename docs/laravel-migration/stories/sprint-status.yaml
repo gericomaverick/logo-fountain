@@ -87,7 +87,7 @@ development_status:
   5-4-checkout-success-continue-resend: review
   5-5-upsell-checkout-and-additive-fulfilment: review
   5-6-admin-reprocess-with-full-follow-up: review
-  5-7-invoices-and-receipts-api: ready-for-dev
+  5-7-invoices-and-receipts-api: review
   epic-5-retrospective: optional
 
   epic-6: backlog

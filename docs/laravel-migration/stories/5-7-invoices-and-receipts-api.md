@@ -1,6 +1,6 @@
 # Story 5.7: Invoices and receipts API
 
-**Status:** ready-for-dev (created from `origin/workbench/4-integrate` b2e1115) · **DoD variant:** Conversion · **Epic:** 5 · **Covers:** K-11, FR20 · **Gate:** `@invoices&@api` · **After:** 5.3 · **Stacks on:** `origin/workbench/4-integrate`; in the SERIAL chain, the previous Epic 5 story's branch (see `epic-5-build-order` in 5.7). Test mode and fakes only (stripe-fake, postmark-shim); live Stripe/Postmark is the owner's.
+**Status:** review (created from `origin/workbench/4-integrate` b2e1115) · **DoD variant:** Conversion · **Epic:** 5 · **Covers:** K-11, FR20 · **Gate:** `@invoices&@api` · **After:** 5.3 · **Stacks on:** `origin/workbench/4-integrate`; in the SERIAL chain, the previous Epic 5 story's branch (see `epic-5-build-order` in 5.7). Test mode and fakes only (stripe-fake, postmark-shim); live Stripe/Postmark is the owner's.
 
 > Created with the repo's create-story form. All `apps/web` `file:line` read 2026-11-23; `apps/web` is frozen, so nothing here edits it.
 
@@ -60,25 +60,25 @@ K-11 (API half), FR20.
 ### Next.js source read
 `lib/client-invoices.ts`, the three invoice routes.
 ### Behaviour notes
-(fill on review)
+One resolver, three thin actions. Settled orders return the charge receipt first, else a settled invoice with a PDF (hosted link dropped); unsettled orders keep PDF and hosted link. Any Stripe error gives all-null fields and `documentType:"none"`, and only the message is logged. An invalid or unknown project id on the admin list gives `{invoices:[]}` (Next's behaviour: no existence check); on the project list, 404 `PROJECT_NOT_FOUND` for a non-member, an admin who is not a member included (`participate`).
 ### Laravel implementation
-(fill on review)
+`app/Support/Stripe/InvoiceResolver.php` and `InvoiceDocument.php`; `app/Http/Controllers/Api/InvoiceController.php` (`mine`, `project`, `admin`); three routes in `routes/checkout.php` (`web` + `auth.verified`, and `web` + `admin`). `date` is formatted as Next's `toISOString()` (UTC, milliseconds).
 ### Deviations from Next.js
-| Behaviour | Next.js | Laravel | Why | Decision ref |
-|---|---|---|---|---|
-(fill on review)
+None.
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|
-(fill on review)
+| L1/L2 | `tests/Feature/Checkout/InvoiceResolverTest.php` (16 table cases, one per branch, plus the error/log case) | K-11 |
+| L2 | `tests/Feature/Checkout/InvoicesApiTest.php` (item shape and order, all-clients list, admin naming, guards for each route) | K-11, D-19 |
+| L4 | not run: parity specs for the three routes were not run on Laravel or Next | |
 ### Test evidence
-(fill on review)
+`bin/test`, once, on the final code: Pint and Larastan level 9 pass; Pest 2120 passed, 1 failed (`PrivateStorageSeaweedTest`, an environment fault: SeaweedFS "No writable volumes" while the host disk was at 98%, under 500 MB free; no code in this story touches storage). Earlier runs in this story failed Pint (two test files), Larastan (two types) and one list-key-order assertion, all fixed.
 ### Gotchas
-(fill on review)
+`FakeStripe` answers queued bodies in call order, so a resolver test lists them in the order the resolver asks. A payment-intent charge that is not expanded (a string) yields nothing, as in Next.
 ### Docs updated
-(fill on review)
+Inventory K-11 and D-19 rows (C-18 untouched: UI not built), ledger rows 16, 34, 45, 82, `sprint-status.yaml`, DECISIONS, RISKS, ASSUMPTIONS, `epic-5-build-order` final status below.
 ### Open items
-(fill on review)
+L4 parity not run. The per-order Stripe calls have no cache (RISKS). No owner decisions.
 
 ---
 
@@ -88,3 +88,5 @@ Real dependencies: 5.1 ← 1.3, 0.5; 5.2 ← 2.4, 0.5; 5.3 ← 5.2, 4.4, 2.7; 5.
 Shared files (names suggested; add rows to `AGENTS.md` §7 in the story that creates each): `app/Actions/Checkout/` (StartCheckout 5.1; ClaimStripeEvent 5.2; FulfilCheckout, ProvisionAccess, CompleteFulfilmentSideEffects 5.3; StartUpsellCheckout, FulfilUpsell 5.5), `app/Support/Stripe/` (StripeCatalog 5.1 and 5.5; WebhookClassifier 5.2; InvoiceResolver 5.7), `app/Http/Controllers/Api/` and `Stripe/` (5.1–5.5), the checkout route file (5.1 creates; 5.2, 5.4, 5.5 append), `config/services.php`/`config/portal.php` price map (5.1, 5.5), `tests/Concurrency/` (5.2, 5.3, 5.5, 5.6), `tests/Arch/` (5.2 webhook, 5.6 shared action), and the `webhook` fulfilment path (5.3 builds, 5.5 and 5.6 extend; 5.5 edits `FulfilCheckout`'s upsell branch).
 Possible parallel: 5.7 with 5.5/5.6 once 5.3 lands (own controller/resolver, but the API route file and `AGENTS.md` §7 rows are shared: expect small merge conflicts); 5.4's UI half with 5.5.
 Proposed DV rows opened by this epic, all awaiting the owner: **DV-20** (5.1, 5.5: no Stripe text in 500s), **DV-21** (5.2, 5.5: upsell for a missing project is permanent), **DV-22** (5.4: customer-safe troubleshooting copy, polling survives an error), **DV-23** (5.6: standard codes for a missing/unknown reprocess session), **DV-24** (5.5: stale `fromPackage` applies nothing, alerts the admin, never lowers limits), **DV-25** (5.3, 5.5: 100%-off promotion codes, `no_payment_required`). Also for the owner: the "flag stuck" mechanism (5.2 Open question 1). Live-mode Stripe and Postmark configuration is the owner's and is out of every story here.
+
+**Final status (2026-11-23):** all seven stories are built on the chain and at `review`: 5.1 to 5.7. Each has L2/L3 tests green under `bin/test` (the one standing failure, `PrivateStorageSeaweedTest`, is host-disk exhaustion, not code). No L4 parity or L5 run happened for any of the seven; the specs named in each story's test plan are still to be run where the header's gate allows. The critic is reviewing 5.5 and 5.6; fixes follow. DV-20 to DV-25 and the "flag stuck" mechanism are still awaiting the owner. No live Stripe or Postmark configuration was touched.
