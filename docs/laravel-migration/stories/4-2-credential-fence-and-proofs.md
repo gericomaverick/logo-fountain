@@ -88,3 +88,7 @@ None.
 Inventory A-10/A-11, ledger #66, sprint-status, DECISIONS, RISKS, ASSUMPTIONS.
 ### Open items
 Real actions (4.5/4.6) must call `CredentialFence::run`; the arch test enforces it for `app/Actions/Auth`.
+
+## Critic round 1 — recorded
+- Arch rule for `CredentialFence::run` now uses a comment-stripping, span-checking scanner (`tests/Arch/AuthTest.php`), proven against deliberate-violation fixtures. `app/Actions/Auth` does not exist yet, so the directory rule passes vacuously until 4.5, which must keep it.
+- Noted for later: `AuthProofs::validate` does not check proof owner against the open fence; nested fence becomes a savepoint; lock-timeout test uses a second in-process connection; login/reset race doesn't assert ordering.
