@@ -113,5 +113,5 @@ it('writes its own audit row, with the admin, the sessions and the outcome, even
     $payloads = $rows->map(fn ($r) => json_decode((string) $r->payload, true))->all();
     expect(array_column($payloads, 'outcome'))->toBe(['fulfilled', 'already_fulfilled'])
         ->and($payloads[1]['checkoutSessionId'])->toBe('cs_test_REPROC01')
-        ->and($payloads[1])->toHaveKey('adminSessionId');
+        ->and($payloads[1])->not->toHaveKey('adminSessionId');
 })->group('admin', 'api', 'deviation');

@@ -11,7 +11,7 @@ use Throwable;
 
 /**
  * `POST /api/stripe/webhook` (K-05, `webhook/route.ts:26-45`). Stripe is not a browser: no session, no Origin
- * guard (the guard exempts this path, `tests/Arch/WebhookTest.php`). The signature authenticates the exact raw body.
+ * guard (the guard exempts this path, `tests/Arch/OriginGuardTest.php`). The signature authenticates the exact raw body.
  */
 final class WebhookController
 {

@@ -80,7 +80,6 @@ final class ReprocessCheckoutController extends Controller
         $admin = $request->user();
         Audit::record('checkout_reprocessed', $projectId, $admin instanceof Model ? $admin : null, array_filter([
             'checkoutSessionId' => $sessionId,
-            'adminSessionId' => $request->hasSession() ? $request->session()->getId() : null,
             'outcome' => $outcome,
             'reason' => $reason,
         ], static fn ($v) => $v !== null));

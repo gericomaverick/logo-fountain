@@ -56,3 +56,4 @@ YYYY-MM-DD — <Decision>. Rationale: <why>. Impact: <what changes>. #decision
 
 2026-11-23 — Story 5.7: invoice lists built as parity with Next (no deviation): `InvoiceResolver` is pure given a Stripe client, a settled order gets the receipt first and never a hosted-invoice link, any Stripe error gives `source:"none"` with only the message logged. The admin list for an unknown project is `{invoices:[]}` as in Next.
 2026-11-23 — Story 4.4 (critic 11640 N1): the new logo header now also appears on the 2.7 lifecycle mails, a visible change versus main, awaiting owner. #decision
+2026-11-23 — Story 5.4: browser baselines for checkout-success.spec.ts (success, continue; desktop/phone) are generated, not approved; owner approves the screenshots in tests/browser/__screenshots__/checkout-success.spec.ts. Also DV-20..DV-26 are all proposed or built, awaiting owner. #decision

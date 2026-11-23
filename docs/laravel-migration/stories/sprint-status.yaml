@@ -80,7 +80,7 @@ development_status:
   4-9b-auth-screens: review
   epic-4-retrospective: optional
 
-  epic-5: backlog
+  epic-5: review
   5-1-checkout-start: review
   5-2-webhook-ledger-and-classification: review
   5-3-fulfilment-and-access-provisioning: review
