@@ -103,3 +103,5 @@ DV-25 and the fourth lock await the owner. Concurrent-provisioning race test. N-
 **L4 parity run (2026-11-23, workbench/parity-4-5):** @auth 37 tests: Next 37 pass; Laravel 15 pass / 11 fail / 11 not reached. @checkout 28: Next 28 pass; Laravel 1 / 20 / 7. @entitlements 10: Next 10 pass; Laravel 0 / 10 / 0. Failures are the unwired Stripe/Postmark/Mailpit infra on the Laravel stack and not-yet-built pages/routes, listed with titles in `docs/laravel-migration/parity-run-2026-11-23.md`. This story's parity tests are not shown to match: stays at `review`.
 
 **Correction (owner, 2026-11-23, DV-25):** `FulfilCheckout::fulfil` accepts `paid` and `no_payment_required`; any other status still throws `CHECKOUT_SESSION_NOT_PAID`. `HopelessCheckoutFailure::noPaymentRequired` is removed. `existing()` now provisions for the stored billing email on a deduped repeat (an email changed at Stripe made `ProvisionAccess` throw forever with no alert). Tests: `FulfilCheckoutTest`, `WebhookFulfilmentTest`; parity `dv-25-free-checkout.spec.ts`.
+
+**Unproven (critic 15968):** a free (100%-off, `no_payment_required`) upsell has no test; only the new-purchase path is covered.

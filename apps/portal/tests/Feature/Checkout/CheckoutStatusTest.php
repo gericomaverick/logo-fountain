@@ -88,11 +88,21 @@ it('send link: the request answers the same and sends nothing whether or not the
     $unknown = sendLink('cs_unknown_acct');
     expect($unknown->getStatusCode())->toBe($known->getStatusCode())->toBe(200)
         ->and($unknown->getContent())->toBe($known->getContent());
-    Queue::assertPushed(SendAuthLinkMail::class, 2); // one job each; the unknown one carries no user id
-    Queue::assertPushed(SendAuthLinkMail::class, fn ($j) => $j->userId === null);
+    Queue::assertPushed(SendAuthLinkMail::class, 2); // one job each, the same shape: the account is looked up in the job
+    Queue::assertPushed(SendAuthLinkMail::class, fn ($j) => $j->userId === null && $j->checkoutSessionId === 'cs_unknown_acct');
     Mail::assertNothingSent();
     expect(DB::table('auth_proofs')->count())->toBe(0);
     // The job does the work: known sends a proof and a mail, unknown nothing.
+    Queue::pushed(SendAuthLinkMail::class)->each(fn ($j) => $j->handle(app(SendAuthLink::class)));
+    expect(DB::table('auth_proofs')->where('kind', 'magic')->count())->toBe(1);
+});
+
+it('send link: a user created after the request but before the job runs still gets the email (B1)', function () {
+    Queue::fake();
+    Mail::fake();
+    orderFor('cs_late');
+    sendLink('cs_late')->assertOk()->assertExactJson(['ok' => true, 'delivery' => 'email']);
+    User::factory()->create(['email' => 'buyer@example.test']); // provisioned after the request
     Queue::pushed(SendAuthLinkMail::class)->each(fn ($j) => $j->handle(app(SendAuthLink::class)));
     expect(DB::table('auth_proofs')->where('kind', 'magic')->count())->toBe(1);
 });

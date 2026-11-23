@@ -33,3 +33,7 @@ YYYY-MM-DD — <Risk>. Likelihood: <low|med|high>. Impact: <low|med|high>. Mitig
 
 2026-11-23 — Story 5.7: one Stripe round trip (up to three with an invoice id) per order on every invoice list, no cache, as in Next; a project or client with many orders makes a slow page and spends Stripe rate limit. Add a short cache if it bites. #risk
 2026-11-23 — Story 4.4 (critic 11640 N1): lifecycle mails (2.7) gained the 4.4 logo header, a visible change versus main. Likelihood: certain. Impact: low. Mitigation: owner to approve or ask for the old look. #risk
+
+2026-11-23 — Story 4.4 (critic 15968 B1): auth link emails (sign-in, reset, checkout resend) are queued. A dead worker, or 3 failed tries (then `failed_jobs` and a log line from `SendAuthLinkMail::failed`), loses the email silently; the customer is told it was sent. The resend route used to return 500 on a failed send. A worker crash after a send but before the ack re-runs the job and sends a second link (at-least-once). Mitigation: monitor the worker and `failed_jobs`. #risk
+
+2026-11-23 — Story 5.3 (critic 15968): `FulfilUpsell::existing` still takes the payload email on a repeat delivery (DV-28 fixed this only for new purchases); the DV-15 mismatch check limits it. Free (`no_payment_required`) upsells have no test. #risk

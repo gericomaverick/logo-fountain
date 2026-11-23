@@ -55,10 +55,10 @@ final class CheckoutAuthEmailController extends Controller
             throw new ApiException('Sign-in email is temporarily unavailable.', 503, ErrorCodes::EMAIL_UNAVAILABLE);
         }
 
-        // Q2 (DV-27): the same work and the same answer whether or not the purchaser has an account: one lookup, one
-        // queue insert. The proof and the email happen in the job. Always `magic`: the session id never sets a password.
+        // Q2 (DV-27): the same work and the same answer whether or not the purchaser has an account: one queue
+        // insert; the account is looked up when the job runs. The proof and the email happen in the job. Always `magic`: the session id never sets a password.
         try {
-            SendAuthLinkMail::dispatch($send->find($email)?->id, 'magic', '/dashboard');
+            SendAuthLinkMail::dispatch(null, 'magic', '/dashboard', $sessionId);
         } catch (Throwable) {
             throw new ApiException('Unable to send sign-in email.', 500, ErrorCodes::AUTH_EMAIL_SEND_FAILED);
         }
