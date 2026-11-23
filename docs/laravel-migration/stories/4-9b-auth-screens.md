@@ -1,6 +1,6 @@
 # Story 4.9b: Auth screens
 
-**Status:** ready-for-dev (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only, UI (design review) · **Epic:** 4 · **Covers:** A-05, A-07, A-08, UX §14 (auth screens) · **Gate:** `@auth&@ui`, `@visual` · **After:** 4.3–4.8, 4.9a, 1.9 (done) · **Stacks on:** `main` (dependencies done); in the SERIAL chain, the previous Epic 4 story's branch. Shared files: `resources/js/Pages/Auth/`, `routes/web.php`, `resources/js/Layouts/`, Playwright baselines
+**Status:** done (baselines approved by owner 2026-11-23) (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only, UI (design review) · **Epic:** 4 · **Covers:** A-05, A-07, A-08, UX §14 (auth screens) · **Gate:** `@auth&@ui`, `@visual` · **After:** 4.3–4.8, 4.9a, 1.9 (done) · **Stacks on:** `main` (dependencies done); in the SERIAL chain, the previous Epic 4 story's branch. Shared files: `resources/js/Pages/Auth/`, `routes/web.php`, `resources/js/Layouts/`, Playwright baselines
 
 > Created with the repo's create-story form. All `apps/web` `file:line` checked 2026-11-22.
 
