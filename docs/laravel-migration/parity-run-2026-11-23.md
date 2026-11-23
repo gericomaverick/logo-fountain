@@ -91,3 +91,7 @@ Checkout start, the stripe-fake webhook, the webhook secret and mail now work (n
 - @checkout DV-6/K-12/N-01/N-10 reprocess emails: the customer setup mail arrives, but no admin "New project created" mail to `admin@parity.test` (`ADMIN_NOTIFICATION_EMAILS` is set in the overlay; cause not checked: could be the reprocess path or queue timing). DV-6 is listed in expected-next-failures for Next; on Laravel it is a real failure, not a pass.
 
 No story statuses changed. DV-25 and 4.4 timing were not touched.
+
+## A-11 on Laravel via Mailpit chaos (parity-wiring)
+- Mailpit v1.33.0 supports chaos (`MP_ENABLE_CHAOS=true` set in `tests/parity/infra/docker-compose.test.yml`; `PUT /api/v1/chaos` Sender 451 @100%). Chaos is probabilistic, not counted: A-11 specs now call `clearEmailFailures()` right after the failing request (target-neutral); adapter `failNextEmailSends`/`clearEmailFailures` in `adapters/stripe.ts` branch on target (Next keeps postmark-shim).
+- Laravel (`laravel-stack.mjs "@api" --only A-11`): 2 passed (auth-links A-11, checkout-contracts A-11/K-04). Next (`--grep A-11`): 2 passed. `npm run check` OK. df -h before: 22Gi free. Stack and infra torn down with -v.

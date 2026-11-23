@@ -8,6 +8,8 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { test, type APIRequestContext } from "@playwright/test";
 import { apiClient, baseURL } from "./api";
+import { mailpitUrl } from "./mail";
+import { resolveTarget } from "./target";
 import { coordinationDir, leaseEpoch, lockDbForFile, pidAlive } from "./seed";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -170,14 +172,27 @@ async function postEvent(event: StripeEvent, options: { signature?: string | nul
   return { status: res.status, body, text };
 }
 
-/** Makes the next `count` emails sent through postmark-shim fail with 500 (Next's transport). */
+/**
+ * Makes the next `count` sends fail. Next: postmark-shim returns 500 for `count` sends. Laravel (SMTP to Mailpit):
+ * Mailpit chaos rejects every SMTP sender until reset, so callers must `clearEmailFailures()` after the send they
+ * expect to fail (count is not enforced there). Journeys do not branch on target; this adapter does.
+ */
 export async function failNextEmailSends(count = 1): Promise<void> {
+  if (resolveTarget() === "laravel") return setMailpitChaos(count > 0);
   const res = await fetch(`${postmarkShimUrl}/__fail`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ count }) });
   if (!res.ok) throw new Error(`postmark-shim /__fail: ${res.status}`);
 }
 
 export async function clearEmailFailures(): Promise<void> {
+  if (resolveTarget() === "laravel") return setMailpitChaos(false);
   await fetch(`${postmarkShimUrl}/__fail`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ count: 0 }) });
+}
+
+// Mailpit chaos (needs MP_ENABLE_CHAOS=true): https://mailpit.axllent.org/docs/integration/chaos/
+async function setMailpitChaos(on: boolean): Promise<void> {
+  const body = on ? { Sender: { ErrorCode: 451, Probability: 100 } } : { Sender: { ErrorCode: 451, Probability: 0 } };
+  const res = await fetch(`${mailpitUrl}/api/v1/chaos`, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+  if (!res.ok) throw new Error(`Mailpit /api/v1/chaos: ${res.status} ${await res.text()}`);
 }
 
 // ---- reading the outcome back through the public API ----

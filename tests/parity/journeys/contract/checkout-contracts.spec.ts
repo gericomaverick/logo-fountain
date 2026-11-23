@@ -138,6 +138,7 @@ test("A-11/K-04 a failed checkout email send is 500 AUTH_EMAIL_SEND_FAILED with 
   const box = await mailbox(buyer);
   await failNextEmails(1);
   const res = await send("magic-link", { session_id: sessionId });
+  await clearEmailFailures(); // Laravel: Mailpit chaos is not counted, so end the failure window here
   expect(res.status()).toBe(500);
   const body = await res.text();
   expect(JSON.parse(body)).toEqual({ error: { message: "Unable to send sign-in email.", code: "AUTH_EMAIL_SEND_FAILED" } });
