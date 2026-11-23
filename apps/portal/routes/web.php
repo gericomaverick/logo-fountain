@@ -6,8 +6,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-// Placeholder until the real pages land (Epic 6+). /up is registered in bootstrap/app.php.
-Route::get('/', fn () => Inertia::render('Home'))->name('home');
+// A-16 (story 4.8): `/` goes to sign-in (`app/page.tsx:3-5`). /up is registered in bootstrap/app.php.
+Route::get('/', fn () => redirect('/login'))->name('home');
+
+// Story 4.8 open question 1: the only guarded page until Epic 6 builds the dashboard; later epics attach
+// `auth.verified` / `admin` to their own routes.
+Route::get('/dashboard', fn () => Inertia::render('Home'))->middleware('auth.verified')->name('dashboard');
 
 // Dev-only routes: local and testing, never production or staging. Decided when the routes load, so
 // `route:cache` on a production box leaves them out (tests/Feature/DevUiRouteTest.php).

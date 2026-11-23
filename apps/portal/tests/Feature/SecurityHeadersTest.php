@@ -37,7 +37,7 @@ it('adds unsafe-eval locally, like next dev', function () {
 it('puts the headers on pages, the health check, 404s and API JSON', function () {
     Route::get('/api/_test/json', fn () => response()->json(['ok' => true]));
 
-    assertSiteHeaders($this->get('/')->assertOk());
+    assertSiteHeaders($this->get('/dev/ui')->assertOk());
     assertSiteHeaders($this->get('/up')->assertOk());
     assertSiteHeaders($this->get('/no-such-page')->assertNotFound());
     assertSiteHeaders($this->getJson('/api/no-such-endpoint')->assertNotFound());

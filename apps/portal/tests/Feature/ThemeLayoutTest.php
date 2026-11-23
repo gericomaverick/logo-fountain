@@ -3,7 +3,7 @@
 // Story 1.7: the root layout sets the theme before CSS and preloads Sfizia only where it's used.
 
 it('runs theme-init before any stylesheet and declares both colour schemes', function () {
-    $html = $this->get('/')->assertOk()->getContent();
+    $html = $this->get('/dev/ui/status')->assertOk()->getContent();
 
     expect($html)
         ->toContain('<meta name="color-scheme" content="light dark">')
@@ -12,9 +12,9 @@ it('runs theme-init before any stylesheet and declares both colour schemes', fun
 });
 
 it('preloads Sfizia only on pages that render a DisplayTitle', function () {
-    expect(substr_count($this->get('/')->getContent(), 'rel="preload" as="font"'))->toBe(2);
+    expect(substr_count($this->get('/dev/ui/status')->getContent(), 'rel="preload" as="font"'))->toBe(2);
 
     config(['ui.display_font_pages' => []]);
 
-    expect(substr_count($this->get('/')->getContent(), 'rel="preload" as="font"'))->toBe(1);
+    expect(substr_count($this->get('/dev/ui/status')->getContent(), 'rel="preload" as="font"'))->toBe(1);
 });
