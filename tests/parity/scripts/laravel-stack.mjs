@@ -13,7 +13,7 @@
 // script POSTs stripe-fake's webhookUrl to the Laravel stack. Postmark is not used here (MAIL_MAILER=smtp).
 // Env: PARITY_LARAVEL_PORT (8000), PARITY_LARAVEL_PROJECT (lf-parity-laravel), PORTAL_*_PORT.
 import { spawn, spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { gateToRegex } from "./gate.mjs";
@@ -79,7 +79,14 @@ try {
   if (!health?.ok) throw new Error(`stripe-fake not reachable at ${STRIPE_URL}: run \`npm run infra:up\` first`);
   // Build once first: init, app and worker share one image tag, and parallel builds race on it.
   docker(["build", "app"]);
-  docker(["up", "-d", "web"]); // pulls in app → init (.env, composer, migrations) → postgres
+  // @ui journeys need real assets: a leftover public/hot (a dev stack's Vite) points the pages at a dead dev server and
+  // they render blank (found via DV-UX, 2026-11-23). Build once (git-ignored) and drop the hot file.
+  rmSync(join(portal, "public/hot"), { force: true });
+  if (!existsSync(join(portal, "public/build/manifest.json"))) docker(["run", "--rm", "--no-deps", "vite", "sh", "-c", "npm ci --no-fund --no-audit && npx vite build"]);
+  // web pulls in app → init (.env, composer, migrations) → postgres. The worker sends every queued mail (admin
+  // new-project, checkout resend links); without it those mails never leave the queue (found via DV-6, 2026-11-23).
+  // parity-marker races the first postgres start (exit 2 on a cold volume); a second `up` finds it ready.
+  try { docker(["up", "-d", "web", "worker"]); } catch { docker(["up", "-d", "web", "worker"]); }
   await waitFor(`${BASE}/up`, 300_000);
   const cfg = await fetch(`${STRIPE_URL}/__config`, { method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ webhookUrl: `http://host.docker.internal:${PORT}/api/stripe/webhook` }) });

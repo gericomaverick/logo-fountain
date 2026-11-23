@@ -6,7 +6,8 @@ One black-box test suite that runs against **either** the current Next.js app (`
 npm ci && npx playwright install chromium
 npm run check                                   # structure rules (imports, titles, expected-failure list)
 npm run selftest                                # proves the expected-failure mechanism
-PARITY_TARGET=next PARITY_START_NEXT=1 node scripts/run.mjs "@smoke"   # run a gate against Next
+node scripts/next-stack.mjs "@smoke"                                   # a gate against Next, fully wired (migrates, starts next dev, stripe-fake webhook forwarder); preferred
+PARITY_TARGET=next PARITY_START_NEXT=1 node scripts/run.mjs "@smoke"   # Next only if the env block under "Running Next.js on the stack" is exported and parity-migrate.mjs has run
 PARITY_TARGET=laravel PARITY_BASE_URL=http://127.0.0.1:8000 node scripts/run.mjs "@auth&@api"
 node scripts/laravel-stack.mjs ["<gate>"] [--only "<title regex>"] [--keep]   # own portal compose stack on :8000, then down -v
 ```
@@ -46,6 +47,23 @@ All credentials are **test-only** throwaway values defined in `infra/docker-comp
 Stripe fixtures live in `fixtures/stripe/` (`prices.json` plus one paid package session per tier; all load at startup).
 
 ### Running Next.js on the stack
+
+Use `node scripts/next-stack.mjs "<gate>"` unless you need `PARITY_START_NEXT=1`. That flag only makes `playwright.config.ts` spawn `next dev` with **your shell's environment**, so everything below must already be exported (after `npm run infra:up`), and the migration below must have run first. Missing pieces fail late and confusingly (`STRIPE_WEBHOOK_SECRET not set`, seeding without objects, an empty schema). The suite process needs `PARITY_TARGET=next`, `PARITY_BASE_URL`, `PARITY_DATABASE_URL=$M` and the `R2_*` variables; the server needs `PARITY_MODE=1`, `DATABASE_URL=$R`, `DIRECT_URL=$M`, `STRIPE_WEBHOOK_SECRET` and the rest of the list. In one shell:
+
+```bash
+export M=postgresql://lf_migrate:parity-test-only-migrate@127.0.0.1:55432/lf_parity
+export R=postgresql://lf_runtime:parity-test-only-runtime@127.0.0.1:55432/lf_parity
+export R2_ACCOUNT_ID=0123456789abcdef0123456789abcdef R2_ACCESS_KEY_ID=parity-test-only-access-key R2_SECRET_ACCESS_KEY=parity-test-only-secret-key \
+  R2_CONCEPTS_BUCKET=lf-parity-concepts R2_FINAL_DELIVERABLES_BUCKET=lf-parity-final-deliverables R2_ENDPOINT=http://127.0.0.1:58333
+export PARITY_MODE=1 PARITY_DATABASE_URL=$M PARITY_RUNTIME_DATABASE_URL=$R DATABASE_URL=$R DIRECT_URL=$M \
+  BETTER_AUTH_SECRET=parity-test-only-secret-at-least-32-chars PUBLIC_SITE_URL=http://127.0.0.1:4310 \
+  STRIPE_SECRET_KEY=sk_test_parity STRIPE_API_BASE=http://127.0.0.1:58091 STRIPE_WEBHOOK_SECRET=whsec_parity_test_only_0000000000000000 \
+  POSTMARK_SERVER_TOKEN=parity POSTMARK_FROM=portal@parity.test POSTMARK_API_URL=http://127.0.0.1:58090/email ADMIN_NOTIFICATION_EMAILS=admin@parity.test
+(cd ../../apps/web && node scripts/parity-migrate.mjs)       # first, once per fresh database
+PARITY_TARGET=next PARITY_START_NEXT=1 PARITY_BASE_URL=http://127.0.0.1:4310 node scripts/run.mjs "@smoke"
+```
+
+stripe-fake's webhooks still need the forwarder and `/__config` call described below, which `next-stack.mjs` does for you (so `@webhook`/`@checkout` gates are only reliable through it). The paragraph below is the same list in prose.
 
 ```bash
 M=postgresql://lf_migrate:parity-test-only-migrate@127.0.0.1:55432/lf_parity

@@ -95,3 +95,21 @@ No story statuses changed. DV-25 and 4.4 timing were not touched.
 ## A-11 on Laravel via Mailpit chaos (parity-wiring)
 - Mailpit v1.33.0 supports chaos (`MP_ENABLE_CHAOS=true` set in `tests/parity/infra/docker-compose.test.yml`; `PUT /api/v1/chaos` Sender 451 @100%). Chaos is probabilistic, not counted: A-11 specs now call `clearEmailFailures()` right after the failing request (target-neutral); adapter `failNextEmailSends`/`clearEmailFailures` in `adapters/stripe.ts` branch on target (Next keeps postmark-shim).
 - Laravel (`laravel-stack.mjs "@api" --only A-11`): 2 passed (auth-links A-11, checkout-contracts A-11/K-04). Next (`--grep A-11`): 2 passed. `npm run check` OK. df -h before: 22Gi free. Stack and infra torn down with -v.
+
+## Epic 4/5 wrap-up re-run (workbench/epic-45-wrapup)
+Fixes made first: K-03 was a Laravel bug (`CheckoutAuthEmailController` sent `next=/dashboard`; Next sends `/project/{projectId}`), fixed with a Pest test. DV-6 "missing admin mail" was a harness bug: `laravel-stack.mjs` never started the `worker`, so the queued mail was never sent (DV-6 now passes on Laravel, 1/1). The stack script now also builds assets (a stale `public/hot` blanked every `@ui` page) and retries `up` once (parity-marker races a cold postgres). Laravel page objects `auth.signIn` (4.9b), `checkout.start` (5.1) and sign-in navigation were added. Test creds only; stacks torn down with `down -v`.
+
+| Gate | Tests | Next pass / fail | Laravel pass / fail / did not run |
+|---|---|---|---|
+| @auth | 37 | 37 / 0 | 25 / 8 / 4 |
+| @checkout | 30 | 30 / 0 | 14 / 16 / 0 |
+| @entitlements | 10 | 10 / 0 | 0 / 10 / 0 |
+
+Passing on Laravel, @auth (25): A-05 request/next/verify/kinds, A-07, A-08 x3, A-01 x4, A-02, A-03 x2, A-09 x3, A-17 x4, X-01 x2, J21 x3.
+Passing on Laravel, @checkout (14): K-01 x3, K-02, K-03 x2, K-04 rate limit, A-06 setup x2, DV-25, DV-28, DV-1, DV-5, DV-6.
+
+Failing on Laravel, classified:
+- **Later epic (routes or page objects not built):** all 10 @entitlements and the other `GET /api/admin/projects` 404s (Epic 7 admin API; includes K-05 x4, K-06 x4, K-12 contract and J18, DV-2); J1 and J2 `checkout.waitForConfirmation` (5.4 page object); J10 `account.requestPasswordReset` (4.9b, not in this brief); J11 `portal.openProject` (6.1); J9 `settings.updateName` (6.12). The webhook-fulfilment K-06 cases also need the admin seed (`admin@parity.test` cannot sign in) (Epic 2/7).
+- **Harness:** A-11 magic-link (auth-links.spec.ts:142): the mail now goes out from the queued job (DV-27) after `clearEmailFailures()` has already ended the Mailpit chaos window, so one mail arrives.
+- **Spec vs accepted deviation (owner call):** A-11/K-04 (checkout-contracts.spec.ts:135) expects 500 `AUTH_EMAIL_SEND_FAILED`; Laravel answers 200 by DV-27. The spec needs a Laravel branch or a deviation tag.
+- **Real mismatch, open:** DV-UX/C-01/A-01 and DV-UX/A-06 land on `/dashboard`, not `/project/{id}` (the deviation specs fail on Next by design; the Laravel dashboard does not forward to the project, expected from Epic 6 story 6.1). Not fixed here.

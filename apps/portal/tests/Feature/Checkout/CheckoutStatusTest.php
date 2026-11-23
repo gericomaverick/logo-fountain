@@ -74,7 +74,7 @@ it('send link: emails a sign-in link to the recorded address, never returns it, 
         expect($r->getContent())->not->toContain('token')->not->toContain('http');
     }
     Queue::assertPushed(SendAuthLinkMail::class, 2);
-    Queue::assertPushed(SendAuthLinkMail::class, fn ($j) => $j->kind === 'magic' && $j->next === '/dashboard');
+    Queue::assertPushed(SendAuthLinkMail::class, fn ($j) => $j->kind === 'magic' && $j->next === '/project/'.ProjectOrder::query()->where('stripe_checkout_session_id', 'cs_ok')->value('project_id')); // K-03/A-05: next is the order's project
     expect(DB::table('auth_proofs')->count())->toBe(0); // the request writes no proof
 });
 

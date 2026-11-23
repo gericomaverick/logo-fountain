@@ -77,6 +77,8 @@ Routes in `routes/web.php`; pages `resources/js/Pages/Auth/*`; layout `Layouts/A
 | Browser | `tests/browser/auth-screens.spec.ts` (@auth @ui @visual) | A-05..A-08 |
 ### Test evidence
 bin/test (Pint, Larastan, Pest): 1957 passed, 1 warning. Browser: auth-screens 16 passed, theme 18 passed. typecheck and lint clean. `test:unit` fails only on the pre-existing design-lint findings in `resources/views/mail/layouts/base.blade.php:7` (not this story); 226 other unit tests pass, including the new auth ones. Not run: Lighthouse.
+### Parity
+Parity (wrap-up re-run, 2026-11-23): `auth.signIn`, magic-link confirm and set-password page objects built (`pages/laravel/auth.ts`). J21 x3 pass on Laravel. Not matching: J10 needs `account.requestPasswordReset` (not built), DV-UX landing on /dashboard (6.1).
 ### Gotchas
 Vite in the container served stale files after host edits; `docker compose restart vite` fixed it.
 ### Docs updated

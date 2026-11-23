@@ -1,6 +1,6 @@
 # Story 4.6: Forgot, reset and set password
 
-**Status:** review (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-07, A-08, FR3, FR4 · **Gate:** `@auth&@api` (forgot, reset) · **After:** 4.4 · **Stacks on:** `main` (dependencies done); in the SERIAL chain, the previous Epic 4 story's branch. Shared files: `routes/auth.php`, `app/Actions/Auth/`, `AuthProofs`, `CredentialFence`, `app/Support/Auth/PasswordRules.php`
+**Status:** done (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-07, A-08, FR3, FR4 · **Gate:** `@auth&@api` (forgot, reset) · **After:** 4.4 · **Stacks on:** `main` (dependencies done); in the SERIAL chain, the previous Epic 4 story's branch. Shared files: `routes/auth.php`, `app/Actions/Auth/`, `AuthProofs`, `CredentialFence`, `app/Support/Auth/PasswordRules.php`
 
 > Created with the repo's create-story form. All `apps/web` `file:line` checked 2026-11-22.
 

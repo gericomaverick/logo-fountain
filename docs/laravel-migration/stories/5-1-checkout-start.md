@@ -85,6 +85,8 @@ Anonymous GET. `package_code` matched exactly and case-sensitively against the s
 | L4 | `contract/checkout-contracts.spec.ts`, `dv-checkout.spec.ts:43,:58`: NOT RUN | K-01, DV-1, DV-5 |
 ### Test evidence
 `bin/test` in `apps/portal` (stack lf-wb21): check-agents-guide, Pint, Larastan level 9 clean; Pest 2029 passed, 1 warning (5811 assertions). Stripe is the in-process `tests/Support/FakeStripe.php` (stripe-php HTTP client); the stripe-fake container was not used, so the fake's own recording of the flag is unchecked.
+### Parity
+Parity (wrap-up re-run, 2026-11-23): `checkout.start` page object built. @checkout on Laravel: K-01 x3 (INVALID_PACKAGE, 303 allowlisted, campaign slug), DV-1, DV-5 pass; Next 30/30. Own tests match Next.
 ### Gotchas
 stripe-php sends booleans as the text "true"/"false". Larastan needed an ignore on the generated param shape. No Next test file exists for this route, so there is no ledger row to fill.
 ### Docs updated

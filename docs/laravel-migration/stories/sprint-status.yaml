@@ -70,18 +70,18 @@ development_status:
   epic-4: backlog
   4-1-sessions-with-an-absolute-cap: review
   4-2-credential-fence-and-proofs: review
-  4-3-login: review
+  4-3-login: done
   4-4-auth-link-requests-auth-emails-base-mail-layout: review
-  4-5-magic-link-confirm: review
-  4-6-forgot-reset-and-set-password: review
-  4-7-change-password-and-logout: review
+  4-5-magic-link-confirm: done
+  4-6-forgot-reset-and-set-password: done
+  4-7-change-password-and-logout: done
   4-8-safe-next-route-guards-endpoint-allowlist: review
   4-9a-admin-bootstrap-cli: review
   4-9b-auth-screens: review
   epic-4-retrospective: optional
 
   epic-5: review
-  5-1-checkout-start: review
+  5-1-checkout-start: done
   5-2-webhook-ledger-and-classification: review
   5-3-fulfilment-and-access-provisioning: review
   5-4-checkout-success-continue-resend: review

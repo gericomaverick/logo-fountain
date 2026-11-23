@@ -1,6 +1,6 @@
 # Story 4.5: Magic-link confirm
 
-**Status:** review (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-05, A-18, FR2 · **Gate:** `@auth&@api` (verify) · **After:** 4.4 · **Stacks on:** `main` (dependencies done); in the SERIAL chain, the previous Epic 4 story's branch. Shared files: `routes/auth.php`, `IssueSession`, `AuthProofs`
+**Status:** done (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-05, A-18, FR2 · **Gate:** `@auth&@api` (verify) · **After:** 4.4 · **Stacks on:** `main` (dependencies done); in the SERIAL chain, the previous Epic 4 story's branch. Shared files: `routes/auth.php`, `IssueSession`, `AuthProofs`
 
 > Created with the repo's create-story form. All `apps/web` `file:line` checked 2026-11-22.
 

@@ -2,7 +2,8 @@
 // Fill them in with accessible locators first; data-testid is allowed here (pages/README.md).
 import type { Page } from "@playwright/test";
 import type { AuthPages, CheckoutPages, PageObjects, PortalPages } from "../index";
-import { payOnFakeStripe } from "../stripe-fake";
+import { onFakeStripe, payOnFakeStripe } from "../stripe-fake";
+import { auth as authPages } from "./auth";
 import { areas08b } from "./areas-0-8b"; // 0.8b
 
 const todo = (what: string, story: string) => (): never => {
@@ -10,15 +11,13 @@ const todo = (what: string, story: string) => (): never => {
 };
 
 export function create(page: Page): PageObjects {
-  const auth: AuthPages = {
-    signIn: todo("auth.signIn", "4.9b"),
-    requestMagicLink: todo("auth.requestMagicLink", "4.9b"),
-    confirmMagicLink: todo("auth.confirmMagicLink", "4.9b"),
-    setPasswordFromLink: todo("auth.setPasswordFromLink", "4.9b"),
-  };
+  const auth: AuthPages = authPages(page); // 4.9b
   const checkout: CheckoutPages = {
-    // GET /checkout/start keeps its contract (K-01), so this will likely match pages/next/checkout.ts.
-    start: todo("checkout.start", "5.1"),
+    // GET /checkout/start keeps its contract (K-01): 303 to the hosted Stripe page (routes/checkout.php:16), as Next.
+    async start(pkg) {
+      await page.goto(`/checkout/start?package_code=${pkg}`);
+      await page.waitForURL(onFakeStripe);
+    },
     // Shared infra: already real.
     payOnFakeStripe: (buyer) => payOnFakeStripe(page, buyer),
     waitForConfirmation: todo("checkout.waitForConfirmation", "5.4"),

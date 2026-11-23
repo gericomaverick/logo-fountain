@@ -58,7 +58,7 @@ final class CheckoutAuthEmailController extends Controller
         // Q2 (DV-27): the same work and the same answer whether or not the purchaser has an account: one queue
         // insert; the account is looked up when the job runs. The proof and the email happen in the job. Always `magic`: the session id never sets a password.
         try {
-            SendAuthLinkMail::dispatch(null, 'magic', '/dashboard', $sessionId);
+            SendAuthLinkMail::dispatch(null, 'magic', '/project/'.$order->project_id, $sessionId); // K-03: the link lands on the order's project, as Next does
         } catch (Throwable) {
             throw new ApiException('Unable to send sign-in email.', 500, ErrorCodes::AUTH_EMAIL_SEND_FAILED);
         }
