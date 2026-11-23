@@ -16,9 +16,16 @@ export function settings(_page: Page): SettingsPages {
   };
 }
 
-export function account(_page: Page): AccountPages {
+export function account(page: Page): AccountPages {
   return {
-    requestPasswordReset: todo("account.requestPasswordReset", "4.9b"),
+    // ForgotPassword.tsx: the same notice for any address; a failed request shows a danger alert instead.
+    async requestPasswordReset(email) {
+      await page.goto("/forgot-password");
+      await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => undefined);
+      await page.getByLabel("Email", { exact: true }).fill(email);
+      await page.getByRole("button", { name: "Send reset email" }).click();
+      await page.getByRole("status").filter({ hasText: "If that account exists" }).waitFor({ timeout: 15_000 });
+    },
     signOut: todo("account.signOut", "6.12"),
     showsSignedInContent: todo("account.showsSignedInContent", "6.12"),
   };

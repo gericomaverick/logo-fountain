@@ -5,6 +5,8 @@ namespace App\Jobs;
 use App\Actions\Auth\SendAuthLink;
 use App\Models\ProjectOrder;
 use App\Models\User;
+use App\Support\LifecycleMail;
+use App\Support\LifecycleMessage;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -51,5 +53,12 @@ final class SendAuthLinkMail implements ShouldQueue
     public function failed(\Throwable $e): void
     {
         Log::error('auth link email job failed after retries', ['kind' => $this->kind, 'user_id' => $this->userId]);
+        // DV-27: the request already answered 200, so the failure would otherwise be silent. Tell the admin (no address, no link).
+        LifecycleMail::sendAdminAlert(LifecycleMessage::admin(
+            'Sign-in email failed',
+            "A {$this->kind} sign-in email could not be delivered after retries. The person was told it was sent; check the mail provider.",
+            'Open admin',
+            '/admin',
+        ));
     }
 }

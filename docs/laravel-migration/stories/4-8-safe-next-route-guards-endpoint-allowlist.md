@@ -74,3 +74,5 @@ _(commands, pass/fail counts, what was not run and why)_
 ### Open items
 
 **L4 parity run (2026-11-23, workbench/parity-4-5):** @auth 37 tests: Next 37 pass; Laravel 15 pass / 11 fail / 11 not reached. @checkout 28: Next 28 pass; Laravel 1 / 20 / 7. @entitlements 10: Next 10 pass; Laravel 0 / 10 / 0. Failures are the unwired Stripe/Postmark/Mailpit infra on the Laravel stack and not-yet-built pages/routes, listed with titles in `docs/laravel-migration/parity-run-2026-11-23.md`. This story's parity tests are not shown to match: stays at `review`.
+
+**Assessment (epic-45-close, 2026-11-23):** the tests in the plan exist and pass (`SafeNextTest`, `RouteGuardTest`, `AuthTest` arch: allowlist, `next` through SafeNext). Stays review only because the Conversion record (Behaviour notes, Laravel implementation, Tests table, Test evidence) is still a stub; fill it, then done.

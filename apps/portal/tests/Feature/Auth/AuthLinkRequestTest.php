@@ -2,8 +2,10 @@
 
 use App\Actions\Auth\SendAuthLink;
 use App\Jobs\SendAuthLinkMail;
+use App\Jobs\SendLifecycleMail;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
 use Tests\Support\ProbeTransport;
 
@@ -111,4 +113,13 @@ it('Q2: the queued job sends one email for a known account and nothing for an un
 
     (new SendAuthLinkMail($user->id, 'magic', '/dashboard'))->handle(app(SendAuthLink::class));
     expect(ProbeTransport::$sent)->toHaveCount(1)->and(DB::table('auth_proofs')->count())->toBe(1);
+});
+
+it('DV-27: a job that fails after retries logs the error and queues an admin alert', function () {
+    Queue::fake();
+    config(['portal.admin_notification_emails' => 'admin@example.test', 'mail.from.address' => 'a@example.test', 'mail.default' => 'log']);
+    Log::spy();
+    (new SendAuthLinkMail(null, 'magic', '/dashboard'))->failed(new RuntimeException('smtp down'));
+    Log::shouldHaveReceived('error')->once();
+    Queue::assertPushed(SendLifecycleMail::class);
 });

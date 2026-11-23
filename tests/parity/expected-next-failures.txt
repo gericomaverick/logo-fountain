@@ -48,3 +48,5 @@ DV-15 K-06 a payment intent already used by another session is a permanent failu
 DV-15 K-09 an upsell paid with a different email still applies, provisions nobody new, and alerts the admin @deviation @webhook @upsell @email @api
 DV-25 K-06 a 100%-off session (no_payment_required) is fulfilled like a paid one @deviation @webhook @checkout @email @api
 DV-28 K-06 a repeat delivery with a different purchaser email still succeeds for the stored purchaser @deviation @webhook @checkout @api
+# Story 4.4/5.4, DV-27 (journeys/contract/checkout-contracts.spec.ts): Next sends synchronously, so a failed send is 500, not the uniform 200.
+DV-27/A-11/K-04 a failed checkout email send gives the uniform 200 with no link, sends nothing, and a resend works @deviation @api @checkout @email

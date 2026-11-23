@@ -144,11 +144,13 @@ test("A-11 a failed auth email send gives the uniform answer, sends nothing, and
     const box = await mailbox(A);
     await failNextEmails(1);
     const res = await (await client()).post(path, { data: body });
-    await clearEmailFailures(); // Laravel: Mailpit chaos is not counted, so end the failure window here
     expect(res.status(), path).toBe(200);
     expect(await res.json()).toEqual(path.endsWith("magic-link") ? MAGIC_SENT : RESET_SENT);
     expect(await res.text()).not.toMatch(/token|https?:/);
+    // Laravel (DV-27): the queued job sends after the response, so chaos stays on until it has run (the settle window);
+    // Mailpit chaos is not counted, so the window is ended here, after the check.
     expect(await box.countAfterSettle(), path).toBe(0);
+    await clearEmailFailures();
   }
   const { link } = await magicLinkFor(A);
   expect((await verify(link.token)).status()).toBe(200);

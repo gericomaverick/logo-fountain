@@ -67,16 +67,16 @@ development_status:
   3-4-stable-private-images: done
   epic-3-retrospective: optional
 
-  epic-4: backlog
-  4-1-sessions-with-an-absolute-cap: review
-  4-2-credential-fence-and-proofs: review
+  epic-4: in-progress
+  4-1-sessions-with-an-absolute-cap: done
+  4-2-credential-fence-and-proofs: done
   4-3-login: done
   4-4-auth-link-requests-auth-emails-base-mail-layout: review
   4-5-magic-link-confirm: done
   4-6-forgot-reset-and-set-password: done
-  4-7-change-password-and-logout: done
+  4-7-change-password-and-logout: review
   4-8-safe-next-route-guards-endpoint-allowlist: review
-  4-9a-admin-bootstrap-cli: review
+  4-9a-admin-bootstrap-cli: done
   4-9b-auth-screens: review
   epic-4-retrospective: optional
 

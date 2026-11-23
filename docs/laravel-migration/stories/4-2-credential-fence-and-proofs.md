@@ -1,6 +1,6 @@
 # Story 4.2: Credential fence and proofs
 
-**Status:** review (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-10, A-11 (proof half), ADR-007, FR10 · **Gate:** `@pg-race` · **After:** 2.4 (done), 4.1 (chain) · **Stacks on:** `main` (all listed dependencies are done); in the SERIAL chain it builds on the previous Epic 4 story's branch.
+**Status:** done (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-10, A-11 (proof half), ADR-007, FR10 · **Gate:** `@pg-race` · **After:** 2.4 (done), 4.1 (chain) · **Stacks on:** `main` (all listed dependencies are done); in the SERIAL chain it builds on the previous Epic 4 story's branch.
 
 > Created with the repo's create-story form. All `apps/web` `file:line` checked 2026-11-22.
 

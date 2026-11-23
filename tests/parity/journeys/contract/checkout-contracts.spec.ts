@@ -132,21 +132,24 @@ test("K-04/X-06 checkout sign-in emails: 3 per session, then 429 RATE_LIMITED wi
   expect(await box.countAfterSettle()).toBe(3);
 });
 
-test("A-11/K-04 a failed checkout email send is 500 AUTH_EMAIL_SEND_FAILED with no link, and a resend works @api @checkout @email", async () => {
+test("DV-27/A-11/K-04 a failed checkout email send gives the uniform 200 with no link, sends nothing, and a resend works @deviation @api @checkout @email", async () => {
+  // DV-27: the send moves to a queued job, so the request answers 200 {ok:true,delivery:"email"} whether or not it later
+  // fails (Next answers 500 AUTH_EMAIL_SEND_FAILED, so this test fails there by design: expected-next-failures.txt).
+  // The job's error log and admin alert (failed() after retries) are asserted in Pest: AuthLinkRequestTest.
   const buyer = uniqueEmail("a11");
   const sessionId = await purchase(buyer);
   const box = await mailbox(buyer);
   await failNextEmails(1);
   const res = await send("magic-link", { session_id: sessionId });
-  await clearEmailFailures(); // Laravel: Mailpit chaos is not counted, so end the failure window here
-  expect(res.status()).toBe(500);
+  expect(res.status()).toBe(200);
   const body = await res.text();
-  expect(JSON.parse(body)).toEqual({ error: { message: "Unable to send sign-in email.", code: "AUTH_EMAIL_SEND_FAILED" } });
+  expect(JSON.parse(body)).toEqual({ ok: true, delivery: "email" });
   expect(body).not.toMatch(/token|https?:|postmark/i);
-  expect(await box.countAfterSettle()).toBe(0);
+  expect(await box.countAfterSettle()).toBe(0); // chaos stays on until the queued job has run
+  await clearEmailFailures();
   const again = await send("resend-magic-link", { session_id: sessionId });
   expect(again.status()).toBe(200);
-  const [mail] = await box.next();
-  const verified = await (await client()).post("/api/auth/magic-link/verify", { data: { token: proofLink(mail).token } });
+  const mails = await box.next();
+  const verified = await (await client()).post("/api/auth/magic-link/verify", { data: { token: proofLink(mails[mails.length - 1]).token } });
   expect(verified.status()).toBe(200);
 });

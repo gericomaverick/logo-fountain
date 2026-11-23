@@ -113,3 +113,17 @@ Failing on Laravel, classified:
 - **Harness:** A-11 magic-link (auth-links.spec.ts:142): the mail now goes out from the queued job (DV-27) after `clearEmailFailures()` has already ended the Mailpit chaos window, so one mail arrives.
 - **Spec vs accepted deviation (owner call):** A-11/K-04 (checkout-contracts.spec.ts:135) expects 500 `AUTH_EMAIL_SEND_FAILED`; Laravel answers 200 by DV-27. The spec needs a Laravel branch or a deviation tag.
 - **Real mismatch, open:** DV-UX/C-01/A-01 and DV-UX/A-06 land on `/dashboard`, not `/project/{id}` (the deviation specs fail on Next by design; the Laravel dashboard does not forward to the project, expected from Epic 6 story 6.1). Not fixed here.
+
+## Epic 4/5 close re-run (workbench/epic-45-close)
+
+Gate `@auth|@checkout|@entitlements` (72 distinct tests), one run per target, no repeats.
+
+| Target | Pass | Fail | Did not run |
+|---|---|---|---|
+| Next | 72 | 0 | 0 |
+| Laravel | 44 | 28 | 0 |
+
+- **Now passing on Laravel:** A-11 in both specs (auth-links.spec.ts:142 keeps Mailpit chaos on through the settle window, then clears; checkout-contracts.spec.ts:135 is now the `@deviation` test `DV-27/A-11/K-04`: uniform 200, listed in expected-next-failures.txt, so it fails on Next by design), and J10 (`account.requestPasswordReset` built). J1 now gets through `checkout.waitForConfirmation` (5.4 page object built) and stops at `portal.openProject` (6.1).
+- **Still failing, all later epics:** the 10 @entitlements tests and other `GET /api/admin/projects` 404s, K-05/K-06 webhook tests (admin seed; 5.2/5.3), DV-2 (5.5), K-12 (5.6), J16/J18 (admin pages), DV-UX x2 (land on `/dashboard`; 6.1), J1/J2/J9/J11 (page objects 6.1, 6.12).
+- **DV-27 error log and admin alert:** a black-box run cannot read the queue worker's log, so `SendAuthLinkMail::failed()` (log, plus an admin alert added here) is asserted in Pest: last test of `AuthLinkRequestTest`.
+- Pest 2138 passed, 1 warning (SafeNextTest dataset `[]`); typecheck, lint, selftest and `npm run check` exit 0.

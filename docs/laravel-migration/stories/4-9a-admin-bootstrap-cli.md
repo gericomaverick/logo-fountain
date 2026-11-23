@@ -1,6 +1,6 @@
 # Story 4.9a: Admin bootstrap CLI
 
-**Status:** ready-for-dev (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-12, FR9 · **Gate:** Pest · **After:** 4.6, 2.1 (done) · **Stacks on:** `main` (dependencies done); in the SERIAL chain, the previous Epic 4 story's branch. Shared files: `app/Console/Commands/`, `DatabaseRoles`, `config/database.php` (`pgsql_migrate`)
+**Status:** done (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-12, FR9 · **Gate:** Pest · **After:** 4.6, 2.1 (done) · **Stacks on:** `main` (dependencies done); in the SERIAL chain, the previous Epic 4 story's branch. Shared files: `app/Console/Commands/`, `DatabaseRoles`, `config/database.php` (`pgsql_migrate`)
 
 > Created with the repo's create-story form. All `apps/web` `file:line` checked 2026-11-22.
 
@@ -81,3 +81,5 @@ Inventory A-12, DECISIONS, RISKS, sprint-status.
 The audit-type change is a deviation the owner has not seen: propose a DV row.
 
 **L4 parity run (2026-11-23, workbench/parity-4-5):** @auth 37 tests: Next 37 pass; Laravel 15 pass / 11 fail / 11 not reached. @checkout 28: Next 28 pass; Laravel 1 / 20 / 7. @entitlements 10: Next 10 pass; Laravel 0 / 10 / 0. Failures are the unwired Stripe/Postmark/Mailpit infra on the Laravel stack and not-yet-built pages/routes, listed with titles in `docs/laravel-migration/parity-run-2026-11-23.md`. This story's parity tests are not shown to match: stays at `review`.
+
+**Why no parity test (epic-45-close, 2026-11-23):** the admin bootstrap is an artisan command with no HTTP surface and no browser journey. The parity suite is black-box over HTTP and a UI, and it has no step that runs a shell command against either app, so there is nothing to run on both targets. Its Pest coverage (L2 `BootstrapAdminTest`, L3 `BootstrapSingleUseTest`, arch no-auto-run) is the whole check; the later admin API/journeys sign in as the bootstrapped admin through the seed.

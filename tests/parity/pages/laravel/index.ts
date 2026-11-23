@@ -20,7 +20,10 @@ export function create(page: Page): PageObjects {
     },
     // Shared infra: already real.
     payOnFakeStripe: (buyer) => payOnFakeStripe(page, buyer),
-    waitForConfirmation: todo("checkout.waitForConfirmation", "5.4"),
+    // Checkout/Success.tsx polls status and swaps "Confirming your payment…" for "Your order is ready" once fulfilled.
+    async waitForConfirmation(timeoutMs = 60_000) {
+      await page.getByRole("heading", { name: /your order is ready/i }).waitFor({ timeout: timeoutMs });
+    },
   };
   const portal: PortalPages = {
     openProject: todo("portal.openProject", "6.1"),

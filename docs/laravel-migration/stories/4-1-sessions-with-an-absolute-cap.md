@@ -1,6 +1,6 @@
 # Story 4.1: Sessions with an absolute cap
 
-**Status:** review (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-03, A-04, ADR-005, FR7 · **Gate:** `@auth&@api` (session endpoint) · **After:** 1.6 (done), 2.1 (done) · **Stacks on:** `main`. **First of the SERIAL chain 4.1 → 4.2 → 4.3 → 4.4 → 4.5 → 4.6 → 4.7 → 4.8 → 4.9a → 4.9b (see `epic-4-build-order` at the end of this file).** 4.1 creates the auth route file, the auth controller namespace and the session middleware that every later story reuses.
+**Status:** done (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-03, A-04, ADR-005, FR7 · **Gate:** `@auth&@api` (session endpoint) · **After:** 1.6 (done), 2.1 (done) · **Stacks on:** `main`. **First of the SERIAL chain 4.1 → 4.2 → 4.3 → 4.4 → 4.5 → 4.6 → 4.7 → 4.8 → 4.9a → 4.9b (see `epic-4-build-order` at the end of this file).** 4.1 creates the auth route file, the auth controller namespace and the session middleware that every later story reuses.
 
 > Created with the repo's create-story form. Sources: `epics.md:294-298`, `brownfield/auth-and-security.md` §1 and §4 (session row), ADR-005, inventory A-03/A-04 (`01-feature-inventory.md:20-21`), ledger #30 (`route.test.ts`, 3 tests), contract `tests/parity/journeys/contract/auth-session.spec.ts:18-38`. All `apps/web` `file:line` checked 2026-11-22.
 

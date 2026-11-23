@@ -1,6 +1,6 @@
 # Story 4.7: Change password and logout
 
-**Status:** done (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-02, A-09, FR5, FR6 · **Gate:** `@auth&@api`, `@settings&@api` · **After:** 4.3 · **Stacks on:** `main` (dependencies done); in the SERIAL chain, the previous Epic 4 story's branch. Shared files: `routes/auth.php`, `PasswordRules`, `CredentialFence`, `Controllers/Auth/`
+**Status:** review (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-02, A-09, FR5, FR6 · **Gate:** `@auth&@api`, `@settings&@api` · **After:** 4.3 · **Stacks on:** `main` (dependencies done); in the SERIAL chain, the previous Epic 4 story's branch. Shared files: `routes/auth.php`, `PasswordRules`, `CredentialFence`, `Controllers/Auth/`
 
 > Created with the repo's create-story form. All `apps/web` `file:line` checked 2026-11-22.
 
@@ -83,3 +83,5 @@ Inventory A-02/A-09, ledger #25/#28/#72, DECISIONS, sprint-status.
 Q1 built as recommended (logout without a session is 200), decided (owner, 2026-11-23).
 
 **L4 parity run (2026-11-23, workbench/parity-4-5):** @auth 37 tests: Next 37 pass; Laravel 15 pass / 11 fail / 11 not reached. @checkout 28: Next 28 pass; Laravel 1 / 20 / 7. @entitlements 10: Next 10 pass; Laravel 0 / 10 / 0. Failures are the unwired Stripe/Postmark/Mailpit infra on the Laravel stack and not-yet-built pages/routes, listed with titles in `docs/laravel-migration/parity-run-2026-11-23.md`. This story's parity tests are not shown to match: stays at `review`.
+
+**Back to review (epic-45-close, 2026-11-23):** AC 6 (under the fence the original session is re-read: same id, verified mailbox, inside the cap) has one test arm, the seven-day cap (`ChangePasswordTest.php:98`). The session-row-gone and unverified-mailbox arms of `ChangePassword.php:33-34` have no test. Add them (an action-level test is enough), then done. The L4 parity cases (auth-session.spec.ts) pass on Laravel.

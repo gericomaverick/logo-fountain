@@ -13,7 +13,7 @@
 // script POSTs stripe-fake's webhookUrl to the Laravel stack. Postmark is not used here (MAIL_MAILER=smtp).
 // Env: PARITY_LARAVEL_PORT (8000), PARITY_LARAVEL_PROJECT (lf-parity-laravel), PORTAL_*_PORT.
 import { spawn, spawnSync } from "node:child_process";
-import { existsSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { gateToRegex } from "./gate.mjs";
@@ -81,8 +81,20 @@ try {
   docker(["build", "app"]);
   // @ui journeys need real assets: a leftover public/hot (a dev stack's Vite) points the pages at a dead dev server and
   // they render blank (found via DV-UX, 2026-11-23). Build once (git-ignored) and drop the hot file.
-  rmSync(join(portal, "public/hot"), { force: true });
-  if (!existsSync(join(portal, "public/build/manifest.json"))) docker(["run", "--rm", "--no-deps", "vite", "sh", "-c", "npm ci --no-fund --no-audit && npx vite build"]);
+  const hot = join(portal, "public/hot");
+  if (existsSync(hot)) {
+    // A hot file is a running dev server in someone's checkout. Drop it only in a builder's own worktree (or with
+    // PARITY_OWN_CHECKOUT=1); in the owner's checkout stop and say so, never delete it.
+    if (/[\\/]worktrees[\\/]/.test(portal) || process.env.PARITY_OWN_CHECKOUT === "1") rmSync(hot, { force: true });
+    else throw new Error(`${hot} exists (a dev server's Vite): stop it, or set PARITY_OWN_CHECKOUT=1 if this checkout is yours to clean`);
+  }
+  // Only this stack's own hot file is dropped: never delete it in a checkout that is not a worktree of this run.
+  // Rebuild when the commit (or an uncommitted front-end change) differs from the one the build was made at.
+  const stamp = join(portal, "public/build/.parity-built-at");
+  const head = spawnSync("sh", ["-c", "git rev-parse HEAD; git diff HEAD --shortstat -- resources package.json package-lock.json vite.config.ts"], { cwd: portal, encoding: "utf8" }).stdout;
+  const stale = !existsSync(join(portal, "public/build/manifest.json")) || !existsSync(stamp) || readFileSync(stamp, "utf8") !== head;
+  if (stale) docker(["run", "--rm", "--no-deps", "vite", "sh", "-c", "npm ci --no-fund --no-audit && npx vite build"]);
+  if (stale) writeFileSync(stamp, head);
   // web pulls in app → init (.env, composer, migrations) → postgres. The worker sends every queued mail (admin
   // new-project, checkout resend links); without it those mails never leave the queue (found via DV-6, 2026-11-23).
   // parity-marker races the first postgres start (exit 2 on a cold volume); a second `up` finds it ready.
