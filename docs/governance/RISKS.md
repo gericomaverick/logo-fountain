@@ -32,3 +32,4 @@ YYYY-MM-DD — <Risk>. Likelihood: <low|med|high>. Impact: <low|med|high>. Mitig
 2026-11-23 — Story 5.6: reprocess is safe against the webhook only via the session advisory lock; any new send path must take `Locks::fulfilSideEffects`. #risk
 
 2026-11-23 — Story 5.7: one Stripe round trip (up to three with an invoice id) per order on every invoice list, no cache, as in Next; a project or client with many orders makes a slow page and spends Stripe rate limit. Add a short cache if it bites. #risk
+2026-11-23 — Story 4.4 (critic 11640 N1): lifecycle mails (2.7) gained the 4.4 logo header, a visible change versus main. Likelihood: certain. Impact: low. Mitigation: owner to approve or ask for the old look. #risk

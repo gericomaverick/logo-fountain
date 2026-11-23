@@ -55,3 +55,4 @@ YYYY-MM-DD — <Decision>. Rationale: <why>. Impact: <what changes>. #decision
 2026-11-23 — Story 5.6: reprocess built as recommended, awaiting owner: DV-23 standard errors (400/404/502), no ledger row claimed, no write clearing `checkout_stuck`. Admin UI (Epic 8/9) must handle 404/502.
 
 2026-11-23 — Story 5.7: invoice lists built as parity with Next (no deviation): `InvoiceResolver` is pure given a Stripe client, a settled order gets the receipt first and never a hosted-invoice link, any Stripe error gives `source:"none"` with only the message logged. The admin list for an unknown project is `{invoices:[]}` as in Next.
+2026-11-23 — Story 4.4 (critic 11640 N1): the new logo header now also appears on the 2.7 lifecycle mails, a visible change versus main, awaiting owner. #decision
