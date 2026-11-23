@@ -1,4 +1,4 @@
-// Story 0.7a: mailbox-proof links (magic, reset, setup), their emails, A-11 send failure and the link-endpoint limits.
+// Story 0.7a: sign-in links (magic, reset, setup), their emails, A-11 send failure and the link-endpoint limits.
 // Spec: docs/laravel-migration/brownfield/auth-and-security.md §2, §4, §8, §11.
 import { expect, test } from "../../fixtures";
 import { baseURL, PARITY_PASSWORD } from "../../adapters/api";

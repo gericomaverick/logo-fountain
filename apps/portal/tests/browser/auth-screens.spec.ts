@@ -47,11 +47,15 @@ for (const scheme of ['light', 'dark'] as const) {
     });
 }
 
-test('@auth auth screens have no theme switcher and follow the system setting', async ({ page }) => {
-    await page.goto('/login');
-    await expect(page.getByRole('radiogroup')).toHaveCount(0);
-    await expect(page.getByRole('button', { name: /theme|light|dark|system/i })).toHaveCount(0);
-});
+for (const path of ['/', '/login', '/forgot-password', '/set-password', '/reset-password', '/auth/callback', '/checkout/success', '/checkout/continue', '/dashboard']) {
+    test(`@auth signed-out ${path} has no theme switcher`, async ({ page }) => {
+        await page.goto(path);
+        await page.waitForLoadState('networkidle');
+        await expect(page.getByRole('radiogroup')).toHaveCount(0);
+        await expect(page.getByRole('button', { name: /theme|light|dark|system/i })).toHaveCount(0);
+        await expect(page.getByText('Theme', { exact: true })).toHaveCount(0);
+    });
+}
 
 test('@auth callback strips the token from the URL and does not confirm by itself', async ({ page }) => {
     let posted = false;

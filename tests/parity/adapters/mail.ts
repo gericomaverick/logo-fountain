@@ -116,7 +116,7 @@ export async function mailbox(to: string) {
   };
 }
 
-/** The single mailbox-proof link in an email (the token travels in the URL fragment): path, token and next. */
+/** The single link in an email (the token travels in the URL fragment): path, token and next. */
 export function proofLink(mail: Pick<Mail, "subject" | "text">) {
   const urls = [...mail.text.matchAll(/https?:\/\/[^\s"'<>]+/g)].map((m) => m[0]).filter((u) => u.includes("#"));
   if (urls.length !== 1) throw new Error(`expected one fragment link in "${mail.subject}", found ${urls.length}`);

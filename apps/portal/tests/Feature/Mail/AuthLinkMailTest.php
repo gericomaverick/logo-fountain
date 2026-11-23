@@ -29,7 +29,7 @@ it('carries Next intro and footer copy', function () {
         ->toContain('If you did not request this email, you can safely ignore it.');
     expect((new AuthLinkMail('a@example.test', 'setup', LINK))->render())
         ->toContain('Thanks for your purchase. Use this secure link to finish access setup.')
-        ->toContain('Set your password with this one-hour, single-use mailbox proof, then sign in.');
+        ->toContain('Set your password with this link, then sign in. It works once and expires in an hour.');
     expect((new AuthLinkMail('a@example.test', 'magic', LINK))->render())
         ->toContain('Thanks for your purchase. Use this secure link to sign in and access your project.');
 });

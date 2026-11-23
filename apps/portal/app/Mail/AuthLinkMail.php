@@ -36,7 +36,7 @@ final class AuthLinkMail extends Mailable
             'ctaLabel' => $reset ? 'Reset password' : ($setup ? 'Finish account setup' : 'Sign in to Logo Fountain'),
             'ctaUrl' => $url,
             'footer' => $setup
-                ? 'Set your password with this one-hour, single-use mailbox proof, then sign in.'
+                ? 'Set your password with this link, then sign in. It works once and expires in an hour.'
                 : 'If you did not request this email, you can safely ignore it.',
             'admin' => false,
             'clientName' => null,
