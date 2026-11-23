@@ -70,10 +70,10 @@ Prepare: owner check, marker check, create unverified user and profile (insert-o
 | L2 | `tests/Feature/Console/BootstrapAdminTest.php` | A-12 |
 | Arch | `tests/Arch/AuthTest.php` (no auto-run) | A-12 |
 ### Test evidence
-`bin/test` green: Pint, Larastan, Pest 1947 passed (5531 assertions). L3 race test not written.
+`bin/test` green: Pint, Larastan, Pest 1947 passed (5531 assertions). L3 race test written after critic B3 (`BootstrapSingleUseTest`, race child mode `bootstrap`): passes; Pest 1960 passed after 4.9b fixes.
 ### Gotchas
 Do not add the lock to `Locks` (LocksTest pins three). Pest helper names are global: `owner()` is taken.
 ### Docs updated
 Inventory A-12, DECISIONS, RISKS, sprint-status.
 ### Open items
-`BootstrapSingleUseTest` (race). The audit-type change is a deviation the owner has not seen: propose a DV row.
+The audit-type change is a deviation the owner has not seen: propose a DV row.

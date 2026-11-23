@@ -32,7 +32,20 @@ test('@auth callback strips the token from the URL and does not confirm by itsel
     await expect.poll(() => page.url()).not.toContain('SECRET');
     expect(await page.evaluate(() => document.body.innerHTML.includes('SECRET'))).toBe(false);
     expect(posted).toBe(false);
+    // Inertia must never have seen the fragment: not in its history state either (B1).
+    expect(await page.evaluate(() => JSON.stringify(history.state))).not.toContain('SECRET');
+    await page.waitForTimeout(2500);
+    expect(await page.evaluate(() => JSON.stringify(history.state) + location.href)).not.toContain('SECRET');
 });
+
+for (const path of ['/reset-password', '/set-password']) {
+    test(`@auth ${path} keeps the token out of the URL and history state`, async ({ page }) => {
+        await page.goto(`${path}#token=SECRET`);
+        await expect(page.getByLabel('New password', { exact: true })).toBeVisible();
+        await page.waitForTimeout(2500);
+        expect(await page.evaluate(() => JSON.stringify(history.state) + location.href)).not.toContain('SECRET');
+    });
+}
 
 test('@auth callback without a token says the link is missing', async ({ page }) => {
     await page.goto('/auth/callback');

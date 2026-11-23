@@ -24,19 +24,26 @@ export async function postAuth(path: string, body: unknown, fetcher: typeof fetc
 type Place = { hash: string; pathname: string; search: string };
 type Replace = { replaceState: (state: unknown, unused: string, url: string) => void };
 
+let captured: { token: string; next: string | null } = { token: '', next: null };
+
 /**
- * Reads `token` and `next` from the URL fragment and removes the fragment from the address bar and history
- * entry before anything renders (the fragment never reaches HTTP logs or referrers; `client.ts:7-13`).
+ * Called once from `app.tsx` before Inertia boots: reads `token` and `next` from the URL fragment into a module
+ * variable and removes the fragment from the address bar, so Inertia never sees it and can't copy it into
+ * `history.state` (the fragment never reaches HTTP logs or referrers either; `client.ts:7-13`). Story 4.9b AC 2.
  */
-export function takeMailboxProof(
+export function captureFragment(
     place: Place = window.location,
     history: Replace = window.history,
-): { token: string; next: string | null } {
+): void {
+    if (place.hash === '') return;
     const params = new URLSearchParams(place.hash.slice(1));
-    const token = params.get('token') ?? '';
-    const next = params.get('next');
+    captured = { token: params.get('token') ?? '', next: params.get('next') };
     history.replaceState(null, '', place.pathname + place.search);
-    return { token, next };
+}
+
+/** What `captureFragment` took at boot; empty when the URL had no fragment. */
+export function takeMailboxProof(): { token: string; next: string | null } {
+    return captured;
 }
 
 export type Errors<T extends string> = Partial<Record<T, string>>;

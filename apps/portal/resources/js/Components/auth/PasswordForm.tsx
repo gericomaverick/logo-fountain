@@ -8,7 +8,6 @@ import { InlineAlert } from '@/Components/ui/InlineAlert';
 import { Input } from '@/Components/ui/Input';
 import { Button } from '@/Components/ui/Button';
 import { Link } from '@/Components/ui/Link';
-import { useStripFragment } from '@/lib/strip-fragment';
 import { hasErrors, PASSWORD_MAX_BYTES, PASSWORD_MIN_LENGTH, postAuth, takeMailboxProof, validatePasswordReset, type Errors } from '@/lib/auth';
 
 /**
@@ -17,9 +16,7 @@ import { hasErrors, PASSWORD_MAX_BYTES, PASSWORD_MIN_LENGTH, postAuth, takeMailb
  */
 export function PasswordForm() {
     const proof = useRef<{ token: string } | null>(null);
-    // Before first paint: the fragment is gone from the URL before anything renders (AC 2).
     proof.current ??= takeMailboxProof();
-    useStripFragment();
     const [password, setPassword] = useState('');
     const [confirm, setConfirm] = useState('');
     const [show, setShow] = useState(false);

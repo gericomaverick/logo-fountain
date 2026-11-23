@@ -2,22 +2,22 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
-import { AUTH_FAILED_TEXT, logoutAndVerifySession, postAuth, takeMailboxProof, validateLogin, validatePasswordReset } from '../../resources/js/lib/auth.ts';
+import { AUTH_FAILED_TEXT, captureFragment, logoutAndVerifySession, postAuth, takeMailboxProof, validateLogin, validatePasswordReset } from '../../resources/js/lib/auth.ts';
 
-describe('takeMailboxProof', () => {
-    test('reads token and next, then replaces the URL without the fragment', () => {
-        const calls: string[] = [];
-        const proof = takeMailboxProof(
+describe('captureFragment', () => {
+    test('reads token and next, then replaces the URL without the fragment and clears history state', () => {
+        const calls: unknown[][] = [];
+        captureFragment(
             { hash: '#token=abc&next=%2Fdashboard', pathname: '/auth/callback', search: '?x=1' },
-            { replaceState: (_s, _u, url) => calls.push(url) },
+            { replaceState: (...a) => calls.push(a) },
         );
-        assert.deepEqual(proof, { token: 'abc', next: '/dashboard' });
-        assert.deepEqual(calls, ['/auth/callback?x=1']);
-        assert.ok(!calls[0]?.includes('abc'));
+        assert.deepEqual(takeMailboxProof(), { token: 'abc', next: '/dashboard' });
+        assert.deepEqual(calls, [[null, '', '/auth/callback?x=1']]);
     });
-    test('a missing fragment gives an empty token', () => {
-        const proof = takeMailboxProof({ hash: '', pathname: '/set-password', search: '' }, { replaceState: () => {} });
-        assert.deepEqual(proof, { token: '', next: null });
+    test('no fragment leaves the URL alone', () => {
+        const calls: unknown[][] = [];
+        captureFragment({ hash: '', pathname: '/set-password', search: '' }, { replaceState: (...a) => calls.push(a) });
+        assert.equal(calls.length, 0);
     });
 });
 

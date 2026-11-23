@@ -42,6 +42,17 @@ it('lets a signed-in user reach the dashboard placeholder', function () {
     $this->get('/dashboard')->assertOk();
 });
 
+it('sends a signed-in visitor to /login on to /dashboard, or to a safe next', function () {
+    guardAs(Profile::factory()->create()->user);
+    $this->get('/login')->assertRedirect('/dashboard');
+    $this->get('/login?next=%2Fprojects%2F1')->assertRedirect('/projects/1');
+    $this->get('/login?next=%2F%2Fevil.example')->assertRedirect('/dashboard');
+});
+
+it('shows /login to an anonymous visitor', function () {
+    $this->get('/login')->assertOk();
+});
+
 it('answers an anonymous API request 401 UNAUTHORIZED with nextStep', function () {
     $this->getJson('/api/_guard/user')->assertStatus(401)->assertExactJson(
         ['error' => ['message' => 'Unauthorized', 'code' => 'UNAUTHORIZED', 'details' => ['nextStep' => 'Sign in and retry.']]]

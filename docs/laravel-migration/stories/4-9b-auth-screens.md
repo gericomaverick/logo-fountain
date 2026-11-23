@@ -64,11 +64,11 @@ A-05 (callback page), A-06 (set-password page, now Done for the page), A-07 (for
 ### Behaviour notes
 Token in URL fragment, stripped before first render; callback only confirms on button; failures show one fixed text; login `next` via SafeNext; set and reset share one form posting `reset-password`.
 ### Laravel implementation
-Routes in `routes/web.php`; pages `resources/js/Pages/Auth/*`; layout `Layouts/AuthShell.tsx`; `Components/auth/PasswordForm.tsx`; `lib/auth.ts`, `lib/safe-next.ts`, `lib/strip-fragment.ts`. `/` redirects to /login; old token showcase moved to local-only `/dev/tokens`.
+Routes in `routes/web.php`; pages `resources/js/Pages/Auth/*`; layout `Layouts/AuthShell.tsx`; `Components/auth/PasswordForm.tsx`; `lib/auth.ts`, `lib/safe-next.ts`, `lib/auth.ts` (`captureFragment`). `/` redirects to /login; old token showcase moved to local-only `/dev/tokens`.
 ### Deviations from Next.js
 | Behaviour | Next.js | Laravel | Why | Decision ref |
 |---|---|---|---|---|
-| Fragment strip | one `replaceState` | repeated for 2s | Inertia 3 restores the hash after boot | RISKS 2026-11-23 |
+| Fragment strip | one `replaceState` | `app.tsx` captures the fragment into a module variable and strips the URL before `createInertiaApp`, so Inertia never sees it (no interval) | Inertia 3 copies `location.hash` into its page url and `history.state`; the browser spec asserts `history.state` lacks the token | critic B1 |
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|

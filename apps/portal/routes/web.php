@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnforceSessionCap;
+use App\Models\User;
 use App\Support\Auth\SafeNext;
 use App\Support\AuthProxyConfig;
 use App\Support\ClientAddress;
@@ -11,11 +12,16 @@ use Inertia\Inertia;
 // A-16 (story 4.8): `/` goes to sign-in (`app/page.tsx:3-5`). /up is registered in bootstrap/app.php.
 Route::get('/', fn () => redirect('/login'))->name('home');
 
-// Story 4.9b (A-05..A-08, UX §14): the auth screens. A signed-in visitor to /login goes to /dashboard; `next` is
+// Story 4.9b (A-05..A-08, UX §14): the auth screens. A signed-in visitor to /login is redirected to the safe `next`, by default /dashboard; `next` is
 // untrusted and only ever reaches the page through SafeNext. The token-bearing pages read their fragment client-side.
 Route::get('/login', function (Request $request) {
+    $next = SafeNext::path(is_string($request->query('next')) ? $request->query('next') : null);
+    if ($request->attributes->get(EnforceSessionCap::USER) instanceof User) {
+        return redirect($next); // AC 7: SafeNext's default is /dashboard
+    }
+
     return Inertia::render('Auth/Login', [
-        'next' => SafeNext::path(is_string($request->query('next')) ? $request->query('next') : null),
+        'next' => $next,
         'passwordUpdated' => $request->query('password') === 'updated',
     ]);
 })->middleware(EnforceSessionCap::class)->name('login');

@@ -4,7 +4,6 @@ import { useRef, useState } from 'react';
 import { Button } from '@/Components/ui/Button';
 import { InlineAlert } from '@/Components/ui/InlineAlert';
 import { Link } from '@/Components/ui/Link';
-import { useStripFragment } from '@/lib/strip-fragment';
 import { postAuth, takeMailboxProof } from '@/lib/auth';
 import { safeAuthNextPath } from '@/lib/safe-next';
 import { AuthShell } from '@/Layouts/AuthShell';
@@ -14,9 +13,7 @@ const MISSING = 'This sign-in link is missing or expired. Request a fresh magic 
 /** A-05: the page never confirms by itself (mail scanners open links); only the button posts the token. */
 export default function Callback() {
     const proof = useRef<{ token: string; next: string | null } | null>(null);
-    // Before first paint: the fragment is gone from the URL before anything renders (AC 2).
     proof.current ??= takeMailboxProof();
-    useStripFragment();
     const [failure, setFailure] = useState<string | null>(null);
     const [busy, setBusy] = useState(false);
 
