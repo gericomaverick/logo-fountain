@@ -72,7 +72,11 @@ it('sends after commit: no transaction and no advisory lock while the message go
 });
 
 it('deletes the proof and leaks nothing when the send fails', function () {
-    Log::spy();
+    config(['logging.default' => 'null']);
+    $logged = [];
+    Log::listen(function ($event) use (&$logged) {
+        $logged[] = $event->level.' '.$event->message.' '.json_encode($event->context);
+    });
     $leaked = null;
     ProbeTransport::install(function () use (&$leaked) {
         $leaked = (string) DB::table('auth_proofs')->value('token_hash');
@@ -89,7 +93,8 @@ it('deletes the proof and leaks nothing when the send fails', function () {
 
     expect($thrown?->getMessage())->toBe('Authentication email delivery failed')->and($thrown?->getPrevious())->toBeNull()
         ->and($leaked)->not->toBe('')->and(DB::table('auth_proofs')->where('user_id', $user->id)->count())->toBe(0);
-    Log::shouldNotHaveReceived('error');
+    // No log record at any level carries the link, the token or the provider's echo.
+    expect(implode("\n", $logged))->not->toContain('reset-password')->not->toContain('token=')->not->toContain('secret')->not->toContain('https://');
 });
 
 it('treats missing delivery config as a failure and removes the proof', function () {
