@@ -44,6 +44,13 @@ final class ErrorCodes
     public const INVALID_JSON = 'INVALID_JSON';
 
     /** Story 5.4 (K-02/K-03): checkout status and send-link. */
+    /** Story 5.6 (K-12, DV-23): admin reprocess. */
+    public const CHECKOUT_SESSION_NOT_FOUND = 'CHECKOUT_SESSION_NOT_FOUND';
+
+    public const STRIPE_UNAVAILABLE = 'STRIPE_UNAVAILABLE';
+
+    public const CHECKOUT_SESSION_NOT_PAID = 'CHECKOUT_SESSION_NOT_PAID';
+
     public const MISSING_SESSION_ID = 'MISSING_SESSION_ID';
 
     public const NOT_FULFILLED = 'NOT_FULFILLED';

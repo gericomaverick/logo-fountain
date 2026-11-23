@@ -28,3 +28,5 @@ YYYY-MM-DD — <Risk>. Likelihood: <low|med|high>. Impact: <low|med|high>. Mitig
 2026-11-23 — Story 5.3: admin new-project email's marker is written at dispatch and the job queued after commit (ADR-019): a crash between commit and job insert, or exhausted retries, leaves the marker and no email, so that one admin email is not resent. The customer email is the opposite (sent, then marked; at-least-once, as Next). Likelihood: low. Impact: admin not told of a new project (the admin queue still lists it). Mitigation: none built; owner may move the admin marker after the send. #risk
 
 2026-11-23 — Story 5.5: a customer who pays for a stale upgrade is not refunded automatically; the admin alert says refund by hand (DV-24, awaiting owner). #risk
+
+2026-11-23 — Story 5.6: reprocess is safe against the webhook only via the session advisory lock; any new send path must take `Locks::fulfilSideEffects`. #risk

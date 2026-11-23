@@ -21,3 +21,5 @@ YYYY-MM-DD — <Assumption>. Evidence: <basis>. Review by: <date>. #assumption
 2026-11-23 — Story 5.2: webhook claim lease stays 5 minutes as in Next. #assumption
 
 2026-11-23 — Story 5.5: upsell metadata is trusted as far as it parses and is not re-checked against the paid line item (OQ 2). #assumption
+
+2026-11-23 — Story 5.6: the existing 5.3 race test stands in for a reprocess-specific one, as both call the same action. #assumption

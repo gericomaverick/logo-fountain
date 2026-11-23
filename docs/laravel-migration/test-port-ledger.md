@@ -10,7 +10,7 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 2 | `e2e/client-flows.spec.ts` | 4 | C-01,C-03,C-05 | L5 parity | | Not started |
 | 3 | `e2e/smoke.spec.ts` | 2 | A-15 | L5 parity @smoke | | Not started |
 | 4 | `src/app/admin/projects/[id]/concepts/read-state-regression.test.ts` | 2 | C-15,D-05 | Keep TS (UI) + L4 read-state contract | | Not started |
-| 5 | `src/app/api/admin/checkout/reprocess/route.test.ts` | 5 | K-12 | Pest feature (HTTP) + L4 parity contract | | Not started (5.6 owns reprocess) |
+| 5 | `src/app/api/admin/checkout/reprocess/route.test.ts` | 5 | K-12 | Pest feature (HTTP) + L4 parity contract | tests/Feature/Checkout/ReprocessCheckoutTest.php | Partly ported 5.6 |
 | 6 | `src/app/api/admin/health/route.test.ts` | 5 | D-18 | Pest feature (HTTP) + L4 parity contract | tests/Feature/Checkout/UpsellCheckoutStartTest.php | Partly ported 5.5 |
 | 7 | `src/app/api/admin/projects/[id]/audit/route.test.ts` | 3 | D-16 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 8 | `src/app/api/admin/projects/[id]/concepts/[conceptId]/publish/route.test.ts` | 5 | D-06 | Pest feature (HTTP) + L4 parity contract | | Not started |

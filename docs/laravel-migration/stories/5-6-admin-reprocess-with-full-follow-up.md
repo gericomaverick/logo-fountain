@@ -1,6 +1,6 @@
 # Story 5.6: Admin reprocess with full follow-up
 
-**Status:** ready-for-dev (created from `origin/workbench/4-integrate` b2e1115) · **DoD variant:** Conversion · **Epic:** 5 · **Covers:** K-12, DV-6, FR21, ADR-015 · **Gate:** `@admin&@api` (reprocess), `@deviation` (DV-6) · **After:** 5.3 · **Stacks on:** `origin/workbench/4-integrate`; in the SERIAL chain, the previous Epic 5 story's branch (see `epic-5-build-order` in 5.7). Test mode and fakes only (stripe-fake, postmark-shim); live Stripe/Postmark is the owner's.
+**Status:** review (created from `origin/workbench/4-integrate` b2e1115) · **DoD variant:** Conversion · **Epic:** 5 · **Covers:** K-12, DV-6, FR21, ADR-015 · **Gate:** `@admin&@api` (reprocess), `@deviation` (DV-6) · **After:** 5.3 · **Stacks on:** `origin/workbench/4-integrate`; in the SERIAL chain, the previous Epic 5 story's branch (see `epic-5-build-order` in 5.7). Test mode and fakes only (stripe-fake, postmark-shim); live Stripe/Postmark is the owner's.
 
 > Created with the repo's create-story form. All `apps/web` `file:line` read 2026-11-23; `apps/web` is frozen, so nothing here edits it.
 
@@ -67,22 +67,17 @@ K-12, DV-6.
 ### Next.js source read
 `reprocess/route.ts`, `webhook/route.ts:148-207`, `lib/auth/require.ts:21-27`.
 ### Behaviour notes
-(fill on review)
+Reprocess retrieves the session and runs `FulfilCheckout::fulfil` then `followUp` (the webhook's path), so names reach provisioning, both emails go out once under `Locks::fulfilSideEffects` (the lock is what makes a reprocess/webhook race safe), and an upsell session re-applies nothing. No ledger row (OQ 1: built as recommended, awaiting owner); no write clearing `checkout_stuck` (OQ 3).
 ### Laravel implementation
-(fill on review)
+`ReprocessCheckoutController` (`POST /api/admin/checkout/reprocess`, middleware `web` + `admin`, so Origin guard, 401, 403 from Epic 4), `ErrorCodes::CHECKOUT_SESSION_NOT_FOUND/STRIPE_UNAVAILABLE/CHECKOUT_SESSION_NOT_PAID`.
 ### Deviations from Next.js
 | Behaviour | Next.js | Laravel | Why | Decision ref |
 |---|---|---|---|---|
-(fill on review)
+| Emails | none | customer + admin once | same as webhook | DV-6 |
+| Names | not passed | passed | profile names kept | DV-6 |
+| Missing id / unknown session / Stripe down | no code / 500 | `MISSING_SESSION_ID` 400 / 404 / 502 no detail | standard errors | DV-23: built as recommended, awaiting owner |
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|
-(fill on review)
-### Test evidence
-(fill on review)
-### Gotchas
-(fill on review)
-### Docs updated
-(fill on review)
-### Open items
-(fill on review)
+| L2 | `tests/Feature/Checkout/ReprocessCheckoutTest.php` (guards, emails once + deduped, names, unpaid 409, 404/502, no mail in controller) | K-12, DV-6, DV-23 |
+| L3 | the race itself is covered by `tests/Concurrency/FulfilSideEffectsRaceTest.php` (5.3, same shared action); no reprocess-specific race test and no L4 parity run |  |

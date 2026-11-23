@@ -51,3 +51,5 @@ YYYY-MM-DD — <Decision>. Rationale: <why>. Impact: <what changes>. #decision
 2026-11-23 — Story 5.3: a fourth advisory lock, `fulfil_side_effects:{sessionId}`, serialises the webhook and reprocess around the email markers (critic B4). Built as recommended, awaiting owner: architecture §5 lists three; ADR not edited. #decision
 
 2026-11-23 — Story 5.5: upsell built as recommended, awaiting owner: DV-24 (a stale `fromPackage` or a downgrade applies nothing, is a permanent failure `upgrade_stale_from_package` and alerts the admin), DV-21 (unknown project permanent), DV-2 additive upgrade; the three upsell price IDs are config with Next's values as defaults.
+
+2026-11-23 — Story 5.6: reprocess built as recommended, awaiting owner: DV-23 standard errors (400/404/502), no ledger row claimed, no write clearing `checkout_stuck`. Admin UI (Epic 8/9) must handle 404/502.

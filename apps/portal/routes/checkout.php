@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\CheckoutAuthEmailController;
 use App\Http\Controllers\Api\CheckoutStartController;
 use App\Http\Controllers\Api\CheckoutStatusController;
+use App\Http\Controllers\Api\ReprocessCheckoutController;
 use App\Http\Controllers\Api\UpsellCheckoutController;
 use App\Http\Controllers\Webhooks\WebhookController;
 use Illuminate\Support\Facades\Route;
@@ -18,3 +19,6 @@ Route::post('/api/checkout/resend-magic-link', CheckoutAuthEmailController::clas
 
 // Story 5.5 (K-08): the one signed-in checkout route, so it takes the `web` group (session) and the verified-user guard.
 Route::middleware(['web', 'auth.verified'])->post('/api/projects/{id}/checkout/session', UpsellCheckoutController::class)->name('checkout.upsell');
+
+// Story 5.6 (K-12): admin reprocess of a paid session; the same fulfilment and follow-up as the webhook (ADR-015).
+Route::middleware(['web', 'admin'])->post('/api/admin/checkout/reprocess', ReprocessCheckoutController::class)->name('checkout.reprocess');
