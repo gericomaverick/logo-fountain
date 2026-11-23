@@ -3,6 +3,7 @@
 // Story 2.4: one child process of an L3 race test (started in parallel by Tests\Support\RaceChildren).
 // argv: <mode> <startAt unix time, float> <mode args...>. Prints one JSON line; exits non-zero on any other error.
 
+use App\Actions\Auth\ConfirmMagicLink;
 use App\Exceptions\ApiException;
 use App\Exceptions\AuthFailure;
 use App\Support\Audit;
@@ -128,6 +129,18 @@ $out = match ($mode) {
                 }
                 $db->table('sessions')->insert(['id' => $sessionId, 'user_id' => $userId, 'payload' => '', 'last_activity' => time()]);
             });
+
+            return ['won' => true];
+        } catch (AuthFailure) {
+            return ['won' => false];
+        }
+    })(),
+
+    // confirm (story 4.5): the real ConfirmMagicLink action, one token, many children.
+    'confirm' => (function () use ($args): array {
+        [$token] = $args;
+        try {
+            (new ConfirmMagicLink)->handle($token, app('session.store'));
 
             return ['won' => true];
         } catch (AuthFailure) {

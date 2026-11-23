@@ -129,5 +129,5 @@ it('adds only the session and login auth routes', function () {
     $auth = collect(app('router')->getRoutes()->getRoutes())->filter(fn ($r) => str_starts_with($r->uri(), 'api/auth'))
         ->map(fn ($r) => implode('|', array_diff($r->methods(), ['HEAD'])).' '.$r->uri())->values()->all();
 
-    expect($auth)->toBe(['GET api/auth/session', 'POST api/auth/login', 'POST api/auth/magic-link', 'POST api/auth/forgot-password']);
+    expect($auth)->toBe(['GET api/auth/session', 'POST api/auth/login', 'POST api/auth/magic-link', 'POST api/auth/forgot-password', 'POST api/auth/magic-link/verify']);
 });

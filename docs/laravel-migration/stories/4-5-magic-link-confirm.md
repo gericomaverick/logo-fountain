@@ -1,6 +1,6 @@
 # Story 4.5: Magic-link confirm
 
-**Status:** ready-for-dev (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-05, A-18, FR2 · **Gate:** `@auth&@api` (verify) · **After:** 4.4 · **Stacks on:** `main` (dependencies done); in the SERIAL chain, the previous Epic 4 story's branch. Shared files: `routes/auth.php`, `IssueSession`, `AuthProofs`
+**Status:** review (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-05, A-18, FR2 · **Gate:** `@auth&@api` (verify) · **After:** 4.4 · **Stacks on:** `main` (dependencies done); in the SERIAL chain, the previous Epic 4 story's branch. Shared files: `routes/auth.php`, `IssueSession`, `AuthProofs`
 
 > Created with the repo's create-story form. All `apps/web` `file:line` checked 2026-11-22.
 
@@ -53,24 +53,28 @@ None.
 
 ## Conversion record
 
-> Fill at implementation, from `templates/story-conversion-record.md`. Write *Behaviour notes* before converting.
-
 ### Inventory scope
-_(stub)_
+A-05 (confirm half), A-18 (server half: no GET consumes). Ledger `verify/route.test.ts` (3), #66 case 3.
 ### Next.js source read
-_(stub)_
+`magic-link/verify/route.ts:4-9`, `lib/auth/service.ts:68-101`, `app/auth/callback/page.tsx`, `integration.test.ts:79`.
 ### Behaviour notes
-_(stub)_
+Rate limit first (`consumeAuth(path, address, token)`), then shape (no DB), then one fence: validate kind `magic`/expiry/version, delete proof, set `email_verified_at` if null, `IssueSession`. Any failure is generic `AUTH_FAILED` 400 with the session cookie omitted. No password is set, so a magic sign-in is not first-password proof. No server redirect (Q1).
 ### Laravel implementation
-_(stub)_
+`app/Actions/Auth/ConfirmMagicLink.php`, `app/Http/Controllers/Auth/MagicLinkController.php` (verify), route in `routes/auth.php` (same middleware as login/4.4). Race child mode `confirm` in `tests/Concurrency/Children/race.php` runs the real action.
 ### Deviations from Next.js
 | Behaviour | Next.js | Laravel | Why | Decision ref |
 |---|---|---|---|---|
+| None | | | | |
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|
+| L2 | `tests/Feature/Auth/MagicLinkVerifyTest.php` (AC 1-3, 5-9) | A-05, A-18 |
+| L3 `@pg-race` | `tests/Concurrency/MagicLinkSingleUseTest.php` (AC 4, #66 case 3) | A-05 |
 ### Test evidence
-_(commands, pass/fail counts, what was not run and why)_
+`bin/test` once: Pint + Larastan 9 green; Pest 1793 passed, 1 failed (route-list assertion in `SessionEndpointTest`, my route not listed): fixed, that file + MagicLinkVerifyTest re-run 22 passed; Pint re-run clean. Not run: full suite again, L4 parity contract. AC 2 is proven only as 'no GET route consumes' (GET `/auth/callback` is 4.9b), so the GET test asserts the proof row survives a GET to that path.
 ### Gotchas
+A failed request still writes an anonymous session row (cookie omitted): assert `user_id IS NOT NULL` rows, not the table count. The route-list test in `SessionEndpointTest` must list each new auth route.
 ### Docs updated
+Inventory A-05/A-18, ledger #27 and #66, DECISIONS, sprint-status.
 ### Open items
+Built as recommended (Q1: no server redirect), awaiting owner. Destination/failed-link page is 4.9b. L4 parity not run.
