@@ -8,8 +8,9 @@
 // wait for /up → run the gate N times with PARITY_TARGET=laravel → `docker compose down -v` (unless --keep).
 // PARITY_DATABASE_URL is the portal stack's DB, so its DB lock (adapters/seed.ts) never queues behind
 // runs on the shared lf-parity stack. Seeding is `php artisan parity:seed` in the app container (adapters/seed.ts,
-// story 2.6); the overlay's parity-marker service arms its guard. Not wired yet: the parity infra services
-// (Mailpit, stripe-fake, SeaweedFS) for the stories that need them.
+// story 2.6); the overlay's parity-marker service arms its guard. Prerequisite (as for next-stack.mjs):
+// `npm run infra:up` — the overlay points Laravel at stripe-fake, Mailpit (SMTP) via host.docker.internal, and this
+// script POSTs stripe-fake's webhookUrl to the Laravel stack. Postmark is not used here (MAIL_MAILER=smtp).
 // Env: PARITY_LARAVEL_PORT (8000), PARITY_LARAVEL_PROJECT (lf-parity-laravel), PORTAL_*_PORT.
 import { spawn, spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
@@ -70,12 +71,19 @@ async function waitFor(url, ms) {
   throw new Error(`timed out waiting for ${url}`);
 }
 
+const STRIPE_URL = (process.env.PARITY_STRIPE_URL || `http://127.0.0.1:${process.env.PARITY_STRIPE_PORT || "58091"}`).replace(/\/$/, "");
+
 let status = 1;
 try {
+  const health = await fetch(`${STRIPE_URL}/__health`).catch(() => null);
+  if (!health?.ok) throw new Error(`stripe-fake not reachable at ${STRIPE_URL}: run \`npm run infra:up\` first`);
   // Build once first: init, app and worker share one image tag, and parallel builds race on it.
   docker(["build", "app"]);
   docker(["up", "-d", "web"]); // pulls in app → init (.env, composer, migrations) → postgres
   await waitFor(`${BASE}/up`, 300_000);
+  const cfg = await fetch(`${STRIPE_URL}/__config`, { method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ webhookUrl: `http://host.docker.internal:${PORT}/api/stripe/webhook` }) });
+  if (!cfg.ok) throw new Error(`stripe-fake /__config failed (${cfg.status})`);
   const suiteEnv = {
     ...process.env, PARITY_TARGET: "laravel", PARITY_BASE_URL: BASE,
     PARITY_DATABASE_URL: `postgresql://portal_migrate:dev-only-migrate@127.0.0.1:${PG}/portal`,
@@ -94,6 +102,9 @@ try {
   console.error(error instanceof Error ? error.message : error);
   status = 1;
 } finally {
+  // Restore stripe-fake's default webhook target (the Next parity server) so a later Next run isn't misrouted.
+  await fetch(`${STRIPE_URL}/__config`, { method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ webhookUrl: "http://host.docker.internal:4310/api/stripe/webhook" }) }).catch(() => {});
   if (keep) console.log(`laravel-stack: --keep, stack left running at ${BASE} (project ${composeEnv.COMPOSE_PROJECT_NAME})`);
   else spawnSync("docker", [...compose, "down", "-v", "--remove-orphans"], { env: composeEnv, cwd: portal, stdio: "inherit" });
 }

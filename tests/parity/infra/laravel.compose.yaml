@@ -1,13 +1,36 @@
 # Override for apps/portal/compose.yaml when the parity suite drives Laravel (story 1.4;
 # scripts/laravel-stack.mjs). The canonical origin is the suite's base URL, as next-stack.mjs sets
 # PUBLIC_SITE_URL for Next. Process env beats .env (Dotenv is immutable), so a dev's .env is untouched.
+# Parity infra wiring (infra/docker-compose.test.yml, `npm run infra:up`, reached via the host's published ports):
+# stripe-fake as the Stripe API, its test-only webhook secret, and mail over SMTP to Mailpit (MAIL_MAILER=smtp is a
+# test-only setting here; production keeps MAIL_MAILER=postmark, ADR-018). All values are TEST-ONLY.
+x-parity-env: &parity-env
+  PUBLIC_SITE_URL: ${PARITY_LARAVEL_BASE_URL:?set by scripts/laravel-stack.mjs}
+  STRIPE_SECRET_KEY: sk_test_parity
+  STRIPE_API_BASE: http://host.docker.internal:${PARITY_STRIPE_PORT:-58091}
+  STRIPE_WEBHOOK_SECRET: whsec_parity_test_only_0000000000000000
+  MAIL_MAILER: smtp
+  MAIL_SCHEME: "null"
+  MAIL_HOST: host.docker.internal
+  MAIL_PORT: ${PARITY_SMTP_PORT:-51025}
+  MAIL_USERNAME: ""
+  MAIL_PASSWORD: ""
+  MAIL_FROM_ADDRESS: portal@parity.test
+  POSTMARK_FROM: portal@parity.test
+  ADMIN_NOTIFICATION_EMAILS: admin@parity.test
+
 services:
   app:
-    environment:
-      PUBLIC_SITE_URL: ${PARITY_LARAVEL_BASE_URL:?set by scripts/laravel-stack.mjs}
+    environment: *parity-env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       parity-marker:
         condition: service_completed_successfully
+  worker:
+    environment: *parity-env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   # Story 2.6 (AC 2, Open question 2): the marker parity:seed's guard requires, in the `portal` database of this
   # stack only (a dev stack never runs this overlay). A one-shot client, not an init script: the portal postgres

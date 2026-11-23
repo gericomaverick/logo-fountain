@@ -65,3 +65,29 @@ Harness fault fixed: `apps/web` needs `npx prisma generate` after `npm ci` (inst
 - journeys/contract/client-projects.spec.ts:175:5 › entitlements › two-tenants › C-16 entitlements are member-only: anonymous 401, other tenant and admin 404 PROJECT_NOT_FOUND @api @client @entitlements @authz 
 - journeys/deviations/dv-upsell.spec.ts:16:1 › DV-2/K-09 an upgrade after a bought add-on keeps it: Essential 1/1, add-on 1/2, upgrade to Professional 2/3 @deviation @api @upsell @webhook @entitlements 
 - journeys/j16-admin-entitlements-reset.spec.ts:12:1 › D-14/D-15/D-16/X-08 J16 the admin overrides an allowance with a reason and resets the project; stored files survive and the audit log shows both @admin @ui @entitlements @audi
+
+## Re-run on Laravel with the parity infra wired (workbench/parity-wiring)
+
+Change (tests/parity only, no `apps/portal` change): `infra/laravel.compose.yaml` gives `app` and `worker` `STRIPE_SECRET_KEY=sk_test_parity`, `STRIPE_API_BASE=http://host.docker.internal:58091` (stripe-fake), `STRIPE_WEBHOOK_SECRET=whsec_parity_test_only_0000000000000000`, and a test-only `MAIL_MAILER=smtp` to Mailpit (`host.docker.internal:51025`); production's Postmark config is untouched. `scripts/laravel-stack.mjs` checks stripe-fake is up (`npm run infra:up` first), POSTs its `webhookUrl` to the Laravel stack, and restores the Next default on exit. Run once per gate, `down -v` after, `infra:down` at the end; `df -h` showed 25 GiB free.
+
+| Gate | Tests | Before: pass / fail / not reached | Now: pass / fail / not reached |
+|---|---|---|---|
+| @auth | 37 | 15 / 11 / 11 | 22 / 11 / 4 |
+| @checkout | 28 | 1 / 20 / 7 | 9 / 17 / 2 |
+| @entitlements | 10 | 0 / 10 / 0 | 0 / 10 / 0 |
+
+Checkout start, the stripe-fake webhook, the webhook secret and mail now work (no more `CHECKOUT_SESSION_FAILED`, `STRIPE_WEBHOOK_SECRET not set`, or missing magic-link mail). Remaining failures, all from the first failing title down (the "not reached" tests were stopped by Playwright's failure cap and are not classified):
+
+**Feature not built (page objects 4.9b / 5.1; admin and entitlements routes, Epic 6+)**
+- @auth: DV-UX/C-01/A-01 one project lands on it; DV-UX/A-06/N-01/C-01 set password from setup link (`auth.signIn`, `auth.setPasswordFromLink`, 4.9b); J1 purchase (`checkout.start`, 5.1); J10 password reset, J11 logout, J9 settings (`auth.signIn`); J2 returning customer (`checkout.start`); J21 ×3 (`navigation.signInWithNext`, `auth.confirmMagicLink`, `navigation.attemptSignIn`, 4.9b).
+- @checkout: K-12 reprocess fulfils a paid session; K-06/K-07/N-01/N-10 paid essential, professional, complete; K-06,N-02 returning customer; K-06 NEEDS_CONTACT; K-05 ×5 (unpaid, delayed succeeds, delayed fails, two line items, non-allowlisted price) — all `GET /api/admin/projects` 404; J18 admin reprocess (same 404); DV-UX/A-06 set password and J1, J2 (page objects as above).
+- @entitlements: D-14 ×3 and the reset 409 (`/api/admin/projects/{id}/entitlements[/reset]` 404); C-16 ×4 (`/api/projects/{id}/entitlements` 404, incl. 401/404 guard tests); DV-2/K-09 upsell (`GET /api/admin/projects/{id}` 404); J16 (`auth.signIn`).
+
+**Harness limitation (not fixable without a portal change)**
+- @auth A-11 "a failed auth email send gives the uniform answer, sends nothing, and a retry delivers a working link": `failNextEmails` tells the postmark-shim to fail, but Laravel mails over SMTP in the parity env, so the failure is never injected (expected 0 mails, got 1). Needs a Postmark base-URL setting in the portal (ADR-018 transport) or an SMTP-failure hook; owner decision.
+
+**Real mismatch (not investigated further)**
+- @checkout K-03/A-05 checkout magic-link: link `next` is `/dashboard`, expected `/project/{uuid}` (`SafeNext::DEFAULT` / `CheckoutAuthEmailController` does not carry the order's project).
+- @checkout DV-6/K-12/N-01/N-10 reprocess emails: the customer setup mail arrives, but no admin "New project created" mail to `admin@parity.test` (`ADMIN_NOTIFICATION_EMAILS` is set in the overlay; cause not checked: could be the reprocess path or queue timing). DV-6 is listed in expected-next-failures for Next; on Laravel it is a real failure, not a pass.
+
+No story statuses changed. DV-25 and 4.4 timing were not touched.
