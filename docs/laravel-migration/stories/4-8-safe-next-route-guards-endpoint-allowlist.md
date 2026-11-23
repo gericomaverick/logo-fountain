@@ -1,6 +1,6 @@
 # Story 4.8: Safe-next, route guards, endpoint allowlist
 
-**Status:** ready-for-dev (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-13, A-14, A-15, A-16 · **Gate:** `@authz&@api` (auth part), `@unit` · **After:** 4.1, 0.6b (done) · **Stacks on:** `main` (dependencies done); in the SERIAL chain, the previous Epic 4 story's branch. Shared files: `app/Support/Auth/SafeNext.php`, `routes/auth.php`, `routes/web.php`, `tests/Arch/AuthTest.php`, `tests/Fixtures`
+**Status:** review (created from `origin/main` 03a12b4) · **DoD variant:** Laravel-only · **Epic:** 4 · **Covers:** A-13, A-14, A-15, A-16 · **Gate:** `@authz&@api` (auth part), `@unit` · **After:** 4.1, 0.6b (done) · **Stacks on:** `main` (dependencies done); in the SERIAL chain, the previous Epic 4 story's branch. Shared files: `app/Support/Auth/SafeNext.php`, `routes/auth.php`, `routes/web.php`, `tests/Arch/AuthTest.php`, `tests/Fixtures`
 
 > Created with the repo's create-story form. All `apps/web` `file:line` checked 2026-11-22.
 

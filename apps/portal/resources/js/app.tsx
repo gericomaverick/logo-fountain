@@ -1,12 +1,15 @@
 import { createInertiaApp } from '@inertiajs/react';
 import { createRoot } from 'react-dom/client';
 
+import { captureFragment } from '@/lib/auth';
 import { followSystemTheme } from '@/lib/theme';
 
 // Puts the fonts in the Vite manifest so app.blade.php can preload them with Vite::asset().
 import.meta.glob('../fonts/**/*.woff2', { eager: true, query: '?url', import: 'default' });
 
 followSystemTheme();
+// Before Inertia boots: it would copy `#token=…` into its page url and history state (story 4.9b AC 2).
+captureFragment();
 
 createInertiaApp({
     title: (title) => (title ? `${title} · Logo Fountain` : 'Logo Fountain'),

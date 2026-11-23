@@ -4,7 +4,9 @@ use App\Http\Middleware\AuthJsonBoundary;
 use App\Http\Middleware\EnsureAuthAvailable;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\OmitSessionCookieOnFailure;
+use App\Http\Middleware\RequireAdmin;
 use App\Http\Middleware\RequireCanonicalOrigin;
+use App\Http\Middleware\RequireVerifiedUser;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\TrustedClientAddress;
 use App\Support\ErrorCodes;
@@ -38,7 +40,12 @@ return Application::configure(basePath: dirname(__DIR__))
         // X-02 (story 1.6): outermost, so it runs last and overrides route values, as next.config does.
         $middleware->prepend(SecurityHeaders::class);
         // A-17 (story 1.6): `auth.json` on body-reading auth mutations, `auth.json:headers` on the rest.
-        $middleware->alias(['auth.json' => AuthJsonBoundary::class]);
+        // A-16 (story 4.8): the route guards. Roles come from the database on each request (A-04).
+        $middleware->alias([
+            'auth.json' => AuthJsonBoundary::class,
+            'auth.verified' => RequireVerifiedUser::class,
+            'admin' => RequireAdmin::class,
+        ]);
         // X-05 / ADR-010 (story 1.5): no forwarded header is ever trusted by the framework. Laravel's
         // TrustProxies trusts every proxy on *.on-forge.com hosts and Laravel Cloud, which would let a
         // spoofed X-Forwarded-For/-Proto/-Host reach ip(), isSecure() and the host. The client

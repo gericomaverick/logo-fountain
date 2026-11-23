@@ -31,7 +31,7 @@ it('issues one proof and sends one email per kind, token in the fragment', funct
         ->and(DB::table('auth_proofs')->where('user_id', $user->id)->where('kind', $kind)->count())->toBe(1)
         ->and(parse_url($link, PHP_URL_PATH))->toBe($path)->and(parse_url($link, PHP_URL_QUERY))->toBeNull();
     parse_str((string) parse_url($link, PHP_URL_FRAGMENT), $fragment);
-    expect($fragment['token'])->toMatch(AuthProofs::SHAPE)->and($fragment['next'])->toBe('/dashboard') // SafeNext stub until 4.8
+    expect($fragment['token'])->toMatch(AuthProofs::SHAPE)->and($fragment['next'])->toBe('/projects') // SafeNext (4.8)
         ->and(DB::table('auth_proofs')->where('token_hash', AuthProofs::hash($fragment['token']))->exists())->toBeTrue()
         ->and(DB::table('auth_proofs')->where('token_hash', $fragment['token'])->exists())->toBeFalse();
 })->with([['magic', '/auth/callback'], ['reset', '/reset-password'], ['setup', '/set-password']]);

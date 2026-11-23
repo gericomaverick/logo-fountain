@@ -6,8 +6,6 @@ it('answers the health check', function () {
     $this->get('/up')->assertOk();
 });
 
-it('renders the placeholder page through Inertia', function () {
-    $this->get('/')
-        ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('Home'));
+it('sends the root to sign-in (A-16, story 4.8)', function () {
+    $this->get('/')->assertRedirect('/login');
 });

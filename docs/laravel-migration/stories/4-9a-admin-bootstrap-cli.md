@@ -51,24 +51,29 @@ None.
 
 ## Conversion record
 
-> Fill at implementation, from `templates/story-conversion-record.md`. Write *Behaviour notes* before converting.
-
 ### Inventory scope
-_(stub)_
+A-12. Ledger #66 case 12 CLI half (no row change made).
 ### Next.js source read
-_(stub)_
+`scripts/bootstrap-admin.mjs:1-41`.
 ### Behaviour notes
-_(stub)_
+Prepare: owner check, marker check, create unverified user and profile (insert-or-ignore on email), print the UUID. Grant: needs ack and UUID; verified user with exact email and id, no admin, profile updated, marker `id=1` and audit row in the same transaction, under one advisory lock.
 ### Laravel implementation
-_(stub)_
+`app/Console/Commands/BootstrapAdmin.php` on `pgsql_migrate`; refuses `--database` other than the migrate connection. Marker table `auth_admin_bootstrap` already exists from 2.1 (open question 1: no migration needed).
 ### Deviations from Next.js
 | Behaviour | Next.js | Laravel | Why | Decision ref |
 |---|---|---|---|---|
+| Refusals | One generic message | A distinct message per cause | AC 3 | |
+| Audit type | `auth.operator_admin_bootstrap` | `admin.bootstrapped`, payload `{userId}` | AC 7 | |
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|
+| L2 | `tests/Feature/Console/BootstrapAdminTest.php` | A-12 |
+| Arch | `tests/Arch/AuthTest.php` (no auto-run) | A-12 |
 ### Test evidence
-_(commands, pass/fail counts, what was not run and why)_
+`bin/test` green: Pint, Larastan, Pest 1947 passed (5531 assertions). L3 race test written after critic B3 (`BootstrapSingleUseTest`, race child mode `bootstrap`): passes; Pest 1960 passed after 4.9b fixes.
 ### Gotchas
+Do not add the lock to `Locks` (LocksTest pins three). Pest helper names are global: `owner()` is taken.
 ### Docs updated
+Inventory A-12, DECISIONS, RISKS, sprint-status.
 ### Open items
+The audit-type change is a deviation the owner has not seen: propose a DV row.

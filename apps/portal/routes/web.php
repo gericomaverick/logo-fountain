@@ -1,13 +1,38 @@
 <?php
 
+use App\Http\Middleware\EnforceSessionCap;
+use App\Models\User;
+use App\Support\Auth\SafeNext;
 use App\Support\AuthProxyConfig;
 use App\Support\ClientAddress;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-// Placeholder until the real pages land (Epic 6+). /up is registered in bootstrap/app.php.
-Route::get('/', fn () => Inertia::render('Home'))->name('home');
+// A-16 (story 4.8): `/` goes to sign-in (`app/page.tsx:3-5`). /up is registered in bootstrap/app.php.
+Route::get('/', fn () => redirect('/login'))->name('home');
+
+// Story 4.9b (A-05..A-08, UX §14): the auth screens. A signed-in visitor to /login is redirected to the safe `next`, by default /dashboard; `next` is
+// untrusted and only ever reaches the page through SafeNext. The token-bearing pages read their fragment client-side.
+Route::get('/login', function (Request $request) {
+    $next = SafeNext::path(is_string($request->query('next')) ? $request->query('next') : null);
+    if ($request->attributes->get(EnforceSessionCap::USER) instanceof User) {
+        return redirect($next); // AC 7: SafeNext's default is /dashboard
+    }
+
+    return Inertia::render('Auth/Login', [
+        'next' => $next,
+        'passwordUpdated' => $request->query('password') === 'updated',
+    ]);
+})->middleware(EnforceSessionCap::class)->name('login');
+Route::get('/forgot-password', fn () => Inertia::render('Auth/ForgotPassword'))->name('password.forgot');
+Route::get('/set-password', fn () => Inertia::render('Auth/SetPassword'))->name('password.set');
+Route::get('/reset-password', fn () => Inertia::render('Auth/ResetPassword'))->name('password.reset');
+Route::get('/auth/callback', fn () => Inertia::render('Auth/Callback'))->name('auth.callback');
+
+// Story 4.8 open question 1: the only guarded page until Epic 6 builds the dashboard; later epics attach
+// `auth.verified` / `admin` to their own routes.
+Route::get('/dashboard', fn () => Inertia::render('Home'))->middleware('auth.verified')->name('dashboard');
 
 // Dev-only routes: local and testing, never production or staging. Decided when the routes load, so
 // `route:cache` on a production box leaves them out (tests/Feature/DevUiRouteTest.php).
@@ -21,6 +46,9 @@ if (app()->environment(['local', 'testing'])) {
         'xRealIp' => ClientAddress::trusted($request, AuthProxyConfig::from('x-real-ip', null)),
         'oneHop' => ClientAddress::trusted($request, AuthProxyConfig::from(null, '1')),
     ]))->name('dev.client-address');
+
+    // The token showcase that `/` used to render (theme.spec.ts); `/` now redirects to /login (story 4.9b).
+    Route::get('/dev/tokens', fn () => Inertia::render('Home'))->name('dev.tokens');
 
     // The component catalogue (UX §6 rule 5, ADR-022, story 1.8a).
     Route::get('/dev/ui', fn () => Inertia::render('Dev/Ui'))->name('dev.ui');

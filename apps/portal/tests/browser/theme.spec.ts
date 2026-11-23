@@ -40,28 +40,28 @@ test.describe('NFR-A4 first paint follows the theme @visual', () => {
     test('C-19 system dark: the first paint is dark @visual', async ({ page }) => {
         await page.emulateMedia({ colorScheme: 'dark' });
         await recordFirstFrame(page);
-        await page.goto('/');
+        await page.goto('/dev/tokens');
         expect(await firstFrame(page)).toEqual({ theme: 'dark', bg: DARK_BG, body: expect.any(String) });
     });
 
     test('C-19 system light: the first paint is light @visual', async ({ page }) => {
         await page.emulateMedia({ colorScheme: 'light' });
         await recordFirstFrame(page);
-        await page.goto('/');
+        await page.goto('/dev/tokens');
         expect(await firstFrame(page)).toMatchObject({ theme: 'light', bg: LIGHT_BG });
     });
 
     test('C-19 a stored choice beats the system preference before first paint @visual', async ({ page }) => {
         await page.emulateMedia({ colorScheme: 'dark' });
         await recordFirstFrame(page, 'light');
-        await page.goto('/');
+        await page.goto('/dev/tokens');
         expect(await firstFrame(page)).toMatchObject({ theme: 'light', bg: LIGHT_BG });
     });
 
     test('C-19 stored dark under a light system paints dark first @visual', async ({ page }) => {
         await page.emulateMedia({ colorScheme: 'light' });
         await recordFirstFrame(page, 'dark');
-        await page.goto('/');
+        await page.goto('/dev/tokens');
         expect(await firstFrame(page)).toMatchObject({ theme: 'dark', bg: DARK_BG });
     });
 });
@@ -70,7 +70,7 @@ test.describe('no JavaScript', () => {
     test.use({ javaScriptEnabled: false, colorScheme: 'dark' });
 
     test('C-19 system dark without scripts still renders dark (CSS fallback) @visual', async ({ page }) => {
-        await page.goto('/');
+        await page.goto('/dev/tokens');
         await expect(page.locator('html')).not.toHaveAttribute('data-theme', /.*/);
         expect(await page.evaluate(() => getComputedStyle(document.documentElement).backgroundColor)).toBe(DARK_BG);
     });
@@ -78,7 +78,7 @@ test.describe('no JavaScript', () => {
 
 test('C-19 the theme switcher persists the choice and System follows the OS live @visual', async ({ page }) => {
     await page.emulateMedia({ colorScheme: 'light' });
-    await page.goto('/');
+    await page.goto('/dev/tokens');
     const html = page.locator('html');
     // Story 1.8a: a fieldset of native radios (Choice chips), so its role is group.
     const group = page.getByRole('group', { name: 'Theme' });
@@ -102,7 +102,7 @@ test('C-19 the theme switcher persists the choice and System follows the OS live
 test('UX §8.2 fonts are self-hosted and Sfizia appears once, via DisplayTitle, at display size @visual', async ({ page }, info) => {
     const hosts = new Set<string>();
     page.on('request', (r) => hosts.add(new URL(r.url()).hostname));
-    await page.goto('/');
+    await page.goto('/dev/tokens');
     // Pages resolve lazily (story 1.8a): wait for the render before reading fonts or running axe.
     await expect(page.locator('[data-display-title]')).toBeVisible();
     await page.evaluate(() => document.fonts.ready);
@@ -134,7 +134,7 @@ test('UX §8.2 fonts are self-hosted and Sfizia appears once, via DisplayTitle, 
 for (const colorScheme of ['light', 'dark'] as const) {
     test(`L7a the showcase has no serious axe violations (${colorScheme}) @visual`, async ({ page }) => {
         await page.emulateMedia({ colorScheme });
-        await page.goto('/');
+        await page.goto('/dev/tokens');
         // Pages resolve lazily (story 1.8a): wait for the render before reading fonts or running axe.
         await expect(page.locator('[data-display-title]')).toBeVisible();
         await page.evaluate(() => document.fonts.ready);

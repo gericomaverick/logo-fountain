@@ -161,6 +161,15 @@ $out = match ($mode) {
         }
     })(),
 
+    // bootstrap (story 4.9a, A-12): the real portal:bootstrap-admin grant on pgsql_migrate; a QueryException escapes and fails the child.
+    'bootstrap' => (function () use ($args, $app): array {
+        [$email, $userId] = $args;
+        $kernel = $app->make(Kernel::class);
+        $code = $kernel->call('portal:bootstrap-admin', ['--email' => $email, '--confirm-user' => $userId, '--ack' => 'ONE_TIME_ADMIN_BOOTSTRAP']);
+
+        return ['won' => $code === 0, 'output' => trim($kernel->output())];
+    })(),
+
     // confirm (story 4.5): the real ConfirmMagicLink action, one token, many children.
     'confirm' => (function () use ($args): array {
         [$token] = $args;
