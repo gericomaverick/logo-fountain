@@ -24,6 +24,19 @@ it('fails boot in production when the runtime and migrate users are equal', func
     bootValidation();
 })->throws(InvalidConfiguration::class, 'pgsql and pgsql_migrate require distinct runtime and migration roles');
 
+// Story 5.1 AC 8: a placeholder price ID. Next logs it; production here refuses to boot (a real process, AGENTS.md).
+it('refuses to boot a real production process with a placeholder Stripe price ID, and only logs it elsewhere', function () {
+    $env = ['APP_ENV' => 'production', 'APP_DEBUG' => 'false', 'STRIPE_PRICE_COMPLETE' => 'price_REPLACE_ME'];
+
+    $bad = Process::path(base_path())->env($env)->run(['php', 'artisan', 'about', '--only=environment']);
+    expect($bad->failed())->toBeTrue()
+        ->and($bad->output().$bad->errorOutput())->toContain('package:complete');
+
+    $dev = Process::path(base_path())->env(['APP_ENV' => 'local', 'STRIPE_PRICE_COMPLETE' => 'price_REPLACE_ME', 'LOG_CHANNEL' => 'stderr'])->run(['php', 'artisan', 'about', '--only=environment']);
+    expect($dev->successful())->toBeTrue()
+        ->and($dev->output().$dev->errorOutput())->toContain('Placeholder Stripe price IDs');
+});
+
 it('fails boot in production when the two connections reach different databases', function () {
     app()->detectEnvironment(fn () => 'production');
     config(['database.connections.pgsql_migrate.database' => 'elsewhere']);

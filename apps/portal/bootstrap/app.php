@@ -25,6 +25,8 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         then: function (): void {
             Route::middleware('web')->group(__DIR__.'/../routes/auth.php');
+            // Epic 5: public checkout routes carry no session, so no `web` group (story 5.1 AC 9).
+            Route::group([], __DIR__.'/../routes/checkout.php');
         },
         health: '/up',
     )

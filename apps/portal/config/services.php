@@ -23,6 +23,9 @@ return [
     'stripe' => [
         'secret' => env('STRIPE_SECRET_KEY'),
         'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+        // ADR-014. The base URL is the test seam (stripe-fake); unset means Stripe itself.
+        'api_base' => env('STRIPE_API_BASE'),
+        'api_version' => '2026-02-25.clover',
     ],
 
     'resend' => [

@@ -51,6 +51,14 @@ final class NodeCompat
         return (string) preg_replace('/^'.self::UNICODE_SPACE.'+|'.self::UNICODE_SPACE.'+$/uD', '', $value);
     }
 
+    /** `value.slice(0, $units)`: JS counts UTF-16 code units, so an astral character is 2. */
+    public static function slice(string $value, int $units): string
+    {
+        $utf16 = mb_convert_encoding($value, 'UTF-16LE', 'UTF-8');
+
+        return strlen($utf16) <= $units * 2 ? $value : mb_convert_encoding(substr($utf16, 0, $units * 2), 'UTF-8', 'UTF-16LE');
+    }
+
     /** `toLowerCase()` of a UTF-8 string (full Unicode mapping, e.g. U+212A KELVIN SIGN → "k"). */
     public static function lower(string $value): string
     {

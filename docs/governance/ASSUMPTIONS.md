@@ -17,3 +17,4 @@ YYYY-MM-DD — <Assumption>. Evidence: <basis>. Review by: <date>. #assumption
 2026-11-22 — Story 3.4: object paths are random and immutable per upload, so bucket|path identifies the bytes. #assumption
 2026-11-22 — Story 4.1: the session cookie behaves as asserted at the Laravel response level; the L4 parity contract against Laravel has not been run. Review by: when the Next parity suite is installed. #assumption
 2026-11-22 — Story 4.2: the stand-in race actions have the same locking shape the real 4.5/4.6 actions will have (read version, write, delete proofs and sessions, all under the fence); the races are re-proved when those land. Review by: 4.6. #assumption
+2026-11-23 — Story 5.1: FakeStripe (Pest) and stripe-fake accept the same session params as Stripe; the L4 parity specs (checkout-contracts, dv-checkout) have not been run against Laravel. Review by: the Epic 5 parity run. #assumption

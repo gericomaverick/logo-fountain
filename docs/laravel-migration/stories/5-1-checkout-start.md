@@ -66,22 +66,28 @@ K-01, K-13, DV-1, DV-4 (metadata), DV-5.
 ### Next.js source read
 `checkout/start/route.ts`, `lib/stripe.ts`.
 ### Behaviour notes
-(fill on review)
+Anonymous GET. `package_code` matched exactly and case-sensitively against the server map; anything else, a raw price ID included, is 400 INVALID_PACKAGE with no Stripe call. The query is read raw (`searchParams.get`), because Laravel's TrimStrings would accept " complete". Campaign slug: JS trim, empty omitted, cut at 80 UTF-16 units. Success is a 303 to `session.url`.
 ### Laravel implementation
-(fill on review)
+`app/Actions/Checkout/StartCheckout.php`, `app/Http/Controllers/Api/CheckoutStartController.php`, `routes/checkout.php` (no `web` group: no session, no cookie), `app/Support/Stripe/StripeCatalog.php` + `config/catalog.php`, the `StripeClient` singleton (`AppServiceProvider`, version 2026-02-25.clover, `services.stripe.api_base` as test seam), placeholder check in `ConfigValidationServiceProvider`, `NodeCompat::slice`, three new error codes. `stripe/stripe-php ^22.1` added; no Cashier.
 ### Deviations from Next.js
 | Behaviour | Next.js | Laravel | Why | Decision ref |
 |---|---|---|---|---|
-(fill on review)
+| Promotion codes | not enabled | `allow_promotion_codes=true` | F-1 | DV-1 (owner) |
+| Return URLs | from request headers | from `PUBLIC_SITE_URL` / marketing URL | forged Host | DV-5 |
+| Stripe failure message | echoes Stripe's text | fixed text, detail to log | provider leak | DV-20, proposed, awaiting owner |
+| Placeholder price ID | logged at boot | production refuses to boot; elsewhere logged | AGENTS.md §5 | story AC 8 |
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|
-(fill on review)
+| L2 | `tests/Feature/Checkout/CheckoutStartTest.php` (shape, anonymity, price map, invalid codes, slug, URL missing, 503, DV-1, DV-5, DV-20) | K-01, K-13 |
+| L1 | `tests/Feature/Checkout/StripeCatalogTest.php` | K-01 |
+| L2 | `ConfigBootValidationTest.php` (production placeholder refusal, real process) | K-01 |
+| L4 | `contract/checkout-contracts.spec.ts`, `dv-checkout.spec.ts:43,:58`: NOT RUN | K-01, DV-1, DV-5 |
 ### Test evidence
-(fill on review)
+`bin/test` in `apps/portal` (stack lf-wb21): check-agents-guide, Pint, Larastan level 9 clean; Pest 2029 passed, 1 warning (5811 assertions). Stripe is the in-process `tests/Support/FakeStripe.php` (stripe-php HTTP client); the stripe-fake container was not used, so the fake's own recording of the flag is unchecked.
 ### Gotchas
-(fill on review)
+stripe-php sends booleans as the text "true"/"false". Larastan needed an ignore on the generated param shape. No Next test file exists for this route, so there is no ledger row to fill.
 ### Docs updated
-(fill on review)
+Inventory K-01, K-13, DV-20 rows; sprint-status → review; DECISIONS, RISKS, ASSUMPTIONS one line each; `.env.example` (STRIPE_API_BASE); `compose.yaml` mounts the stripe fixtures.
 ### Open items
-(fill on review)
+Owner: DV-20 (and DV-1, DV-5 already recommended). Rate limit on the route not built (RISKS). L4 parity and Laravel page objects not run or built here.

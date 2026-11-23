@@ -15,6 +15,12 @@ final class ErrorCodes
     public const AUTH_UNAVAILABLE = 'AUTH_UNAVAILABLE';
 
     /** 404 (400 on revision requests): a concept that doesn't exist or isn't client-visible (DV-7, ADR-020). */
+    /** 500: Stripe refused or failed to create the Checkout Session (K-01, `checkout/start/route.ts:67-70`). */
+    public const CHECKOUT_SESSION_FAILED = 'CHECKOUT_SESSION_FAILED';
+
+    /** 500: Stripe returned a session with no hosted URL (K-01, `checkout/start/route.ts:64`). */
+    public const CHECKOUT_URL_MISSING = 'CHECKOUT_URL_MISSING';
+
     public const CONCEPT_NOT_FOUND = 'CONCEPT_NOT_FOUND';
 
     public const FORBIDDEN = 'FORBIDDEN';
@@ -29,6 +35,9 @@ final class ErrorCodes
 
     /** 403: a mutation without canonical Origin/Referer provenance (X-01, `lib/request-origin.ts:103`). */
     public const INVALID_ORIGIN = 'INVALID_ORIGIN';
+
+    /** 400: `package_code` is not one of the allowlisted codes (K-01, `checkout/start/route.ts:20-24`). */
+    public const INVALID_PACKAGE = 'INVALID_PACKAGE';
 
     public const PAYLOAD_TOO_LARGE = 'PAYLOAD_TOO_LARGE';
 
