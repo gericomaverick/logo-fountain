@@ -1,11 +1,12 @@
 <?php
 
+use App\Actions\Auth\SendAuthLink;
+use App\Jobs\SendAuthLinkMail;
 use App\Models\Client;
 use App\Models\Project;
 use App\Models\ProjectOrder;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use App\Jobs\SendAuthLinkMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Testing\TestResponse;
@@ -92,7 +93,7 @@ it('send link: the request answers the same and sends nothing whether or not the
     Mail::assertNothingSent();
     expect(DB::table('auth_proofs')->count())->toBe(0);
     // The job does the work: known sends a proof and a mail, unknown nothing.
-    Queue::pushed(SendAuthLinkMail::class)->each(fn ($j) => $j->handle(app(App\Actions\Auth\SendAuthLink::class)));
+    Queue::pushed(SendAuthLinkMail::class)->each(fn ($j) => $j->handle(app(SendAuthLink::class)));
     expect(DB::table('auth_proofs')->where('kind', 'magic')->count())->toBe(1);
 });
 

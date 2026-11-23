@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Actions\Auth\SendAuthLink;
 use App\Exceptions\ApiException;
-use App\Jobs\SendAuthLinkMail;
 use App\Http\Controllers\Controller;
+use App\Jobs\SendAuthLinkMail;
 use App\Models\ProjectOrder;
 use App\Support\ErrorCodes;
 use App\Support\RateLimits;
