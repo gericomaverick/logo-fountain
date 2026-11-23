@@ -1,0 +1,91 @@
+# Story 5.3: Fulfilment and access provisioning
+
+**Status:** ready-for-dev (created from `origin/workbench/4-integrate` b2e1115) · **DoD variant:** Laravel-only · **Epic:** 5 · **Covers:** K-06, K-07, FR15, FR16, DV-4, N-01, N-02, N-10 · **Gate:** `@webhook&@api`, `@email&@api` (checkout emails) · **After:** 5.2, 4.4, 2.7 · **Stacks on:** `origin/workbench/4-integrate`; in the SERIAL chain, the previous Epic 5 story's branch (see `epic-5-build-order` in 5.7). Test mode and fakes only (stripe-fake, postmark-shim); live Stripe/Postmark is the owner's.
+
+> Created with the repo's create-story form. All `apps/web` `file:line` read 2026-11-23; `apps/web` is frozen, so nothing here edits it.
+
+## Story
+As a customer who has paid, I get a project, my entitlements, an account and one email that lets me in, and the studio is told once.
+
+## Acceptance criteria
+1. **Paid only.** `payment_status !== "paid"` → `CheckoutSessionNotPaidError` (code `CHECKOUT_SESSION_NOT_PAID`) before any lookup or write (`checkout-fulfillment.ts:325-330`; permanent in 5.2). The same action serves the webhook and, in 5.6, reprocess.
+2. **Package from line items.** Exactly one allowlisted price among the session's line items (up to 10), else the "allowlisted package" error (`:128-145`; permanent).
+3. **Client.** Created with the inferred name (custom-field first/last name, else Stripe name, else the email local part, else "Logo Fountain Client"; `:102-127`), slug `{toSlug(name) or "logo-fountain-client"}-{last 8 of session id lowercased}` (`toSlug` `:55-60`; `:360-363`), `billing_email` = normalised purchaser email.
+4. **Project and entitlements.** Project `AWAITING_BRIEF` with the package code; entitlements `concepts`/`revisions` 1/1 Essential, 2/2 Professional, 3/3 Complete, consumed and reserved 0 (`PACKAGE_ENTITLEMENTS` `:20-31`; `:386-393`; K-07).
+5. **Order.** `FULFILLED` when a purchaser email exists, else `NEEDS_CONTACT`; currency lower-cased (default `gbp`); `total_cents` = the session's `amount_total` (the **discounted** figure once DV-1 allows codes); payment-intent ID when it is a string; **`campaign_slug` from `metadata.campaign_slug` (DV-4)**. Next never stores it on package orders (`:395-405`). `@deviation`.
+6. **Audit.** In the same transaction: `order_fulfilled` `{orderId,orderStatus,checkoutSessionId}` and `state_changed` `{previousStatus:null,nextStatus:AWAITING_BRIEF}` (`:407-417`).
+7. **Idempotent.** An existing order for the session ID → `deduped:true`, nothing created (`:341-353`). Concurrent first deliveries converge on one order (unique `stripe_checkout_session_id`, `schema.prisma:127`; 5.2 AC 5).
+8. **Provisioning** (`ensureAccessProvisioning`, `:438-465`), only with a purchaser email: advisory lock on `provision:{email}` (`:451`); requires the client's billing email to equal the purchaser and a `FULFILLED` order (`:452`); user found by normalised email or created with `email_verified=false` (**payment is not mailbox proof**, never promote verified/admin; `:454-455`); profile upserted with first/last/full name (only non-null fields on update); owner membership created if missing; `needsSetup` = the user has **no credential with a password** (durable state, `:459-462`).
+9. **Customer email once** (N-01/N-02). Marker: audit `email_sent:checkout_auth:{sessionId}` on the project (`webhook/route.ts:166-196`). Flow `setup` when `needsSetup`, else `signin`, through 4.4's `SendAuthLink` (auth mode, not queued). A skipped send is an error in production (retryable), tolerated otherwise (`:183-185`). The marker is written only after a real send.
+10. **Admin email once** (N-10). For non-upsell sessions only, `notifyAdminNewProject` (own durable marker) through 2.7's pipeline; skipped in production → error (`:198-207`).
+11. **Resumable.** If the customer or admin email fails after the order exists, the retry (5.2 transient) re-runs fulfilment as `deduped`, re-ensures provisioning and sends only what has no marker (`:148-207`).
+12. **Missing email.** No purchaser email → order `NEEDS_CONTACT`, no user, no customer email; the admin email is still sent (`:156,198`; contract `webhook-fulfilment.spec.ts`). The status endpoint reports it `PENDING` (5.4).
+13. **Test mode.** Sessions come from stripe-fake fixtures (`package-*-paid`, `purchase-*`); mail goes to the postmark-shim/Mailpit; no live key or address.
+
+## Inventory scope
+K-06, K-07, N-01, N-02, N-10, DV-4 (order half). Ledger rows for `checkout-fulfillment` tests (grep `test-port-ledger.md`).
+
+## Next.js source read
+`lib/checkout-fulfillment.ts:11-31,55-60,102-182,325-465`; `api/stripe/webhook/route.ts:148-207`; contract `webhook-fulfilment.spec.ts`, `webhook-payment-states.spec.ts`.
+
+## Behaviour notes
+- The inventory (K-06) says fulfilment creates a **message thread**; the fulfilment transaction (`:367-420`) creates none. Unverified where Next creates it (probably lazily on first message). See Open question 1.
+- `purchaserEmailFromSession` (`:153-170`) is the one place the purchaser email is read; port its precedence exactly (session email, then customer details; read the function when building).
+- The webhook response includes `purchaserEmail`, `provisionedUserId`, `isReturningCustomer` (`:220-231`); keep for parity (Stripe sees it, no browser).
+
+## Laravel guidance
+`app/Actions/Checkout/FulfilCheckout.php` (transaction via `Db` 2.4: client, project, entitlements, order, two audits), `ProvisionAccess.php` (advisory lock via `Locks`), `CompleteFulfilmentSideEffects.php` (customer + admin email with markers; shared with 5.6, ADR-015). Config `PACKAGE_ENTITLEMENTS` in one class (also used by 5.5's DV-2 maths).
+
+## Planned deviations from Next.js
+| ID | Deviation | Status |
+|---|---|---|
+| DV-4 | Campaign slug copied to `project_orders.campaign_slug` | Recommendation |
+| DV-8 | Emails queued after commit (2.7), not inline | Recommendation |
+
+## Tasks
+1. Entitlement table + FulfilCheckout. 2. ProvisionAccess. 3. CompleteFulfilmentSideEffects. 4. Wire into 5.2's controller. 5. Tests. 6. Record, inventory, ledger, sprint-status.
+
+## Test plan
+| Layer | Test | Covers |
+|---|---|---|
+| L2 `@webhook&@api` | `tests/Feature/Checkout/FulfilCheckoutTest.php`: AC 1–7, 12 (3 tiers) | K-06, K-07 |
+| L2 | `ProvisionAccessTest.php`: AC 8 (new, returning, never verified, setup vs signin) | K-06 |
+| L2 `@email&@api` | `CheckoutEmailsTest.php`: AC 9–11 (each mail once; retry after a failed send) | N-01, N-02, N-10 |
+| L2 `@deviation` | AC 5 campaign slug on the order | DV-4 |
+| L3 `@pg-race` | concurrent provisioning for one email creates one user/membership | K-06 |
+| L4 parity | `contract/webhook-fulfilment.spec.ts` (5) | K-06 |
+
+## Definition of done (Laravel-only, `epics.md:35`)
+`bin/test` green (Pint, Larastan level 9, Pest) with the tests below; the Conversion record filled; inventory Laravel/Tests columns, ledger rows, `sprint-status.yaml` → `review`, and one line each in DECISIONS / RISKS / ASSUMPTIONS where something was decided. No `apps/web` change. **Test mode only:** every Stripe call goes to stripe-fake (`STRIPE_SECRET_KEY` a `sk_test_…` value, `api_base` pointed at the fake) and every mail to the postmark-shim or Mailpit; no live Stripe or Postmark key, webhook secret or price ID is read, written or configured (live mode is the owner's). L4/L5 parity runs only where the header's gate says so.
+
+## Open questions (with recommendations)
+1. **Message thread at fulfilment.** K-06 lists one; Next's fulfilment does not create it. *Recommendation:* match the code (none), and let the messages story (Epic 6) create the thread lazily; check against the inventory row when closing.
+2. **Name on an existing profile.** Next only overwrites with non-null checkout names (`:456-458`). *Recommendation:* keep.
+3. **Owner items: none.**
+
+## Conversion record
+
+### Inventory scope
+K-06, K-07, N-01, N-02, N-10, DV-4 (order half).
+### Next.js source read
+`checkout-fulfillment.ts`, `webhook/route.ts:148-207`.
+### Behaviour notes
+(fill on review)
+### Laravel implementation
+(fill on review)
+### Deviations from Next.js
+| Behaviour | Next.js | Laravel | Why | Decision ref |
+|---|---|---|---|---|
+(fill on review)
+### Tests
+| Layer | Test file / title | Inventory IDs |
+|---|---|---|
+(fill on review)
+### Test evidence
+(fill on review)
+### Gotchas
+(fill on review)
+### Docs updated
+(fill on review)
+### Open items
+(fill on review)

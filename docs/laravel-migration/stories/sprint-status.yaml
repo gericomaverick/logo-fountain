@@ -81,13 +81,13 @@ development_status:
   epic-4-retrospective: optional
 
   epic-5: backlog
-  5-1-checkout-start: backlog
-  5-2-webhook-ledger-and-classification: backlog
-  5-3-fulfilment-and-access-provisioning: backlog
-  5-4-checkout-success-continue-resend: backlog
-  5-5-upsell-checkout-and-additive-fulfilment: backlog
-  5-6-admin-reprocess-with-full-follow-up: backlog
-  5-7-invoices-and-receipts-api: backlog
+  5-1-checkout-start: ready-for-dev
+  5-2-webhook-ledger-and-classification: ready-for-dev
+  5-3-fulfilment-and-access-provisioning: ready-for-dev
+  5-4-checkout-success-continue-resend: ready-for-dev
+  5-5-upsell-checkout-and-additive-fulfilment: ready-for-dev
+  5-6-admin-reprocess-with-full-follow-up: ready-for-dev
+  5-7-invoices-and-receipts-api: ready-for-dev
   epic-5-retrospective: optional
 
   epic-6: backlog
