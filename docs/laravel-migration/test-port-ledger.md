@@ -10,7 +10,7 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 2 | `e2e/client-flows.spec.ts` | 4 | C-01,C-03,C-05 | L5 parity | | Not started |
 | 3 | `e2e/smoke.spec.ts` | 2 | A-15 | L5 parity @smoke | | Not started |
 | 4 | `src/app/admin/projects/[id]/concepts/read-state-regression.test.ts` | 2 | C-15,D-05 | Keep TS (UI) + L4 read-state contract | | Not started |
-| 5 | `src/app/api/admin/checkout/reprocess/route.test.ts` | 5 | K-12 | Pest feature (HTTP) + L4 parity contract | | Not started |
+| 5 | `src/app/api/admin/checkout/reprocess/route.test.ts` | 5 | K-12 | Pest feature (HTTP) + L4 parity contract | tests/Feature/Checkout/WebhookTest.php (L4 not run) | Ported 5.2 |
 | 6 | `src/app/api/admin/health/route.test.ts` | 5 | D-18 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 7 | `src/app/api/admin/projects/[id]/audit/route.test.ts` | 3 | D-16 | Pest feature (HTTP) + L4 parity contract | | Not started |
 | 8 | `src/app/api/admin/projects/[id]/concepts/[conceptId]/publish/route.test.ts` | 5 | D-06 | Pest feature (HTTP) + L4 parity contract | | Not started |
@@ -114,7 +114,7 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 106 | `src/lib/storage/r2.test.ts` | 10 | X-10,X-11 | Pest unit (S3 mock) + L3 SeaweedFS | `PrivateStorageTest`, `DownloadDispositionTest`, `SignedUrlExpiryTest`, `ObjectKeyTest`, `PrivateStorageSeaweedTest`, `ObjectStoreCollisionRaceTest` (3.1). The file has 8 `it` blocks: 7 ported; "fresh immutable final paths" (`:34`) is caller path-building (7.8a), not the store; the ledger's 10 = 8 + dataset expansion | Done (3.1), minus `:34` → 7.8a |
 | 107 | `src/lib/system-messages.test.ts` | 2 | N-15 | Pest feature | | Not started |
 | 108 | `src/lib/upload-validation.test.ts` | 12 | X-12 | Pest unit + shared golden corpus | | Resolved for the unit/corpus level (HTTP path still open under X-12, 7.8a): images in story 3.2 (`ConceptImageValidatorTest`, `ConceptImageCorpusTest`), ZIP in 3.3 (`FinalZipValidatorTest`, `FinalZipCorpusTest`) |
-| 109 | `src/lib/webhook-error-classification.test.ts` | 2 | K-05 | Pest unit | | Not started |
+| 109 | `src/lib/webhook-error-classification.test.ts` | 2 | K-05 | Pest unit | tests/Feature/Checkout/WebhookTest.php (classifier dataset) | Ported 5.2 |
 | 110 | `src/lib/zip-validation.test.ts` | 8 | X-12 | Pest unit + shared golden corpus | | Resolved for the unit/corpus level (HTTP path still open under X-12, 7.8a): story 3.3 (`FinalZipValidatorTest`, `FinalZipCorpusTest`) |
 
 Total: 110 files, 560 counted test declarations (Vitest reports 614 executed tests including `.each` expansions).

@@ -75,22 +75,24 @@ K-05, DV-15 (webhook half).
 ### Next.js source read
 `webhook/route.ts`, `webhook-error-classification.ts`, `checkout-fulfillment.ts:11-18,219,433-436`.
 ### Behaviour notes
-(fill on review)
+Built against a stub fulfiller (`FulfilsCheckout`, bound to `PendingFulfiller`, which fails transiently so no paid event is settled unfulfilled); story 5.3 rebinds the real one. Ledger claim is one compare-and-set statement per step on the `stripe_events.type` marker `processing:{ms}:{uuid}:{eventType}`; lease 5 min, 409 while live, reclaim on expiry, `renew` between steps, `complete`/`release` keyed on the marker.
 ### Laravel implementation
-(fill on review)
+`app/Http/Controllers/Webhooks/WebhookController.php` (raw body, `Webhook::constructEvent`, 300 s), `app/Actions/Checkout/{ProcessStripeEvent,ClaimStripeEvent,RecordHopelessCheckout,FulfilsCheckout,PendingFulfiller}.php`, `app/Support/Stripe/{WebhookClassifier,HopelessCheckoutFailure,FulfilmentError,WebhookClaimLost}.php`, `LifecycleMail::sendAdminAlert`, route in `routes/checkout.php` (no `web` group; Origin guard already exempts the path).
 ### Deviations from Next.js
 | Behaviour | Next.js | Laravel | Why | Decision ref |
 |---|---|---|---|---|
-(fill on review)
+| Unknown session, reused payment intent, missing upsell project | Transient, retried for days | Permanent: event settled, admin emailed once, `checkout_stuck` audit on the project when known | DV-15 / DV-21 | DV-15 (owner), DV-21 (proposed) |
+| Classifier codes | Prisma P1001/P1002/P2024 | PostgreSQL connection/timeout SQLSTATEs | Different driver | none |
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|
-(fill on review)
+| Pest feature | `tests/Feature/Checkout/WebhookTest.php` (signature, tolerance, ignored, dedupe, lease 409/reclaim, transient release, permanent, unknown session, classifier, Origin exemption) | K-05, K-06 |
+| Pest concurrency `@pg-race` | `tests/Concurrency/WebhookClaimRaceTest.php` (10 deliveries, one claim) | K-05 |
 ### Test evidence
-(fill on review)
+See the story commit: `bin/test` gate. L4 parity (`webhook-ledger.spec.ts`, `dv-15`) NOT RUN.
 ### Gotchas
-(fill on review)
+Hopeless failures with a project need real fulfilment (5.3) to raise `paymentIntentReused`/`upsellProjectMissing`; only the unknown-session path (async retrieve 404) is raised here. Not tested: the `payment_attention` email with a project, and lease renewal mid-fulfilment (needs the real fulfiller).
 ### Docs updated
-(fill on review)
+Inventory K-05, ledger rows 52 and 109, sprint-status, DECISIONS/RISKS/ASSUMPTIONS.
 ### Open items
-(fill on review)
+"Flagged stuck" = audit `checkout_stuck` (no column); unknown-session alert goes to `ADMIN_NOTIFICATION_EMAILS`; DV-21 awaiting owner. Built as recommended, awaiting owner.

@@ -6,6 +6,8 @@
 use App\Actions\Auth\ChangePassword;
 use App\Actions\Auth\ConfirmMagicLink;
 use App\Actions\Auth\ResetPassword;
+use App\Actions\Checkout\Claim;
+use App\Actions\Checkout\ClaimStripeEvent;
 use App\Exceptions\ApiException;
 use App\Exceptions\AuthFailure;
 use App\Support\Audit;
@@ -180,6 +182,12 @@ $out = match ($mode) {
         } catch (AuthFailure) {
             return ['won' => false];
         }
+    })(),
+    // Story 5.2 AC 6: parallel deliveries of one webhook event; exactly one claims the ledger row.
+    'webhook-claim' => (function () use ($args): array {
+        $claim = (new ClaimStripeEvent)->claim($args[0], 'checkout.session.completed', time());
+
+        return ['won' => $claim instanceof Claim];
     })(),
 };
 

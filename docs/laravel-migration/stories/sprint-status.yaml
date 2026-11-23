@@ -82,7 +82,7 @@ development_status:
 
   epic-5: backlog
   5-1-checkout-start: review
-  5-2-webhook-ledger-and-classification: ready-for-dev
+  5-2-webhook-ledger-and-classification: review
   5-3-fulfilment-and-access-provisioning: ready-for-dev
   5-4-checkout-success-continue-resend: ready-for-dev
   5-5-upsell-checkout-and-additive-fulfilment: ready-for-dev

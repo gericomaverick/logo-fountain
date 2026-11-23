@@ -72,6 +72,27 @@ final class LifecycleMail
         return LifecycleMailResult::sent();
     }
 
+    /**
+     * Story 5.2 (DV-15): an admin alert with no project to key a marker on (an unknown Checkout Session). The caller
+     * dedupes (it dispatches in the same transaction that settles the webhook ledger row). Skips, never throws, on
+     * a missing recipient or mail configuration.
+     */
+    public static function sendAdminAlert(LifecycleMessage $message): LifecycleMailResult
+    {
+        $recipients = self::adminRecipients();
+        if ($recipients === []) {
+            return LifecycleMailResult::skipped(LifecycleMailResult::MISSING_RECIPIENT);
+        }
+        if (! self::configured()) {
+            Log::warning('Lifecycle email skipped: mail is not configured.');
+
+            return LifecycleMailResult::skipped(LifecycleMailResult::NOT_CONFIGURED);
+        }
+        SendLifecycleMail::dispatch($recipients, $message->subject, $message->subject, $message->intro, $message->ctaLabel, self::ctaUrl($message->ctaPath), true, null, null);
+
+        return LifecycleMailResult::sent();
+    }
+
     /** @return list<string> */
     public static function adminRecipients(): array
     {
