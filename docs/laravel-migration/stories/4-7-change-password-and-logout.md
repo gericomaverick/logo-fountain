@@ -52,6 +52,8 @@ None.
 1. **Logout with no session.** Next's `signOut` on no cookie returns ok. *Recommendation:* `200 {ok:true}`; confirm on L4.
 2. **Owner items: none.**
 
+**Decided (owner, 2026-11-23):** Q1 (logout with no session answers 200) as built.
+
 ## Conversion record
 
 ### Inventory scope
@@ -78,4 +80,4 @@ A hand-inserted session row needs the `login_web_*` key or the DB handler drops 
 ### Docs updated
 Inventory A-02/A-09, ledger #25/#28/#72, DECISIONS, sprint-status.
 ### Open items
-Q1 built as recommended (logout without a session is 200), awaiting owner.
+Q1 built as recommended (logout without a session is 200), decided (owner, 2026-11-23).

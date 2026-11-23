@@ -41,7 +41,7 @@ K-06, K-07, N-01, N-02, N-10, DV-4 (order half). Ledger rows for `checkout-fulfi
 |---|---|---|
 | DV-4 | Campaign slug copied to `project_orders.campaign_slug` | Recommendation |
 | DV-8 | Emails queued after commit (2.7), not inline. Applies to the **admin new-project email (N-10) only**; the customer auth email (AC 9) is sent in auth mode, not queued | Recommendation |
-| DV-25 | 100%-off promotion codes: `no_payment_required` is alerted, not silent (see AC 1) | **Proposed, awaiting owner** |
+| DV-25 | 100%-off promotion codes: `no_payment_required` is alerted, not silent (see AC 1) | **Decided (owner, 2026-11-23)** |
 
 ## Tasks
 1. Entitlement table + FulfilCheckout. 2. ProvisionAccess. 3. CompleteFulfilmentSideEffects. 4. Wire into 5.2's controller. 5. Tests. 6. Record, inventory, ledger, sprint-status.
@@ -82,8 +82,8 @@ Customer email: sent synchronously in auth mode (not queued), marker `email_sent
 |---|---|---|---|---|
 | Campaign slug | stays in Stripe metadata | copied to `project_orders.campaign_slug` | attribution | DV-4 |
 | Admin email | inline | queued after commit | ADR-018/019 | DV-8 |
-| 100%-off session | closed silently | permanent, audited, admin alerted | never silent | DV-25 (proposed, awaiting owner) |
-| Double-send guard | none (a concurrent webhook and reprocess can both send) | advisory lock `fulfil_side_effects:{session}` serialises them | critic B4 | Built as recommended, awaiting owner: architecture §5 lists three locks; this is a fourth. The ADR is not edited. |
+| 100%-off session | closed silently | permanent, audited, admin alerted | never silent | DV-25 ((decided, owner 2026-11-23)) |
+| Double-send guard | none (a concurrent webhook and reprocess can both send) | advisory lock `fulfil_side_effects:{session}` serialises them | critic B4 | Built as recommended; not in the owner list (DV-19..26 and 4.x Q1-Q5 only): architecture §5 lists three locks; this is a fourth. The ADR is not edited. |
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|

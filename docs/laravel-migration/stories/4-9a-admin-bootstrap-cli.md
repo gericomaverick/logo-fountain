@@ -49,6 +49,8 @@ None.
 1. **Marker table.** Does 2.1 already have the bootstrap-state table? *Recommendation:* use it; if absent, report rather than add a migration (owner step).
 2. **Owner items: none.**
 
+**Decided (owner, 2026-11-23):** Q1 (use the 2.1 bootstrap-state table, no migration) as built.
+
 ## Conversion record
 
 ### Inventory scope

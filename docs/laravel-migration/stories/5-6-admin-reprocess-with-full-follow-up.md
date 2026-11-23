@@ -36,7 +36,7 @@ K-12, DV-6. Ledger: `reprocess` route test(s) (grep `test-port-ledger.md`).
 | ID | Deviation | Status |
 |---|---|---|
 | DV-6 | Same emails as the webhook, no duplicates | Owner-approved |
-| **DV-23** | Standard error codes for a missing/unknown session | **Proposed, awaiting owner** |
+| **DV-23** | Standard error codes for a missing/unknown session | **Decided (owner, 2026-11-23)** |
 
 ## Tasks
 1. Controller + route. 2. Names through provisioning. 3. Arch test. 4. Tests. 5. Record, inventory (add DV-23 row), ledger, sprint-status.
@@ -67,7 +67,7 @@ K-12, DV-6.
 ### Next.js source read
 `reprocess/route.ts`, `webhook/route.ts:148-207`, `lib/auth/require.ts:21-27`.
 ### Behaviour notes
-Reprocess retrieves the session and runs `FulfilCheckout::fulfil` then `followUp` (the webhook's path), so names reach provisioning, both emails go out once under `Locks::fulfilSideEffects` (the lock is what makes a reprocess/webhook race safe), and an upsell session re-applies nothing. No ledger row (OQ 1: built as recommended, awaiting owner); no write clearing `checkout_stuck` (OQ 3).
+Reprocess retrieves the session and runs `FulfilCheckout::fulfil` then `followUp` (the webhook's path), so names reach provisioning, both emails go out once under `Locks::fulfilSideEffects` (the lock is what makes a reprocess/webhook race safe), and an upsell session re-applies nothing. No ledger row (OQ 1: built as recommended, decided (owner, 2026-11-23)); no write clearing `checkout_stuck` (OQ 3).
 ### Laravel implementation
 `ReprocessCheckoutController` (`POST /api/admin/checkout/reprocess`, middleware `web` + `admin`, so Origin guard, 401, 403 from Epic 4), `ErrorCodes::CHECKOUT_SESSION_NOT_FOUND/STRIPE_UNAVAILABLE/CHECKOUT_SESSION_NOT_PAID`.
 ### Deviations from Next.js
@@ -75,10 +75,10 @@ Reprocess retrieves the session and runs `FulfilCheckout::fulfil` then `followUp
 |---|---|---|---|---|
 | Emails | none | customer + admin once | same as webhook | DV-6 |
 | Names | not passed | passed | profile names kept | DV-6 |
-| Missing id / unknown session / Stripe down | no code / 500 | `MISSING_SESSION_ID` 400 / 404 / 502 no detail | standard errors | DV-23: built as recommended, awaiting owner |
+| Missing id / unknown session / Stripe down | no code / 500 | `MISSING_SESSION_ID` 400 / 404 / 502 no detail | standard errors | DV-23: built as recommended, decided (owner, 2026-11-23) |
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|
 | L2 | `tests/Feature/Checkout/ReprocessCheckoutTest.php` (guards, emails once + deduped, names, unpaid 409, 404/502, no mail in controller) | K-12, DV-6, DV-23 |
 | L3 `@pg-race` | `tests/Concurrency/FulfilSideEffectsRaceTest.php` "sends each email once when the webhook and the admin reprocess race on a new session" (real `ProcessStripeEvent` and `ReprocessCheckoutController` in 6 child processes; critic B1) | DV-6 |
-| L2 | `ReprocessCheckoutTest.php` "writes its own audit row" (critic B2, DV-26 proposed, awaiting owner); no L4 parity run |  |
+| L2 | `ReprocessCheckoutTest.php` "writes its own audit row" (critic B2, DV-26 (decided, owner 2026-11-23)); no L4 parity run |  |

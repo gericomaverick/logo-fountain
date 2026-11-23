@@ -74,7 +74,7 @@ Every failure is one byte-identical 400 `INVALID_CREDENTIALS` with no cookie. Un
 ### Deviations from Next.js
 | Behaviour | Next.js | Laravel | Why | Decision ref |
 |---|---|---|---|---|
-| Login timing | Unverified | One hash comparison on every path | Don't reveal which accounts exist | DV-19 (proposed, awaiting owner) |
+| Login timing | Unverified | One hash comparison on every path | Don't reveal which accounts exist | DV-19 ((decided, owner 2026-11-23)) |
 ### Tests
 | Layer | Test file / title | Inventory IDs |
 |---|---|---|

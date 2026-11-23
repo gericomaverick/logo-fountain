@@ -45,8 +45,8 @@ K-08, K-09, DV-1 (upsell half), DV-2, DV-5 (upsell half), DV-15 (email-mismatch 
 | DV-5 | Canonical URLs | Recommendation |
 | DV-15 | Email mismatch fulfils + audit + admin email | Owner-approved |
 | DV-20, DV-21 | See 5.1, 5.2 | Proposed |
-| **DV-24** | Upgrade whose `fromPackage` no longer matches the project: apply nothing, permanent failure with admin alert, never a negative delta | **Proposed, awaiting owner** |
-| DV-25 | 100%-off promotion codes (see 5.3 AC 1; applies to upsell sessions too) | **Proposed, awaiting owner** |
+| **DV-24** | Upgrade whose `fromPackage` no longer matches the project: apply nothing, permanent failure with admin alert, never a negative delta | **Decided (owner, 2026-11-23)** |
+| DV-25 | 100%-off promotion codes (see 5.3 AC 1; applies to upsell sessions too) | **Decided (owner, 2026-11-23)** |
 
 ## Tasks
 1. EntitlementMath + tests. 2. StartUpsellCheckout + controller. 3. FulfilUpsell. 4. DV-15 mismatch branch. 5. Tests. 6. Record, inventory, ledger, sprint-status.
@@ -88,7 +88,7 @@ Metadata is parsed by `UpsellMetadata`; unparseable metadata falls through to pa
 | Promotion codes, canonical URLs, fixed 500 message | as 5.1 | DV-1, DV-5, DV-20 |
 | Upgrade adds the tier difference | 1/1 + add-on, then Professional = 2/3 | DV-2 |
 | Buyer email differs | entitlements applied, no account, audit + one admin email | DV-15 |
-| Stale `fromPackage` / downgrade | nothing applied, permanent failure `upgrade_stale_from_package`, admin alert | DV-24: built as recommended, awaiting owner |
-| Unknown project | permanent, audit + admin email | DV-21: built as recommended, awaiting owner |
+| Stale `fromPackage` / downgrade | nothing applied, permanent failure `upgrade_stale_from_package`, admin alert | DV-24: built as recommended, decided (owner, 2026-11-23) |
+| Unknown project | permanent, audit + admin email | DV-21: built as recommended, decided (owner, 2026-11-23) |
 ### Tests
 `tests/Unit/EntitlementMathTest.php` (L1), `tests/Feature/Checkout/UpsellCheckoutStartTest.php`, `UpsellFulfilmentTest.php` (L1/L2 only; no L3). The DV-24 stale/downgrade/same-tier path through the webhook is tested (critic B3). L4 parity specs and an upsell `@pg-race` test were not written or run.

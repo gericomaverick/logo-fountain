@@ -57,6 +57,8 @@ None. (Equalising latency for unknown accounts is not attempted; open question 2
 2. **Timing equalisation for unknown accounts.** Next does less work for them. *Recommendation:* leave it; the response body is identical and the endpoint is rate-limited; note it in RISKS.
 3. **Owner items: none.**
 
+**Decided (owner, 2026-11-23):** Q1 (Laravel Mailable via the Postmark transport) and Q2 (no timing equalisation for unknown accounts; noted in RISKS) as recommended.
+
 ## Conversion record
 
 > Fill at implementation, from `templates/story-conversion-record.md`. Write *Behaviour notes* before converting.
