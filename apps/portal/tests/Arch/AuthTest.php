@@ -42,13 +42,50 @@ function codeOnly(string $src): string
     return $out;
 }
 
-/** Credential WRITES: assigning/bumping the password or credential_version, or writing auth_proofs. Reads and hash checks are not writes. */
+/** Credential WRITES: assigning/bumping the password or credential_version, or writing auth_proofs / sessions. Reads and hash checks are not writes. */
+const CREDENTIAL_WRITE_TABLE = '[\'"](?:auth_proofs|sessions)(?:\s+as\s+\w+)?[\'"]\s*\)';
+const CREDENTIAL_WRITE_VERB = '->\s*(?:insert|insertGetId|insertOrIgnore|update|upsert|delete|truncate|increment|decrement)\(';
 const CREDENTIAL_WRITE = '->\s*password\s*(?:=(?!=)|\.=)'
+    .'|->\s*\{\s*[\'"]password[\'"]\s*\}\s*(?:=(?!=)|\.=)'
     .'|[\'"]password[\'"]\s*=>'
     .'|credential_version[\'"]?\s*(?:\+\+|--|\+=|-=|=(?!=)|=>)'
-    .'|increment\(\s*[\'"]credential_version'
-    .'|[\'"]auth_proofs[\'"]\s*\)[^;]*?->\s*(?:insert|insertGetId|insertOrIgnore|update|upsert|delete|truncate|increment|decrement)\('
+    .'|(?:increment|decrement)\('
+    .'|setAttribute\(\s*[\'"](?:password|credential_version)'
+    .'|'.CREDENTIAL_WRITE_TABLE.'[^;]*?'.CREDENTIAL_WRITE_VERB
+    .'|\$\w+\s*=\s*[\'"](?:auth_proofs|sessions)'
+    .'|table\(\s*\$[^;]*?'.CREDENTIAL_WRITE_VERB
+    .'|\bAuthProof::'
+    .'|(?i:\bupdate\s+"?users\b|\bdelete\s+from\s+"?(?:auth_proofs|sessions)\b)'
     .'|AuthProofs::(?:issue|consume|revoke\w*)\(';
+
+/** Byte spans [start, end) of every CredentialFence::run( ... ) argument list, found from tokens so a parenthesis inside a string does not count. */
+function fenceSpans(string $code): array
+{
+    $tokens = token_get_all($code);
+    $spans = [];
+    $pos = [];
+    $off = 0;
+    foreach ($tokens as $t) {
+        $pos[] = $off;
+        $off += strlen(is_array($t) ? $t[1] : $t);
+    }
+    $n = count($tokens);
+    $sig = fn (int $i) => is_array($tokens[$i]) ? $tokens[$i][1] : $tokens[$i];
+    for ($i = 0; $i + 3 < $n; $i++) {
+        if (! is_array($tokens[$i]) || ! str_ends_with($tokens[$i][1], 'CredentialFence')
+            || ! is_array($tokens[$i + 1]) || $tokens[$i + 1][0] !== T_DOUBLE_COLON
+            || $sig($i + 2) !== 'run' || $tokens[$i + 3] !== '(') {
+            continue;
+        }
+        $depth = 1;
+        for ($j = $i + 4; $j < $n && $depth > 0; $j++) {
+            $depth += $tokens[$j] === '(' ? 1 : ($tokens[$j] === ')' ? -1 : 0);
+        }
+        $spans[] = [$pos[$i + 3] + 1, $j < $n ? $pos[$j - 1] : strlen($code)];
+    }
+
+    return $spans;
+}
 
 /** True if every credential write sits inside a CredentialFence::run( ... ) call's parentheses. */
 function writesOnlyInsideFence(string $src): bool
@@ -58,17 +95,7 @@ function writesOnlyInsideFence(string $src): bool
     if ($m[0] === []) {
         return true;
     }
-    $spans = [];
-    $off = 0;
-    while (($at = strpos($code, 'CredentialFence::run(', $off)) !== false) {
-        $start = $at + strlen('CredentialFence::run(');
-        $depth = 1;
-        for ($i = $start; $i < strlen($code) && $depth > 0; $i++) {
-            $depth += $code[$i] === '(' ? 1 : ($code[$i] === ')' ? -1 : 0);
-        }
-        $spans[] = [$start, $i];
-        $off = $start;
-    }
+    $spans = fenceSpans($code);
     foreach ($m[0] as [, $pos]) {
         $inside = false;
         foreach ($spans as [$a, $b]) {
@@ -91,6 +118,17 @@ it('has the fence scanner reject unfenced credential writes (deliberate violatio
     'auth_proofs delete outside' => ['<?php DB::table("auth_proofs")->delete(); CredentialFence::run(fn () => 1);'],
     'password array write outside' => ['<?php $db->table("users")->update(["password" => $h]); CredentialFence::run(fn () => 1);'],
     'proof issue outside' => ['<?php AuthProofs::issue($u, "reset"); CredentialFence::run(fn () => 1);'],
+    'paren inside a string does not extend the fence' => ['<?php CredentialFence::run(1, fn () => "("); $u->password = $h;'],
+    'AuthProof model delete' => ['<?php AuthProof::query()->where("user_id", 1)->delete();'],
+    'setAttribute password' => ['<?php $u->setAttribute(\'password\', $h); $u->save();'],
+    'brace property password' => ['<?php $u->{\'password\'} = $h;'],
+    'decrement credential_version' => ['<?php $q->decrement(\'credential_version\');'],
+    'sessions table delete' => ['<?php DB::table(\'sessions\')->where(\'user_id\', 1)->delete();'],
+    'raw update users' => ['<?php DB::update("update users set password = ? where id = ?", [$h, 1]);'],
+    'raw delete from auth_proofs' => ['<?php DB::delete("delete from auth_proofs where user_id = ?", [1]);'],
+    'raw delete from sessions' => ['<?php DB::delete("DELETE FROM sessions WHERE user_id = 1");'],
+    'auth_proofs table in a variable' => ['<?php $t = \'auth_proofs\'; DB::table($t)->delete();'],
+    'auth_proofs aliased' => ['<?php DB::table("auth_proofs as p")->delete();'],
 ]);
 
 it('has the fence scanner accept reads and hash checks outside the fence', function (string $src) {
@@ -100,9 +138,12 @@ it('has the fence scanner accept reads and hash checks outside the fence', funct
     'hasPassword reads the column' => ['<?php function hasPassword($db) { return $db->table("users")->value("password") !== null; } CredentialFence::run($id, fn () => 1);'],
     'version read' => ['<?php $v = (int) $db->table("users")->value("credential_version");'],
     'proof read' => ['<?php $db->table("auth_proofs")->where("user_id", 1)->exists();'],
+    'session read' => ['<?php $db->table("sessions")->where("id", 1)->exists();'],
 ]);
 
-it('has the fence scanner accept fenced writes', function () {
+it('has the fence scanner accept fenced writes of every kind', function () {
+    $fenced = '<?php CredentialFence::run($id, function () use ($db) { $db->table("sessions")->where("user_id", 1)->delete(); $db->table("auth_proofs")->where("user_id", 1)->delete(); $db->table("users")->decrement("credential_version"); });';
+    expect(writesOnlyInsideFence($fenced))->toBeTrue();
     expect(writesOnlyInsideFence('<?php CredentialFence::run(function () { $u->password = $h; $u->credential_version++; });'))->toBeTrue()
         ->and(writesOnlyInsideFence('<?php return 1;'))->toBeTrue();
 });
