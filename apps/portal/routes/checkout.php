@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\CheckoutStartController;
 use App\Http\Controllers\Api\CheckoutStatusController;
 use App\Http\Controllers\Api\ConceptController;
 use App\Http\Controllers\Api\InvoiceController;
+use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\ProjectBriefController;
 use App\Http\Controllers\Api\ProjectListController;
 use App\Http\Controllers\Api\ProjectSnapshotController;
@@ -48,4 +49,11 @@ Route::middleware(['web', 'auth.verified'])->group(function () {
     Route::get('/api/projects/{id}/brief/draft', [ProjectBriefController::class, 'draft'])->name('projects.brief.draft');
     Route::put('/api/projects/{id}/brief/draft', [ProjectBriefController::class, 'saveDraft'])->name('projects.brief.draft.save');
     Route::delete('/api/projects/{id}/brief/draft', [ProjectBriefController::class, 'discardDraft'])->name('projects.brief.draft.discard');
+});
+
+// Story 6.10 (C-14, C-15): project messages and read state. Admin or member.
+Route::middleware(['web', 'auth.verified'])->group(function () {
+    Route::get('/api/projects/{id}/messages', [MessageController::class, 'index'])->name('messages.index');
+    Route::post('/api/projects/{id}/messages', [MessageController::class, 'store'])->name('messages.store');
+    Route::post('/api/projects/{id}/read-state', [MessageController::class, 'readState'])->name('messages.readState');
 });
