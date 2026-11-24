@@ -3,12 +3,14 @@
 use App\Http\Controllers\Api\CheckoutAuthEmailController;
 use App\Http\Controllers\Api\CheckoutStartController;
 use App\Http\Controllers\Api\CheckoutStatusController;
+use App\Http\Controllers\Api\ConceptCommentController;
 use App\Http\Controllers\Api\ConceptController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\ProjectBriefController;
 use App\Http\Controllers\Api\ProjectListController;
 use App\Http\Controllers\Api\ProjectSnapshotController;
 use App\Http\Controllers\Api\ReprocessCheckoutController;
+use App\Http\Controllers\Api\RevisionRequestController;
 use App\Http\Controllers\Api\UpsellCheckoutController;
 use App\Http\Controllers\Webhooks\WebhookController;
 use Illuminate\Support\Facades\Route;
@@ -48,4 +50,11 @@ Route::middleware(['web', 'auth.verified'])->group(function () {
     Route::get('/api/projects/{id}/brief/draft', [ProjectBriefController::class, 'draft'])->name('projects.brief.draft');
     Route::put('/api/projects/{id}/brief/draft', [ProjectBriefController::class, 'saveDraft'])->name('projects.brief.draft.save');
     Route::delete('/api/projects/{id}/brief/draft', [ProjectBriefController::class, 'discardDraft'])->name('projects.brief.draft.discard');
+});
+
+// Story 6.8 (C-10 comments: admin or member; C-11 revision request: member only).
+Route::middleware(['web', 'auth.verified'])->group(function () {
+    Route::get('/api/projects/{id}/concepts/{conceptId}/comments', [ConceptCommentController::class, 'index'])->name('concepts.comments.index');
+    Route::post('/api/projects/{id}/concepts/{conceptId}/comments', [ConceptCommentController::class, 'store'])->name('concepts.comments.store');
+    Route::post('/api/projects/{id}/revision-requests', [RevisionRequestController::class, 'store'])->name('revisions.store');
 });

@@ -23,6 +23,15 @@ final class ErrorCodes
 
     public const CONCEPT_NOT_FOUND = 'CONCEPT_NOT_FOUND';
 
+    /** Story 6.8 (C-10, C-11). */
+    public const INVALID_BODY = 'INVALID_BODY';
+
+    public const INVALID_COMMENT_BODY = 'INVALID_COMMENT_BODY';
+
+    public const INVALID_PROJECT_STATUS_TRANSITION = 'INVALID_PROJECT_STATUS_TRANSITION';
+
+    public const NO_REVISIONS_REMAINING = 'NO_REVISIONS_REMAINING';
+
     public const FORBIDDEN = 'FORBIDDEN';
 
     /** 400: every failed sign-in (A-01, `login/route.ts:7`). */

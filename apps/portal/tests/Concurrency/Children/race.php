@@ -11,9 +11,11 @@ use App\Actions\Checkout\ClaimStripeEvent;
 use App\Actions\Checkout\CompleteFulfilmentSideEffects;
 use App\Actions\Checkout\FulfilsCheckout;
 use App\Actions\Checkout\ProcessStripeEvent;
+use App\Actions\Revisions\RequestRevision;
 use App\Exceptions\ApiException;
 use App\Exceptions\AuthFailure;
 use App\Http\Controllers\Api\ReprocessCheckoutController;
+use App\Models\Project;
 use App\Models\User;
 use App\Support\Audit;
 use App\Support\Auth\AuthProofs;
@@ -196,6 +198,18 @@ $out = match ($mode) {
         $claim = (new ClaimStripeEvent)->claim($args[0], 'checkout.session.completed', time());
 
         return ['won' => $claim instanceof Claim];
+    })(),
+
+    // Story 6.8: one revision request for a project with one revision left. args: <projectId> <userId> <conceptId>
+    'revision-request' => (function () use ($args): array {
+        [$projectId, $userId, $conceptId] = $args;
+        try {
+            (new RequestRevision)(Project::query()->findOrFail($projectId), $userId, $conceptId, 'race');
+
+            return ['won' => true];
+        } catch (ApiException $e) {
+            return ['won' => false, 'code' => $e->errorCode];
+        }
     })(),
 
     // Story 5.3 AC 9: the webhook's and a second path's side effects for one session; counts the mails THIS process sent.
