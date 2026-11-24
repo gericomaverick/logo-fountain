@@ -30,7 +30,7 @@ it('lets exactly one of two parallel approvals win and sends each approval email
     $lost = array_values(array_filter($children, fn (array $c) => ! $c['won']));
     expect($won)->toHaveCount(1)
         ->and($lost)->toHaveCount(1)
-        ->and($lost[0]['code'])->toBeIn(['CONCEPT_NOT_FOUND', 'INVALID_PROJECT_STATUS_TRANSITION', 'STATUS_CHANGE_CONFLICT'])
+        ->and($lost[0]['code'])->toBe('CONCEPT_NOT_FOUND')
         ->and(DB::table('concepts')->where('project_id', $project->id)->where('status', 'approved')->count())->toBe(1)
         ->and(DB::table('projects')->where('id', $project->id)->value('status'))->toBe('AWAITING_APPROVAL')
         ->and(DB::table('audit_events')->where('type', 'like', 'email_sent:client_concept_approved:%')->count())->toBe(1)

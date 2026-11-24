@@ -19,7 +19,8 @@ As a signed-in client, I can set my first and last name, keep my theme choice an
 | Behaviour | Next.js | Laravel | Why | Decision ref |
 |---|---|---|---|---|
 | PUT body that is JSON but not an object (`null`, `5`) | 500 (TypeError) | treated as `{}`, 200 | no crash | none |
-| Unpaired surrogate left by the 80-unit cut | kept | not covered by a test | edge | none |
+| Unpaired surrogate (lone `\ud800` in the JSON, or left by the 80-unit cut) | kept as-is | replaced by U+FFFD | PHP/Postgres cannot store a lone surrogate | tested, `ProfileApiTest.php:80-86` (8 cases in the file) |
+| Invalid UTF-8 body | Next replaces the bytes and carries on | 400 `INVALID_JSON` | the body does not decode | none |
 
 ## Laravel implementation
 `ProfileController` (`show`, `update`), two `ErrorCodes`, routes in `routes/checkout.php` (`web`, `auth.verified`). Invoices stay in `InvoiceController` (5.7); this story does not touch it.

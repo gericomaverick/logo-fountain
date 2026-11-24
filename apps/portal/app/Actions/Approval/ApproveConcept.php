@@ -28,7 +28,7 @@ final class ApproveConcept
     public function __invoke(Project $project, string $userId, string $conceptId): array
     {
         return Db::serializable(fn () => $this->approve($project, $userId, $conceptId),
-            fn () => new ApiException('Could not approve concept', 409, 'STATUS_CHANGE_CONFLICT', ['nextStep' => 'Retry the approval.']));
+            fn () => new ApiException('Could not approve concept', 409, ErrorCodes::STATUS_CHANGE_CONFLICT, ['nextStep' => 'Retry the approval.']));
     }
 
     /** @return array{concept: array{id: string, number: int, status: string}, project: array{id: string, status: string}} */
@@ -54,7 +54,7 @@ final class ApproveConcept
         Concept::query()->where('project_id', $project->id)->where('id', '!=', $concept->id)
             ->whereIn('status', [Concept::STATUS_PUBLISHED, Concept::STATUS_APPROVED])->update(['status' => Concept::STATUS_ARCHIVED]);
         $concept->update(['status' => Concept::STATUS_APPROVED]);
-        Db::guardedProjectUpdate($project->id, $row->status, (int) $row->version, ['status' => $to], fn () => new ApiException('Could not approve concept', 409, 'STATUS_CHANGE_CONFLICT', ['nextStep' => 'Retry the approval.']));
+        Db::guardedProjectUpdate($project->id, $row->status, (int) $row->version, ['status' => $to], fn () => new ApiException('Could not approve concept', 409, ErrorCodes::STATUS_CHANGE_CONFLICT, ['nextStep' => 'Retry the approval.']));
         Audit::record('concept_approved', $project->id, $userId, ['conceptId' => $concept->id, 'conceptNumber' => $concept->number]);
         Audit::record('state_changed', $project->id, $userId, ['previousStatus' => $row->status, 'nextStatus' => $to]);
 

@@ -57,4 +57,4 @@ Files-tab UI, invoices page (C-18), `@finals&@ui` and `@invoices&@ui` after the 
 
 ## Addendum 2026-11-24
 - `tests/Concurrency/FinalDownloadRaceTest.php` (`pg-race`, child mode `final-download` in `Children/race.php`): two parallel first downloads give one DELIVERED transition (version +1), one `state_changed` audit, a signed URL for every winner, and no URL for a loser (409 `FINAL_DOWNLOAD_CONFLICT` allowed by design).
-- `bin/test`: first full run 2206 passed, 1 failed (`ConceptApiTest` signed-URL `X-Amz-Date` one second apart: a clock-rollover flake, same class as the 6.7 fix, not touched here); re-run of that file plus the new race test: 9 passed, exit 0.
+- `bin/test`: first full run 2206 passed, 1 failed (`ConceptApiTest` signed-URL `X-Amz-Date` one second apart: a signed-URL timing flake; fixed here by comparing the URL path only, since `freezeTime` did not reach the signer); re-run of that file plus the new race test: 9 passed, exit 0.

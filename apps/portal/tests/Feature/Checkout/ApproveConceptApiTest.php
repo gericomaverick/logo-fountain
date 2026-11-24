@@ -67,7 +67,7 @@ it('approves: others archived, approved, AWAITING_APPROVAL, both audits, each em
     expect(json_decode($audit->payload, true))->toBe(['conceptId' => $pick->id, 'conceptNumber' => (int) $pick->number]);
 });
 
-it('a second approval is a 400 transition error and sends nothing more', function () {
+it('a second approval of the same concept is a 404 CONCEPT_NOT_FOUND and sends nothing more', function () {
     $project = Project::factory()->create(['status' => 'CONCEPTS_READY']);
     $pick = apConcept($project);
     apSignIn(apMember($project));

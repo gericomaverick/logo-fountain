@@ -110,6 +110,8 @@ final class ErrorCodes
 
     public const FINAL_DOWNLOAD_CONFLICT = 'FINAL_DOWNLOAD_CONFLICT';
 
+    public const STATUS_CHANGE_CONFLICT = 'STATUS_CHANGE_CONFLICT';
+
     public const UNAUTHORIZED = 'UNAUTHORIZED';
 
     public const WEAK_PASSWORD = 'WEAK_PASSWORD';

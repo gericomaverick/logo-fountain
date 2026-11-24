@@ -43,7 +43,7 @@ Compared with Next `route.test.ts`: its one case (both emails called with projec
 
 ## Test evidence
 `bin/test` (check-agents-guide, Pint, Larastan 9, Pest incl. `tests/Concurrency`): 2209 passed, 1 warning (pre-existing `SafeNextTest`), exit 0. `npm run typecheck` exit 0; `npm run lint` exit 0 (in the stack's `vite` container).
-**Not run, and why:** the parity suite (`@approval&@api`, `client-authz.spec.ts:104`) against Laravel: `tests/parity` has no `node_modules` here; the builder's note from 6.8 says it is the owner's call to install. No concurrency (`pg-race`) test for two parallel approvals was written: the row lock is shared with 6.8's proven pattern. UI not built.
+**Not run, and why:** the parity suite (`@approval&@api`, `client-authz.spec.ts:104`) against Laravel: `tests/parity` has no `node_modules` here; the builder's note from 6.8 says it is the owner's call to install. UI not built. (Superseded: the concurrency test now exists, see Addendum.)
 
 ## Gotchas
 The repeat approval of the same concept is a 404 `CONCEPT_NOT_FOUND` (it is now `approved`, no longer `published`), not a transition 400, as on Next.
@@ -52,4 +52,9 @@ The repeat approval of the same concept is a 404 `CONCEPT_NOT_FOUND` (it is now 
 sprint-status (6-9 review), this story. Inventory rows C-12/N-07/N-08 not changed (UI half pending).
 
 ## Open items
-Owner: approve the key screen so the confirmation dialog UI can follow. Optional: a `pg-race` test for parallel approvals.
+Owner: approve the key screen so the confirmation dialog UI can follow. (The `pg-race` test for parallel approvals now exists.)
+
+## Addendum 2026-11-24
+- `tests/Concurrency/ApprovalRaceTest.php` (`pg-race`, child mode `approve` in `Children/race.php`): two parallel approvals of different concepts give one winner and one loser; one approved concept, project AWAITING_APPROVAL, each approval email once. The loser code is pinned to `CONCEPT_NOT_FOUND`; it held in 4 of 4 runs (plus 3 earlier runs under the wider set).
+- Rename: the repeat-approval test in `ApproveConceptApiTest` now says 404 `CONCEPT_NOT_FOUND`; `STATUS_CHANGE_CONFLICT` is now `ErrorCodes::STATUS_CHANGE_CONFLICT` in `ApproveConcept`.
+- Final merged `bin/test`: 2226 passed, 1 warning, exit 0.
