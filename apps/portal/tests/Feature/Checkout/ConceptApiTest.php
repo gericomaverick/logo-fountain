@@ -95,7 +95,6 @@ it('lets an admin read a project, and an unknown project lists empty', function 
 });
 
 it('signs the file created last for imageUrl, while revisionVersion stays the highest version (Next parity)', function () {
-    $this->freezeTime(); // signed URLs embed X-Amz-Date (second resolution)
     $concept = Concept::factory()->status('published')->create();
     $pid = $concept->project_id;
     FileAsset::factory()->forConcept($concept)->create(['path' => "{$pid}/{$concept->id}/v2.png", 'created_at' => now()->subHour()]);
@@ -107,5 +106,5 @@ it('signs the file created last for imageUrl, while revisionVersion stays the hi
         ->and($assets[0]['version'])->toBe(2)
         ->and($assets[1]['version'])->toBe(1)
         ->and($item['imageKey'])->toBe($assets[1]['imageKey'])
-        ->and($item['imageUrl'])->toBe($assets[1]['url']);
+        ->and(strtok($item['imageUrl'], '?'))->toBe(strtok($assets[1]['url'], '?')); // query holds X-Amz-Date/Signature (native clock, not frozen)
 });
