@@ -102,6 +102,10 @@ final class ErrorCodes
 
     public const RATE_LIMITED = 'RATE_LIMITED';
 
+    public const FINAL_ZIP_NOT_AVAILABLE = 'FINAL_ZIP_NOT_AVAILABLE';
+
+    public const FINAL_DOWNLOAD_CONFLICT = 'FINAL_DOWNLOAD_CONFLICT';
+
     public const UNAUTHORIZED = 'UNAUTHORIZED';
 
     public const WEAK_PASSWORD = 'WEAK_PASSWORD';
