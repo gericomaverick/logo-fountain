@@ -4,7 +4,11 @@ use App\Http\Controllers\Api\CheckoutAuthEmailController;
 use App\Http\Controllers\Api\CheckoutStartController;
 use App\Http\Controllers\Api\CheckoutStatusController;
 use App\Http\Controllers\Api\InvoiceController;
+<<<<<<< HEAD
 use App\Http\Controllers\Api\ProjectListController;
+=======
+use App\Http\Controllers\Api\ProjectSnapshotController;
+>>>>>>> 8a51e7c3f90267b99588c6897029fab58ab1c738
 use App\Http\Controllers\Api\ReprocessCheckoutController;
 use App\Http\Controllers\Api\UpsellCheckoutController;
 use App\Http\Controllers\Webhooks\WebhookController;
@@ -30,5 +34,11 @@ Route::middleware(['web', 'auth.verified'])->get('/api/invoices', [InvoiceContro
 Route::middleware(['web', 'auth.verified'])->get('/api/projects/{id}/invoices', [InvoiceController::class, 'project'])->name('invoices.project');
 Route::middleware(['web', 'admin'])->get('/api/admin/projects/{id}/invoices', [InvoiceController::class, 'admin'])->name('invoices.admin');
 
+<<<<<<< HEAD
 // Story 6.1 (C-02, list): the caller's projects across their client memberships.
 Route::middleware(['web', 'auth.verified'])->get('/api/projects', ProjectListController::class)->name('projects.index');
+=======
+// Story 6.2a (C-02 snapshot, C-16 entitlements). Signed in; the snapshot takes an admin or a member, entitlements a member.
+Route::middleware(['web', 'auth.verified'])->get('/api/projects/{id}', [ProjectSnapshotController::class, 'show'])->name('projects.snapshot');
+Route::middleware(['web', 'auth.verified'])->get('/api/projects/{id}/entitlements', [ProjectSnapshotController::class, 'entitlements'])->name('projects.entitlements');
+>>>>>>> 8a51e7c3f90267b99588c6897029fab58ab1c738
