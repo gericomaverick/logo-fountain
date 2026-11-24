@@ -52,6 +52,10 @@ final class ErrorCodes
 
     public const INVALID_JSON = 'INVALID_JSON';
 
+    public const INVALID_FIRST_NAME = 'INVALID_FIRST_NAME';
+
+    public const INVALID_LAST_NAME = 'INVALID_LAST_NAME';
+
     /** Story 5.4 (K-02/K-03): checkout status and send-link. */
     /** Story 5.6 (K-12, DV-23): admin reprocess. */
     public const CHECKOUT_SESSION_NOT_FOUND = 'CHECKOUT_SESSION_NOT_FOUND';
