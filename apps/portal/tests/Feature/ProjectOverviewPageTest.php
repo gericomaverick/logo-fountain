@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\ClientMembership;
+use App\Models\Profile;
 use App\Models\Project;
 use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -54,6 +55,21 @@ it('answers 404 for a project the visitor is not a member of, and for a malforme
 
     $this->get("/project/{$project->id}")->assertNotFound();
     $this->get('/project/not-a-uuid')->assertNotFound();
+});
+
+it('answers 404 for a well-formed id that matches no project', function () {
+    ovSignIn(ClientMembership::factory()->create()->profile->user);
+
+    $this->get('/project/00000000-0000-4000-8000-0000000000ff')->assertNotFound();
+});
+
+// Story 6.1 owns the admin redirect to /admin/projects/{id}; until then an admin gets the customer Overview (policy `view`).
+it('lets an admin open the customer Overview until story 6.1 redirects them', function () {
+    $project = Project::factory()->create(['status' => 'CONCEPTS_READY']);
+    $admin = Profile::factory()->admin()->create()->user;
+    ovSignIn($admin);
+
+    $this->get("/project/{$project->id}")->assertOk()->assertInertia(fn (Assert $page) => $page->component('Project/Overview')->where('projectId', $project->id));
 });
 
 it('serves the dev fixture page with the requested status', function () {

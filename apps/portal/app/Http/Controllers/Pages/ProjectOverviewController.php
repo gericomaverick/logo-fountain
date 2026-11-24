@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Pages;
 
+use App\Http\Controllers\Controller;
 use App\Http\Middleware\EnforceSessionCap;
 use App\Models\Project;
 use App\Models\User;

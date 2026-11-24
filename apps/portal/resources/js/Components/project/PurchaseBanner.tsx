@@ -1,7 +1,6 @@
 import { useState } from 'react';
 
 import { InlineAlert } from '@/Components/ui/InlineAlert';
-import { PollingStatus } from '@/Components/ui/PollingStatus';
 import { usePolling } from '@/hooks/usePolling';
 import { purchaseCopy, purchaseFromSearch, purchaseInterval, type PurchaseState } from '@/lib/upsell';
 
@@ -36,11 +35,12 @@ export function PurchaseBanner({ search, onConfirmed }: { search: string; onConf
     const shown: PurchaseState = state === 'confirmed' ? 'confirmed' : polling.reconnecting ? 'delayed' : 'confirming';
     const copy = purchaseCopy(shown, purchase.kind);
     return (
-        <div data-testid="purchase-banner" data-state={shown}>
-            <InlineAlert tone={shown === 'confirmed' ? 'success' : shown === 'delayed' ? 'danger' : 'warning'} title={copy.title} announce>
+        // One polite live region whose role never changes (some screen readers miss a role switch), so the
+        // alert inside is static and the text change is what is announced.
+        <div data-testid="purchase-banner" data-state={shown} role="status">
+            <InlineAlert tone={shown === 'confirmed' ? 'success' : shown === 'delayed' ? 'danger' : 'warning'} title={copy.title}>
                 {copy.body}
             </InlineAlert>
-            <PollingStatus reconnecting={false} announcement="" />
         </div>
     );
 }

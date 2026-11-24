@@ -1,7 +1,7 @@
 <?php
 
 use App\Domain\ProjectTimeline;
-use App\Http\Controllers\ProjectOverviewController;
+use App\Http\Controllers\Pages\ProjectOverviewController;
 use App\Http\Middleware\EnforceSessionCap;
 use App\Models\User;
 use App\Support\Auth\SafeNext;

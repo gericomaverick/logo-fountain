@@ -1,6 +1,6 @@
 // Story 6.2b (C-03, FR24, FR58), 6.3 and 6.4. Gate: @ui. Drives /dev/project-overview (a fixture snapshot, no
 // database) and stubs GET /api/projects/{id} with page.route, time with page.clock. Screenshots go to
-// tests/Browser/screens/ (not baselines: the owner looks at them).
+// tests/browser/screens/ (not baselines: the owner looks at them).
 import { expect, test, type Page } from '@playwright/test';
 
 const ID = '00000000-0000-4000-8000-000000000001';
@@ -38,7 +38,7 @@ for (const [status, turn, action] of TURNS) {
     test(`@ui overview ${status}: turn banner ${turn}${action ? `, action "${action}"` : ', no action'}`, async ({ page }) => {
         await open(page, `status=${status}`);
         await expect(banner(page)).toHaveAttribute('data-turn', turn);
-        const button = banner(page).getByRole('button');
+        const button = banner(page).getByRole('link');
         if (action) await expect(button).toHaveText(action);
         else await expect(button).toHaveCount(0);
         await expect(page.getByRole('list', { name: 'Project progress' })).toBeVisible();
@@ -108,11 +108,55 @@ test('@upsell @ui purchase banner: confirming, then confirmed at the 2.5 s then 
     await expect(pb).toHaveAttribute('data-state', 'confirmed');
 });
 
+test('@upsell @ui purchase banner schedule: after a reload the status is asked at once, again at 2.5 s, and not again until 7 s later', async ({ page }) => {
+    await page.clock.install();
+    let hits = 0;
+    await page.route('**/api/checkout/status**', (route) => {
+        hits += 1;
+        return route.fulfill({ json: { fulfilled: false } });
+    });
+    await page.route(`**/api/projects/${ID}`, (route) => route.fulfill({ json: snapshot('CONCEPTS_READY') }));
+    await page.goto('/dev/project-overview?status=CONCEPTS_READY&upsell=1&session_id=cs_test_S&kind=addon');
+    const pb = page.getByTestId('purchase-banner');
+    await expect(pb).toHaveAttribute('data-state', 'confirming', { timeout: 15_000 });
+    await page.reload();
+    await expect(pb).toHaveAttribute('data-state', 'confirming');
+    hits = 0;
+    await page.clock.runFor(2_600);
+    await expect.poll(() => hits).toBe(1);
+    await page.clock.runFor(2_600); // 5.2 s: a flat 2.5 s interval would have asked a third time by now
+    await page.waitForTimeout(300);
+    expect(hits).toBe(1);
+    await page.clock.runFor(4_400); // 9.6 s: the 7 s wait after the 2.5 s call has ended
+    await expect.poll(() => hits).toBe(2);
+    await expect(pb).toHaveAttribute('data-state', 'confirming');
+});
+
+test('@upsell @ui purchase banner: three failed status calls in a row show the delayed state', async ({ page }) => {
+    await page.clock.install();
+    let hits = 0;
+    await page.route('**/api/checkout/status**', (route) => {
+        hits += 1;
+        return route.fulfill({ status: 500, json: { error: 'down' } });
+    });
+    await page.route(`**/api/projects/${ID}`, (route) => route.fulfill({ json: snapshot('CONCEPTS_READY') }));
+    await page.goto('/dev/project-overview?status=CONCEPTS_READY&upsell=1&session_id=cs_test_D&kind=upgrade');
+    const pb = page.getByTestId('purchase-banner');
+    await expect(pb).toHaveAttribute('data-state', 'confirming', { timeout: 15_000 });
+    await page.clock.runFor(2_600);
+    await expect.poll(() => hits).toBe(2);
+    await expect(pb).toHaveAttribute('data-state', 'confirming'); // two failures are not enough
+    await page.clock.runFor(7_100);
+    await expect.poll(() => hits).toBeGreaterThanOrEqual(3);
+    await expect(pb).toHaveAttribute('data-state', 'delayed');
+    await expect(pb).toHaveAttribute('role', 'status');
+});
+
 for (const [name, viewport] of [['desktop', { width: 1280, height: 800 }], ['mobile', { width: 390, height: 844 }]] as const) {
     test(`@ui overview screenshot (${name})`, async ({ page }) => {
         await page.setViewportSize(viewport);
         await open(page, 'status=CONCEPTS_READY&revisions=0');
         await page.evaluate(() => document.fonts.ready);
-        await page.screenshot({ path: `tests/Browser/screens/overview-${name}.png`, fullPage: true });
+        await page.screenshot({ path: `tests/browser/screens/overview-${name}.png`, fullPage: true });
     });
 }

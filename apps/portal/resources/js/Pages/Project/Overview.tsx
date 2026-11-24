@@ -1,10 +1,9 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, Link as InertiaLink, router } from '@inertiajs/react';
 import { FileText, Folder } from 'lucide-react';
 
 import { PurchaseBanner } from '@/Components/project/PurchaseBanner';
 import { UpsellPanel } from '@/Components/project/UpsellPanel';
 import { AllowanceMeter } from '@/Components/ui/AllowanceMeter';
-import { Button } from '@/Components/ui/Button';
 import { Panel } from '@/Components/ui/Card';
 import { Link } from '@/Components/ui/Link';
 import { PollingStatus } from '@/Components/ui/PollingStatus';
@@ -80,54 +79,62 @@ export default function Overview({ projectId, snapshot: initial, user }: Props) 
                 state={snap.status}
                 action={
                     target ? (
-                        <Button variant="primary" width="phone" onClick={() => router.visit(`${base}/${target}`)}>
+                        <InertiaLink
+                            href={`${base}/${target}`}
+                            data-variant="primary"
+                            className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-transparent bg-accent px-5 text-sm font-semibold text-accent-fg transition-colors hover:bg-accent-text sm:w-auto"
+                        >
                             {copy.actionLabel}
-                        </Button>
+                        </InertiaLink>
                     ) : undefined
                 }
             />
             <PollingStatus reconnecting={polling.reconnecting} announcement={polling.announcement} refresh={polling.refresh} />
-            <Panel title="Progress">
-                <StageTracker timeline={snap.timeline} label="Project progress" />
-            </Panel>
-            <div className="grid gap-6 md:grid-cols-2">
-                <Panel title="Concepts">
-                    <AllowanceMeter label="Concepts" as="h3" noun={{ one: 'concept', many: 'concepts' }} usage={snap.entitlementUsage.concepts} />
-                </Panel>
-                <Panel title="Revisions">
-                    <AllowanceMeter label="Revisions" as="h3" noun={{ one: 'revision', many: 'revisions' }} usage={revisions} />
-                </Panel>
-            </div>
-            {inUpsellPhase(snap.status) ? <UpsellPanel projectId={projectId} packageCode={snap.packageCode} revisions={standing} /> : null}
-            <Panel title="Recent activity">
-                {activity.length === 0 ? (
-                    <p className="text-base text-fg-2">Nothing yet. Updates appear here as your project moves on.</p>
-                ) : (
-                    <ul className="flex flex-col gap-2">
-                        {activity.map((m) => (
-                            <li key={m.id} className="text-base text-fg-2">
-                                {m.body}
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+                <div className="flex min-w-0 flex-col gap-6">
+                    {inUpsellPhase(snap.status) ? <UpsellPanel projectId={projectId} packageCode={snap.packageCode} revisions={standing} /> : null}
+                    <Panel title="Recent activity">
+                        {activity.length === 0 ? (
+                            <p className="text-base text-fg-2">Nothing yet. Updates appear here as your project moves on.</p>
+                        ) : (
+                            <ul className="flex flex-col gap-2">
+                                {activity.map((m) => (
+                                    <li key={m.id} className="text-base text-fg-2">
+                                        {m.body}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </Panel>
+                    <Panel title="Shortcuts">
+                        <ul className="flex flex-col gap-2">
+                            <li>
+                                <Link href={hrefs.brief} variant="standalone">
+                                    <FileText aria-hidden="true" size={16} strokeWidth={1.5} />
+                                    Your brief
+                                </Link>
                             </li>
-                        ))}
-                    </ul>
-                )}
-            </Panel>
-            <Panel title="Shortcuts">
-                <ul className="flex flex-col gap-2">
-                    <li>
-                        <Link href={hrefs.brief} variant="standalone">
-                            <FileText aria-hidden="true" size={16} strokeWidth={1.5} />
-                            Your brief
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href={hrefs.files} variant="standalone">
-                            <Folder aria-hidden="true" size={16} strokeWidth={1.5} />
-                            Files and invoices
-                        </Link>
-                    </li>
-                </ul>
-            </Panel>
+                            <li>
+                                <Link href={hrefs.files} variant="standalone">
+                                    <Folder aria-hidden="true" size={16} strokeWidth={1.5} />
+                                    Files and invoices
+                                </Link>
+                            </li>
+                        </ul>
+                    </Panel>
+                </div>
+                <div className="order-first flex min-w-0 flex-col gap-6 lg:order-none">
+                    <Panel title="Progress">
+                        <StageTracker timeline={snap.timeline} label="Project progress" />
+                    </Panel>
+                    <Panel title="Concepts">
+                        <AllowanceMeter label="Concepts" as="h3" noun={{ one: 'concept', many: 'concepts' }} usage={snap.entitlementUsage.concepts} />
+                    </Panel>
+                    <Panel title="Revisions">
+                        <AllowanceMeter label="Revisions" as="h3" noun={{ one: 'revision', many: 'revisions' }} usage={revisions} />
+                    </Panel>
+                </div>
+            </div>
         </CustomerShell>
     );
 }
