@@ -10,7 +10,7 @@ As a signed-in client, I can download my project's final ZIP, and the first down
 2. The first download moves `FINAL_FILES_READY` to `DELIVERED` through the version guard (audit `state_changed`, reason `client_final_zip_download`). A `DELIVERED` project is served with no write and no audit. (API, done)
 3. Every miss is the same 404 `FINAL_ZIP_NOT_AVAILABLE` (non-member, admin, unknown or non-uuid project, no approval, no ZIP, other status); anonymous 401; cross-origin 403 before any lookup. (API, done)
 4. A lost guard or a serialization or lock failure is 409 `FINAL_DOWNLOAD_CONFLICT`, nothing is written and no URL is returned. (API, done)
-5. Invoices list for a project and for the account: already built (story 5.7, `InvoiceController`, `InvoicesApiTest`); nothing added here. (done)
+5. Invoices list for a project and for the account: the API exists (story 5.7). `InvoiceController::project` serves `GET /api/projects/{id}/invoices` (member only, newest first, `documentLabel`); `mine` and `admin` cover the account and admin lists (`routes/checkout.php:36-38`). Verified 2026-11-24: Pest `InvoicesApiTest` passes in `bin/test`; parity `laravel-stack.mjs "@invoices&@api"`: 5 passed, 1 skipped (the `test.fixme` at `client-settings.spec.ts:107`, settled-order receipt download). No API gap. What is **not** built is the Files-tab list in the UI (AC 6). (API done)
 6. Files tab with the project's invoices and receipts; `/settings/invoices` (C-18). **Pending: UI waits for the owner's key-screen approval.**
 
 ## Inventory scope
@@ -44,7 +44,7 @@ Compared with Next `route.test.ts` (6 cases): origin first, guard predicates, no
 - `bin/test` (check-agents-guide, Pint, Larastan 9, Pest incl. Concurrency): 2206 passed, 1 warning (pre-existing `SafeNextTest`), 0 failed; Pint failed once on my new files, fixed, then passed.
 - `npm run typecheck`: exit 0. `npm run lint`: exit 0.
 - Parity `laravel-stack.mjs "@finals&@api"`: 7 passed (all C-13 cases), 14 failed, all admin routes (D-11, D-12, D-13, D-15, DV-11, DV-13), not in this story.
-**Not run:** `@finals&@ui`, `@invoices&@ui` (no UI); L3 race (`pg-race`) for finals: the lost-guard path is simulated in L2, no two-process test; parity against Next; real R2/SeaweedFS signing fetch (URL structure only checked).
+**Not run:** `@finals&@ui`, `@invoices&@ui` (no UI); parity against Next; real R2/SeaweedFS signing fetch (URL structure only checked).
 
 ## Gotchas
 Parity admin rows with `@finals` in the gate make it exit 1; the gate for this story is the C-13 cases only.
@@ -54,3 +54,7 @@ Inventory C-13 row, sprint-status (review).
 
 ## Open items
 Files-tab UI, invoices page (C-18), `@finals&@ui` and `@invoices&@ui` after the key-screen approval. Admin finals (D-11..D-13) belong to the admin epic.
+
+## Addendum 2026-11-24
+- `tests/Concurrency/FinalDownloadRaceTest.php` (`pg-race`, child mode `final-download` in `Children/race.php`): two parallel first downloads give one DELIVERED transition (version +1), one `state_changed` audit, a signed URL for every winner, and no URL for a loser (409 `FINAL_DOWNLOAD_CONFLICT` allowed by design).
+- `bin/test`: first full run 2206 passed, 1 failed (`ConceptApiTest` signed-URL `X-Amz-Date` one second apart: a clock-rollover flake, same class as the 6.7 fix, not touched here); re-run of that file plus the new race test: 9 passed, exit 0.

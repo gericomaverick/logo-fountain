@@ -11,6 +11,7 @@ use App\Actions\Checkout\ClaimStripeEvent;
 use App\Actions\Checkout\CompleteFulfilmentSideEffects;
 use App\Actions\Checkout\FulfilsCheckout;
 use App\Actions\Checkout\ProcessStripeEvent;
+use App\Actions\Finals\DownloadFinal;
 use App\Actions\Revisions\RequestRevision;
 use App\Exceptions\ApiException;
 use App\Exceptions\AuthFailure;
@@ -23,12 +24,16 @@ use App\Support\Auth\CredentialFence;
 use App\Support\DatabaseRoles;
 use App\Support\Db;
 use App\Support\Locks;
+use App\Support\Storage\PrivateStorage;
+use Aws\MockHandler;
+use Aws\S3\S3Client;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Database\Connection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB as Database;
 use Stripe\Event;
 use Tests\Support\FakeStripe;
+use Tests\Support\StorageTestClient;
 
 require __DIR__.'/../../../vendor/autoload.php';
 $app = require __DIR__.'/../../../bootstrap/app.php';
@@ -207,6 +212,19 @@ $out = match ($mode) {
             (new RequestRevision)(Project::query()->findOrFail($projectId), $userId, $conceptId, 'race');
 
             return ['won' => true];
+        } catch (ApiException $e) {
+            return ['won' => false, 'code' => $e->errorCode];
+        }
+    })(),
+
+    // Story 6.11: one final-ZIP download (signing is local, against a mock S3 client). args: <projectId> <userId>
+    'final-download' => (function () use ($args): array {
+        [$projectId, $userId] = $args;
+        $storage = new PrivateStorage(new S3Client(StorageTestClient::options(new MockHandler([]))), 'concepts-bkt', 'finals-bkt');
+        try {
+            $result = (new DownloadFinal($storage))($projectId, $userId);
+
+            return ['won' => $result !== null, 'url' => $result['url'] ?? null];
         } catch (ApiException $e) {
             return ['won' => false, 'code' => $e->errorCode];
         }
