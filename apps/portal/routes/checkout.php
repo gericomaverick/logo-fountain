@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\CheckoutStartController;
 use App\Http\Controllers\Api\CheckoutStatusController;
 use App\Http\Controllers\Api\ConceptCommentController;
 use App\Http\Controllers\Api\ConceptController;
+use App\Http\Controllers\Api\FinalDownloadController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\ProjectBriefController;
@@ -58,6 +59,11 @@ Route::middleware(['web', 'auth.verified'])->group(function () {
     Route::get('/api/projects/{id}/concepts/{conceptId}/comments', [ConceptCommentController::class, 'index'])->name('concepts.comments.index');
     Route::post('/api/projects/{id}/concepts/{conceptId}/comments', [ConceptCommentController::class, 'store'])->name('concepts.comments.store');
     Route::post('/api/projects/{id}/revision-requests', [RevisionRequestController::class, 'store'])->name('revisions.store');
+});
+
+// Story 6.11 (C-13): final ZIP download, member only. Invoices (K-11) were built in story 5.7.
+Route::middleware(['web', 'auth.verified'])->group(function () {
+    Route::post('/api/projects/{id}/finals', [FinalDownloadController::class, 'download'])->name('finals.download');
 });
 
 // Story 6.10 (C-14, C-15): project messages and read state. Admin or member.
