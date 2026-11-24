@@ -82,6 +82,10 @@ final class ErrorCodes
     public const PROJECT_NOT_FOUND = 'PROJECT_NOT_FOUND';
 
     /** Story 6.5/6.6 (C-06, C-07): brief draft and submit. */
+    public const INVALID_MESSAGE_BODY = 'INVALID_MESSAGE_BODY';
+
+    public const INVALID_AREA = 'INVALID_AREA';
+
     public const INVALID_BRIEF_PAYLOAD = 'INVALID_BRIEF_PAYLOAD';
 
     public const INVALID_BRIEF_DRAFT_PAYLOAD = 'INVALID_BRIEF_DRAFT_PAYLOAD';

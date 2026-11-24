@@ -2,11 +2,10 @@
 
 namespace App\Actions\Revisions;
 
+use App\Actions\Messages\PostSystemMessage;
 use App\Domain\ProjectState;
 use App\Domain\ProjectTransitions;
 use App\Exceptions\ApiException;
-use App\Models\Message;
-use App\Models\MessageThread;
 use App\Models\Project;
 use App\Models\RevisionRequest;
 use App\Support\Audit;
@@ -97,8 +96,6 @@ final class RequestRevision
 
     private function systemMessage(string $projectId, string $fallbackUserId, string $text): void
     {
-        $thread = MessageThread::query()->firstOrCreate(['project_id' => $projectId]);
-        $admin = Database::connection(DatabaseRoles::RUNTIME)->table('profiles')->where('is_admin', true)->value('id');
-        Message::create(['thread_id' => $thread->id, 'project_id' => $projectId, 'sender_id' => is_string($admin) ? $admin : $fallbackUserId, 'kind' => 'system', 'body' => $text]);
+        PostSystemMessage::post($projectId, $fallbackUserId, $text);
     }
 }

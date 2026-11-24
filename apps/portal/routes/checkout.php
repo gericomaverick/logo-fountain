@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\CheckoutStatusController;
 use App\Http\Controllers\Api\ConceptCommentController;
 use App\Http\Controllers\Api\ConceptController;
 use App\Http\Controllers\Api\InvoiceController;
+use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\ProjectBriefController;
 use App\Http\Controllers\Api\ProjectListController;
 use App\Http\Controllers\Api\ProjectSnapshotController;
@@ -57,4 +58,11 @@ Route::middleware(['web', 'auth.verified'])->group(function () {
     Route::get('/api/projects/{id}/concepts/{conceptId}/comments', [ConceptCommentController::class, 'index'])->name('concepts.comments.index');
     Route::post('/api/projects/{id}/concepts/{conceptId}/comments', [ConceptCommentController::class, 'store'])->name('concepts.comments.store');
     Route::post('/api/projects/{id}/revision-requests', [RevisionRequestController::class, 'store'])->name('revisions.store');
+});
+
+// Story 6.10 (C-14, C-15): project messages and read state. Admin or member.
+Route::middleware(['web', 'auth.verified'])->group(function () {
+    Route::get('/api/projects/{id}/messages', [MessageController::class, 'index'])->name('messages.index');
+    Route::post('/api/projects/{id}/messages', [MessageController::class, 'store'])->name('messages.store');
+    Route::post('/api/projects/{id}/read-state', [MessageController::class, 'readState'])->name('messages.readState');
 });

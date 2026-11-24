@@ -24,6 +24,7 @@ C-10, C-11 (API half).
 |---|---|---|---|---|
 | Hidden concept on comments | 200 / thread | 404 `CONCEPT_NOT_FOUND` | DV-7 | DV-7 |
 | Revision on unpublished concept | accepted | 400 `CONCEPT_NOT_FOUND` | DV-7 | DV-7 |
+| Revision on an approved concept | accepted | 400 `CONCEPT_NOT_FOUND` (lookup is `published` only; the status transition does not block it, a project can stay CONCEPTS_READY after a concept is approved) | approved concepts are not revisable; owner to confirm | DV-7 |
 | Admin comment POST | 500 | 201 | DV-14 | DV-14 |
 
 ## Laravel implementation
@@ -37,3 +38,5 @@ C-10, C-11 (API half).
 | L4 | `client-concepts.spec.ts`, `client-revisions.spec.ts`, `client-authz.spec.ts` | C-10, C-11 |
 
 Parity on Laravel: the combined gate ran 41 passed, 26 failed; the failures are admin (D-05..D-09), read-state (C-15, story 6.10), approve (`client-authz.spec.ts:104` stops at the `/approve` line, story 6.9) and `dv-images`. All C-10/C-11 client cases pass.
+
+**Test evidence (after merging 6.10):** `bin/test` (Pint, Larastan, Pest incl. `tests/Concurrency`) full run: 2198 passed, 1 failed, exit 1: `ConceptApiTest` "signs the file created…" (6.7, presigned-URL `X-Amz-Date` fell on a second boundary; passes alone, 8 passed, exit 0). Then `RevisionRequestRaceTest` + `CommentsRevisionsApiTest` + `MessagesApiTest` together: see the report for the count. The earlier parity numbers above are unchanged; `pg-race` ran as part of that Pest run.

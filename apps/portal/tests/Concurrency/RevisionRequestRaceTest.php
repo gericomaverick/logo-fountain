@@ -17,7 +17,7 @@ afterEach(function () {
     DB::disconnect(DatabaseRoles::MIGRATE);
 });
 
-it('lets exactly the limit of 6 parallel revision requests win, and queues one admin email each', function () {
+it('lets exactly the limit of 2 of 6 parallel revision requests win, and queues one admin email each', function () {
     $project = Project::factory()->create(['status' => 'CONCEPTS_READY']);
     ProjectEntitlement::create(['project_id' => $project->id, 'key' => 'revisions', 'limit_int' => 2, 'consumed_int' => 0, 'reserved_int' => 0]);
     $concept = Concept::factory()->status('published')->create(['project_id' => $project->id]);
