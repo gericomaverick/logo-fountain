@@ -3,6 +3,7 @@
 // Story 2.4: one child process of an L3 race test (started in parallel by Tests\Support\RaceChildren).
 // argv: <mode> <startAt unix time, float> <mode args...>. Prints one JSON line; exits non-zero on any other error.
 
+use App\Actions\Approval\ApproveConcept;
 use App\Actions\Auth\ChangePassword;
 use App\Actions\Auth\ConfirmMagicLink;
 use App\Actions\Auth\ResetPassword;
@@ -205,6 +206,18 @@ $out = match ($mode) {
         [$projectId, $userId, $conceptId] = $args;
         try {
             (new RequestRevision)(Project::query()->findOrFail($projectId), $userId, $conceptId, 'race');
+
+            return ['won' => true];
+        } catch (ApiException $e) {
+            return ['won' => false, 'code' => $e->errorCode];
+        }
+    })(),
+
+    // Story 6.9: one approval of one concept. args: <projectId> <userId> <conceptId>
+    'approve' => (function () use ($args): array {
+        [$projectId, $userId, $conceptId] = $args;
+        try {
+            (new ApproveConcept)(Project::query()->findOrFail($projectId), $userId, $conceptId);
 
             return ['won' => true];
         } catch (ApiException $e) {
