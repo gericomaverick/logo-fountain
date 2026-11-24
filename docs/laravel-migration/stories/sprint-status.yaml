@@ -92,7 +92,7 @@ development_status:
 
   epic-6: backlog
   6-1-project-list-api-home-and-one-project-shortcut: backlog
-  6-2a-project-snapshot-api: backlog
+  6-2a-project-snapshot-api: review
   6-2b-project-overview: backlog
   6-3-upsell-panel: backlog
   6-4-post-purchase-confirmation: backlog
