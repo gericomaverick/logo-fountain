@@ -16,10 +16,10 @@ As a signed-in client (or admin), I can list a project's published concepts and 
 C-08, C-09 (API half).
 
 ## Next.js source read
-Parity contracts `client-concepts.spec.ts`, `concept-status-matrix.spec.ts`, `client-authz.spec.ts`; `brownfield/api-client.md:30-31`. The Next route files are not in this tree (`apps/web` has no `api/projects/[id]/concepts`), so the contract specs and brownfield notes were the source.
+Parity contracts `client-concepts.spec.ts`, `concept-status-matrix.spec.ts`, `client-authz.spec.ts`; `brownfield/api-client.md:30-31`. Next routes read directly: `apps/web/src/app/api/projects/[id]/concepts/route.ts` and `.../[conceptId]/assets/route.ts` (with `route.test.ts` beside each). An earlier draft of this story wrongly said they were absent (it looked under `apps/web/app`); the contract specs and brownfield notes were the first source, the route files are the conversion evidence and the behaviour below was diffed against them.
 
 ## Behaviour notes
-Unknown project: admin lists empty with `projectStatus:null`; a non-admin gets 404. `projectStatus` is the persisted status. `revisionVersion` = highest `v<n>` of the concept's files (min 1); `imageUrl` signs the newest-version file. Legacy `<project>/<concept>.<ext>` files count as v1.
+Unknown project: admin lists empty with `projectStatus:null`; a non-admin gets 404. `projectStatus` is the persisted status. `revisionVersion` = highest `v<n>` of the concept's files (min 1); `imageUrl` signs the first file by `createdAt` desc (as Next does), which may be a lower version if it was uploaded last; `/assets` sorts version desc then createdAt desc. Legacy `<project>/<concept>.<ext>` files count as v1.
 
 ## Laravel implementation
 `app/Http/Controllers/Api/ConceptController.php`, `app/Queries/ClientConcepts.php` (reuses `Project::clientVisibleConcepts()` and `SignedImage`), routes `concepts.index`, `concepts.assets` in `routes/checkout.php`. Re-checked per request with `ConceptPolicy` before any signing.
@@ -34,7 +34,7 @@ Unknown project: admin lists empty with `projectStatus:null`; a non-admin gets 4
 ## Tests
 | Layer | Test | IDs |
 |---|---|---|
-| L2 | `tests/Feature/Checkout/ConceptApiTest.php` (7 cases) | C-08, C-09, DV-7, DV-12 |
+| L2 | `tests/Feature/Checkout/ConceptApiTest.php` (8 cases) | C-08, C-09, DV-7, DV-12 |
 | Arch | `tests/Arch/ClientConceptScopeTest.php` (existing, still green) | DV-7 |
 | L4 | `client-concepts.spec.ts`, `concept-status-matrix.spec.ts`, `client-authz.spec.ts`, `dv-images.spec.ts` | C-08, C-09, DV-7 |
 

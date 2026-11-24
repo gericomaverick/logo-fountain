@@ -22,12 +22,14 @@ final class ClientConcepts
         $items = [];
         foreach ($project->clientVisibleConcepts()->orderBy('number')->orderBy('created_at')->get() as $concept) {
             $newest = self::versions($concept)[0] ?? null;
+            // Next signs the first file by createdAt desc, not the highest version (route.ts:75-77).
+            $latest = self::versions($concept, false)[0] ?? null;
             $items[] = [
                 'id' => $concept->id, 'number' => $concept->number, 'status' => $concept->status, 'notes' => $concept->notes,
                 'createdAt' => self::iso($concept->created_at), 'updatedAt' => self::iso($concept->updated_at),
                 'revisionVersion' => max($newest['version'] ?? 1, 1),
-                'imageUrl' => $newest['signed']['url'] ?? null,
-            ] + (isset($newest['signed']) ? ['imageKey' => $newest['signed']['imageKey']] : []);
+                'imageUrl' => $latest['signed']['url'] ?? null,
+            ] + (isset($latest['signed']) ? ['imageKey' => $latest['signed']['imageKey']] : []);
         }
 
         return $items;
@@ -59,14 +61,16 @@ final class ClientConcepts
      *
      * @return list<array{asset: FileAsset, version: int, signed: array{imageKey: string, url: string, expiresAt: int}|null}>
      */
-    private static function versions(Concept $concept): array
+    private static function versions(Concept $concept, bool $byVersion = true): array
     {
         $rows = [];
         foreach ($concept->assets()->orderByDesc('file_assets.created_at')->orderByDesc('file_assets.id')->get() as $asset) {
             $v = preg_match('/^v(\d+)\./', basename($asset->path), $m) === 1 ? (int) $m[1] : 1;
             $rows[] = ['asset' => $asset, 'version' => $v > 0 ? $v : 1, 'signed' => SignedImage::for($asset)];
         }
-        usort($rows, fn (array $a, array $b) => $b['version'] <=> $a['version']);
+        if ($byVersion) {
+            usort($rows, fn (array $a, array $b) => $b['version'] <=> $a['version']);
+        }
 
         return $rows;
     }

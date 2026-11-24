@@ -93,3 +93,18 @@ it('lets an admin read a project, and an unknown project lists empty', function 
     $this->getJson("/api/projects/{$concept->project_id}/concepts")->assertOk()->assertJsonCount(1, 'concepts');
     $this->getJson('/api/projects/'.fake()->uuid().'/concepts')->assertOk()->assertExactJson(['concepts' => [], 'projectStatus' => null]);
 });
+
+it('signs the file created last for imageUrl, while revisionVersion stays the highest version (Next parity)', function () {
+    $concept = Concept::factory()->status('published')->create();
+    $pid = $concept->project_id;
+    FileAsset::factory()->forConcept($concept)->create(['path' => "{$pid}/{$concept->id}/v2.png", 'created_at' => now()->subHour()]);
+    FileAsset::factory()->forConcept($concept)->create(['path' => "{$pid}/{$concept->id}/v1.png", 'created_at' => now()]);
+    caSignIn(caMember($concept->project));
+    $item = $this->getJson("/api/projects/{$pid}/concepts")->assertOk()->json('concepts.0');
+    $assets = $this->getJson("/api/projects/{$pid}/concepts/{$concept->id}/assets")->assertOk()->json('assets');
+    expect($item['revisionVersion'])->toBe(2)
+        ->and($assets[0]['version'])->toBe(2)
+        ->and($assets[1]['version'])->toBe(1)
+        ->and($item['imageKey'])->toBe($assets[1]['imageKey'])
+        ->and($item['imageUrl'])->toBe($assets[1]['url']);
+});
