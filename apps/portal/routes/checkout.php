@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\CheckoutAuthEmailController;
 use App\Http\Controllers\Api\CheckoutStartController;
 use App\Http\Controllers\Api\CheckoutStatusController;
+use App\Http\Controllers\Api\ConceptController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\ProjectListController;
 use App\Http\Controllers\Api\ProjectSnapshotController;
@@ -36,3 +37,5 @@ Route::middleware(['web', 'auth.verified'])->get('/api/projects', ProjectListCon
 // Story 6.2a (C-02 snapshot, C-16 entitlements). Signed in; the snapshot takes an admin or a member, entitlements a member.
 Route::middleware(['web', 'auth.verified'])->get('/api/projects/{id}', [ProjectSnapshotController::class, 'show'])->name('projects.snapshot');
 Route::middleware(['web', 'auth.verified'])->get('/api/projects/{id}/entitlements', [ProjectSnapshotController::class, 'entitlements'])->name('projects.entitlements');
+Route::middleware(['web', 'auth.verified'])->get('/api/projects/{id}/concepts', [ConceptController::class, 'index'])->name('concepts.index');
+Route::middleware(['web', 'auth.verified'])->get('/api/projects/{id}/concepts/{conceptId}/assets', [ConceptController::class, 'assets'])->name('concepts.assets');
