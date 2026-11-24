@@ -72,6 +72,15 @@ final class ErrorCodes
     /** 404: not a member of the project's client (`lib/auth/require.ts:49-61`); never a 403. */
     public const PROJECT_NOT_FOUND = 'PROJECT_NOT_FOUND';
 
+    /** Story 6.5/6.6 (C-06, C-07): brief draft and submit. */
+    public const INVALID_BRIEF_PAYLOAD = 'INVALID_BRIEF_PAYLOAD';
+
+    public const INVALID_BRIEF_DRAFT_PAYLOAD = 'INVALID_BRIEF_DRAFT_PAYLOAD';
+
+    public const BRIEF_LOCKED = 'BRIEF_LOCKED';
+
+    public const BRIEF_CONFLICT = 'BRIEF_CONFLICT';
+
     /** 503: the canonical origin can't be derived (X-04, `lib/request-origin.ts:97`). */
     public const PUBLIC_SITE_URL_REQUIRED = 'PUBLIC_SITE_URL_REQUIRED';
 

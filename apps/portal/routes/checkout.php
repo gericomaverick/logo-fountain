@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\CheckoutStartController;
 use App\Http\Controllers\Api\CheckoutStatusController;
 use App\Http\Controllers\Api\ConceptController;
 use App\Http\Controllers\Api\InvoiceController;
+use App\Http\Controllers\Api\ProjectBriefController;
 use App\Http\Controllers\Api\ProjectListController;
 use App\Http\Controllers\Api\ProjectSnapshotController;
 use App\Http\Controllers\Api\ReprocessCheckoutController;
@@ -39,3 +40,12 @@ Route::middleware(['web', 'auth.verified'])->get('/api/projects/{id}', [ProjectS
 Route::middleware(['web', 'auth.verified'])->get('/api/projects/{id}/entitlements', [ProjectSnapshotController::class, 'entitlements'])->name('projects.entitlements');
 Route::middleware(['web', 'auth.verified'])->get('/api/projects/{id}/concepts', [ConceptController::class, 'index'])->name('concepts.index');
 Route::middleware(['web', 'auth.verified'])->get('/api/projects/{id}/concepts/{conceptId}/assets', [ConceptController::class, 'assets'])->name('concepts.assets');
+
+// Stories 6.5/6.6 (C-06 draft, C-07 brief). Brief GET: admin or member; draft and POST: member only.
+Route::middleware(['web', 'auth.verified'])->group(function () {
+    Route::get('/api/projects/{id}/brief', [ProjectBriefController::class, 'show'])->name('projects.brief.show');
+    Route::post('/api/projects/{id}/brief', [ProjectBriefController::class, 'submit'])->name('projects.brief.submit');
+    Route::get('/api/projects/{id}/brief/draft', [ProjectBriefController::class, 'draft'])->name('projects.brief.draft');
+    Route::put('/api/projects/{id}/brief/draft', [ProjectBriefController::class, 'saveDraft'])->name('projects.brief.draft.save');
+    Route::delete('/api/projects/{id}/brief/draft', [ProjectBriefController::class, 'discardDraft'])->name('projects.brief.draft.discard');
+});
