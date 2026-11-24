@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\ApproveConceptController;
 use App\Http\Controllers\Api\CheckoutAuthEmailController;
 use App\Http\Controllers\Api\CheckoutStartController;
 use App\Http\Controllers\Api\CheckoutStatusController;
@@ -58,6 +59,7 @@ Route::middleware(['web', 'auth.verified'])->group(function () {
     Route::get('/api/projects/{id}/concepts/{conceptId}/comments', [ConceptCommentController::class, 'index'])->name('concepts.comments.index');
     Route::post('/api/projects/{id}/concepts/{conceptId}/comments', [ConceptCommentController::class, 'store'])->name('concepts.comments.store');
     Route::post('/api/projects/{id}/revision-requests', [RevisionRequestController::class, 'store'])->name('revisions.store');
+    Route::post('/api/projects/{id}/approve', ApproveConceptController::class)->name('concepts.approve');
 });
 
 // Story 6.10 (C-14, C-15): project messages and read state. Admin or member.

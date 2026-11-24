@@ -1,10 +1,13 @@
 <?php
 
 use App\Models\ClientMembership;
+use App\Models\Message;
+use App\Models\MessageThread;
 use App\Models\Profile;
 use App\Models\Project;
 use App\Models\ProjectBrief;
 use App\Models\ProjectBriefDraft;
+use App\Support\Audit;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Tests\Support\SessionRows;
@@ -134,4 +137,18 @@ it('lets an admin read the brief but returns null before one exists', function (
     $project = Project::factory()->create();
     pbSignIn(Profile::factory()->admin()->create()->user);
     $this->getJson("/api/projects/{$project->id}/brief")->assertOk()->assertExactJson(['brief' => null]);
+});
+
+it('DV-17: the brief system message dedupes since the last clean-slate reset, not across the whole thread', function () {
+    $project = Project::factory()->create();
+    $user = pbMember($project);
+    $body = 'Brief received. Your designer will review and reply soon.';
+    $thread = MessageThread::query()->create(['project_id' => $project->id]);
+    Message::create(['thread_id' => $thread->id, 'project_id' => $project->id, 'sender_id' => $user->id, 'kind' => 'system', 'body' => $body]);
+    usleep(5000);
+    Audit::record('project_reset', $project, null, ['mode' => 'clean-slate']);
+    usleep(5000);
+    pbSignIn($user);
+    $this->postJson("/api/projects/{$project->id}/brief", pbAnswers())->assertOk();
+    expect(DB::table('messages')->where('project_id', $project->id)->where('body', $body)->count())->toBe(2);
 });

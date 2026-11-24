@@ -26,6 +26,9 @@ final class ErrorCodes
     /** Story 6.8 (C-10, C-11). */
     public const INVALID_BODY = 'INVALID_BODY';
 
+    /** Story 6.9 (C-12). */
+    public const INVALID_CONCEPT_ID = 'INVALID_CONCEPT_ID';
+
     public const INVALID_COMMENT_BODY = 'INVALID_COMMENT_BODY';
 
     public const INVALID_PROJECT_STATUS_TRANSITION = 'INVALID_PROJECT_STATUS_TRANSITION';

@@ -2,9 +2,8 @@
 
 namespace App\Actions\Brief;
 
+use App\Actions\Messages\PostSystemMessage;
 use App\Exceptions\ApiException;
-use App\Models\Message;
-use App\Models\MessageThread;
 use App\Models\Project;
 use App\Models\ProjectBrief;
 use App\Support\Audit;
@@ -42,24 +41,11 @@ final class SubmitBrief
             $brief = ProjectBrief::create(['project_id' => $project->id, 'version' => 1, 'answers' => (object) $answers, 'created_by' => $userId]);
             Db::guardedProjectUpdate($project->id, 'AWAITING_BRIEF', (int) $row->version, ['status' => 'BRIEF_SUBMITTED'], $locked);
             Database::connection(DatabaseRoles::RUNTIME)->table('project_brief_drafts')->where('project_id', $project->id)->delete();
-            $this->systemMessage($project->id, $userId);
+            PostSystemMessage::post($project->id, $userId, self::SYSTEM_MESSAGE);
             Audit::record('brief_submitted', $project->id, $userId, ['briefId' => $brief->id, 'version' => 1, 'isResubmission' => false]);
             Audit::record('state_changed', $project->id, $userId, ['previousStatus' => 'AWAITING_BRIEF', 'nextStatus' => 'BRIEF_SUBMITTED']);
 
             return ['briefId' => $brief->id, 'version' => 1];
         }, fn () => new ApiException('Could not submit brief', 409, ErrorCodes::BRIEF_CONFLICT, ['nextStep' => 'Retry submitting the brief.']));
-    }
-
-    private function systemMessage(string $projectId, string $fallbackUserId): void
-    {
-        $thread = MessageThread::query()->firstOrCreate(['project_id' => $projectId]);
-        if (Message::query()->where('thread_id', $thread->id)->where('kind', 'system')->where('body', self::SYSTEM_MESSAGE)->exists()) {
-            return;
-        }
-        $admin = Database::connection(DatabaseRoles::RUNTIME)->table('profiles')->where('is_admin', true)->value('id');
-        Message::create([
-            'thread_id' => $thread->id, 'project_id' => $projectId, 'sender_id' => is_string($admin) ? $admin : $fallbackUserId,
-            'kind' => 'system', 'body' => self::SYSTEM_MESSAGE,
-        ]);
     }
 }
