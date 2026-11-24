@@ -30,3 +30,4 @@ Thumbs.db
 /tests/lighthouse/node_modules
 /tests/lighthouse/.lighthouseci
 /tests/lighthouse/report
+tests/Browser/screens/

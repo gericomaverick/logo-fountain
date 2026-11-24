@@ -1,5 +1,7 @@
 <?php
 
+use App\Domain\ProjectTimeline;
+use App\Http\Controllers\ProjectOverviewController;
 use App\Http\Middleware\EnforceSessionCap;
 use App\Models\User;
 use App\Support\Auth\SafeNext;
@@ -35,6 +37,7 @@ Route::get('/auth/callback', fn () => Inertia::render('Auth/Callback'))->name('a
 // Story 4.8 open question 1: the only guarded page until Epic 6 builds the dashboard; later epics attach
 // `auth.verified` / `admin` to their own routes.
 Route::get('/dashboard', fn () => Inertia::render('Home'))->middleware('auth.verified')->name('dashboard');
+Route::get('/project/{id}', [ProjectOverviewController::class, 'show'])->middleware('auth.verified')->name('project.overview');
 
 // Dev-only routes: local and testing, never production or staging. Decided when the routes load, so
 // `route:cache` on a production box leaves them out (tests/Feature/DevUiRouteTest.php).
@@ -59,6 +62,30 @@ if (app()->environment(['local', 'testing'])) {
 
     // Media and data components, Card/Panel, Tabs and usePolling (story 1.8c).
     Route::get('/dev/ui/media', fn () => Inertia::render('Dev/UiMedia'))->name('dev.ui.media');
+
+    // Story 6.2b: the Overview with a fixture snapshot, for tests/Browser/project-overview.spec.ts (the spec stubs
+    // GET /api/projects/{id} to move the status). `?status=` and `?revisions=` (left) pick the state; no database.
+    Route::get('/dev/project-overview', function (Request $request) {
+        $status = $request->string('status', 'AWAITING_BRIEF')->limit(30, '')->toString();
+        $left = max(0, min(5, $request->integer('revisions', 2)));
+
+        return Inertia::render('Project/Overview', [
+            'projectId' => '00000000-0000-4000-8000-000000000001',
+            'snapshot' => [
+                'id' => '00000000-0000-4000-8000-000000000001',
+                'status' => $status,
+                'packageCode' => 'essential',
+                'timeline' => ProjectTimeline::build($status, [], false),
+                'entitlementUsage' => [
+                    'concepts' => ['limit' => 3, 'consumed' => 2, 'reserved' => 0, 'remaining' => 1],
+                    'revisions' => ['limit' => 3, 'consumed' => 3 - $left, 'reserved' => 0, 'remaining' => $left],
+                ],
+                'messages' => [['id' => 'm1', 'kind' => 'system', 'body' => 'Your brief was submitted.', 'createdAt' => '2026-01-01T10:00:00Z']],
+                'latestBrief' => ['answers' => ['brandName' => 'Northvale Coffee']],
+            ],
+            'user' => ['name' => 'Sam Rivera', 'email' => 'sam@example.com'],
+        ]);
+    })->name('dev.project-overview');
 
     // Story 1.9: the customer and admin shells with sample props. `?section=` picks the page, so the
     // section tabs are real links between URLs (unknown values fall back to a page outside a project).

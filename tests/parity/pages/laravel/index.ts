@@ -5,6 +5,7 @@ import type { AuthPages, CheckoutPages, PageObjects, PortalPages } from "../inde
 import { onFakeStripe, payOnFakeStripe } from "../stripe-fake";
 import { auth as authPages } from "./auth";
 import { areas08b } from "./areas-0-8b"; // 0.8b
+import { overviewAllowance, portalOverview, upsellOverview } from "./project-ui"; // 6.2b, 6.3, 6.4
 
 const todo = (what: string, story: string) => (): never => {
   throw new Error(`Laravel page object ${what}: not implemented (story ${story})`);
@@ -26,10 +27,9 @@ export function create(page: Page): PageObjects {
     },
   };
   const portal: PortalPages = {
-    openProject: todo("portal.openProject", "6.1"),
-    currentProjectId: todo("portal.currentProjectId", "6.2b"),
-    projectStatus: todo("portal.projectStatus", "6.2b"),
-    currentTurn: todo("portal.currentTurn", "6.2b"),
+    ...portalOverview(page), // 6.2b (openProject until 6.1 builds the list)
   };
-  return { page, auth, checkout, portal, ...areas08b(page) }; // 0.8b
+  const base = areas08b(page); // 0.8b
+  const concepts = { ...base.concepts, allowance: (kind: "concepts" | "revisions") => overviewAllowance(page, kind) };
+  return { page, auth, checkout, portal, ...base, concepts, upsell: upsellOverview(page) };
 }

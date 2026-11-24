@@ -93,9 +93,9 @@ development_status:
   epic-6: backlog
   6-1-project-list-api-home-and-one-project-shortcut: review
   6-2a-project-snapshot-api: review
-  6-2b-project-overview: backlog
-  6-3-upsell-panel: backlog
-  6-4-post-purchase-confirmation: backlog
+  6-2b-project-overview: review
+  6-3-upsell-panel: review
+  6-4-post-purchase-confirmation: review
   6-5-brief-wizard-and-drafts: review
   6-6-brief-submission-and-read-only-brief: review
   6-7-concepts-gallery-and-viewer: review
