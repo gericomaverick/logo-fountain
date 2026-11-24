@@ -64,3 +64,5 @@ YYYY-MM-DD — <Decision>. Rationale: <why>. Impact: <what changes>. #decision
 2026-11-23 — Story 4.4/5.x (critic 15968): DV-28 (owner-decided) is built: a repeat delivery provisions for the billing email stored at first fulfilment, not the payload's. The checkout resend routes now queue their email like the other auth routes and look the account up when the job runs (by the order's session id), so the answer is the same whether or not an account exists yet. Corrects the DV-25/Q2 line above, which named neither. #decision
 
 2026-11-23 — Story 4.9a (epic-45-close): no parity test for the admin bootstrap CLI, on purpose. It is an artisan command with no HTTP surface or browser journey, and the black-box parity suite has no step that runs a shell command against either app; Pest (BootstrapAdminTest, BootstrapSingleUseTest, arch no-auto-run) is the whole check, tabled line by line against bootstrap-admin.mjs in the story record.
+
+2026-11-24 — Epic 6 UI gate: owner: @upsell&@ui stands in for @client&@ui, 2026-11-24. Rationale: only the upsell journeys exist for the Overview; @client&@ui was not run. Impact: stories 6.2b-6.4 record the @upsell&@ui result. #decision

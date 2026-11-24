@@ -16,7 +16,7 @@ As a client back from Stripe, I am told my purchase is being confirmed, then tha
 `resources/js/Components/project/PurchaseBanner.tsx`; schedule and copy in `lib/upsell.ts`.
 
 ## Deviations from Next.js
-None.
+- **Resilience (owner to confirm):** after 3 consecutive failed status calls the banner shows the delayed state, and polling carries on with backoff. Next (`project-hub.tsx:194-197`) sets `failed` on the first failure and stops polling. Kept on purpose.
 
 ## Tests
 | Layer | Test | IDs |
@@ -25,4 +25,7 @@ None.
 | L7 | `project-overview.spec.ts`: confirming, refresh, confirmed on the third later poll (page.clock) | K-10 |
 
 ## Test evidence
-As 6.2b. The delayed state is covered by the unit copy test only, not in the browser.
+As 6.2b. Browser tests now cover the delayed state (status 500 three times → `data-state="delayed"`) and the call counts after a reload (at once, one call by 2.6 s, none more by 5.2 s, the next after 7 s).
+
+## Parity result
+L4 `@upsell&@ui` on head 442aef9: J6 buy extra revision and J6 upgrade Essential→Professional both passed (2 passed); `@client&@ui` not run.

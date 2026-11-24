@@ -25,5 +25,8 @@ None.
 ## Test evidence
 As 6.2b: `bin/ui-test` exit 0 (237 unit tests), browser 34 passed.
 
+## Parity result
+L4 `@upsell&@ui` on head 442aef9: J6 buy extra revision and J6 upgrade Essential→Professional both passed (2 passed); `@client&@ui` not run (the J6 journeys drive this panel).
+
 ## Check with the owner
 Panel copy and its tinted accent surface; sessionStorage means a new tab shows the offer again.

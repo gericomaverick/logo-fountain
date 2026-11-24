@@ -103,10 +103,10 @@ Every existing Next.js test file, the inventory rows it protects, and where its 
 | 95 | `src/lib/magic-link-email.test.ts` | 3 | K-03,A-11 | Pest feature | | Not started |
 | 96 | `src/lib/postgres.integration.test.ts` | 6 | K-05,K-06,X-09 | L3 Pest real-PG (1:1) | `tests/Concurrency/RuntimeRoleTest.php` (tests 1–2); `tests/Concurrency/LocksTest.php` "converges advisory-locked receipts…" (test 4, lock half); `tests/Feature/Support/AuditTest.php` "leaves no row when the surrounding transaction rolls back" (test 5, audit half) | **Partly ported** (2/6 plus the 2.4 halves of tests 4–5, stories 2.1, 2.4; receipt-reader halves of 4–5 → 7.5a, entitlement half of 5 and test 3 → 7.x, test 6 → 5.x) |
 | 97 | `src/lib/project-display-name.test.ts` | 5 | C-01,K-11 | Pest unit + keep TS | | Not started |
-| 98 | `src/lib/project-hub.test.ts` | 12 | C-03,C-04 | Keep TS (UI) | | Not started |
+| 98 | `src/lib/project-hub.test.ts` | 12 | C-03,C-04 | Keep TS (UI) | | `tests/js/upsell.test.ts` (offer rules, schedule, copy), `tests/browser/project-overview.spec.ts` | Partly built (6.2b-6.4); not a full port |
 | 99 | `src/lib/project-journey.test.ts` | 10 | C-03 | Keep TS (UI) | | Not started |
 | 100 | `src/lib/project-lifecycle-email.test.ts` | 10 | N-04…N-12 | Pest feature (Mail::fake + marker dedupe) | `tests/Feature/Mail/*` (29 tests; queue faked for dedupe, real `jobs` for after-commit) | Built (2.7) |
-| 101 | `src/lib/project-overview.test.ts` | 9 | C-03 | Keep TS (UI) | | Not started |
+| 101 | `src/lib/project-overview.test.ts` | 9 | C-03 | Keep TS (UI) | | `tests/js/upsell.test.ts` (offer rules, schedule, copy), `tests/browser/project-overview.spec.ts` | Partly built (6.2b-6.4); not a full port |
 | 102 | `src/lib/project-snapshot.test.ts` | 3 | C-02,C-03 | Pest feature + L4 snapshot contract | | Not started |
 | 103 | `src/lib/project-state-machine.test.ts` | 6 | X-07 | Pest unit + keep TS (shared fixture) | `tests/Unit/Domain/ProjectStateFixtureTest.php` (all `state-machine.json` cases), `tests/Unit/Domain/ProjectStateEdgeTest.php` (X-07, 2.3); TS half: Next's Vitest `shared-rule-fixtures.test.ts` over the same `state-machine.json` (0.6b) | **Ported** (story 2.3) |
 | 104 | `src/lib/project-status.test.ts` | 10 | X-07,C-03 | Pest unit | `tests/Unit/Domain/ProjectStatusFixtureTest.php` (all `display-status.json` cases), `ProjectStateEdgeTest.php` pass-through (2.3) | **Ported** (story 2.3) |
