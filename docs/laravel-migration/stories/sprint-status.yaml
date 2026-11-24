@@ -96,8 +96,8 @@ development_status:
   6-2b-project-overview: backlog
   6-3-upsell-panel: backlog
   6-4-post-purchase-confirmation: backlog
-  6-5-brief-wizard-and-drafts: backlog
-  6-6-brief-submission-and-read-only-brief: backlog
+  6-5-brief-wizard-and-drafts: review
+  6-6-brief-submission-and-read-only-brief: review
   6-7-concepts-gallery-and-viewer: backlog
   6-8-comments-and-revision-requests: backlog
   6-9-approval: backlog
