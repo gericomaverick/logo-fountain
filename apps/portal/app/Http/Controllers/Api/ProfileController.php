@@ -32,7 +32,7 @@ final class ProfileController extends Controller
     public function update(Request $request): JsonResponse
     {
         $user = $this->user($request);
-        $payload = json_decode($request->getContent(), false);
+        $payload = json_decode(self::replaceLoneSurrogates($request->getContent()), false);
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new ApiException('Invalid JSON body', 400, ErrorCodes::INVALID_JSON, ['nextStep' => 'Send a valid JSON payload.']);
         }
@@ -61,6 +61,31 @@ final class ProfileController extends Controller
         return response()->json(['profile' => $this->shape($user, $profile)]);
     }
 
+    /**
+     * `JSON.parse` accepts a lone `\uD800` escape (and the pg driver later writes it as U+FFFD); `json_decode` rejects it
+     * (JSON_ERROR_UTF16). Replace each unpaired surrogate escape with `\uFFFD`; `\\` pairs are consumed first so an escaped backslash is safe.
+     */
+    private static function replaceLoneSurrogates(string $raw): string
+    {
+        return preg_replace_callback(
+            '/\\\\\\\\|\\\\u(d[89ab][0-9a-f]{2})\\\\u(d[c-f][0-9a-f]{2})|\\\\u(d[89a-f][0-9a-f]{2})/i',
+            fn (array $m) => isset($m[3]) ? '\\ufffd' : $m[0],
+            $raw
+        ) ?? $raw;
+    }
+
+    /** `slice(0, 80)`; a cut inside an astral pair leaves a lone surrogate that the pg driver writes as U+FFFD (Next), not `?`. */
+    private static function cut(string $value): string
+    {
+        $cut = NodeCompat::slice($value, self::MAX_NAME);
+        if ($cut === $value || ! str_ends_with($cut, '?') || mb_strlen($value) < mb_strlen($cut)) {
+            return $cut;
+        }
+        $head = mb_substr($cut, 0, -1);
+
+        return mb_substr($value, mb_strlen($head), 1) === '?' ? $cut : $head."\u{FFFD}";
+    }
+
     /** `parseOptionalName`: true = key absent (keep), false = not a string or null (400), else the new value. */
     private function parse(object $body, string $key): string|bool|null
     {
@@ -76,7 +101,7 @@ final class ProfileController extends Controller
         }
         $trimmed = NodeCompat::trimEnv($value);
 
-        return $trimmed === '' ? null : NodeCompat::slice($trimmed, self::MAX_NAME);
+        return $trimmed === '' ? null : self::cut($trimmed);
     }
 
     /** @return array<string, mixed> */

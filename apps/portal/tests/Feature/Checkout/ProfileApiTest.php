@@ -32,7 +32,7 @@ function pfSignIn($user, bool $origin = true): void
 function pfPut(array|string $body)
 {
     return is_array($body) ? test()->putJson('/api/profile', $body)
-        : test()->call('PUT', '/api/profile', [], [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json', 'HTTP_ORIGIN' => PF_ORIGIN], $body);
+        : test()->call('PUT', '/api/profile', [], (fn () => $this->prepareCookiesForRequest())->call(test()), [], ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json', 'HTTP_ORIGIN' => PF_ORIGIN], $body);
 }
 
 function pfUser(array $attrs = [])
@@ -75,6 +75,15 @@ it('PUT cuts a name to 80 UTF-16 units (an astral character counts 2) and ignore
         ->assertJsonPath('profile.lastName', str_repeat('y', 80))->assertJsonMissingPath('profile.vatNumber');
     pfPut(['firstName' => str_repeat('😀', 40).'zz'])->assertOk()->assertJsonPath('profile.firstName', str_repeat('😀', 40));
     $this->getJson('/api/profile')->assertOk();
+})->group('settings', 'api');
+
+it('PUT keeps a request with a lone surrogate (Next accepts it; the stored value carries U+FFFD)', function () {
+    $user = pfUser();
+    pfSignIn($user);
+    pfPut('{"firstName":"A\\ud800B"}')->assertOk()->assertJsonPath('profile.firstName', "A\u{FFFD}B");
+    expect(Profile::query()->find($user->id)->first_name)->toBe("A\u{FFFD}B");
+    // a cut at 80 units that splits an astral pair leaves a lone high surrogate
+    pfPut(['firstName' => str_repeat('y', 79).'😀'])->assertOk()->assertJsonPath('profile.firstName', str_repeat('y', 79)."\u{FFFD}");
 })->group('settings', 'api');
 
 it('PUT rejects non-string names and bad JSON, and writes nothing', function () {
