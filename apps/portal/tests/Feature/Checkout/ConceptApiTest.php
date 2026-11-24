@@ -95,6 +95,7 @@ it('lets an admin read a project, and an unknown project lists empty', function 
 });
 
 it('signs the file created last for imageUrl, while revisionVersion stays the highest version (Next parity)', function () {
+    $this->freezeTime(); // signed URLs embed X-Amz-Date (second resolution)
     $concept = Concept::factory()->status('published')->create();
     $pid = $concept->project_id;
     FileAsset::factory()->forConcept($concept)->create(['path' => "{$pid}/{$concept->id}/v2.png", 'created_at' => now()->subHour()]);
