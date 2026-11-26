@@ -3,20 +3,21 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { ConceptViewer, type ConceptVersion } from '@/Components/ui/ConceptViewer';
 import { InlineAlert } from '@/Components/ui/InlineAlert';
+import { ConceptFeedback, type RevisionItem } from '@/Components/project/ConceptFeedback';
 import { Button } from '@/Components/ui/Button';
 import { Skeleton } from '@/Components/ui/Skeleton';
 import { CustomerShell, type CustomerSection } from '@/Layouts/CustomerShell';
 import { logoutAndVerifySession } from '@/lib/auth';
-import { apiError, cardStatus, versionNote, versionsOf, type ApiAsset } from '@/lib/concepts';
+import { apiError, cardStatus, versionNote, versionsOf, type ApiAsset, type RevisionUsage } from '@/lib/concepts';
 
 /**
  * Story 6.7 UI half (C-09; UX §11, §14): the concept detail, the image with its version history (newest first,
- * switchable, zoomable). The feedback composer and revision request are story 6.8 and Approve is 6.9: not here yet.
+ * switchable, zoomable). Story 6.8 adds the feedback thread and composer below; Approve is 6.9: not here yet.
  */
 type Props = {
     projectId: string;
     concept: { id: string; number: number; status: string; notes: string | null };
-    snapshot: { hasNewConcepts?: boolean; hasNewMessages?: boolean; latestBrief?: { answers?: { brandName?: string } } | null };
+    snapshot: { status?: string; entitlementUsage?: { revisions?: RevisionUsage }; revisionRequests?: RevisionItem[]; hasNewConcepts?: boolean; hasNewMessages?: boolean; latestBrief?: { answers?: { brandName?: string } } | null };
     user: { name: string; email: string };
 };
 
@@ -84,6 +85,16 @@ export default function Concept({ projectId, concept, snapshot, user }: Props) {
                     <p className="whitespace-pre-line text-base text-fg-2">{note.text}</p>
                 </div>
             ) : null}
+            <ConceptFeedback
+                projectId={projectId}
+                conceptId={concept.id}
+                conceptStatus={concept.status}
+                projectStatus={snapshot.status ?? ''}
+                usage={snapshot.entitlementUsage?.revisions}
+                requests={snapshot.revisionRequests ?? []}
+                viewerEmail={user.email}
+                overviewHref={base}
+            />
         </CustomerShell>
     );
 }

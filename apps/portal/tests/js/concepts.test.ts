@@ -32,3 +32,29 @@ describe('concepts helpers', () => {
         assert.equal(cardStatus('published'), null);
     });
 });
+
+import { feedbackError, revisionBlock, revisionPreview, revisionsLeft } from '../../resources/js/lib/concepts.ts';
+
+describe('feedback rules (story 6.8)', () => {
+    const u = { limit: 2, consumed: 0, reserved: 0, remaining: 2 };
+    test('preview says what it uses and what is left', () => {
+        assert.equal(revisionPreview(u), 'This uses 1 of your 2 revisions. You’ll have 1 left.');
+        assert.equal(revisionPreview({ limit: 1, remaining: 1 }), 'This uses 1 of your 1 revision. You’ll have 0 left.');
+        assert.match(revisionPreview({ limit: 2, remaining: 0 }), /no revisions left/);
+        assert.equal(revisionsLeft({ limit: 3, consumed: 1, reserved: 1 }), 1);
+        assert.equal(revisionsLeft({ unlimited: true, limit: 0 }), null);
+    });
+    test('blocked by concept, project stage, then allowance', () => {
+        assert.equal(revisionBlock('approved', 'CONCEPTS_READY', u)?.upsell, false);
+        assert.match(revisionBlock('published', 'AWAITING_APPROVAL', u)?.reason ?? '', /stage/);
+        assert.equal(revisionBlock('published', 'CONCEPTS_READY', { limit: 2, remaining: 0 })?.upsell, true);
+        assert.equal(revisionBlock('published', 'REVISIONS_IN_PROGRESS', u), null);
+    });
+    test('error codes become plain sentences; no-revisions points to the upsell', () => {
+        const e = (code: string) => ({ error: { code, message: 'x' } });
+        assert.equal(feedbackError(e('NO_REVISIONS_REMAINING'), 'f').upsell, true);
+        assert.match(feedbackError(e('CONCEPT_NOT_FOUND'), 'f').message, /approved or replaced/);
+        assert.match(feedbackError(e('INVALID_PROJECT_STATUS_TRANSITION'), 'f').message, /moved on/);
+        assert.equal(feedbackError({ error: { message: 'Boom' } }, 'f').message, 'Boom');
+    });
+});
