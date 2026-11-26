@@ -55,7 +55,7 @@ export function revisionsLeft(u: RevisionUsage | null | undefined): number | nul
 /** UX §3: shown before sending, "This uses 1 of your 2 revisions. You'll have 1 left." */
 export function revisionPreview(u: RevisionUsage | null | undefined): string {
     const left = revisionsLeft(u);
-    if (left === null) return 'This uses 1 revision. Your package has unlimited revisions.';
+    if (left === null) return 'This asks your designer for a new version.';
     if (left <= 0) return 'You have no revisions left in your package.';
     const total = u?.limit ?? left;
     return `This uses 1 of your ${total} ${total === 1 ? 'revision' : 'revisions'}. You’ll have ${left - 1} left.`;

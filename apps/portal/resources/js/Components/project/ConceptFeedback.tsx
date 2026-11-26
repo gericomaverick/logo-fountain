@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/Components/ui/Button';
 import { Field } from '@/Components/ui/Field';
@@ -39,6 +39,8 @@ export function ConceptFeedback({ projectId, conceptId, conceptStatus, projectSt
     const [busy, setBusy] = useState<'comment' | 'revision' | null>(null);
     const [error, setError] = useState<{ message: string; upsell: boolean } | null>(null);
     const [done, setDone] = useState<string | null>(null);
+    const sending = useRef(false);
+    const box = useRef<HTMLTextAreaElement>(null);
     const open = conceptStatus === 'published';
     const url = `/api/projects/${projectId}/concepts/${conceptId}/comments`;
 
@@ -60,7 +62,8 @@ export function ConceptFeedback({ projectId, conceptId, conceptStatus, projectSt
     }, [load]);
 
     const send = async (kind: 'comment' | 'revision') => {
-        if (busy || text.trim() === '') return;
+        if (sending.current || busy || text.trim() === '') return;
+        sending.current = true;
         setBusy(kind);
         setError(null);
         setDone(null);
@@ -78,6 +81,7 @@ export function ConceptFeedback({ projectId, conceptId, conceptStatus, projectSt
                 if (kind === 'revision') router.reload({ only: ['snapshot'] });
             } else {
                 setText('');
+                box.current?.focus();
                 setDone(kind === 'comment' ? 'Comment sent.' : 'Revision requested. Your designer will review it and work on the next version.');
                 if (kind === 'comment') await load();
                 else router.reload({ only: ['snapshot'] });
@@ -85,6 +89,7 @@ export function ConceptFeedback({ projectId, conceptId, conceptStatus, projectSt
         } catch {
             setError({ message: 'We couldn’t reach the server. Your text is still here: please try again.', upsell: false });
         } finally {
+            sending.current = false;
             setBusy(null);
         }
     };
@@ -135,7 +140,7 @@ export function ConceptFeedback({ projectId, conceptId, conceptStatus, projectSt
                 ) : null}
                 {done ? <InlineAlert tone="success" announce>{done}</InlineAlert> : null}
                 <Field label="Your feedback" hint="A comment is free. A revision request asks your designer for a new version and uses one of your revisions.">
-                    <Textarea rows={4} maxLength={5000} value={text} onChange={(e) => setText(e.currentTarget.value)} />
+                    <Textarea rows={4} maxLength={2000} ref={box} value={text} onChange={(e) => setText(e.currentTarget.value)} />
                 </Field>
                 <p className="text-sm text-fg-2" data-testid="revision-preview">
                     {block && !block.upsell ? block.reason : revisionPreview(usage)}

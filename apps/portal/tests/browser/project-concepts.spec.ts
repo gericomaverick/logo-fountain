@@ -249,3 +249,49 @@ for (const [name, size] of [['desktop', { width: 1280, height: 900 }], ['phone',
         await page.screenshot({ path: `tests/browser/screens/concept-feedback-${name}.png`, fullPage: true });
     });
 }
+
+test('@ui feedback: two rapid clicks on Request a revision send one request', async ({ page }) => {
+    await feedbackStub(page);
+    let posts = 0;
+    await page.route(`**/api/projects/${ID}/revision-requests`, async (r) => {
+        posts += 1;
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        return r.fulfill({ status: 201, json: { ok: true } });
+    });
+    await page.goto('/dev/project-concept');
+    await page.getByRole('textbox', { name: 'Your feedback' }).fill('Bolder please');
+    // Two click events in one task: both run before React re-renders.
+    await page.getByRole('button', { name: 'Request a revision' }).evaluate((el: HTMLButtonElement) => {
+        el.click();
+        el.click();
+    });
+    await expect(page.getByText(/Revision requested\. Your designer/)).toBeVisible();
+    expect(posts).toBe(1);
+});
+
+test('@ui feedback: the box takes 2000 characters at most (the API cap), and focus returns to it after sending', async ({ page }) => {
+    await feedbackStub(page);
+    await page.goto('/dev/project-concept');
+    const box = page.getByRole('textbox', { name: 'Your feedback' });
+    await expect(box).toHaveAttribute('maxlength', '2000');
+    await box.focus();
+    await page.keyboard.insertText('x'.repeat(2500));
+    expect((await box.inputValue()).length).toBe(2000);
+    await box.fill('short');
+    await page.getByRole('button', { name: 'Send comment' }).click();
+    await expect(page.getByText('Comment sent.')).toBeVisible();
+    await expect(box).toBeFocused();
+});
+
+test('@ui feedback: the preview counts revisions already in progress (reserved)', async ({ page }) => {
+    await feedbackStub(page);
+    await page.goto('/dev/project-concept?left=1&reserved=1');
+    await expect(page.getByTestId('revision-preview')).toHaveText('This uses 1 of your 3 revisions. You’ll have 0 left.');
+});
+
+test('@ui feedback: an unlimited package does not promise unlimited revisions (the API still reserves against a limit)', async ({ page }) => {
+    await feedbackStub(page);
+    await page.goto('/dev/project-concept?unlimited=1');
+    await expect(page.getByTestId('revision-preview')).toHaveText('This asks your designer for a new version.');
+    await expect(page.getByTestId('revision-preview')).not.toContainText('unlimited');
+});

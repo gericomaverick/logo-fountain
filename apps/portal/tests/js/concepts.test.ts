@@ -43,6 +43,7 @@ describe('feedback rules (story 6.8)', () => {
         assert.match(revisionPreview({ limit: 2, remaining: 0 }), /no revisions left/);
         assert.equal(revisionsLeft({ limit: 3, consumed: 1, reserved: 1 }), 1);
         assert.equal(revisionsLeft({ unlimited: true, limit: 0 }), null);
+        assert.doesNotMatch(revisionPreview({ unlimited: true }), /unlimited/i);
     });
     test('blocked by concept, project stage, then allowance', () => {
         assert.equal(revisionBlock('approved', 'CONCEPTS_READY', u)?.upsell, false);
