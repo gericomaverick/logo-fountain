@@ -59,7 +59,7 @@ it('renders the viewer for a published concept, with no storage path in the prop
         ->component('Project/Concept')
         ->where('concept.id', $concept->id)
         ->where('concept.number', 2)
-        ->missing('concept.path'));
+        ->where('concept', fn ($c) => collect($c)->keys()->sort()->values()->all() === ['id', 'notes', 'number', 'status']));
 });
 
 it('answers 404 for a draft concept, an unknown one, a malformed id, and another project', function () {
@@ -74,6 +74,21 @@ it('answers 404 for a draft concept, an unknown one, a malformed id, and another
 
     $other = Project::factory()->create();
     $this->get("/project/{$other->id}/concepts")->assertNotFound();
+});
+
+it('answers 404 for a visible concept of project B under project A, and for archived or deleted ones', function () {
+    $a = Project::factory()->create();
+    $b = Project::factory()->create();
+    $inB = Concept::factory()->status('published')->create(['project_id' => $b->id]);
+    $archived = Concept::factory()->status('archived')->create(['project_id' => $a->id]);
+    $deleted = Concept::factory()->status('deleted')->create(['project_id' => $a->id]);
+    $ok = Concept::factory()->status('published')->create(['project_id' => $a->id]);
+    cgSignIn(ClientMembership::factory()->create(['client_id' => $a->client_id, 'role' => 'owner'])->profile->user);
+
+    $this->get("/project/{$a->id}/concept/{$ok->id}")->assertOk();
+    $this->get("/project/{$a->id}/concept/{$inB->id}")->assertNotFound();
+    $this->get("/project/{$a->id}/concept/{$archived->id}")->assertNotFound();
+    $this->get("/project/{$a->id}/concept/{$deleted->id}")->assertNotFound();
 });
 
 it('redirects an admin to the admin workspace', function () {

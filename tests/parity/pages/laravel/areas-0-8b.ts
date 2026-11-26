@@ -25,6 +25,7 @@ export function areas08b(page: Page): { brief: BriefPages; thread: ProjectThread
     concepts: {
       // Story 6.7 UI half. Laravel flags new concepts as a dot on the Concepts tab (its link name says "new").
       async hasNewConcepts() {
+        if (!/\/project\/[0-9a-f-]{36}/.test(page.url())) throw new Error(`hasNewConcepts: not on a project URL (${page.url()})`);
         await page.goto(page.url().replace(/(\/project\/[0-9a-f-]{36}).*/, "$1"));
         await page.getByRole("heading", { level: 1 }).waitFor();
         return (await page.getByRole("link", { name: "Concepts, new" }).count()) > 0;

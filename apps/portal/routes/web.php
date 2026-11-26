@@ -102,6 +102,7 @@ if (app()->environment(['local', 'testing'])) {
                 ],
                 'messages' => [['id' => 'm1', 'kind' => 'system', 'body' => 'Your brief was submitted.', 'createdAt' => '2026-01-01T10:00:00Z']],
                 'latestBrief' => ['answers' => ['brandName' => 'Northvale Coffee']],
+                'hasNewConcepts' => $request->boolean('new'),
             ],
             'user' => ['name' => 'Sam Rivera', 'email' => 'sam@example.com'],
         ]);

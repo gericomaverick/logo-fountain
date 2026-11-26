@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
-import { apiError, cardStatus, newestFirst, signed, versionsOf } from '../../resources/js/lib/concepts.ts';
+import { apiError, cardStatus, versionNote, signed, versionsOf } from '../../resources/js/lib/concepts.ts';
 
 describe('concepts helpers', () => {
     test('signed needs both the url and the key', () => {
@@ -10,9 +10,12 @@ describe('concepts helpers', () => {
         assert.equal(signed(null, 'k'), null);
         assert.deepEqual(signed('https://x/y', 'k'), { url: 'https://x/y', imageKey: 'k' });
     });
-    test('newest first, ties by number', () => {
-        const out = newestFirst([{ createdAt: '2026-01-01', number: 1 }, { createdAt: '2026-02-01', number: 2 }]);
-        assert.deepEqual(out.map((c) => c.number), [2, 1]);
+    test('version notes follow Next: revision note for v>1, designer note for v1 without rationale', () => {
+        assert.deepEqual(versionNote(2, ' Fixed ', 'Why'), { label: 'Revision note · v2', text: 'Fixed' });
+        assert.equal(versionNote(2, 'WHY', 'why'), null);
+        assert.deepEqual(versionNote(1, 'Hi', ''), { label: 'Designer note', text: 'Hi' });
+        assert.equal(versionNote(1, 'Hi', 'Rationale'), null);
+        assert.equal(versionNote(3, '', ''), null);
     });
     test('one entry per version, highest first, first file wins', () => {
         const v = versionsOf([

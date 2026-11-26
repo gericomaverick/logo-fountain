@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ConceptGallery } from '@/Components/ui/ConceptCard';
 import { CustomerShell, type CustomerSection } from '@/Layouts/CustomerShell';
 import { logoutAndVerifySession } from '@/lib/auth';
-import { apiError, cardStatus, newestFirst, signed, type ApiConcept } from '@/lib/concepts';
+import { apiError, cardStatus, signed, type ApiConcept } from '@/lib/concepts';
 
 /**
  * Story 6.7 UI half (C-08; UX §14): the concepts gallery. Big images, the concept number and version, newest first.
@@ -29,7 +29,7 @@ export default function Concepts({ projectId, snapshot, user }: Props) {
             const res = await fetch(`/api/projects/${projectId}/concepts`, { cache: 'no-store', headers: { Accept: 'application/json' }, credentials: 'same-origin' });
             const payload = (await res.json().catch(() => null)) as { concepts?: ApiConcept[] } | null;
             if (!res.ok) throw new Error(apiError(payload, 'Please try again.'));
-            setConcepts(newestFirst(payload?.concepts ?? []));
+            setConcepts(payload?.concepts ?? []);
             setError(null);
             const read = await fetch(`/api/projects/${projectId}/read-state`, {
                 method: 'POST',

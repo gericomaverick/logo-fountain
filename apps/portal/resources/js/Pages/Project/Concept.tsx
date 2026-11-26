@@ -7,7 +7,7 @@ import { Button } from '@/Components/ui/Button';
 import { Skeleton } from '@/Components/ui/Skeleton';
 import { CustomerShell, type CustomerSection } from '@/Layouts/CustomerShell';
 import { logoutAndVerifySession } from '@/lib/auth';
-import { apiError, cardStatus, versionsOf, type ApiAsset } from '@/lib/concepts';
+import { apiError, cardStatus, versionNote, versionsOf, type ApiAsset } from '@/lib/concepts';
 
 /**
  * Story 6.7 UI half (C-09; UX §11, §14): the concept detail, the image with its version history (newest first,
@@ -22,16 +22,18 @@ type Props = {
 
 export default function Concept({ projectId, concept, snapshot, user }: Props) {
     const base = `/project/${projectId}`;
-    const [versions, setVersions] = useState<ConceptVersion[] | null>(null);
+    const [versions, setVersions] = useState<(ConceptVersion & { notes: string })[] | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [picked, setPicked] = useState<number | null>(null);
 
     const load = useCallback(async () => {
+        setError(null);
+        setVersions(null);
         try {
             const res = await fetch(`/api/projects/${projectId}/concepts/${concept.id}/assets`, { cache: 'no-store', headers: { Accept: 'application/json' }, credentials: 'same-origin' });
             const payload = (await res.json().catch(() => null)) as { assets?: ApiAsset[] } | null;
             if (!res.ok) throw new Error(apiError(payload, 'Please try again.'));
             setVersions(versionsOf(payload?.assets ?? []));
-            setError(null);
         } catch (e) {
             setError(e instanceof Error ? e.message : 'Please try again.');
         }
@@ -42,6 +44,10 @@ export default function Concept({ projectId, concept, snapshot, user }: Props) {
         void load();
     }, [load]);
 
+    // Next shows only the newest file of an approved concept, with no history (concept page.tsx:238-239).
+    const shown = versions && concept.status === 'approved' ? versions.slice(0, 1) : versions;
+    const current = shown?.find((v) => v.version === picked) ?? shown?.[0];
+    const note = current ? versionNote(current.version, current.notes, concept.notes ?? '') : null;
     const brand = snapshot.latestBrief?.answers?.brandName?.trim() || 'Your project';
     const hrefs = { overview: base, concepts: `${base}/concepts`, messages: `${base}/messages`, brief: `${base}/brief`, files: `${base}/files` } satisfies Record<CustomerSection, string>;
     const userMenu = {
@@ -69,9 +75,15 @@ export default function Concept({ projectId, concept, snapshot, user }: Props) {
             ) : versions === null ? (
                 <Skeleton variant="card" what="concept" count={1} />
             ) : (
-                <ConceptViewer number={concept.number} versions={versions} status={cardStatus(concept.status)} headingLevel={2} />
+                <ConceptViewer number={concept.number} versions={shown ?? []} version={current?.version} onVersionChange={setPicked} status={cardStatus(concept.status)} headingLevel={2} />
             )}
             {concept.notes?.trim() ? <p className="whitespace-pre-line text-base text-fg-2">{concept.notes.trim()}</p> : null}
+            {note ? (
+                <div>
+                    <p className="text-xs font-semibold text-fg-2">{note.label}</p>
+                    <p className="whitespace-pre-line text-base text-fg-2">{note.text}</p>
+                </div>
+            ) : null}
         </CustomerShell>
     );
 }

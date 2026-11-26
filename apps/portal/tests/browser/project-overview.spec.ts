@@ -55,6 +55,11 @@ test('@ui overview: stage tracker marks one current step; allowances show used /
     await expect(page.getByRole('group', { name: 'Concepts' }).getByRole('img').first()).toHaveAttribute('aria-label', /1 of 3 concepts left · 2 used/);
 });
 
+test('@ui overview: the Concepts tab carries the new dot from the snapshot', async ({ page }) => {
+    await open(page, 'status=CONCEPTS_READY&new=1');
+    await expect(page.getByRole('link', { name: 'Concepts, new' }).first()).toBeVisible();
+});
+
 test('@ui overview: polls every 10 s, moves the banner, downloads no image', async ({ page }) => {
     await page.clock.install();
     let polls = 0;
@@ -103,7 +108,12 @@ test('@upsell @ui purchase banner: confirming, then confirmed at the 2.5 s then 
     await page.clock.runFor(2_600);
     await page.reload();
     await expect(pb).toHaveAttribute('data-state', 'confirming');
+    // Wait for each poll's response to land (it schedules the next timer) before moving the fake clock on.
+    const waitFor = async (n: number) => expect.poll(() => hits.length, { timeout: 5_000 }).toBeGreaterThanOrEqual(n);
+    const before = hits.length;
     await page.clock.runFor(2_600);
+    await waitFor(before + 1);
+    await new Promise((resolve) => setTimeout(resolve, 150));
     await page.clock.runFor(7_100);
     await expect(pb).toHaveAttribute('data-state', 'confirmed');
 });
