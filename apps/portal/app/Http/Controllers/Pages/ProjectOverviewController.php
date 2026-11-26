@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\User;
 use App\Policies\ProjectPolicy;
 use App\Queries\ProjectSnapshot;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -18,9 +19,12 @@ use Inertia\Response;
  */
 final class ProjectOverviewController extends Controller
 {
-    public function show(Request $request, string $id): Response
+    public function show(Request $request, string $id): Response|RedirectResponse
     {
         $user = $request->attributes->get(EnforceSessionCap::USER);
+        if ($user instanceof User && $user->isAdmin()) {
+            return redirect('/admin/projects/'.$id); // DV-UX (D-02): admins work in the admin workspace; the page itself is Epic 7
+        }
         $valid = preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $id) === 1;
         $project = $valid ? Project::query()->find($id) : null;
         abort_unless($user instanceof User && $project !== null && (new ProjectPolicy)->view($user, $project)->allowed(), 404);

@@ -1,6 +1,7 @@
 <?php
 
 use App\Domain\ProjectTimeline;
+use App\Http\Controllers\Pages\DashboardController;
 use App\Http\Controllers\Pages\ProjectOverviewController;
 use App\Http\Middleware\EnforceSessionCap;
 use App\Models\User;
@@ -36,7 +37,7 @@ Route::get('/auth/callback', fn () => Inertia::render('Auth/Callback'))->name('a
 
 // Story 4.8 open question 1: the only guarded page until Epic 6 builds the dashboard; later epics attach
 // `auth.verified` / `admin` to their own routes.
-Route::get('/dashboard', fn () => Inertia::render('Home'))->middleware('auth.verified')->name('dashboard');
+Route::get('/dashboard', DashboardController::class)->middleware('auth.verified')->name('dashboard');
 Route::get('/project/{id}', [ProjectOverviewController::class, 'show'])->middleware('auth.verified')->name('project.overview');
 
 // Dev-only routes: local and testing, never production or staging. Decided when the routes load, so
@@ -65,6 +66,20 @@ if (app()->environment(['local', 'testing'])) {
 
     // Story 6.2b: the Overview with a fixture snapshot, for tests/Browser/project-overview.spec.ts (the spec stubs
     // GET /api/projects/{id} to move the status). `?status=` and `?revisions=` (left) pick the state; no database.
+    // Story 6.1: the project list with fixture rows (`?n=` projects, default 3), for tests/browser/project-list.spec.ts.
+    Route::get('/dev/dashboard', function (Request $request) {
+        $rows = [
+            ['id' => '00000000-0000-4000-8000-000000000001', 'status' => 'CONCEPTS_READY', 'packageCode' => 'professional', 'name' => 'Northvale Coffee', 'hasNewConcepts' => true, 'hasNewMessages' => false],
+            ['id' => '00000000-0000-4000-8000-000000000002', 'status' => 'IN_DESIGN', 'packageCode' => 'essential', 'name' => 'Fernhill Bakery', 'hasNewConcepts' => false, 'hasNewMessages' => true],
+            ['id' => '00000000-0000-4000-8000-000000000003', 'status' => 'DELIVERED', 'packageCode' => 'complete', 'name' => null, 'hasNewConcepts' => false, 'hasNewMessages' => false],
+        ];
+
+        return Inertia::render('Dashboard', [
+            'projects' => array_slice($rows, 0, max(0, min(3, $request->integer('n', 3)))),
+            'user' => ['name' => 'Sam Rivera', 'email' => 'sam@example.com'],
+        ]);
+    })->name('dev.dashboard');
+
     Route::get('/dev/project-overview', function (Request $request) {
         $status = $request->string('status', 'AWAITING_BRIEF')->limit(30, '')->toString();
         $left = max(0, min(5, $request->integer('revisions', 2)));

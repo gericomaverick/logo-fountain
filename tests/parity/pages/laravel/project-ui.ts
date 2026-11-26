@@ -15,17 +15,23 @@ const LABEL_TO_STATUS: Record<string, ProjectStatus> = {
 const CLIENT_TURN: ProjectStatus[] = ["AWAITING_BRIEF", "CONCEPTS_READY", "FINAL_FILES_READY", "ON_HOLD"];
 const NOBODY_TURN: ProjectStatus[] = ["DELIVERED", "CANCELLED", "REFUNDED"];
 
+const PROJECT_PATH_ANY = /\/project\/[0-9a-f-]{36}$/i;
 const idFromUrl = (page: Page) => new URL(page.url()).pathname.match(PROJECT_PATH)?.[1] ?? null;
 
 export function portalOverview(page: Page): PortalPages {
   const self: PortalPages = {
-    // Until 6.1 builds the dashboard list, the project is found through GET /api/projects (the same list).
+    // Story 6.1: one project lands on its Overview after sign-in; with several, /dashboard is the real list and the
+    // project is opened by its card (named, or the only one if `name` is omitted).
     async openProject(name) {
       if (idFromUrl(page) && !name) return;
-      const res = await page.request.get("/api/projects", { headers: { Accept: "application/json" } });
-      const projects = ((await res.json()) as { projects: { id: string }[] }).projects;
-      if (!name && projects.length !== 1) throw new Error(`openProject(): expected exactly one project, found ${projects.length}`);
-      await page.goto(`/project/${projects[0].id}`);
+      await page.goto("/dashboard");
+      if (!idFromUrl(page)) {
+        const cards = page.getByRole("list", { name: "Your projects" }).getByRole("link", name ? { name } : undefined);
+        const count = await cards.count();
+        if (count !== 1) throw new Error(`openProject(${name ?? ""}): expected exactly one matching project, found ${count}`);
+        await cards.click();
+        await page.waitForURL(PROJECT_PATH_ANY);
+      }
       await page.getByRole("heading", { level: 1 }).waitFor();
     },
     async currentProjectId() {

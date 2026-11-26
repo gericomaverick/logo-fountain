@@ -56,3 +56,23 @@ None.
 `sprint-status.yaml`. Inventory C-02 left "not started": snapshot half and UI remain.
 ### Open items
 Home, one-project shortcut, `/dashboard`, admin redirect: held by the owner.
+
+## Conversion record: UI half (home, one-project shortcut, admin redirect)
+
+### Built
+`DashboardController` (`/dashboard`: one project redirects to `/project/{id}`, otherwise `Pages/Dashboard.tsx`: cards from `Components/ui` (Card, CardLink, StatusPill, EmptyState) with turn pill, "New concepts" / "New message" dot line, empty state). Rows come from `ProjectSnapshot::for` per project (brand name from the latest brief, `hasNewConcepts/hasNewMessages`); `GET /api/projects` is unchanged. `ProjectOverviewController`: an admin on `/project/{id}` redirects to `/admin/projects/{id}` (that page 404s until Epic 7). Dev fixture route `/dev/dashboard`. Parity page object `openProject` (`tests/parity/pages/laravel/project-ui.ts`) now goes through `/dashboard` and the list cards.
+### Tests
+| Layer | Test | Result |
+|---|---|---|
+| L2 | `tests/Feature/DashboardPageTest.php` (4), `ProjectOverviewPageTest` admin case changed to the redirect | in `bin/test` exit 0: Pint, Larastan, Pest 2237 passed, 1 warning (`SafeNextTest`, not from this change) |
+| L7 | `tests/browser/project-list.spec.ts` (3 tests x desktop+phone = 6), own stack port 18087 | 6 pass. `project-overview.spec.ts` rerun once: 42 passed in total with the list spec, apart from the card-click test fixed afterwards |
+| L4 | DV-UX journeys 1 and 2 (`@deviation @ui`) on Laravel via `laravel-stack.mjs --only "DV-UX/C-01/A-01\|DV-UX/D-02"` | 2/2 pass |
+`bin/ui-test` exit 0 (237 unit tests, lint, tsc). Screenshots (not baselines, not looked at by me): `apps/portal/tests/browser/screens/project-list-{desktop,phone}.png`, `project-list-empty-{desktop,phone}.png` (git-ignored).
+### Deviations / decisions
+- **Admin on `/dashboard` is not redirected to `/admin`** (Next does): `/admin` does not exist until Epic 7, so the redirect stranded admin sign-in on a 404 (seen in the DV-UX journey). The admin sees the membership-based list, normally empty. Add the redirect with Epic 7.
+- The brief said `@client&@ui` selects nothing; the gate used is the `@deviation @ui` DV-UX journey plus the browser spec.
+- The "new" dots are one text line with a dot, not Concepts/Messages tab dots; the Overview's shell tabs still show no dots (`isNew` is not passed in `Project/Overview.tsx`).
+### Not run
+DV-UX journey 3 (setup link `next`), `@client&@ui` (empty), the Next side, axe on the new page, any other parity gate, the visual look of the screenshots.
+### Open items
+Admin `/dashboard` → `/admin` and the `/admin/projects/{id}` page (Epic 7). Inventory C-01 left as in progress.

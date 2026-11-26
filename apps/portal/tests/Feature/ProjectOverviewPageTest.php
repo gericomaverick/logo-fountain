@@ -63,13 +63,13 @@ it('answers 404 for a well-formed id that matches no project', function () {
     $this->get('/project/00000000-0000-4000-8000-0000000000ff')->assertNotFound();
 });
 
-// Story 6.1 owns the admin redirect to /admin/projects/{id}; until then an admin gets the customer Overview (policy `view`).
-it('lets an admin open the customer Overview until story 6.1 redirects them', function () {
+// Story 6.1 (DV-UX, D-02): an admin on a customer project URL goes to the admin workspace for it.
+it('redirects an admin to /admin/projects/{id}', function () {
     $project = Project::factory()->create(['status' => 'CONCEPTS_READY']);
     $admin = Profile::factory()->admin()->create()->user;
     ovSignIn($admin);
 
-    $this->get("/project/{$project->id}")->assertOk()->assertInertia(fn (Assert $page) => $page->component('Project/Overview')->where('projectId', $project->id));
+    $this->get("/project/{$project->id}")->assertRedirect("/admin/projects/{$project->id}");
 });
 
 it('serves the dev fixture page with the requested status', function () {
