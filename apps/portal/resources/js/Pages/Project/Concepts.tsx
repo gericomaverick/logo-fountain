@@ -7,7 +7,7 @@ import { logoutAndVerifySession } from '@/lib/auth';
 import { apiError, cardStatus, signed, type ApiConcept } from '@/lib/concepts';
 
 /**
- * Story 6.7 UI half (C-08; UX §14): the concepts gallery. Big images, the concept number and version, newest first.
+ * Story 6.7 UI half (C-08; UX §14): the concepts gallery. Big images, the concept number and version, in API order (by number), as Next.
  * Opening it marks concepts as seen (read-state, K-14's "new" rule as in Next), which clears the tab dot.
  * Images are the API's signed URLs. Feedback and approval live on the concept detail (stories 6.8, 6.9).
  */
