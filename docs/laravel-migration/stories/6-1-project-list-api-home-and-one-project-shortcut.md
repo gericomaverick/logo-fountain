@@ -75,4 +75,4 @@ Home, one-project shortcut, `/dashboard`, admin redirect: held by the owner.
 ### Not run
 DV-UX journey 3 (setup link `next`), `@client&@ui` (empty), the Next side, axe on the new page, any other parity gate, the visual look of the screenshots.
 ### Open items
-Admin `/dashboard` → `/admin` and the `/admin/projects/{id}` page (Epic 7). Inventory C-01 left as in progress.
+Admin `/dashboard` → `/admin` and the `/admin/projects/{id}` page (Epic 7). Inventory C-01 row not edited (still "Not started"); the owner or reviewer should update it.
