@@ -45,8 +45,8 @@ it('does not register the catalogue route in a real production process', functio
     $production = Process::path(base_path())->env($env)->run(['php', 'artisan', 'route:list', '--json']);
     expect($production->successful())->toBeTrue($production->errorOutput());
     $uris = array_column(json_decode($production->output(), true, flags: JSON_THROW_ON_ERROR), 'uri');
-    expect($uris)->toContain('/')->not->toContain('dev/ui')->not->toContain('dev/ui/status')->not->toContain('dev/ui/media')->not->toContain('dev/ui/shells')->not->toContain('dev/ui/shells/admin')->not->toContain('dev/client-address')->not->toContain('dev/project-overview');
+    expect($uris)->toContain('/')->not->toContain('dev/ui')->not->toContain('dev/ui/status')->not->toContain('dev/ui/media')->not->toContain('dev/ui/shells')->not->toContain('dev/ui/shells/admin')->not->toContain('dev/client-address')->not->toContain('dev/project-overview')->not->toContain('dev/dashboard');
 
     $local = Process::path(base_path())->env(['APP_ENV' => 'local'])->run(['php', 'artisan', 'route:list', '--json']);
-    expect(array_column(json_decode($local->output(), true, flags: JSON_THROW_ON_ERROR), 'uri'))->toContain('dev/ui')->toContain('dev/ui/status')->toContain('dev/ui/media')->toContain('dev/ui/shells')->toContain('dev/ui/shells/admin')->toContain('dev/project-overview');
+    expect(array_column(json_decode($local->output(), true, flags: JSON_THROW_ON_ERROR), 'uri'))->toContain('dev/ui')->toContain('dev/ui/status')->toContain('dev/ui/media')->toContain('dev/ui/shells')->toContain('dev/ui/shells/admin')->toContain('dev/project-overview')->toContain('dev/dashboard');
 });

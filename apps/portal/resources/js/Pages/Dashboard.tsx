@@ -26,7 +26,7 @@ type Props = { projects: ProjectRow[]; user: { name: string; email: string } };
 const PACKAGE = (code: string) => code.charAt(0).toUpperCase() + code.slice(1);
 
 export default function Dashboard({ projects, user }: Props) {
-    const first = user.name.trim().split(/\s+/)[0] || 'there';
+    const first = user.name.trim().split(/\s+/)[0];
     const userMenu = {
         user,
         accountHref: '/account',
@@ -36,7 +36,7 @@ export default function Dashboard({ projects, user }: Props) {
     return (
         <CustomerShell homeHref="/dashboard" userMenu={userMenu} breadcrumbs={[{ label: 'Projects' }]}>
             <Head title="Projects" />
-            <h1 className="text-2xl font-semibold text-fg">Welcome, {first}</h1>
+            <h1 className="text-2xl font-semibold text-fg">{first ? `Welcome, ${first}` : 'Welcome'}</h1>
             {projects.length === 0 ? (
                 <EmptyState title="No projects yet" icon={FolderOpen}>
                     Your projects will appear here once you have ordered a package.

@@ -76,20 +76,11 @@ final class ProjectSnapshot
         $timestamps = self::timestamps($project, $concepts->all(), $revisions['rows'], $concepts->firstWhere('status', 'approved'), $finalAvailable ? FileAsset::query()->whereKey($finalAsset->id)->first() : null);
         $timeline = ProjectTimeline::build($status, $timestamps, $hasApproved || $persisted === 'APPROVED');
 
-        $latestMessageAt = self::at(DB::table('messages')->where('project_id', $pid)->where('kind', '!=', 'system')->max('created_at'));
-        $latestComment = self::at(DB::table('concept_comments')->where('project_id', $pid)->max('created_at'));
-        $latestConceptAt = null;
-        foreach ($concepts as $c) {
-            foreach ([$c->created_at, $c->updated_at, $latestComment] as $candidate) {
-                $candidate = $candidate !== null ? CarbonImmutable::instance($candidate) : null;
-                if ($candidate !== null && ($latestConceptAt === null || $candidate->greaterThan($latestConceptAt))) {
-                    $latestConceptAt = $candidate;
-                }
-            }
-        }
-        $read = $userId !== null ? DB::table('project_read_states')->where('user_id', $userId)->where('project_id', $pid)->first() : null;
-        $seenMessages = self::at($read?->last_seen_messages_at);
-        $seenConcepts = self::at($read?->last_seen_concepts_at);
+        $activity = self::activity([$pid], $userId)[$pid];
+        $latestMessageAt = $activity['latestMessageAt'];
+        $latestConceptAt = $activity['latestConceptAt'];
+        $seenMessages = $activity['seenMessages'];
+        $seenConcepts = $activity['seenConcepts'];
 
         $order = DB::table('project_orders')->where('project_id', $pid)->orderByDesc('created_at')->first();
         $stuckReason = $order === null ? 'Missing order record (webhook likely never fulfilled).'
@@ -133,8 +124,8 @@ final class ProjectSnapshot
                 'lastSeenMessagesAt' => $seenMessages !== null ? self::iso($seenMessages) : null,
                 'lastSeenConceptsAt' => $seenConcepts !== null ? self::iso($seenConcepts) : null,
             ], fn ($v) => $v !== null),
-            'hasNewMessages' => $latestMessageAt !== null && ($seenMessages === null || $latestMessageAt->greaterThan($seenMessages)),
-            'hasNewConcepts' => $latestConceptAt !== null && ($seenConcepts === null || $latestConceptAt->greaterThan($seenConcepts)),
+            'hasNewMessages' => $activity['hasNewMessages'],
+            'hasNewConcepts' => $activity['hasNewConcepts'],
         ];
         if ($latestMessageAt !== null) {
             $snapshot['latestMessageAt'] = self::iso($latestMessageAt);
@@ -144,6 +135,54 @@ final class ProjectSnapshot
         }
 
         return $snapshot;
+    }
+
+    /**
+     * The new-activity inputs for several projects in three queries (the list uses it too, so the "new" rule lives
+     * once): latest non-system message, latest concept activity (a client-visible concept's created or updated time,
+     * or the project's latest concept comment, only when it has a visible concept) and the user's read state.
+     *
+     * @param  array<int, string>  $projectIds
+     * @return array<string, array{latestMessageAt: ?CarbonImmutable, latestConceptAt: ?CarbonImmutable, seenMessages: ?CarbonImmutable, seenConcepts: ?CarbonImmutable, hasNewMessages: bool, hasNewConcepts: bool}>
+     */
+    public static function activity(array $projectIds, ?string $userId): array
+    {
+        if ($projectIds === []) {
+            return [];
+        }
+        $messages = DB::table('messages')->whereIn('project_id', $projectIds)->where('kind', '!=', 'system')
+            ->groupBy('project_id')->selectRaw('project_id, max(created_at) as latest')->pluck('latest', 'project_id');
+        $comments = DB::table('concept_comments')->whereIn('project_id', $projectIds)
+            ->groupBy('project_id')->selectRaw('project_id, max(created_at) as latest')->pluck('latest', 'project_id');
+        $concepts = DB::table('concepts')->whereIn('project_id', $projectIds)->whereIn('status', Concept::CLIENT_VISIBLE_STATUSES)
+            ->groupBy('project_id')->selectRaw('project_id, max(created_at) as created, max(updated_at) as updated')->get()->keyBy('project_id');
+        $reads = $userId !== null
+            ? DB::table('project_read_states')->where('user_id', $userId)->whereIn('project_id', $projectIds)->get()->keyBy('project_id')
+            : collect();
+
+        $out = [];
+        foreach ($projectIds as $id) {
+            $latestMessageAt = self::at($messages[$id] ?? null);
+            $latestConceptAt = null;
+            if (isset($concepts[$id])) {
+                foreach ([$concepts[$id]->created, $concepts[$id]->updated, $comments[$id] ?? null] as $candidate) {
+                    $candidate = self::at($candidate);
+                    if ($candidate !== null && ($latestConceptAt === null || $candidate->greaterThan($latestConceptAt))) {
+                        $latestConceptAt = $candidate;
+                    }
+                }
+            }
+            $seenMessages = self::at($reads[$id]->last_seen_messages_at ?? null);
+            $seenConcepts = self::at($reads[$id]->last_seen_concepts_at ?? null);
+            $out[$id] = [
+                'latestMessageAt' => $latestMessageAt, 'latestConceptAt' => $latestConceptAt,
+                'seenMessages' => $seenMessages, 'seenConcepts' => $seenConcepts,
+                'hasNewMessages' => $latestMessageAt !== null && ($seenMessages === null || $latestMessageAt->greaterThan($seenMessages)),
+                'hasNewConcepts' => $latestConceptAt !== null && ($seenConcepts === null || $latestConceptAt->greaterThan($seenConcepts)),
+            ];
+        }
+
+        return $out;
     }
 
     /**

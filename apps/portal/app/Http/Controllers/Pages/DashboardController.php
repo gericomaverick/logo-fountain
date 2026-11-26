@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Middleware\EnforceSessionCap;
 use App\Models\Project;
 use App\Models\User;
-use App\Queries\ProjectSnapshot;
+use App\Queries\ProjectListRows;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -33,20 +33,7 @@ final class DashboardController extends Controller
         }
 
         return Inertia::render('Dashboard', [
-            'projects' => $projects->map(function (Project $p) use ($user) {
-                $snap = ProjectSnapshot::for($p, $user->id);
-                $answers = is_array($snap['latestBrief'] ?? null) ? ($snap['latestBrief']['answers'] ?? null) : null;
-                $brand = is_array($answers) && is_string($answers['brandName'] ?? null) ? trim($answers['brandName']) : '';
-
-                return [
-                    'id' => $p->id,
-                    'status' => $snap['status'],
-                    'packageCode' => $p->package_code,
-                    'name' => $brand !== '' ? $brand : null,
-                    'hasNewConcepts' => $snap['hasNewConcepts'],
-                    'hasNewMessages' => $snap['hasNewMessages'],
-                ];
-            })->values(),
+            'projects' => ProjectListRows::for($projects, $user->id),
             'user' => ['name' => $user->name, 'email' => $user->email],
         ]);
     }

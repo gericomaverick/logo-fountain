@@ -75,4 +75,11 @@ Home, one-project shortcut, `/dashboard`, admin redirect: held by the owner.
 ### Not run
 DV-UX journey 3 (setup link `next`), `@client&@ui` (empty), the Next side, axe on the new page, any other parity gate, the visual look of the screenshots.
 ### Open items
-Admin `/dashboard` → `/admin` and the `/admin/projects/{id}` page (Epic 7). Inventory C-01 row not edited (still "Not started"); the owner or reviewer should update it.
+Admin `/dashboard` → `/admin` and the `/admin/projects/{id}` page (Epic 7). Inventory C-01 set to "Partly built" (Overview tab dots and the admin redirect remain).
+
+### Critic fixes (UI half)
+- **Queries:** the list no longer builds a snapshot per project. `App\Queries\ProjectListRows` runs a fixed set of queries (approved concepts, final ZIPs, latest brief per project, then `ProjectSnapshot::activity`); no signed URLs. `ProjectSnapshot::for` now calls the same `activity()` for the new flags, so the rule lives once. A Pest case checks status derivation and the flags.
+- **Deviation from Next's `/dashboard` (matches Next's own snapshot instead):** Next's dashboard page counts concept activity from `concepts` only (published/approved, created/updated); its snapshot (`lib/project-snapshot.ts:162-177`) also counts the latest `concept_comments`. Laravel uses the snapshot rule on the list too, so the list and the Overview agree. The published/approved filter matches (`Concept::CLIENT_VISIBLE_STATUSES`). Messages exclude `system` in both.
+- **Tests added:** own-projects-only (another client's project absent), true cases for both flags (and cleared by read state; system message and draft concept do not flag), status derivation, `/dev/dashboard` absent in production (`DevUiRouteTest`). Browser: visible pill text for the three fixture turns, an on-hold and a cancelled row ("Paused", "Cancelled"; a cancelled project's pill reads Cancelled, not Closed), and the card click now asserts the exact requested path and the Overview h1 (the signed-out fixture is stood in for with a route stub).
+- Welcome line is "Welcome" when the name is blank. Route comments in `routes/web.php` fixed.
+- **Still not run:** axe on the list (stays not run), focus by eye, journey 3, the Next side.

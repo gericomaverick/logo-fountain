@@ -35,8 +35,8 @@ Route::get('/checkout/success', fn () => Inertia::render('Checkout/Success'))->n
 Route::get('/checkout/continue', fn () => Inertia::render('Checkout/Continue'))->name('checkout.continue');
 Route::get('/auth/callback', fn () => Inertia::render('Auth/Callback'))->name('auth.callback');
 
-// Story 4.8 open question 1: the only guarded page until Epic 6 builds the dashboard; later epics attach
-// `auth.verified` / `admin` to their own routes.
+// Story 6.1: the project list (one project goes straight to its Overview). Guarded pages attach `auth.verified`; admin
+// pages will attach `admin` with Epic 7.
 Route::get('/dashboard', DashboardController::class)->middleware('auth.verified')->name('dashboard');
 Route::get('/project/{id}', [ProjectOverviewController::class, 'show'])->middleware('auth.verified')->name('project.overview');
 
@@ -64,22 +64,24 @@ if (app()->environment(['local', 'testing'])) {
     // Media and data components, Card/Panel, Tabs and usePolling (story 1.8c).
     Route::get('/dev/ui/media', fn () => Inertia::render('Dev/UiMedia'))->name('dev.ui.media');
 
-    // Story 6.2b: the Overview with a fixture snapshot, for tests/Browser/project-overview.spec.ts (the spec stubs
-    // GET /api/projects/{id} to move the status). `?status=` and `?revisions=` (left) pick the state; no database.
-    // Story 6.1: the project list with fixture rows (`?n=` projects, default 3), for tests/browser/project-list.spec.ts.
+    // Story 6.1: the project list with fixture rows (`?n=` projects, default 3, up to 5), for tests/browser/project-list.spec.ts.
     Route::get('/dev/dashboard', function (Request $request) {
         $rows = [
             ['id' => '00000000-0000-4000-8000-000000000001', 'status' => 'CONCEPTS_READY', 'packageCode' => 'professional', 'name' => 'Northvale Coffee', 'hasNewConcepts' => true, 'hasNewMessages' => false],
             ['id' => '00000000-0000-4000-8000-000000000002', 'status' => 'IN_DESIGN', 'packageCode' => 'essential', 'name' => 'Fernhill Bakery', 'hasNewConcepts' => false, 'hasNewMessages' => true],
             ['id' => '00000000-0000-4000-8000-000000000003', 'status' => 'DELIVERED', 'packageCode' => 'complete', 'name' => null, 'hasNewConcepts' => false, 'hasNewMessages' => false],
+            ['id' => '00000000-0000-4000-8000-000000000004', 'status' => 'ON_HOLD', 'packageCode' => 'essential', 'name' => 'Harbour Studio', 'hasNewConcepts' => false, 'hasNewMessages' => false],
+            ['id' => '00000000-0000-4000-8000-000000000005', 'status' => 'CANCELLED', 'packageCode' => 'essential', 'name' => 'Old Mill', 'hasNewConcepts' => false, 'hasNewMessages' => false],
         ];
 
         return Inertia::render('Dashboard', [
-            'projects' => array_slice($rows, 0, max(0, min(3, $request->integer('n', 3)))),
+            'projects' => array_slice($rows, 0, max(0, min(5, $request->integer('n', 3)))),
             'user' => ['name' => 'Sam Rivera', 'email' => 'sam@example.com'],
         ]);
     })->name('dev.dashboard');
 
+    // Story 6.2b: the Overview with a fixture snapshot, for tests/Browser/project-overview.spec.ts (the spec stubs
+    // GET /api/projects/{id} to move the status). `?status=` and `?revisions=` (left) pick the state; no database.
     Route::get('/dev/project-overview', function (Request $request) {
         $status = $request->string('status', 'AWAITING_BRIEF')->limit(30, '')->toString();
         $left = max(0, min(5, $request->integer('revisions', 2)));
