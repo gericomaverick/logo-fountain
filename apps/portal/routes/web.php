@@ -2,6 +2,7 @@
 
 use App\Domain\ProjectTimeline;
 use App\Http\Controllers\Pages\DashboardController;
+use App\Http\Controllers\Pages\ProjectConceptsController;
 use App\Http\Controllers\Pages\ProjectOverviewController;
 use App\Http\Middleware\EnforceSessionCap;
 use App\Models\User;
@@ -39,6 +40,8 @@ Route::get('/auth/callback', fn () => Inertia::render('Auth/Callback'))->name('a
 // pages will attach `admin` with Epic 7.
 Route::get('/dashboard', DashboardController::class)->middleware('auth.verified')->name('dashboard');
 Route::get('/project/{id}', [ProjectOverviewController::class, 'show'])->middleware('auth.verified')->name('project.overview');
+Route::get('/project/{id}/concepts', [ProjectConceptsController::class, 'gallery'])->middleware('auth.verified')->name('project.concepts');
+Route::get('/project/{id}/concept/{conceptId}', [ProjectConceptsController::class, 'show'])->middleware('auth.verified')->name('project.concept');
 
 // Dev-only routes: local and testing, never production or staging. Decided when the routes load, so
 // `route:cache` on a production box leaves them out (tests/Feature/DevUiRouteTest.php).
@@ -103,6 +106,18 @@ if (app()->environment(['local', 'testing'])) {
             'user' => ['name' => 'Sam Rivera', 'email' => 'sam@example.com'],
         ]);
     })->name('dev.project-overview');
+
+    // Story 6.7: the gallery and the viewer with fixture props, for tests/browser/project-concepts.spec.ts (the spec stubs
+    // the /api/projects/{id}/concepts, .../assets and read-state calls). `?new=1` shows the Concepts tab dot.
+    $conceptFixture = fn (Request $request) => [
+        'projectId' => '00000000-0000-4000-8000-000000000001',
+        'snapshot' => ['id' => '00000000-0000-4000-8000-000000000001', 'status' => 'CONCEPTS_READY', 'packageCode' => 'essential', 'timeline' => [], 'entitlementUsage' => ['concepts' => ['limit' => 3, 'consumed' => 2, 'reserved' => 0, 'remaining' => 1], 'revisions' => ['limit' => 3, 'consumed' => 0, 'reserved' => 0, 'remaining' => 3]], 'hasNewConcepts' => $request->boolean('new'), 'hasNewMessages' => false, 'latestBrief' => ['answers' => ['brandName' => 'Northvale Coffee']]],
+        'user' => ['name' => 'Sam Rivera', 'email' => 'sam@example.com'],
+    ];
+    Route::get('/dev/project-concepts', fn (Request $request) => Inertia::render('Project/Concepts', $conceptFixture($request)))->name('dev.project-concepts');
+    Route::get('/dev/project-concept', fn (Request $request) => Inertia::render('Project/Concept', $conceptFixture($request) + [
+        'concept' => ['id' => '00000000-0000-4000-8000-0000000000c1', 'number' => 2, 'status' => $request->string('status', 'published')->limit(12, '')->toString(), 'notes' => 'A bolder direction'],
+    ]))->name('dev.project-concept');
 
     // Story 1.9: the customer and admin shells with sample props. `?section=` picks the page, so the
     // section tabs are real links between URLs (unknown values fall back to a page outside a project).

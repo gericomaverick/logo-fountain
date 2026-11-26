@@ -9,7 +9,8 @@ const todo = (what: string, story: string) => (): never => {
   throw new Error(`Laravel page object ${what}: not implemented (story ${story})`);
 };
 
-export function areas08b(_page: Page): { brief: BriefPages; thread: ProjectThreadPages; concepts: ConceptPages; upsell: UpsellPages } {
+export function areas08b(page: Page): { brief: BriefPages; thread: ProjectThreadPages; concepts: ConceptPages; upsell: UpsellPages } {
+  let openNumber = 0;
   return {
     brief: {
       open: todo("brief.open", "6.5"),
@@ -22,10 +23,36 @@ export function areas08b(_page: Page): { brief: BriefPages; thread: ProjectThrea
     },
     thread: { systemMessages: todo("thread.systemMessages", "6.10") },
     concepts: {
-      hasNewConcepts: todo("concepts.hasNewConcepts", "6.2b"),
-      openGallery: todo("concepts.openGallery", "6.7"),
-      openConcept: todo("concepts.openConcept", "6.7"),
-      shownImage: todo("concepts.shownImage", "6.7"),
+      // Story 6.7 UI half. Laravel flags new concepts as a dot on the Concepts tab (its link name says "new").
+      async hasNewConcepts() {
+        await page.goto(page.url().replace(/(\/project\/[0-9a-f-]{36}).*/, "$1"));
+        await page.getByRole("heading", { level: 1 }).waitFor();
+        return (await page.getByRole("link", { name: "Concepts, new" }).count()) > 0;
+      },
+      async openGallery() {
+        const seen = page.waitForResponse((r) => r.request().method() === "POST" && new URL(r.url()).pathname.endsWith("/read-state"));
+        await page.goto(page.url().replace(/(\/project\/[0-9a-f-]{36}).*/, "$1/concepts"));
+        await page.getByRole("heading", { level: 1, name: "Concepts" }).waitFor();
+        if (!(await seen).ok()) throw new Error("concepts read-state POST failed");
+        const list = page.getByRole("list", { name: "Concepts" });
+        await list.waitFor();
+        const texts = await list.getByRole("listitem").allInnerTexts();
+        return texts.map((t) => {
+          const m = t.match(/Concept (\d+)[\s\S]*?Version (\d+)/)!;
+          return { number: Number(m[1]), version: Number(m[2]) };
+        });
+      },
+      async openConcept(n: number) {
+        await page.getByRole("list", { name: "Concepts" }).getByRole("link", { name: `Concept ${n}`, exact: true }).click();
+        await page.waitForURL(/\/project\/[0-9a-f-]{36}\/concept\/[0-9a-f-]{36}$/);
+        openNumber = n;
+      },
+      async shownImage() {
+        const img = page.getByRole("img", { name: new RegExp(`^Concept ${openNumber}, version \\d+$`) }).first();
+        await img.waitFor();
+        await page.waitForFunction((el) => (el as HTMLImageElement).complete, await img.elementHandle(), { timeout: 15_000 });
+        return img.evaluate((el: HTMLImageElement) => ({ src: el.currentSrc || el.src, naturalWidth: el.naturalWidth, naturalHeight: el.naturalHeight }));
+      },
       comment: todo("concepts.comment", "6.8"),
       requestRevision: todo("concepts.requestRevision", "6.8"),
       thread: todo("concepts.thread", "6.8"),

@@ -29,6 +29,8 @@ type Snapshot = {
     timeline: TimelineItem[];
     entitlementUsage: { concepts: EntitlementUsage; revisions: EntitlementUsage };
     messages?: Message[];
+    hasNewConcepts?: boolean;
+    hasNewMessages?: boolean;
     updatedAt?: string;
     latestBrief?: { answers?: { brandName?: string } } | null;
     finalZip?: { available?: boolean } | null;
@@ -71,7 +73,7 @@ export default function Overview({ projectId, snapshot: initial, user }: Props) 
     };
 
     return (
-        <CustomerShell homeHref="/dashboard" userMenu={userMenu} breadcrumbs={[{ label: 'Projects', href: '/dashboard' }, { label: brand }]} project={{ current: 'overview', hrefs }}>
+        <CustomerShell homeHref="/dashboard" userMenu={userMenu} breadcrumbs={[{ label: 'Projects', href: '/dashboard' }, { label: brand }]} project={{ current: 'overview', hrefs, isNew: { concepts: Boolean(snap.hasNewConcepts), messages: Boolean(snap.hasNewMessages) } }}>
             <Head title={`${brand}: Overview`} />
             <h1 className="text-2xl font-semibold text-fg">{brand}</h1>
             <PurchaseBanner search={typeof window === 'undefined' ? '' : window.location.search} onConfirmed={polling.refresh} />

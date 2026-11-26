@@ -10,7 +10,7 @@ As a signed-in client (or admin), I can list a project's published concepts and 
 2. `GET …/concepts/{cid}/assets` → `{assets:[{path,version,createdAt,url,notes}]}`, every version, version desc. (API, done)
 3. A draft, deleted or archived concept ID, or one from another project, answers byte-identically to an unknown ID: 404 `CONCEPT_NOT_FOUND` (DV-7). (API, done)
 4. Concept and asset payloads carry `imageKey` (DV-12). (API, done)
-5. Gallery `/project/{id}/concepts` and viewer `/project/{id}/concept/{cid}` pages. **Pending: UI waits for the owner's key-screen approval.**
+5. Gallery `/project/{id}/concepts` and viewer `/project/{id}/concept/{cid}` pages. UI half done (see "UI half record").
 
 ## Inventory scope
 C-08, C-09 (API half).
@@ -50,3 +50,12 @@ sprint-status only.
 
 ## Open items
 Owner: approve the key screens, then the UI half (gallery, viewer, `@concepts&@ui`). Inventory C-08/C-09 and DV-7 matrix line "pending the client routes" for assets can be closed at integration; comments/revision routes remain 6.8.
+
+## UI half record
+**Built:** `Pages/ProjectConceptsController` (`/project/{id}/concepts`, `/project/{id}/concept/{conceptId}`; admin redirect as the Overview; a draft, unknown, malformed or other-project concept is 404, DV-7); `Project/Concepts.tsx` (gallery: `ConceptGallery`/`ConceptCard`, newest first, number + version + approved label, loading, error with retry, empty state) and `Project/Concept.tsx` (`ConceptViewer`: image, version history chips newest first, zoom, designer notes, breadcrumbs, error with retry); `lib/concepts.ts`. Images are the API's signed URLs (`imageUrl`/`imageKey`, `assets[].url`/`imageKey`); props carry no storage path. Opening the gallery POSTs `read-state {area:"concepts"}` after the list loads (as Next does); the Concepts tab dot clears only if that call succeeds. The Overview now passes `isNew` (snapshot `hasNewConcepts`/`hasNewMessages`) to the shell, so its dots work too (6.1 finding closed). Dev fixtures `/dev/project-concepts`, `/dev/project-concept` (local/testing only). Laravel parity page objects `hasNewConcepts`, `openGallery`, `openConcept`, `shownImage` implemented in `tests/parity/pages/laravel/areas-0-8b.ts`.
+**Not built (omitted, no placeholders):** feedback composer and revision request (6.8, C-10/C-11, K-14 reserve/consume display), Approve (6.9). K-14 here is only the "new" read rule; the revision pending/delivered display belongs to 6.8.
+**Deviations:** none from Next behaviour for the gallery (cards, not Next's list rows; visual design is the owner's later pass). No per-card "New" label: the read state is per project area, not per concept. No polling on the gallery (Next has none).
+**Tests:** `tests/Feature/ProjectConceptsPageTest.php` (7), `tests/js/concepts.test.ts` (4), `tests/browser/project-concepts.spec.ts` (7 tests x desktop+phone; screenshots in `tests/browser/screens/`, not looked at).
+**Evidence:** `bin/test` exit 0, 2247 passed, 1 warning (Pint, Larastan clean). `bin/ui-test` exit 0 (lint, design lint, 241 unit, tsc). Browser on port 18087: project-concepts 14 passed; project-overview + ui-shells + concepts together 103 passed, 1 failed (an upsell purchase-banner clock test, phone) which passed on rerun (52/52): treated as a flake, unexplained.
+**Parity `@concepts&@ui`:** selects J4, J5, J14; all 3 fail for reasons outside this half. J4 stops at the studio's upload: `POST /api/admin/projects/{id}/concepts` does not exist yet (Epic 7); J5 needs 6.8; J14 is admin. So no journey exercises the gallery end to end; the Laravel page objects are written but unrun against a real concept. It ran on the shared `lf-parity` infra already up (my own `infra:up` hit a port clash on 51025), which I left alone.
+**Not run:** Next-side comparison; Lighthouse; manual look at screenshots.
