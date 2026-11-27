@@ -63,3 +63,8 @@ Owner: approve the key screens, then the UI half (gallery, viewer, `@concepts&@u
 **Not run:** Next-side comparison; Lighthouse; manual look at screenshots.
 
 Note: Next's "newest first" gallery subtitle is deliberately not reproduced; the gallery is in API order (by number).
+
+## Parity page objects (2026-11-27, workbench/epic-6-ui-6)
+Run: `PARITY_LARAVEL_PORT=58400 node scripts/laravel-stack.mjs "@approval&@ui|@revisions&@ui|@concepts&@ui"` (one stack, removed after; port 58400 because an unrelated host `php -S 127.0.0.1:8000` answers on :8000 and 404s every page), then J5 alone after a fix. Next side not run (its page objects are unchanged).
+- **J4** (`j4-concepts.spec.ts`): fails before any concept UI step: the studio's `POST /api/admin/projects/{id}/concepts` is a 404 on Laravel (Epic 7 admin API). The gallery/viewer page objects (`tests/parity/pages/laravel/areas-0-8b.ts`) are exercised by J5 and J7 instead, where they pass. J4's last step, `thread.systemMessages`, is still a stub (story 6.10: no Messages page on this branch).
+- **J14** (`@admin @ui @concepts`): fails at `admin.openProject`, now throwing "needs Epic 7 admin (story 7.2)".

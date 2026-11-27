@@ -4,7 +4,7 @@ import type { Page } from "@playwright/test";
 import type { AdminPages } from "../admin";
 
 const todo = (what: string, story: string) => (): never => {
-  throw new Error(`Laravel page object admin.${what}: not implemented (story ${story})`);
+  throw new Error(`Laravel page object admin.${what}: needs Epic 7 admin (story ${story}); not implemented. Journeys reach these steps through the admin API until then`);
 };
 
 export function createAdmin(_page: Page): AdminPages {

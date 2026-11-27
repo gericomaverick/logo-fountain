@@ -4,6 +4,7 @@ import type { Page } from "@playwright/test";
 import type { BriefPages, ProjectThreadPages } from "../brief";
 import type { ConceptPages } from "../concepts";
 import type { UpsellPages } from "../upsell";
+import { conceptFeedback } from "./concepts";
 
 const todo = (what: string, story: string) => (): never => {
   throw new Error(`Laravel page object ${what}: not implemented (story ${story})`);
@@ -54,9 +55,7 @@ export function areas08b(page: Page): { brief: BriefPages; thread: ProjectThread
         await page.waitForFunction((el) => (el as HTMLImageElement).complete, await img.elementHandle(), { timeout: 15_000 });
         return img.evaluate((el: HTMLImageElement) => ({ src: el.currentSrc || el.src, naturalWidth: el.naturalWidth, naturalHeight: el.naturalHeight }));
       },
-      comment: todo("concepts.comment", "6.8"),
-      requestRevision: todo("concepts.requestRevision", "6.8"),
-      thread: todo("concepts.thread", "6.8"),
+      ...conceptFeedback(page), // 6.8 (concepts.ts)
       allowance: todo("concepts.allowance", "6.2b"),
     },
     upsell: {

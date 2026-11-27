@@ -56,7 +56,8 @@ export function portalOverview(page: Page): PortalPages {
 }
 
 export async function overviewAllowance(page: Page, kind: AllowanceKind): Promise<Allowance> {
-  const id = idFromUrl(page);
+  // From any project page (overview, gallery, a concept): the allowance lives on the overview.
+  const id = new URL(page.url()).pathname.match(/^\/project\/([0-9a-f-]{36})(\/|$)/i)?.[1] ?? null;
   if (!id) throw new Error(`no project is open (at ${page.url()})`);
   await page.goto(`/project/${id}`);
   const label = kind === "concepts" ? "Concepts" : "Revisions";
