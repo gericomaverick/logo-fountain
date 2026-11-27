@@ -87,3 +87,34 @@ export function feedbackError(payload: unknown, fallback: string): { message: st
             return { message: apiError(payload, fallback), upsell: false };
     }
 }
+
+/** Story 6.9 (C-12): Next shows Approve only on a published concept while the project is CONCEPTS_READY. */
+export function canApprove(conceptStatus: string, projectStatus: string): boolean {
+    return conceptStatus === 'published' && projectStatus === 'CONCEPTS_READY';
+}
+
+/** Next's `lib/final-approval.ts` copy. */
+export const APPROVAL_COPY = {
+    title: 'Ready to lock this in?',
+    body: 'Once you approve this concept, it becomes your final chosen direction and we’ll move straight into final file delivery. Your other concepts are archived. This step is final.',
+    acknowledgement: 'I understand this approval is final and I want to continue.',
+    confirm: 'Yes, approve this concept',
+    cancel: 'Not yet',
+};
+
+/** The approve API's codes as plain sentences (C-12). */
+export function approvalError(payload: unknown): string {
+    const err = (payload as { error?: { code?: string } } | null)?.error;
+    switch (typeof err === 'object' ? err?.code : undefined) {
+        case 'CONCEPT_NOT_FOUND':
+            return 'This concept can’t be approved any more. It may already be approved or replaced. Reload the page to see the latest.';
+        case 'INVALID_PROJECT_STATUS_TRANSITION':
+            return 'Your project has moved on, so this concept can’t be approved right now. Reload the page to see where it is.';
+        case 'STATUS_CHANGE_CONFLICT':
+            return 'Your project changed while we were saving. Nothing was approved: please try again.';
+        case 'PROJECT_NOT_FOUND':
+            return 'We couldn’t find this project. Check the link or go back to your projects.';
+        default:
+            return apiError(payload, 'We couldn’t approve this concept. Please try again.');
+    }
+}

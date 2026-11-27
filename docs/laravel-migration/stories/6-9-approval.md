@@ -1,6 +1,6 @@
 # Story 6.9: Approval
 
-**Status:** review, **API half only** (UI half pending the owner's key-screen approval) · **DoD variant:** Conversion · **Epic:** 6 · **Covers:** C-12, N-07, N-08, DV-7 · **Gate:** `@approval&@api`, `@approval&@ui` (UI pending) · **After:** 6.7, 2.7. Test mode only.
+**Status:** review, API half and UI half built (UI half not visually checked) · **DoD variant:** Conversion · **Epic:** 6 · **Covers:** C-12, N-07, N-08, DV-7 · **Gate:** `@approval&@api`, `@approval&@ui` (UI pending) · **After:** 6.7, 2.7. Test mode only.
 
 ## Story
 As a signed-in client, I can approve a published concept, which locks my choice and starts final file delivery.
@@ -12,7 +12,7 @@ As a signed-in client, I can approve a published concept, which locks my choice 
 4. In one serializable transaction, project row locked: every other published or approved concept becomes `archived`, this one `approved`, project `AWAITING_APPROVAL`; audits `concept_approved` `{conceptId, conceptNumber}` and `state_changed`. 200 `{ok, concept:{id,number,status}, project:{id,status}}`. (API, done)
 5. N-07 (client, "Concept approved - final files in progress") and N-08 (admin, "Client approved a concept") queued after commit, once each (`email_sent:client_concept_approved:<conceptId>`, `email_sent:admin_concept_approved:<conceptId>`). (API, done)
 6. Follow-up: `SubmitBrief`'s system message goes through `Actions/Messages/PostSystemMessage` (DV-17: deduped since the last clean-slate reset, not across the whole thread). (done)
-7. Approval confirmation dialog (acknowledgement checkbox, copy from `lib/final-approval.ts`). **Pending: UI waits for the owner's key-screen approval.**
+7. Approval confirmation dialog (acknowledgement checkbox, copy from `lib/final-approval.ts`). (UI, done: see UI half.)
 
 ## Inventory scope
 C-12, N-07, N-08 (API half); DV-7 (approve route).
@@ -58,3 +58,11 @@ Owner: approve the key screen so the confirmation dialog UI can follow. (The `pg
 - `tests/Concurrency/ApprovalRaceTest.php` (`pg-race`, child mode `approve` in `Children/race.php`): two parallel approvals of different concepts give one winner and one loser; one approved concept, project AWAITING_APPROVAL, each approval email once. The loser code is pinned to `CONCEPT_NOT_FOUND`; it held in 4 of 4 runs (plus 3 earlier runs under the wider set).
 - Rename: the repeat-approval test in `ApproveConceptApiTest` now says 404 `CONCEPT_NOT_FOUND`; `STATUS_CHANGE_CONFLICT` is now `ErrorCodes::STATUS_CHANGE_CONFLICT` in `ApproveConcept`.
 - Final merged `bin/test`: 2226 passed, 1 warning, exit 0.
+
+## UI half (2026-11-27)
+- **What:** `Components/project/ConceptApproval.tsx`, placed above the feedback on `Pages/Project/Concept.tsx`. Primary "Approve this concept" opens the existing `ConfirmDialog` (focus trap, Escape, "Not yet"): Next's copy (`lib/final-approval.ts`) plus "Your other concepts are archived", an acknowledgement checkbox, confirm "Yes, approve this concept". Posts only `{conceptId}`; a ref guard stops a double submit. `lib/concepts.ts`: `canApprove`, `APPROVAL_COPY`, `approvalError` (`CONCEPT_NOT_FOUND`, `INVALID_PROJECT_STATUS_TRANSITION`, `STATUS_CHANGE_CONFLICT`, `PROJECT_NOT_FOUND`, else the API message); errors show in the dialog, which stays open.
+- **States as Next:** the button shows only for a `published` concept while the project is `CONCEPTS_READY`; an `approved` concept shows a final-files notice with a link to the Overview; archived or other stages show nothing. On success the page props reload (`router.reload()`), so the concept, project status and Overview follow the server.
+- **Deviation:** "Request a revision" on the concept page is now a secondary button so the page has one primary (Approve). Next's Approve is also a secondary button; Laravel follows UX §3 (one primary).
+- **Tests:** `tests/js/concepts.test.ts` (+2); `tests/browser/project-concepts.spec.ts` (+8 `@ui approval`: dialog copy and acknowledgement gate, body, Escape and Not yet with focus return, double click, three error codes, status states; desktop and phone screenshots incl. the dialog); `tests/browser/real-approval.spec.ts` (real stack, no stubs).
+- **Run:** `bin/test` 2248 passed (1 warning, existing). `bin/ui-test` exit 0 (246 unit). `project-concepts.spec.ts` on own stack (port 18087): 62 passed (desktop and phone). Real-stack approval ran once against a tinker-seeded project: approved, final-files state shown, Approve button gone, Overview loaded (first attempt failed on an ambiguous locator in my test, fixed, rerun passed).
+- **Not run:** parity `@approval&@api` / `@approval&@ui` (the Laravel parity page object `tests/parity/pages/laravel/approval.ts` is still a stub and out of this brief's scope, so `@ui` would fail at "not implemented"; the parity stack was not started); the full browser suite; visual check of screenshots (`tests/browser/screens/concept-approve-dialog-*.png`). The Overview's own final-files state was not changed or checked beyond loading.

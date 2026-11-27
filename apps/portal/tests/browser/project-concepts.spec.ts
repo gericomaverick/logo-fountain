@@ -68,7 +68,7 @@ const assets = [
     { version: 1, createdAt: '2026-11-02T10:00:00Z', url: 'https://img.test/v1.png?sig=1', imageKey: 'v1' },
 ];
 
-test('@ui concept viewer: image, version history switches, breadcrumbs, feedback composer, no approve yet', async ({ page }) => {
+test('@ui concept viewer: image, version history switches, breadcrumbs, feedback composer, approve button (6.9)', async ({ page }) => {
     await stub(page, [], undefined, assets);
     await page.goto('/dev/project-concept');
     await expect(page.getByRole('heading', { level: 2, name: 'Concept 2' })).toBeVisible();
@@ -77,7 +77,7 @@ test('@ui concept viewer: image, version history switches, breadcrumbs, feedback
     await page.getByRole('radio', { name: /Version 1/ }).check();
     await expect(page.getByRole('img', { name: 'Concept 2, version 1' })).toBeVisible();
     await expect(page.getByRole('navigation', { name: 'Breadcrumb' }).getByRole('link', { name: 'Concepts' })).toBeVisible();
-    await expect(page.getByRole('button', { name: /approve/i })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Approve this concept' })).toHaveCount(1);
     await expectOnePrimaryPerView(page, 'viewer');
 });
 
@@ -128,6 +128,9 @@ for (const [name, viewport] of [['desktop', { width: 1280, height: 800 }], ['mob
         await page.goto('/dev/project-concept');
         await expect(page.getByRole('img', { name: 'Concept 2, version 2' })).toBeVisible();
         await page.screenshot({ path: `tests/browser/screens/concept-viewer-${name}.png`, fullPage: true });
+        await page.getByRole('button', { name: 'Approve this concept' }).click();
+        await page.getByRole('dialog').getByRole('checkbox').check();
+        await page.screenshot({ path: `tests/browser/screens/concept-approve-dialog-${name}.png`, fullPage: true });
     });
 }
 
@@ -294,4 +297,88 @@ test('@ui feedback: an unlimited package does not promise unlimited revisions (t
     await page.goto('/dev/project-concept?unlimited=1');
     await expect(page.getByTestId('revision-preview')).toHaveText('This asks your designer for a new version.');
     await expect(page.getByTestId('revision-preview')).not.toContainText('unlimited');
+});
+
+// Story 6.9 UI half (C-12): approval on the concept viewer.
+const APPROVE = `**/api/projects/${ID}/approve`;
+const open = async (page: Page) => {
+    await page.getByRole('button', { name: 'Approve this concept' }).click();
+    return page.getByRole('dialog');
+};
+
+test('@ui approval: a confirmation says what approval means, needs the acknowledgement, then posts only the conceptId', async ({ page }) => {
+    await feedbackStub(page);
+    const bodies: unknown[] = [];
+    await page.route(APPROVE, (r) => {
+        bodies.push(r.request().postDataJSON());
+        return r.fulfill({ json: { ok: true, concept: { id: 'x', number: 2, status: 'approved' }, project: { id: ID, status: 'AWAITING_APPROVAL' } } });
+    });
+    await page.goto('/dev/project-concept');
+    await expectOnePrimaryPerView(page, 'concept');
+    const dialog = await open(page);
+    await expect(dialog).toContainText('final chosen direction');
+    await expect(dialog).toContainText('other concepts are archived');
+    const confirm = dialog.getByRole('button', { name: 'Yes, approve this concept' });
+    await expect(confirm).toBeDisabled();
+    await dialog.getByRole('checkbox').check();
+    await confirm.click();
+    await expect(dialog).toBeHidden();
+    expect(bodies).toEqual([{ conceptId: '00000000-0000-4000-8000-0000000000c1' }]);
+});
+
+test('@ui approval: Escape and "Not yet" close it without posting; focus returns to the button', async ({ page }) => {
+    await feedbackStub(page);
+    let posts = 0;
+    await page.route(APPROVE, (r) => { posts++; return r.fulfill({ json: {} }); });
+    await page.goto('/dev/project-concept');
+    const dialog = await open(page);
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    await expect(page.getByRole('button', { name: 'Approve this concept' })).toBeFocused();
+    await open(page);
+    await page.getByRole('button', { name: 'Not yet' }).click();
+    await expect(dialog).toBeHidden();
+    expect(posts).toBe(0);
+});
+
+test('@ui approval: a double click on confirm posts once', async ({ page }) => {
+    await feedbackStub(page);
+    let posts = 0;
+    await page.route(APPROVE, async (r) => { posts++; await new Promise((x) => setTimeout(x, 400)); return r.fulfill({ json: { ok: true } }); });
+    await page.goto('/dev/project-concept');
+    const dialog = await open(page);
+    await dialog.getByRole('checkbox').check();
+    await dialog.getByRole('button', { name: 'Yes, approve this concept' }).dblclick();
+    await expect(dialog).toBeHidden();
+    expect(posts).toBe(1);
+});
+
+for (const [code, text] of [
+    ['CONCEPT_NOT_FOUND', /can’t be approved any more/],
+    ['INVALID_PROJECT_STATUS_TRANSITION', /project has moved on/],
+    ['STATUS_CHANGE_CONFLICT', /Nothing was approved: please try again/],
+] as const) {
+    test(`@ui approval: ${code} shows a plain sentence and keeps the dialog open`, async ({ page }) => {
+        await feedbackStub(page);
+        await page.route(APPROVE, (r) => r.fulfill({ status: 400, json: { error: { code, message: 'raw api text' } } }));
+        await page.goto('/dev/project-concept');
+        const dialog = await open(page);
+        await dialog.getByRole('checkbox').check();
+        await dialog.getByRole('button', { name: 'Yes, approve this concept' }).click();
+        await expect(dialog.getByRole('alert')).toContainText(text);
+        await expect(dialog.getByRole('alert')).not.toContainText('raw api text');
+        await expect(dialog).toBeVisible();
+    });
+}
+
+test('@ui approval: hidden or replaced by the final-files state by status', async ({ page }) => {
+    await feedbackStub(page);
+    for (const url of ['/dev/project-concept?project=REVISIONS_IN_PROGRESS', '/dev/project-concept?status=archived', '/dev/project-concept?project=AWAITING_APPROVAL']) {
+        await page.goto(url);
+        await expect(page.getByRole('button', { name: 'Approve this concept' })).toHaveCount(0);
+    }
+    await page.goto('/dev/project-concept?status=approved&project=AWAITING_APPROVAL');
+    await expect(page.getByText('This concept is approved', { exact: true })).toBeVisible();
+    await expect(page.getByText('preparing your final files')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'See your project overview' })).toHaveAttribute('href', `/project/${ID}`);
 });

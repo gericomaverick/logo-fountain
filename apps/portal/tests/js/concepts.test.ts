@@ -59,3 +59,20 @@ describe('feedback rules (story 6.8)', () => {
         assert.equal(feedbackError({ error: { message: 'Boom' } }, 'f').message, 'Boom');
     });
 });
+
+import { approvalError, canApprove } from '../../resources/js/lib/concepts.ts';
+describe('approval (6.9)', () => {
+    test('shown only for a published concept in CONCEPTS_READY', () => {
+        assert.equal(canApprove('published', 'CONCEPTS_READY'), true);
+        assert.equal(canApprove('published', 'REVISIONS_IN_PROGRESS'), false);
+        assert.equal(canApprove('approved', 'CONCEPTS_READY'), false);
+        assert.equal(canApprove('archived', 'CONCEPTS_READY'), false);
+    });
+    test('codes become plain sentences, unknown ones use the API message', () => {
+        assert.match(approvalError({ error: { code: 'CONCEPT_NOT_FOUND' } }), /can’t be approved any more/);
+        assert.match(approvalError({ error: { code: 'INVALID_PROJECT_STATUS_TRANSITION' } }), /moved on/);
+        assert.match(approvalError({ error: { code: 'STATUS_CHANGE_CONFLICT' } }), /try again/);
+        assert.equal(approvalError({ error: { code: 'X', message: 'Odd.' } }), 'Odd.');
+        assert.match(approvalError(null), /couldn’t approve/);
+    });
+});

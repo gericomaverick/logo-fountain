@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { ConceptViewer, type ConceptVersion } from '@/Components/ui/ConceptViewer';
 import { InlineAlert } from '@/Components/ui/InlineAlert';
+import { ConceptApproval } from '@/Components/project/ConceptApproval';
 import { ConceptFeedback, type RevisionItem } from '@/Components/project/ConceptFeedback';
 import { Button } from '@/Components/ui/Button';
 import { Skeleton } from '@/Components/ui/Skeleton';
@@ -12,7 +13,7 @@ import { apiError, cardStatus, versionNote, versionsOf, type ApiAsset, type Revi
 
 /**
  * Story 6.7 UI half (C-09; UX §11, §14): the concept detail, the image with its version history (newest first,
- * switchable, zoomable). Story 6.8 adds the feedback thread and composer below; Approve is 6.9: not here yet.
+ * switchable, zoomable). Story 6.8 adds the feedback thread and composer below; Story 6.9 adds Approve above the feedback.
  */
 type Props = {
     projectId: string;
@@ -85,6 +86,7 @@ export default function Concept({ projectId, concept, snapshot, user }: Props) {
                     <p className="whitespace-pre-line text-base text-fg-2">{note.text}</p>
                 </div>
             ) : null}
+            <ConceptApproval projectId={projectId} conceptId={concept.id} conceptStatus={concept.status} projectStatus={snapshot.status ?? ''} overviewHref={base} />
             <ConceptFeedback
                 projectId={projectId}
                 conceptId={concept.id}

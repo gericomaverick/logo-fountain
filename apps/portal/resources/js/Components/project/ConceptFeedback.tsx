@@ -157,7 +157,7 @@ export function ConceptFeedback({ projectId, conceptId, conceptStatus, projectSt
                     </Button>
                     <Button
                         type="button"
-                        variant="primary"
+                        variant="secondary"
                         onClick={() => void send('revision')}
                         loading={busy === 'revision'}
                         loadingLabel="Sending…"
